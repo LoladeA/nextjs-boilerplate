@@ -8,6 +8,7 @@ export default function AssessmentStep4() {
   const router = useRouter()
   const [answers, setAnswers] = useState<{ [key: string]: string | number }>({})
   const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
 
   const questions: {
     key: string
@@ -30,11 +31,17 @@ export default function AssessmentStep4() {
     setAnswers({ ...answers, [key]: value })
   }
 
-  async function handleNext() {
+  async function handleSubmit() {
+    setLoading(true)
     setError(null)
+
     const user = await supabaseBrowser.auth.getUser()
     const userId = user.data.user?.id
-    if (!userId) return setError('User not authenticated')
+    if (!userId) {
+      setError('User not authenticated')
+      setLoading(false)
+      return
+    }
 
     try {
       for (const q of questions) {
@@ -45,9 +52,18 @@ export default function AssessmentStep4() {
           answer: { response: answers[q.key] || null }
         })
       }
-      router.push('/assessments/summary') // final page or Step 5
+
+      // Optional: mark assessment complete
+      await supabaseBrowser.from('assessments').insert({
+        user_id: userId,
+        completed_at: new Date().toISOString()
+      })
+
+      // Redirect to dashboard
+      router.push('/dashboard')
     } catch (e: any) {
       setError(e.message)
+      setLoading(false)
     }
   }
 
@@ -104,10 +120,11 @@ export default function AssessmentStep4() {
           Previous
         </button>
         <button
-          onClick={handleNext}
+          onClick={handleSubmit}
+          disabled={loading}
           className="bg-yellow-500 text-green-900 font-semibold py-3 px-6 rounded-lg"
         >
-          Next
+          {loading ? 'Submitting...' : 'Submit Assessment'}
         </button>
       </div>
     </div>
