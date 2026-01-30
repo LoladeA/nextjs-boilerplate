@@ -4,29 +4,17 @@ import { supabaseBrowser } from '@/lib/supabase-browser'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
-export default function AssessmentStep1() {
+export default function AssessmentStep2() {
   const router = useRouter()
   const [answers, setAnswers] = useState<{ [key: string]: number }>({})
   const [error, setError] = useState<string | null>(null)
 
-  // Part 1: Stress & Rhythm (HPA Axis)
   const questions = [
-    {
-      key: 'thermal_friction',
-      label: 'Thermal Friction: Minor temperature shifts frequently interrupt my sleep or focus.'
-    },
-    {
-      key: 'stress_spikes',
-      label: 'Stress Spikes: I feel a surge of irritability triggered by small stressors like a humming appliance or visual mess.'
-    },
-    {
-      key: 'cognitive_fog',
-      label: 'Cognitive Fog: I struggle to prioritise tasks or maintain clarity while inside my home.'
-    },
-    {
-      key: 'circadian_sync',
-      label: 'Circadian Sync: My mood and energy levels are heavily dictated by the seasons or the amount of daylight available.'
-    }
+    { key: 'visual_entropy', label: 'Visual Entropy: The presence of clutter disrupts my train of thought.' },
+    { key: 'acoustic_intrusions', label: 'Acoustic Intrusions: Low-level background noises prevent me from resting.' },
+    { key: 'lighting_fatigue', label: 'Lighting Fatigue: Overhead lighting feels aggressive or tiring.' },
+    { key: 'tactile_grounding', label: 'Tactile Grounding: Materials affect my mood.' },
+    { key: 'spatial_resonance', label: 'Spatial Resonance: My physical tension changes when moving rooms.' }
   ]
 
   function handleChange(key: string, value: number) {
@@ -43,12 +31,12 @@ export default function AssessmentStep1() {
       for (const q of questions) {
         await supabaseBrowser.from('user_responses').insert({
           user_id: userId,
-          assessment_step: 1,
+          assessment_step: 2,
           question_key: q.key,
           answer: { response: answers[q.key] || null }
         })
       }
-      router.push('/assessments/step2')
+      router.push('/assessments/step3')
     } catch (e: any) {
       setError(e.message)
     }
@@ -56,7 +44,7 @@ export default function AssessmentStep1() {
 
   return (
     <div className="min-h-screen p-6 bg-green-900 text-cfc993">
-      <h1 className="text-3xl font-semibold mb-6">Assessment Step 1: Stress & Rhythm</h1>
+      <h1 className="text-3xl font-semibold mb-6">Assessment Step 2: Sensory Thresholds</h1>
 
       {questions.map((q) => (
         <div key={q.key} className="mb-6">
@@ -81,12 +69,20 @@ export default function AssessmentStep1() {
 
       {error && <p className="text-red-600 mb-3">{error}</p>}
 
-      <button
-        onClick={handleNext}
-        className="bg-yellow-500 text-green-900 font-semibold py-3 px-6 rounded-lg"
-      >
-        Next
-      </button>
+      <div className="flex justify-between">
+        <button
+          onClick={() => router.push('/assessments/step1')}
+          className="bg-gray-700 text-white py-3 px-6 rounded-lg"
+        >
+          Previous
+        </button>
+        <button
+          onClick={handleNext}
+          className="bg-yellow-500 text-green-900 font-semibold py-3 px-6 rounded-lg"
+        >
+          Next
+        </button>
+      </div>
     </div>
   )
 }
