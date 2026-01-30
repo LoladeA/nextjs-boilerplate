@@ -1,72 +1,34 @@
-import { supabase } from '../lib/supabase'
+'use client'
 
-type AppPageSection = {
-  id: string
-  page_slug: string
-  section_key: string
-  section_order: number
-  metadata: {
-    title?: string
-    subtitle?: string
-    content?: string
-    image_url?: string
-    button_text?: string
-    button_link?: string
-  }
-}
+import { supabaseBrowser } from '@/lib/supabase-browser'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 
-export default async function Home() {
-  const { data, error } = await supabase
-    .from<AppPageSection>('app_page_sections')
-    .select('*')
-    .eq('page_slug', 'home')
-    .order('section_order', { ascending: true })
+export default function SignupPage() {
+  const router = useRouter()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
 
-  if (error) {
-    console.error(error)
+  async function handleSignup() {
+    setError(null)
+    const { error } = await supabaseBrowser.auth.signUp({ email, password })
+    if (error) setError(error.message)
+    else router.push('/assessments')
   }
 
   return (
-    <div className="min-h-screen bg-green-900 px-4 sm:px-6 lg:px-8">
-      {/* Hero Section */}
-      <section className="text-center py-24">
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white">
-          The Home Is Your Nervous System&apos;s Second Skin
-        </h1>
-      </section>
+    <div className="min-h-screen bg-green-900 flex items-center justify-center px-6">
+      <div className="max-w-md w-full bg-white/90 p-8 rounded-xl">
+        <h1 className="text-2xl font-semibold mb-2 text-gray-900">Begin gently</h1>
+        <p className="text-gray-600 mb-6">Your Home Is Your Nervous System's Second Skin.</p>
 
-      {/* Dynamic Sections from DB */}
-      {data?.map((section) => (
-        <section
-          key={section.id}
-          className="max-w-5xl mx-auto my-12 p-8 bg-white rounded-xl shadow-lg"
-        >
-          {section.metadata.title && (
-            <h2 className="text-3xl font-bold mb-2 text-gray-900">{section.metadata.title}</h2>
-          )}
-          {section.metadata.subtitle && (
-            <h3 className="text-xl text-gray-700 mb-4">{section.metadata.subtitle}</h3>
-          )}
-          {section.metadata.image_url && (
-            <img
-              src={section.metadata.image_url}
-              alt={section.metadata.title || 'Section Image'}
-              className="w-full h-auto mb-4 rounded-lg"
-            />
-          )}
-          {section.metadata.content && (
-            <p className="text-gray-800 mb-4">{section.metadata.content}</p>
-          )}
-          {section.metadata.button_text && section.metadata.button_link && (
-            <a
-              href={section.metadata.button_link}
-              className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              {section.metadata.button_text}
-            </a>
-          )}
-        </section>
-      ))}
+        <input type="email" placeholder="Email" className="w-full mb-3 p-3 rounded border" onChange={e => setEmail(e.target.value)} />
+        <input type="password" placeholder="Password" className="w-full mb-4 p-3 rounded border" onChange={e => setPassword(e.target.value)} />
+        {error && <p className="text-red-600 mb-3">{error}</p>}
+
+        <button onClick={handleSignup} className="w-full bg-green-800 text-white py-3 rounded-lg">Create account</button>
+      </div>
     </div>
   )
 }
