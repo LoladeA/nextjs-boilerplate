@@ -19,7 +19,7 @@ export default async function Home() {
   const { data, error } = await supabase
     .from<AppPageSection>('app_page_sections')
     .select('*')
-    .eq('page_slug', 'home') // only homepage sections
+    .eq('page_slug', 'home')
     .order('section_order', { ascending: true })
 
   if (error) {
@@ -27,7 +27,15 @@ export default async function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-green-900">
+    <div className="min-h-screen bg-green-900 px-4 sm:px-6 lg:px-8">
+      {/* Hero Section */}
+      <section className="text-center py-24">
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white">
+          The Home Is Your Nervous System&apos;s Second Skin
+        </h1>
+      </section>
+
+      {/* Dynamic Sections from DB */}
       {data?.map((section) => (
         <section
           key={section.id}
