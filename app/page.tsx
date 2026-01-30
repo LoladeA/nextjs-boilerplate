@@ -16,11 +16,10 @@ type AppPageSection = {
 }
 
 export default async function Home() {
-  // Fetch sections for the homepage
   const { data, error } = await supabase
     .from<AppPageSection>('app_page_sections')
     .select('*')
-    .eq('page_slug', 'home') // show only homepage sections
+    .eq('page_slug', 'home') // only homepage sections
     .order('section_order', { ascending: true })
 
   if (error) {
@@ -28,17 +27,17 @@ export default async function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-green-900">
       {data?.map((section) => (
         <section
           key={section.id}
           className="max-w-5xl mx-auto my-12 p-8 bg-white rounded-xl shadow-lg"
         >
           {section.metadata.title && (
-            <h2 className="text-3xl font-bold mb-2">{section.metadata.title}</h2>
+            <h2 className="text-3xl font-bold mb-2 text-gray-900">{section.metadata.title}</h2>
           )}
           {section.metadata.subtitle && (
-            <h3 className="text-xl text-gray-600 mb-4">{section.metadata.subtitle}</h3>
+            <h3 className="text-xl text-gray-700 mb-4">{section.metadata.subtitle}</h3>
           )}
           {section.metadata.image_url && (
             <img
@@ -48,7 +47,7 @@ export default async function Home() {
             />
           )}
           {section.metadata.content && (
-            <p className="text-gray-700 mb-4">{section.metadata.content}</p>
+            <p className="text-gray-800 mb-4">{section.metadata.content}</p>
           )}
           {section.metadata.button_text && section.metadata.button_link && (
             <a
