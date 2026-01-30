@@ -1,5 +1,9 @@
-@import "tailwindcss";
+/* Tailwind Base, Components, Utilities */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
+/* Your custom CSS variables */
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -19,8 +23,20 @@
   }
 }
 
+/* Body default styles */
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Optional: Tailwind fade-in animation for dashboard cards/sections */
+.opacity-0 {
+  opacity: 0;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+/* Note: keyframes are defined in tailwind.config.js */
