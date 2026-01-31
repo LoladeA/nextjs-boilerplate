@@ -1,25 +1,29 @@
 {
-  "name": "nextjs",
+  "name": "nextjs-boilerplate",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint . --ext .ts,.tsx"
   },
   "dependencies": {
-    "next": "16.1.6",
-    "react": "19.2.3",
-    "react-dom": "19.2.3",
+    "next": "13.5.4",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
     "@supabase/supabase-js": "^2.33.0"
   },
   "devDependencies": {
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.1.6",
-    "typescript": "^5"
+    "@tailwindcss/postcss": "^3.4.0",
+    "@types/node": "^20.4.2",
+    "@types/react": "^18.2.15",
+    "@types/react-dom": "^18.2.7",
+    "eslint": "^9.9.0",
+    "eslint-config-next": "13.5.4",
+    "tailwindcss": "^3.3.3",
+    "typescript": "^5.2.2",
+    "postcss": "^8.4.32",
+    "autoprefixer": "^10.4.14"
   }
 }
