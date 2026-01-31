@@ -6,8 +6,8 @@ import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 
 // Dynamic imports for charts to prevent SSR errors
-const RadarChart = dynamic(() => import('@/components/RadarChart'), { ssr: false })
-const TrendChart = dynamic(() => import('@/components/TrendChart'), { ssr: false })
+const RadarChart = dynamic(() => import('../../components/RadarChart'), { ssr: false })
+const TrendChart = dynamic(() => import('../../components/TrendChart'), { ssr: false })
 
 interface UserResponse {
   assessment_step: number
