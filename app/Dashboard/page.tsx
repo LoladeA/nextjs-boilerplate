@@ -5,6 +5,7 @@ import { supabaseBrowser } from '@/lib/supabase-browser'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 
+// Dynamic imports for charts to prevent SSR errors
 const RadarChart = dynamic(() => import('@/components/RadarChart'), { ssr: false })
 const TrendChart = dynamic(() => import('@/components/TrendChart'), { ssr: false })
 
@@ -78,7 +79,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen p-6 bg-green-900 text-cfc993">
       <h1 className="text-4xl font-semibold mb-8 text-center opacity-0 animate-fadeIn">
-        Your Home Nervous System Dashboard
+        Your Home's Nervous System Dashboard
       </h1>
 
       {loading ? (
@@ -120,7 +121,7 @@ export default function DashboardPage() {
             <h2 className="text-xl font-semibold mb-4">Priority Recommendations</h2>
             <ul className="list-disc pl-6 space-y-2">
               {signals.environmentalLoad > 10 && <li>Reduce small environmental stressors (noise, clutter, lighting).</li>}
-              {signals.spatialDysregulation > 15 && <li>Optimize room flow and zoning conflicts.</li>}
+              {signals.spatialDysregulation > 15 && <li>Optimise room flow and zoning conflicts.</li>}
               {signals.biologicalMismatch > 8 && <li>Adjust for sensory alignment and thermal comfort.</li>}
             </ul>
           </div>
