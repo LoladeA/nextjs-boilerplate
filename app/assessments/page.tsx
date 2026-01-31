@@ -12,25 +12,57 @@ export default function AssessmentsPage() {
 
   async function handleSubmit() {
     setError(null)
-    const user = supabase.auth.getUser
-    const { error } = await supabase.from('assessments').insert([
-      { user_id: supabase.auth.getUser()?.id, data: answers },
+
+    // 1. Await the authentication layer to identify the inhabitant
+    const { data: userData, error: authError } = await supabase.auth.getUser()
+    
+    if (authError || !userData.user) {
+      setError('You must be logged in to submit an assessment.')
+      return
+    }
+
+    const userId = userData.user.id
+
+    // 2. Insert the data into the system with a structured path
+    const { error: insertError } = await supabase.from('assessments').insert([
+      { 
+        user_id: userId, 
+        data: answers 
+      },
     ])
-    if (error) setError(error.message)
-    else router.push('/dashboard')
+
+    if (insertError) {
+      setError(insertError.message)
+    } else {
+      // 3. Direction: Moving the user toward their new regulated environment
+      router.push('/Dashboard')
+    }
   }
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-semibold mb-4">Assessment Page</h1>
-      <p>Render all assessment questions here.</p>
+    <div className="p-8 bg-green-900 min-h-screen text-[#cfc993]">
+      <h1 className="text-3xl font-semibold mb-4">Assessment</h1>
+      <p className="mb-6 opacity-80">
+        This is where we measure the alignment between your environment and your nervous system.
+      </p>
+      
+      {/* Placeholder for future questions - maintaining structural integrity */}
+      <div className="bg-[#6d6f52]/20 p-6 rounded-lg border border-[#6d6f52]">
+        <p>Assessment questions will be mapped here.</p>
+      </div>
+
       <button
         onClick={handleSubmit}
-        className="mt-6 px-6 py-3 bg-green-800 text-white rounded-lg"
+        className="mt-6 px-8 py-3 bg-yellow-500 text-green-900 font-bold rounded-lg transform transition duration-300 hover:scale-105"
       >
         Submit Assessment
       </button>
-      {error && <p className="text-red-600 mt-2">{error}</p>}
+
+      {error && (
+        <div className="mt-4 p-4 bg-red-900/50 border border-red-500 rounded text-red-200">
+          {error}
+        </div>
+      )}
     </div>
   )
 }
