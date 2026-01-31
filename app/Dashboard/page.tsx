@@ -6,8 +6,8 @@ import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 
 // This tells Next.js: "Go to the root, find 'app', find 'components', find 'RadarChart'"
-const RadarChart = dynamic(() => import('@/app/components/RadarChart'), { ssr: false })
-const TrendChart = dynamic(() => import('@/app/components/TrendChart'), { ssr: false })
+const RadarChart = dynamic(() => import('../components/RadarChart'), { ssr: false })
+const TrendChart = dynamic(() => import('../components/TrendChart'), { ssr: false })
 
 interface UserResponse {
   assessment_step: number
