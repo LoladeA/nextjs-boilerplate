@@ -1,11 +1,12 @@
 'use client'
 
-import { supabaseBrowser } from '@/lib/supabase-browser'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
 export default function AssessmentStep3() {
   const router = useRouter()
+  const supabase = createClientComponentClient()
   const [answers, setAnswers] = useState<{ [key: string]: number }>({})
   const [error, setError] = useState<string | null>(null)
 
@@ -30,19 +31,29 @@ export default function AssessmentStep3() {
 
   async function handleNext() {
     setError(null)
-    const user = await supabaseBrowser.auth.getUser()
-    const userId = user.data.user?.id
-    if (!userId) return setError('User not authenticated')
+    
+    // Identify the inhabitant to ensure data integrity
+    const { data: { session }, error: authError } = await supabase.auth.getSession()
+    
+    if (authError || !session) {
+      return setError('User not authenticated. Please sign in.')
+    }
 
     try {
-      for (const q of questions) {
-        await supabaseBrowser.from('user_responses').insert({
-          user_id: userId,
-          assessment_step: 3,
-          question_key: q.key,
-          answer: { response: answers[q.key] || null }
-        })
-      }
+      // Prepare bulk insertion to minimize network 'noise'
+      const responseEntries = Object.entries(answers).map(([key, value]) => ({
+        user_id: session.user.id,
+        assessment_step: 3,
+        question_key: key,
+        answer: { response: value }
+      }))
+
+      const { error: insertError } = await supabase
+        .from('user_responses')
+        .insert(responseEntries)
+
+      if (insertError) throw insertError
+
       router.push('/assessments/step4')
     } catch (e: any) {
       setError(e.message)
@@ -50,45 +61,51 @@ export default function AssessmentStep3() {
   }
 
   return (
-    <div className="min-h-screen p-6 bg-green-900 text-cfc993">
-      <h1 className="text-3xl font-semibold mb-6">Assessment Step 3: Behavioural Data</h1>
+    <div className="min-h-screen p-6 bg-[#1b270e] text-[#c9ccbb]">
+      <div className="max-w-2xl mx-auto py-12">
+        <h1 className="text-3xl font-serif mb-8 text-[#b5a642]">Step 3: Behavioural Data</h1>
+        
+        <p className="mb-8 text-sm uppercase tracking-widest opacity-60">Mapping Environmental Adaptation</p>
 
-      {questions.map((q) => (
-        <div key={q.key} className="mb-6">
-          <label className="block mb-2">{q.label}</label>
-          <div className="flex space-x-2">
-            {[1, 2, 3, 4, 5].map((val) => (
-              <button
-                key={val}
-                onClick={() => handleChange(q.key, val)}
-                className={`px-4 py-2 rounded-lg ${
-                  answers[q.key] === val
-                    ? 'bg-yellow-500 text-green-900 font-semibold'
-                    : 'bg-green-800 text-white'
-                }`}
-              >
-                {val}
-              </button>
-            ))}
-          </div>
+        <div className="space-y-8">
+          {questions.map((q) => (
+            <div key={q.key} className="bg-[#c9ccbb]/5 p-6 rounded-2xl border border-[#c9ccbb]/10">
+              <label className="block mb-4 font-light leading-relaxed">{q.label}</label>
+              <div className="flex space-x-2">
+                {[1, 2, 3, 4, 5].map((val) => (
+                  <button
+                    key={val}
+                    onClick={() => handleChange(q.key, val)}
+                    className={`px-4 py-2 rounded-lg transition-all ${
+                      answers[q.key] === val
+                        ? 'bg-[#b5a642] text-[#1b270e] font-semibold'
+                        : 'bg-[#1b270e] text-[#c9ccbb] border border-[#c9ccbb]/20 hover:border-[#b5a642]/30'
+                    }`}
+                  >
+                    {val}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
-      ))}
 
-      {error && <p className="text-red-600 mb-3">{error}</p>}
+        {error && <p className="text-red-400 mt-6 text-sm italic">{error}</p>}
 
-      <div className="flex justify-between">
-        <button
-          onClick={() => router.push('/assessments/step2')}
-          className="bg-gray-700 text-white py-3 px-6 rounded-lg"
-        >
-          Previous
-        </button>
-        <button
-          onClick={handleNext}
-          className="bg-yellow-500 text-green-900 font-semibold py-3 px-6 rounded-lg"
-        >
-          Next
-        </button>
+        <div className="flex gap-4 mt-12">
+          <button
+            onClick={() => router.push('/assessments/step2')}
+            className="flex-1 py-4 border border-[#c9ccbb]/20 text-[#c9ccbb] rounded-full font-medium hover:bg-[#c9ccbb]/5 transition-all"
+          >
+            Previous
+          </button>
+          <button
+            onClick={handleNext}
+            className="flex-2 w-full py-4 bg-[#c9ccbb] text-[#1b270e] rounded-full font-medium hover:bg-[#b5a642] transition-all"
+          >
+            Next Step
+          </button>
+        </div>
       </div>
     </div>
   )
