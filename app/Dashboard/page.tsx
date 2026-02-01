@@ -13,6 +13,7 @@ interface UserResponse {
   assessment_step: number
   question_key: string
   answer: { response: string | number }
+  created_at: string // Added to support the temporal TrendChart
 }
 
 export default function DashboardPage() {
@@ -33,11 +34,12 @@ export default function DashboardPage() {
         return
       }
 
-      // 2. Fetch the data from our Intelligence Layer
+      // 2. Fetch the data with Temporal Intelligence (created_at)
       const { data, error: fetchError } = await supabase
         .from('user_responses')
-        .select('assessment_step, question_key, answer')
+        .select('assessment_step, question_key, answer, created_at') // Updated query
         .eq('user_id', session.user.id)
+        .order('created_at', { ascending: true }) // Ensures timeline flows correctly
 
       if (fetchError) {
         setError(fetchError.message)
@@ -57,9 +59,9 @@ export default function DashboardPage() {
     biologicalMismatch: 0
   }
 
+  // We calculate current signals from the most recent data set
   responses.forEach((r) => {
     const val = Number(r.answer?.response) || 0
-    // Grouping logic based on your neuro-design methodology
     if (['thermal_friction', 'stress_spikes', 'cognitive_fog', 'circadian_sync'].includes(r.question_key)) {
       signals.environmentalLoad += val
     } else if (
@@ -88,7 +90,7 @@ export default function DashboardPage() {
         ) : (
           <div className="space-y-12">
             
-            {/* Signal Summaries: Mirroring the User's State */}
+            {/* Signal Summaries */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
                 { label: 'Environmental Load', value: signals.environmentalLoad, desc: 'External stressors taxing the nervous system.' },
@@ -114,12 +116,13 @@ export default function DashboardPage() {
               <div className="bg-[#c9ccbb]/5 border border-[#c9ccbb]/10 p-8 rounded-3xl">
                 <h3 className="text-[#b5a642] text-xs uppercase tracking-widest mb-6">Response Timeline</h3>
                 <div className="h-[300px] flex items-center justify-center">
+                   {/* Passing the responses including created_at for the trend logic */}
                    <TrendChart responses={responses} />
                 </div>
               </div>
             </div>
 
-            {/* Priority Recommendations: The Path Forward */}
+            {/* Priority Recommendations */}
             <section className="bg-[#b5a642] text-[#1b270e] p-10 rounded-3xl">
               <h2 className="text-2xl font-serif mb-6">Strategic Directions</h2>
               <div className="grid md:grid-cols-2 gap-8">
