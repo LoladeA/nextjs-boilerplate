@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Space_Mono } from "next/font/google";
-import "./globals.css";
+import "./globals.css"; // CRITICAL: This link must exist to "turn on" the styles
 
 const inter = Inter({
   subsets: ["latin"],
@@ -25,7 +25,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="scroll-smooth">
-      <body className={`${inter.variable} ${spaceMono.variable} antialiased`}>
+      <body className={`${inter.variable} ${spaceMono.variable} antialiased font-sans`}>
         {children}
       </body>
     </html>
