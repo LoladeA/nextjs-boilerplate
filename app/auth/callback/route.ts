@@ -13,5 +13,5 @@ export async function GET(request: Request) {
   }
 
   // Once confirmed, we move the user to the assessment
-  return NextResponse.redirect(new URL('/assessment', request.url))
+  return NextResponse.redirect(new URL('/assessments', request.url))
 }
