@@ -36,7 +36,7 @@ export default function AuthPage() {
       password,
     })
     if (error) setMessage(error.message)
-    else router.push('/assessment') 
+    else router.push('/assessments') 
     setLoading(false)
   }
 
