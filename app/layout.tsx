@@ -14,20 +14,19 @@ const spaceMono = Space_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Sensory Intelligence Dashboard",
-  description: "Structured paths for nervous system health.",
+  title: "The Sentient Home",
+  description: "NeuroDesign™ Sensory Intelligence for Everyday Living",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="en">
-      <body
-        className={`${inter.variable} ${spaceMono.variable} antialiased`}
-      >
+    <html lang="en" className="scroll-smooth">
+      <body className={`${inter.variable} ${spaceMono.variable} antialiased`}>
+        {/* We leave the container out of the layout so the gradient flows edge-to-edge */}
         {children}
       </body>
     </html>
