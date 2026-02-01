@@ -26,7 +26,6 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <body className={`${inter.variable} ${spaceMono.variable} antialiased`}>
-        {/* We leave the container out of the layout so the gradient flows edge-to-edge */}
         {children}
       </body>
     </html>
