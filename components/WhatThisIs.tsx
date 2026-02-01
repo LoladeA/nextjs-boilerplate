@@ -22,7 +22,7 @@ export default function WhatThisIs() {
 
   return (
     <section className="px-6 py-24 max-w-7xl mx-auto">
-      <div className="bg-[#c9ccbb] rounded-[3rem] p-12 md:p-20 shadow-2xl">
+      <div className="bg-white rounded-[3rem] p-12 md:p-20 shadow-2xl text-black">
         <div className="max-w-3xl mb-16">
           <h3 className="text-sm uppercase tracking-[0.3em] text-[#1b270e]/60 mb-6">
             The Intelligence Layer
