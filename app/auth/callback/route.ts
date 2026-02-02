@@ -7,11 +7,12 @@ export async function GET(request: Request) {
   const code = requestUrl.searchParams.get('code')
 
   if (code) {
-    const supabase = createRouteHandlerClient({ cookies })
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
     // This exchanges the temporary code for a permanent session
     await supabase.auth.exchangeCodeForSession(code)
   }
 
-  // Once confirmed, we move the user to the assessment
-  return NextResponse.redirect(new URL('/assessments', request.url))
+  // THE FIX: Redirects explicitly to Step 0
+  return NextResponse.redirect(new URL('/assessments/step0', request.url))
 }
