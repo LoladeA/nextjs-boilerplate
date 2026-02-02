@@ -1,4 +1,4 @@
-import { createServerSupabase } from '@/lib/supabase'; // your existing helper
+import { createServerSupabase } from '@/lib/supabase'; // Adjust path
 import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
