@@ -1,4 +1,5 @@
 'use client'
+// FORCE REBUILD: Fix double bracket error
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
