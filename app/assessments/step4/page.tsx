@@ -61,7 +61,7 @@ export default function AssessmentStep4() {
       if (responsesRes.error) throw responsesRes.error
       if (assessmentRes.error) throw assessmentRes.error
 
-      router.push('/dashboard')
+      router.push('/Dashboard')
     } catch (e: any) {
       setError(e.message)
       setLoading(false)
