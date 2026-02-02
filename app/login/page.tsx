@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase' // Adjust path if you named the folder/file differently
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -12,8 +12,14 @@ export default function LoginPage() {
   const [message, setMessage] = useState('')
   
   const router = useRouter()
-  // We use the standard client here to ensure the handshake is secure
-  const supabase = createClientComponentClient()
+  const supabase = createClient()  // ← modern, cookie-aware client
+
+  // Helper to build correct redirect URL (adapts local vs prod)
+  const getRedirectURL = () => {
+    const base = process.env.NEXT_PUBLIC_SITE_URL || 
+                 (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000')
+    return `${base}/assessments/step0`
+  }
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -22,8 +28,7 @@ export default function LoginPage() {
       email,
       password,
       options: {
-        // This ensures they come back to the correct Bridge
-        emailRedirectTo: `${location.origin}/auth/callback`,
+        emailRedirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/auth/callback`,
       },
     })
     if (error) setMessage(error.message)
@@ -41,11 +46,28 @@ export default function LoginPage() {
     if (error) {
       setMessage(error.message)
     } else {
-      // THE FIX: Pointing exactly to Step 0, not just the folder
-      router.push('/assessments/step0') 
+      router.push('/assessments/step0')
       router.refresh()
     }
     setLoading(false)
+  }
+
+  const handleGitHubSignIn = async () => {
+    setLoading(true)
+    setMessage('')
+    
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'github',
+      options: {
+        redirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/auth/callback`,
+      },
+    })
+    
+    if (error) {
+      setMessage(error.message)
+      setLoading(false)
+    }
+    // No need to handle success here — Supabase redirects to GitHub → callback → your app
   }
 
   return (
@@ -58,7 +80,7 @@ export default function LoginPage() {
         <h2 className="text-3xl font-serif text-[#1b270e] mb-2 font-medium">Begin Your Shift</h2>
         <p className="text-[#1b270e]/60 mb-8 font-light italic">Access your Sensory Intelligence dashboard.</p>
         
-        <form className="space-y-6">
+        <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
           <div>
             <label className="block text-xs uppercase tracking-wider text-[#1b270e]/40 mb-2 ml-1">Email Address</label>
             <input 
@@ -88,8 +110,19 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full py-4 bg-[#1b270e] text-[#c9ccbb] rounded-full font-medium hover:bg-[#1b270e]/90 transition-all active:scale-[0.98]"
             >
-              {loading ? 'Processing...' : 'Sign In'}
+              {loading ? 'Processing...' : 'Sign In with Email'}
             </button>
+
+            <button 
+              onClick={handleGitHubSignIn}
+              disabled={loading}
+              className="w-full py-4 bg-[#24292e] text-white rounded-full font-medium hover:bg-[#24292e]/90 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+            >
+              {loading ? 'Processing...' : 'Sign In with GitHub'}
+              {/* Optional: GitHub icon if you have lucide-react or similar installed */}
+              {/* <GitHub className="w-5 h-5" /> */}
+            </button>
+
             <button 
               onClick={handleSignUp}
               disabled={loading}
