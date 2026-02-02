@@ -2,9 +2,13 @@ import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import SensoryRadar from '../components/SensoryRadar'
-import TrendChart from '../components/TrendChart'
+import { Brain, FileText, TrendingUp, Heart, Camera, Sparkles, Plus } from 'lucide-react' 
+
+// Components
 import MetricCard from '../components/MetricCard'
+import LatestAssessment from '../components/LatestAssessment'
+import ActionCard from '../components/ActionCard'
+import TrendChart from '../components/TrendChart'
 
 export default async function Dashboard() {
   const cookieStore = cookies()
@@ -16,81 +20,115 @@ export default async function Dashboard() {
     redirect('/login')
   }
 
-  // Fetch the latest assessment responses
+  // Fetch data
   const { data: responses } = await supabase
     .from('user_responses')
     .select('*')
     .eq('user_id', session.user.id)
     .order('created_at', { ascending: true })
 
-  // Helper to find specific answer values
-  const getValue = (key: string) => {
-    // Find the most recent entry for this key
-    const entry = responses?.filter(r => r.question_key === key).pop()
-    return entry?.answer?.response || 'N/A'
-  }
+  // Calculate Metrics
+  const lastSessionData = responses?.filter(r => r.assessment_step === 4) || [] 
+  
+  // Calculate "Energy Tax" (Inverse Well-being) from Step 0
+  const latestTaxEntry = responses?.filter(r => r.question_key === 'energy_tax').pop()
+  const latestTax = Number(latestTaxEntry?.answer?.response || 50)
+  const wellbeingScore = 100 - latestTax // Invert it: Low tax = High well-being
+  
+  // Count completed assessments (Step 4 marks completion)
+  const completedAssessments = responses?.filter(r => r.assessment_step === 4).length || 0
 
   return (
-    <div className="min-h-screen bg-[#1b270e] text-[#c9ccbb] p-6 md:p-12">
-      <header className="flex justify-between items-end mb-12 border-b border-[#c9ccbb]/10 pb-6">
-        <div>
-          <h1 className="text-4xl font-serif text-[#b5a642] mb-2">Sanctuary Status</h1>
-          <p className="opacity-60 font-light">Welcome back, {session.user.email}</p>
-        </div>
-        <Link href="/assessments/step0" className="px-6 py-3 bg-[#c9ccbb]/10 hover:bg-[#b5a642] hover:text-[#1b270e] rounded-full text-sm transition-all uppercase tracking-widest">
-          New Scan
-        </Link>
-      </header>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-        {/* Row 1: Key Metrics */}
-        <MetricCard 
-          title="Current Regulation" 
-          value={getValue('physiological_state')} 
-          subtext="Baseline Nervous System State"
-        />
-        <MetricCard 
-          title="Energy Tax" 
-          value={`${getValue('energy_tax')}%`} 
-          subtext="Capacity lost to environment"
-        />
-         <MetricCard 
-          title="Neuro-Lens" 
-          value={getValue('neurological_lens')} 
-          subtext="Sensory Processing Profile"
-        />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Chart 1: The Radar (Sensory Profile) */}
-        <div className="bg-[#c9ccbb]/5 rounded-[2rem] p-8 border border-[#c9ccbb]/10">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-xl font-serif">Sensory Thresholds</h2>
-            <span className="text-xs uppercase opacity-40">Step 2 Data</span>
-          </div>
-          <SensoryRadar data={responses || []} />
-          <p className="mt-6 text-sm opacity-50 font-light leading-relaxed">
-            This shape represents your sensory "load." Spikes indicate areas where your environment is actively eroding your capacity.
-          </p>
-        </div>
-
-        {/* Chart 2: The Trend (Energy Tax over time) */}
-        <div className="bg-[#c9ccbb]/5 rounded-[2rem] p-8 border border-[#c9ccbb]/10">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-xl font-serif">Regulation History</h2>
-            <span className="text-xs uppercase opacity-40">Energy Tax Trend</span>
-          </div>
-          <TrendChart data={responses || []} />
-          <p className="mt-6 text-sm opacity-50 font-light leading-relaxed">
-            Tracking the reduction of "Energy Tax" as you implement design interventions. A downward trend indicates restored capacity.
-          </p>
-        </div>
-      </div>
+    <div className="min-h-screen bg-[#f8f9f5] text-[#1b270e] p-6 md:p-12 font-sans">
       
-      <div className="mt-12 text-center">
-        <Link href="/signout" className="text-xs uppercase tracking-widest opacity-30 hover:opacity-100 transition-opacity">
-          Sign Out
-        </Link>
+      {/* HEADER */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-4">
+        <div>
+          <h1 className="text-4xl font-bold mb-2 font-serif">Sanctuary Status</h1>
+          <p className="text-[#1b270e]/60">Welcome back! Track your sensory intelligence and regulation.</p>
+        </div>
+        <div className="flex gap-4">
+          <Link href="/coaching" className="flex items-center gap-2 px-6 py-3 bg-[#c9ccbb]/20 hover:bg-[#c9ccbb]/30 text-[#1b270e] rounded-lg text-sm font-medium transition-colors">
+            <Sparkles size={16} />
+            Sensory Coaching
+          </Link>
+          <Link href="/assessments/step0" className="flex items-center gap-2 px-6 py-3 bg-[#1b270e] text-white hover:bg-[#1b270e]/90 rounded-lg text-sm font-medium transition-colors shadow-lg">
+            <Plus size={16} />
+            New Assessment
+          </Link>
+        </div>
+      </div>
+
+      {/* TOP ROW: METRIC CARDS */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <MetricCard 
+          title="Overall Score" 
+          value={wellbeingScore.toFixed(1)} 
+          subtext="From your latest assessment"
+          icon={Brain}
+          delay={0.1}
+        />
+        <MetricCard 
+          title="Assessments" 
+          value={completedAssessments} 
+          subtext="Total completed"
+          icon={FileText}
+          delay={0.2}
+        />
+        <MetricCard 
+          title="Recommendations" 
+          value="12" // Placeholder 
+          subtext="Pending actions"
+          icon={TrendingUp}
+          delay={0.3}
+        />
+        <MetricCard 
+          title="Well-being" 
+          value={`${(wellbeingScore / 10).toFixed(0)}/10`} 
+          subtext="Latest mood score"
+          icon={Heart}
+          delay={0.4}
+        />
+      </div>
+
+      {/* MIDDLE ROW: CHART & BREAKDOWN */}
+      <div className="grid grid-cols-1 gap-8 mb-8">
+        
+        {/* Trend Chart Panel */}
+        <div className="bg-white p-8 rounded-2xl border border-[#c9ccbb]/20 shadow-sm">
+          <h3 className="font-bold text-lg mb-2 text-[#1b270e]">Well-being Trends</h3>
+          <p className="text-sm text-[#1b270e]/50 mb-6">Your mood, stress, and focus scores over time</p>
+          <TrendChart data={responses || []} />
+        </div>
+
+        {/* Latest Assessment Breakdown */}
+        <LatestAssessment data={responses || []} />
+      </div>
+
+      {/* BOTTOM ROW: ACTION CARDS */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <ActionCard 
+          title="Take Assessment" 
+          desc="Complete a new sensory intelligence questionnaire" 
+          icon={Brain} 
+          href="/assessments/step0"
+          delay={0.5}
+        />
+        <ActionCard 
+          title="Log Well-being" 
+          desc="Track your mood, stress, and focus levels" 
+          icon={Heart} 
+          href="/assessments/step0" 
+          delay={0.6}
+        />
+        <ActionCard 
+          title="Upload Photos" 
+          desc="Document your space and track visual changes" 
+          icon={Camera} 
+          href="/photos" 
+          delay={0.7}
+          dark={true} 
+        />
       </div>
     </div>
   )
