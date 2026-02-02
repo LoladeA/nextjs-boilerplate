@@ -1,18 +1,25 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
-import { NextResponse } from 'next/server'
+import { createServerSupabase } from '@/lib/supabase'; // your existing helper
+import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
-  const requestUrl = new URL(request.url)
-  const code = requestUrl.searchParams.get('code')
+  const { searchParams, origin } = new URL(request.url);
+  const code = searchParams.get('code');
+  // Default to your actual protected starting point
+  const next = searchParams.get('next') ?? '/assessments/step0';
 
   if (code) {
-    const cookieStore = cookies()
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
-    // This exchanges the temporary code for a permanent session
-    await supabase.auth.exchangeCodeForSession(code)
+    const supabase = await createServerSupabase();
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+    if (!error) {
+      // Optional: log for debugging in Supabase logs or console
+      // console.log('Session exchanged successfully');
+      return NextResponse.redirect(`${origin}${next}`);
+    }
+    // Optional: log error for insight
+    // console.error('Code exchange failed:', error);
   }
 
-  // THE FIX: Redirects explicitly to Step 0
-  return NextResponse.redirect(new URL('/assessments/step0', request.url))
+  // Fallback — consider creating a simple /auth/error page later
+  return NextResponse.redirect(`${origin}/auth/error`);
 }
