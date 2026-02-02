@@ -6,7 +6,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
 export default function AssessmentStep1() {
   const router = useRouter()
-  const supabase = createClientComponentClient() 
+  const supabase = createClientComponentClient()
   const [answers, setAnswers] = useState<{ [key: string]: number }>({})
   const [error, setError] = useState<string | null>(null)
 
