@@ -13,14 +13,15 @@ export default function LoginPage() {
   const router = useRouter()
   const supabase = createClientComponentClient()
 
-  // FORCE this URL for email redirects
-  const SITE_URL = 'https://nextjs-boilerplate-seven-sigma-zvm06i7k91.vercel.app'
+  // 🔴 HARDCODED PRODUCTION URL (Your specific Vercel domain)
+  const SITE_URL = 'https://nextjs-boilerplate-six-chi-87.vercel.app'
 
   const handleOAuth = async (provider: 'github' | 'google') => {
     setLoading(true)
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
+        // This ensures the user returns to the correct live site after GitHub login
         redirectTo: `${SITE_URL}/auth/callback`,
       },
     })
@@ -39,14 +40,14 @@ export default function LoginPage() {
       setMessage(error.message)
       setLoading(false)
     } else {
-      router.push('/assessments/step0')
+      router.push('/Dashboard')
       router.refresh()
     }
   }
 
   const handleSignUp = async () => {
     setLoading(true)
-    // 1. Sign up with the specific redirect URL
+    // 1. Sign up with the specific redirect URL so the email link works
     const { error } = await supabase.auth.signUp({
       email,
       password,
