@@ -1,157 +1,96 @@
-'use client'
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
+import Link from 'next/link'
+import SensoryRadar from '../components/SensoryRadar'
+import TrendChart from '../components/TrendChart'
+import MetricCard from '../components/MetricCard'
 
-import { useEffect, useState } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-import dynamic from 'next/dynamic'
-import { useRouter } from 'next/navigation'
+export default async function Dashboard() {
+  const cookieStore = cookies()
+  const supabase = createServerComponentClient({ cookies: () => cookieStore })
 
-// High-integrity chart imports
-const RadarChart = dynamic(() => import('../components/RadarChart'), { ssr: false })
-const TrendChart = dynamic(() => import('../components/TrendChart'), { ssr: false })
+  const { data: { session } } = await supabase.auth.getSession()
 
-interface UserResponse {
-  assessment_step: number
-  question_key: string
-  answer: { response: string | number }
-  created_at: string // Added to support the temporal TrendChart
-}
-
-export default function DashboardPage() {
-  const router = useRouter()
-  const supabase = createClientComponentClient()
-  const [responses, setResponses] = useState<UserResponse[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    async function fetchResponses() {
-      // 1. Identify the inhabitant via session
-      const { data: { session }, error: authError } = await supabase.auth.getSession()
-      
-      if (authError || !session) {
-        setError('User not authenticated')
-        setLoading(false)
-        return
-      }
-
-      // 2. Fetch the data with Temporal Intelligence (created_at)
-      const { data, error: fetchError } = await supabase
-        .from('user_responses')
-        .select('assessment_step, question_key, answer, created_at') // Updated query
-        .eq('user_id', session.user.id)
-        .order('created_at', { ascending: true }) // Ensures timeline flows correctly
-
-      if (fetchError) {
-        setError(fetchError.message)
-      } else {
-        setResponses((data as UserResponse[]) || [])
-      }
-      setLoading(false)
-    }
-
-    fetchResponses()
-  }, [supabase])
-
-  // 3. Compute Intelligence Layers (Refined Signal Logic)
-  const signals = {
-    environmentalLoad: 0,
-    spatialDysregulation: 0,
-    biologicalMismatch: 0
+  if (!session) {
+    redirect('/login')
   }
 
-  // We calculate current signals from the most recent data set
-  responses.forEach((r) => {
-    const val = Number(r.answer?.response) || 0
-    if (['thermal_friction', 'stress_spikes', 'cognitive_fog', 'circadian_sync'].includes(r.question_key)) {
-      signals.environmentalLoad += val
-    } else if (
-      ['visual_entropy', 'acoustic_intrusions', 'lighting_fatigue', 'tactile_grounding', 'spatial_resonance'].includes(r.question_key)
-    ) {
-      signals.spatialDysregulation += val
-    } else {
-      signals.biologicalMismatch += val
-    }
-  })
+  // Fetch the latest assessment responses
+  const { data: responses } = await supabase
+    .from('user_responses')
+    .select('*')
+    .eq('user_id', session.user.id)
+    .order('created_at', { ascending: true })
+
+  // Helper to find specific answer values
+  const getValue = (key: string) => {
+    // Find the most recent entry for this key
+    const entry = responses?.filter(r => r.question_key === key).pop()
+    return entry?.answer?.response || 'N/A'
+  }
 
   return (
-    <div className="min-h-screen p-8 bg-[#1b270e] text-[#c9ccbb]">
-      <div className="max-w-6xl mx-auto">
-        <header className="mb-12 text-center">
-          <h1 className="text-4xl font-serif text-[#b5a642] mb-4">Internal Landscape Dashboard</h1>
-          <p className="opacity-60 uppercase tracking-widest text-sm">Regulation Metrics & Sensory Clarity</p>
-        </header>
+    <div className="min-h-screen bg-[#1b270e] text-[#c9ccbb] p-6 md:p-12">
+      <header className="flex justify-between items-end mb-12 border-b border-[#c9ccbb]/10 pb-6">
+        <div>
+          <h1 className="text-4xl font-serif text-[#b5a642] mb-2">Sanctuary Status</h1>
+          <p className="opacity-60 font-light">Welcome back, {session.user.email}</p>
+        </div>
+        <Link href="/assessments/step0" className="px-6 py-3 bg-[#c9ccbb]/10 hover:bg-[#b5a642] hover:text-[#1b270e] rounded-full text-sm transition-all uppercase tracking-widest">
+          New Scan
+        </Link>
+      </header>
 
-        {loading ? (
-          <div className="flex justify-center py-20">
-            <p className="animate-pulse text-[#b5a642]">Calibrating sensory data...</p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        {/* Row 1: Key Metrics */}
+        <MetricCard 
+          title="Current Regulation" 
+          value={getValue('physiological_state')} 
+          subtext="Baseline Nervous System State"
+        />
+        <MetricCard 
+          title="Energy Tax" 
+          value={`${getValue('energy_tax')}%`} 
+          subtext="Capacity lost to environment"
+        />
+         <MetricCard 
+          title="Neuro-Lens" 
+          value={getValue('neurological_lens')} 
+          subtext="Sensory Processing Profile"
+        />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Chart 1: The Radar (Sensory Profile) */}
+        <div className="bg-[#c9ccbb]/5 rounded-[2rem] p-8 border border-[#c9ccbb]/10">
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-xl font-serif">Sensory Thresholds</h2>
+            <span className="text-xs uppercase opacity-40">Step 2 Data</span>
           </div>
-        ) : error ? (
-          <p className="text-center text-red-400">{error}</p>
-        ) : (
-          <div className="space-y-12">
-            
-            {/* Signal Summaries */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {[
-                { label: 'Environmental Load', value: signals.environmentalLoad, desc: 'External stressors taxing the nervous system.' },
-                { label: 'Spatial Dysregulation', value: signals.spatialDysregulation, desc: 'Misalignment between layout and flow.' },
-                { label: 'Biological Mismatch', value: signals.biologicalMismatch, desc: 'Home failing to adapt to neuro-biological needs.' }
-              ].map((signal) => (
-                <div key={signal.label} className="bg-[#c9ccbb]/5 border border-[#c9ccbb]/10 p-8 rounded-3xl transition-all hover:bg-[#c9ccbb]/10">
-                  <h3 className="text-[#b5a642] text-xs uppercase tracking-widest mb-4">{signal.label}</h3>
-                  <p className="text-4xl font-light mb-2">{signal.value}</p>
-                  <p className="text-xs opacity-60 leading-relaxed">{signal.desc}</p>
-                </div>
-              ))}
-            </div>
+          <SensoryRadar data={responses || []} />
+          <p className="mt-6 text-sm opacity-50 font-light leading-relaxed">
+            This shape represents your sensory "load." Spikes indicate areas where your environment is actively eroding your capacity.
+          </p>
+        </div>
 
-            {/* Visualization Layer */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div className="bg-[#c9ccbb]/5 border border-[#c9ccbb]/10 p-8 rounded-3xl">
-                <h3 className="text-[#b5a642] text-xs uppercase tracking-widest mb-6">Visual Summary (Radar)</h3>
-                <div className="h-[300px] flex items-center justify-center">
-                   <RadarChart data={signals} />
-                </div>
-              </div>
-              <div className="bg-[#c9ccbb]/5 border border-[#c9ccbb]/10 p-8 rounded-3xl">
-                <h3 className="text-[#b5a642] text-xs uppercase tracking-widest mb-6">Response Timeline</h3>
-                <div className="h-[300px] flex items-center justify-center">
-                   {/* Passing the responses including created_at for the trend logic */}
-                   <TrendChart responses={responses} />
-                </div>
-              </div>
-            </div>
-
-            {/* Priority Recommendations */}
-            <section className="bg-[#b5a642] text-[#1b270e] p-10 rounded-3xl">
-              <h2 className="text-2xl font-serif mb-6">Strategic Directions</h2>
-              <div className="grid md:grid-cols-2 gap-8">
-                <ul className="space-y-4">
-                  {signals.environmentalLoad > 10 && (
-                    <li className="flex gap-3">
-                      <span className="font-bold">→</span> 
-                      <p>Implement **Acoustic Dampening** to reduce the current Environmental Load.</p>
-                    </li>
-                  )}
-                  {signals.spatialDysregulation > 15 && (
-                    <li className="flex gap-3">
-                      <span className="font-bold">→</span> 
-                      <p>Address **Zoning Conflicts** in the primary living space to restore agency.</p>
-                    </li>
-                  )}
-                </ul>
-                <div className="flex flex-col justify-center">
-                  <button
-                    onClick={() => router.push('/coaching')}
-                    className="bg-[#1b270e] text-[#c9ccbb] py-4 px-8 rounded-full font-medium transition-all hover:scale-105"
-                  >
-                    Enter Coaching Modules
-                  </button>
-                </div>
-              </div>
-            </section>
+        {/* Chart 2: The Trend (Energy Tax over time) */}
+        <div className="bg-[#c9ccbb]/5 rounded-[2rem] p-8 border border-[#c9ccbb]/10">
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-xl font-serif">Regulation History</h2>
+            <span className="text-xs uppercase opacity-40">Energy Tax Trend</span>
           </div>
-        )}
+          <TrendChart data={responses || []} />
+          <p className="mt-6 text-sm opacity-50 font-light leading-relaxed">
+            Tracking the reduction of "Energy Tax" as you implement design interventions. A downward trend indicates restored capacity.
+          </p>
+        </div>
+      </div>
+      
+      <div className="mt-12 text-center">
+        <Link href="/signout" className="text-xs uppercase tracking-widest opacity-30 hover:opacity-100 transition-opacity">
+          Sign Out
+        </Link>
       </div>
     </div>
   )
