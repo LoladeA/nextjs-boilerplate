@@ -8,6 +8,7 @@ import { Brain, FileText, TrendingUp, Heart, Camera, Sparkles, Plus } from 'luci
 import MetricCard from '../components/MetricCard'
 import LatestAssessment from '../components/LatestAssessment'
 import ActionCard from '../components/ActionCard'
+import SensoryTools from '../components/SensoryTools'
 import TrendChart from '../components/TrendChart'
 
 export default async function Dashboard() {
@@ -104,6 +105,9 @@ export default async function Dashboard() {
         {/* Latest Assessment Breakdown */}
         <LatestAssessment data={responses || []} />
       </div>
+
+      {/* NEW: BIOMETRICS ROW (Sensory Tools) */}
+      <SensoryTools />
 
       {/* BOTTOM ROW: ACTION CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
