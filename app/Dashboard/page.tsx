@@ -22,7 +22,7 @@ export default async function Dashboard() {
   }
 
   // Fetch data with error handling
-  const { data: responses, error } = await supabase
+  const { data: responses } = await supabase
     .from('user_responses')
     .select('*')
     .eq('user_id', session.user.id)
