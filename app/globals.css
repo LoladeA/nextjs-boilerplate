@@ -3,24 +3,23 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 201, 204, 187; /* #c9ccbb */
-  --background-start-rgb: 27, 39, 14; /* #1b270e */
-  --background-end-rgb: 45, 36, 2;   /* Dark Gold */
+  --foreground-rgb: 201, 204, 187; /* Bone #c9ccbb */
+  --background-rgb: 27, 39, 14;    /* Deep Green #1b270e */
 }
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      rgb(var(--background-start-rgb)),
-      rgb(var(--background-end-rgb))
-    );
+  background: rgb(var(--background-rgb));
+  /* OPTIONAL: Adds a subtle grain texture if you want more depth later */
   min-height: 100vh;
 }
 
-/* Custom "Quiet Luxury" Button */
-.btn-luxury {
-  @apply px-8 py-4 bg-[#c9ccbb] text-[#1b270e] font-semibold rounded-full 
-         uppercase tracking-widest text-xs transition-all duration-500
-         hover:shadow-[0_0_30px_rgba(201,204,187,0.3)] hover:scale-105;
+/* THE GLASS EFFECT CLASS */
+/* We define this once so we can use it everywhere */
+.glass-panel {
+  background: rgba(201, 204, 187, 0.05); /* Bone color at 5% opacity */
+  backdrop-filter: blur(12px);           /* The Apple Blur */
+  -webkit-backdrop-filter: blur(12px);   /* Safari support */
+  border: 1px solid rgba(201, 204, 187, 0.1); /* Subtle border */
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
 }
