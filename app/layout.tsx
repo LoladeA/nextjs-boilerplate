@@ -1,9 +1,24 @@
 import './globals.css'
 import type { Metadata } from 'next'
+import { Playfair_Display, Lato } from 'next/font/google'
+
+// We load your brand fonts here
+const playfair = Playfair_Display({ 
+  subsets: ['latin'], 
+  variable: '--font-serif',
+  display: 'swap',
+})
+
+const lato = Lato({ 
+  subsets: ['latin'], 
+  weight: ['300', '400', '700'],
+  variable: '--font-sans',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
-  title: 'The Sentient Home',
-  description: 'NeuroDesign™ Sensory Intelligence for Everyday Living',
+  title: 'Sensory Intelligence',
+  description: 'Design for nervous system regulation.',
 }
 
 export default function RootLayout({
@@ -13,7 +28,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-[#1b270e] text-[#c9ccbb] font-sans">
+      <body className={`${playfair.variable} ${lato.variable} font-sans min-h-screen text-[#c9ccbb] antialiased`}>
+        {/* We removed any 'bg-white' class here so the global CSS green takes over */}
         {children}
       </body>
     </html>
