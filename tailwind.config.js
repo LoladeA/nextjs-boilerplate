@@ -1,22 +1,25 @@
-/** @type {import('tailwindcss').Config} */
-module.exports = {
+import type { Config } from 'tailwindcss'
+
+const config: Config = {
   content: [
-    "./app/**/*.{js,ts,jsx,tsx,mdx}",
-    "./components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./lib/**/*.{js,ts,jsx,tsx,mdx}",
+    './pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './components/**/*.{js,ts,jsx,tsx,mdx}',
+    './app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
     extend: {
       colors: {
-        sentientGreen: '#1b270e',
-        sentientSage: '#c9ccbb',
-        sentientGold: '#b5a642',
+        // We explicitly name your palette so you can use 'bg-deep-green' if needed
+        'deep-green': '#1b270e',
+        'bone': '#c9ccbb',
+        'gold': '#b5a642',
       },
       fontFamily: {
-        serif: ['var(--font-serif)', 'serif'],
-        mono: ['var(--font-mono)', 'monospace'],
+        serif: ['var(--font-serif)'],
+        sans: ['var(--font-sans)'],
       },
     },
   },
   plugins: [],
 }
+export default config
