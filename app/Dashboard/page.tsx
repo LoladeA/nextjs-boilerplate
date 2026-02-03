@@ -21,23 +21,15 @@ export default async function Dashboard() {
     redirect('/login')
   }
 
-  // Fetch data with error handling
   const { data: responses } = await supabase
     .from('user_responses')
     .select('*')
     .eq('user_id', session.user.id)
     .order('created_at', { ascending: true })
 
-  // SAFEGUARD: If responses is null (first time user), treat it as empty array
   const safeResponses = responses || []
-
-  // Calculate Metrics safely
-  // 1. Completed Assessments
   const completedAssessments = safeResponses.filter(r => r.assessment_step === 4).length
-
-  // 2. Wellbeing Score (Default to 50 if no data)
   const latestTaxEntry = safeResponses.filter(r => r.question_key === 'energy_tax').pop()
-  // Use '??' to handle if the response property itself is missing
   const latestTax = Number(latestTaxEntry?.answer?.response ?? 50)
   const wellbeingScore = 100 - latestTax
 
@@ -68,43 +60,39 @@ export default async function Dashboard() {
           title="Overall Score" 
           value={wellbeingScore.toFixed(1)} 
           subtext="From your latest assessment"
-          icon={Brain}
+          icon={<Brain size={24} />} // FIX: Passed as Element
           delay={0.1}
         />
         <MetricCard 
           title="Assessments" 
           value={completedAssessments} 
           subtext="Total completed"
-          icon={FileText}
+          icon={<FileText size={24} />} // FIX
           delay={0.2}
         />
         <MetricCard 
           title="Recommendations" 
-          value="12" // Placeholder 
+          value="12" 
           subtext="Pending actions"
-          icon={TrendingUp}
+          icon={<TrendingUp size={24} />} // FIX
           delay={0.3}
         />
         <MetricCard 
           title="Well-being" 
           value={`${(wellbeingScore / 10).toFixed(0)}/10`} 
           subtext="Latest mood score"
-          icon={Heart}
+          icon={<Heart size={24} />} // FIX
           delay={0.4}
         />
       </div>
 
       {/* MIDDLE ROW: CHART & BREAKDOWN */}
       <div className="grid grid-cols-1 gap-8 mb-8">
-        
-        {/* Trend Chart Panel */}
         <div className="bg-white p-8 rounded-2xl border border-[#c9ccbb]/20 shadow-sm">
           <h3 className="font-bold text-lg mb-2 text-[#1b270e]">Well-being Trends</h3>
           <p className="text-sm text-[#1b270e]/50 mb-6">Your mood, stress, and focus scores over time</p>
           <TrendChart data={safeResponses} />
         </div>
-
-        {/* Latest Assessment Breakdown */}
         <LatestAssessment data={safeResponses} />
       </div>
 
@@ -116,21 +104,21 @@ export default async function Dashboard() {
         <ActionCard 
           title="Take Assessment" 
           desc="Complete a new sensory intelligence questionnaire" 
-          icon={Brain} 
+          icon={<Brain size={32} />} // FIX
           href="/assessments/step0"
           delay={0.5}
         />
         <ActionCard 
           title="Log Well-being" 
           desc="Track your mood, stress, and focus levels" 
-          icon={Heart} 
+          icon={<Heart size={32} />} // FIX
           href="/assessments/step0" 
           delay={0.6}
         />
         <ActionCard 
           title="Upload Photos" 
           desc="Document your space and track visual changes" 
-          icon={Camera} 
+          icon={<Camera size={32} />} // FIX
           href="/photos" 
           delay={0.7}
           dark={true} 
