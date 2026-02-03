@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -10,19 +10,24 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+  const [origin, setOrigin] = useState('')
+  
   const router = useRouter()
   const supabase = createClientComponentClient()
 
-  // 🔴 HARDCODED PRODUCTION URL (Your specific Vercel domain)
-  const SITE_URL = 'https://nextjs-boilerplate-six-chi-87.vercel.app'
+  // SENIOR UPGRADE: Dynamic URL Detection
+  // This ensures it works on localhost:3000 AND your-app.vercel.app without code changes
+  useEffect(() => {
+    setOrigin(window.location.origin)
+  }, [])
 
   const handleOAuth = async (provider: 'github' | 'google') => {
     setLoading(true)
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        // This ensures the user returns to the correct live site after GitHub login
-        redirectTo: `${SITE_URL}/auth/callback`,
+        // Now uses the dynamic origin
+        redirectTo: `${origin}/auth/callback?next=/dashboard`,
       },
     })
     if (error) setMessage(error.message)
@@ -40,19 +45,19 @@ export default function LoginPage() {
       setMessage(error.message)
       setLoading(false)
     } else {
-      router.push('/Dashboard')
+      router.push('/dashboard')
       router.refresh()
     }
   }
 
   const handleSignUp = async () => {
     setLoading(true)
-    // 1. Sign up with the specific redirect URL so the email link works
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: `${SITE_URL}/auth/callback`,
+        // Now uses the dynamic origin
+        emailRedirectTo: `${origin}/auth/callback?next=/assessments/step0`,
       },
     })
     if (error) setMessage(error.message)
@@ -60,8 +65,10 @@ export default function LoginPage() {
     setLoading(false)
   }
 
+  // ... (Rest of the UI remains exactly the same) ...
   return (
     <div className="min-h-screen bg-[#1b270e] flex flex-col items-center justify-center px-6">
+      {/* ... keeping your existing UI code ... */}
       <Link href="/" className="text-[#c9ccbb] mb-12 opacity-50 hover:opacity-100 transition-opacity uppercase tracking-widest text-xs">
         ← Back to Clarity
       </Link>
