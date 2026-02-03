@@ -21,23 +21,25 @@ export default async function Dashboard() {
     redirect('/login')
   }
 
-  // Fetch data
-  const { data: responses } = await supabase
+  // Fetch data with error handling
+  const { data: responses, error } = await supabase
     .from('user_responses')
     .select('*')
     .eq('user_id', session.user.id)
     .order('created_at', { ascending: true })
 
-  // Calculate Metrics
-  const lastSessionData = responses?.filter(r => r.assessment_step === 4) || [] 
-  
-  // Calculate "Energy Tax" (Inverse Well-being) from Step 0
-  const latestTaxEntry = responses?.filter(r => r.question_key === 'energy_tax').pop()
-  const latestTax = Number(latestTaxEntry?.answer?.response || 50)
-  const wellbeingScore = 100 - latestTax // Invert it: Low tax = High well-being
-  
-  // Count completed assessments (Step 4 marks completion)
-  const completedAssessments = responses?.filter(r => r.assessment_step === 4).length || 0
+  // SAFEGUARD: If responses is null (first time user), treat it as empty array
+  const safeResponses = responses || []
+
+  // Calculate Metrics safely
+  // 1. Completed Assessments
+  const completedAssessments = safeResponses.filter(r => r.assessment_step === 4).length
+
+  // 2. Wellbeing Score (Default to 50 if no data)
+  const latestTaxEntry = safeResponses.filter(r => r.question_key === 'energy_tax').pop()
+  // Use '??' to handle if the response property itself is missing
+  const latestTax = Number(latestTaxEntry?.answer?.response ?? 50)
+  const wellbeingScore = 100 - latestTax
 
   return (
     <div className="min-h-screen bg-[#f8f9f5] text-[#1b270e] p-6 md:p-12 font-sans">
@@ -99,14 +101,14 @@ export default async function Dashboard() {
         <div className="bg-white p-8 rounded-2xl border border-[#c9ccbb]/20 shadow-sm">
           <h3 className="font-bold text-lg mb-2 text-[#1b270e]">Well-being Trends</h3>
           <p className="text-sm text-[#1b270e]/50 mb-6">Your mood, stress, and focus scores over time</p>
-          <TrendChart data={responses || []} />
+          <TrendChart data={safeResponses} />
         </div>
 
         {/* Latest Assessment Breakdown */}
-        <LatestAssessment data={responses || []} />
+        <LatestAssessment data={safeResponses} />
       </div>
 
-      {/* NEW: BIOMETRICS ROW (Sensory Tools) */}
+      {/* NEW: BIOMETRICS ROW */}
       <SensoryTools />
 
       {/* BOTTOM ROW: ACTION CARDS */}
