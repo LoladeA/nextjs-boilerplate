@@ -1,31 +1,34 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { LucideIcon } from 'lucide-react'
+import { ReactNode } from 'react'
 
 interface MetricCardProps {
   title: string
   value: string | number
-  subtext?: string
-  icon?: LucideIcon
-  delay?: number
+  subtext: string
+  icon: ReactNode // CHANGED: Now accepts a rendered element, not a component
+  delay: number
 }
 
-export default function MetricCard({ title, value, subtext, icon: Icon, delay = 0 }: MetricCardProps) {
+export default function MetricCard({ title, value, subtext, icon, delay }: MetricCardProps) {
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay }}
-      className="bg-white text-[#1b270e] p-6 rounded-2xl border border-[#c9ccbb]/20 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between h-full min-h-[160px]"
+      className="bg-[#c9ccbb] p-6 rounded-2xl shadow-sm border border-[#1b270e]/5 relative overflow-hidden"
     >
       <div className="flex justify-between items-start mb-4">
-        <h3 className="text-sm font-bold text-[#1b270e]">{title}</h3>
-        {Icon && <Icon size={20} className="text-[#1b270e]/40" />}
+        <h3 className="font-serif text-[#1b270e] text-lg">{title}</h3>
+        <div className="p-2 bg-[#1b270e]/5 rounded-full text-[#1b270e]">
+          {/* CHANGED: We now just render the icon directly */}
+          {icon}
+        </div>
       </div>
-      <div>
-        <div className="text-4xl font-serif font-medium mb-2">{value}</div>
-        {subtext && <p className="text-xs text-[#1b270e]/40">{subtext}</p>}
+      <div className="space-y-1">
+        <p className="text-3xl font-bold text-[#1b270e]">{value}</p>
+        <p className="text-xs uppercase tracking-wider text-[#1b270e]/60">{subtext}</p>
       </div>
     </motion.div>
   )
