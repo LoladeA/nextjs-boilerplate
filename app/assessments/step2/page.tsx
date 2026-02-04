@@ -1,86 +1,75 @@
 'use client'
-
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { ArrowRight } from 'lucide-react'
+import { assessmentProtocol } from '../../data/assessment-protocol'
 
 export default function AssessmentStep2() {
-  const router = useRouter()
+  const part = assessmentProtocol.part2 
   const supabase = createClientComponentClient()
-  const [answers, setAnswers] = useState<{ [key: string]: number }>({})
-  const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
+  const [loading, setLoading] = useState(false)
+  const [responses, setResponses] = useState<Record<string, number>>({})
 
-  const questions = [
-    { key: 'visual_entropy', label: 'Visual Entropy: The presence of clutter or visual misalignment/noise actively disrupts my train of thought.' },
-    { key: 'acoustic_intrusions', label: 'Acoustic Intrusions: Low-level background noises (traffic, distant voices) prevent me from truly resting.' },
-    { key: 'lighting_fatigue', label: 'Lighting Fatigue: The overhead lighting in my home feels aggressive, flat, or physically tiring.' },
-    { key: 'tactile_grounding', label: 'Tactile Grounding: The texture or temperature of materials (floors, fabrics, surfaces) significantly alters my mood states.' },
-    { key: 'spatial_resonance', label: 'Spatial Resonance: My physical state (tense, calm, restless) changes depending on which room I’m in.' }
-  ]
+  const handleNext = async () => {
+    setLoading(true)
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
 
-  function handleChange(key: string, value: number) {
-    setAnswers({ ...answers, [key]: value })
-  }
+    const updates = Object.entries(responses).map(([key, value]) => ({
+      user_id: session.user.id,
+      assessment_step: 2,
+      question_key: key,
+      answer: { response: value }
+    }))
 
-  async function handleNext() {
-    setError(null)
-    const { data: { session }, error: authError } = await supabase.auth.getSession()
-    if (authError || !session) return setError('User not authenticated. Please sign in.')
-
-    try {
-      const responseEntries = Object.entries(answers).map(([key, value]) => ({
-        user_id: session.user.id,
-        assessment_step: 2,
-        question_key: key,
-        answer: { response: value }
-      }))
-      const { error: insertError } = await supabase.from('user_responses').insert(responseEntries)
-      if (insertError) throw insertError
-      router.push('/assessments/step3')
-    } catch (e: any) {
-      setError(e.message)
-    }
+    await supabase.from('user_responses').upsert(updates)
+    router.push('/assessments/step3')
   }
 
   return (
-    <div className="min-h-screen p-6 bg-[#1b270e] text-[#c9ccbb]">
-      <div className="max-w-2xl mx-auto py-12">
-        <h1 className="text-2xl font-serif mb-2 text-[#b5a642]">Part 2: Sensory Thresholds</h1>
-        
-        {/* SCALE DESCRIPTION */}
-        <div className="mb-8 p-4 bg-[#c9ccbb]/10 rounded-lg text-sm text-[#c9ccbb]/80 flex justify-between items-center font-mono">
-           <span>1 = No Impact</span>
-           <span className="h-px bg-[#c9ccbb]/30 flex-1 mx-4"></span>
-           <span>5 = Highly Distressing</span>
+    <div className="min-h-screen p-6 md:p-12 flex flex-col max-w-2xl mx-auto">
+      <div className="mb-8">
+        <span className="text-[#b5a642] text-xs font-bold uppercase tracking-widest">Part {part.step}</span>
+        <h1 className="text-3xl font-serif text-[#c9ccbb] mb-2">{part.title}</h1>
+        <p className="text-[#c9ccbb]/60 italic">{part.description}</p>
+        <div className="w-full bg-[#c9ccbb]/10 h-1 rounded-full mt-4">
+          <div className="bg-[#b5a642] h-1 rounded-full w-[40%]" />
         </div>
+      </div>
 
-        <div className="space-y-6">
-          {questions.map((q) => (
-            <div key={q.key} className="bg-[#c9ccbb]/5 p-6 rounded-2xl border border-[#c9ccbb]/10">
-              <label className="block mb-4 font-light leading-relaxed">{q.label}</label>
-              <div className="flex justify-between gap-2">
-                {[1, 2, 3, 4, 5].map((val) => (
-                  <button
-                    key={val}
-                    onClick={() => handleChange(q.key, val)}
-                    className={`flex-1 py-3 rounded-lg transition-all font-mono text-sm ${
-                      answers[q.key] === val
-                        ? 'bg-[#b5a642] text-[#1b270e] font-bold shadow-lg scale-105'
-                        : 'bg-[#1b270e] text-[#c9ccbb] border border-[#c9ccbb]/20 hover:border-[#b5a642]/50'
-                    }`}
-                  >
-                    {val}
-                  </button>
-                ))}
-              </div>
+      <div className="flex-grow space-y-12">
+        {part.questions.map((q) => (
+          <div key={q.id} className="space-y-4">
+            <label className="text-lg text-[#c9ccbb] block">{q.text}</label>
+            <div className="grid grid-cols-5 gap-2">
+              {[1, 2, 3, 4, 5].map((num) => (
+                <button
+                  key={num}
+                  onClick={() => setResponses(prev => ({ ...prev, [q.id]: num }))}
+                  className={`py-3 rounded-lg border transition-all font-serif text-xl ${
+                    responses[q.id] === num
+                      ? 'bg-[#b5a642] border-[#b5a642] text-[#1b270e]'
+                      : 'border-[#c9ccbb]/20 text-[#c9ccbb]/40 hover:border-[#b5a642]'
+                  }`}
+                >
+                  {num}
+                </button>
+              ))}
             </div>
-          ))}
-        </div>
-        {error && <p className="text-red-400 mt-6 text-sm italic">{error}</p>}
-        <div className="flex gap-4 mt-12">
-          <button onClick={() => router.push('/assessments/step1')} className="flex-1 py-4 border border-[#c9ccbb]/20 text-[#c9ccbb] rounded-full font-medium hover:bg-[#c9ccbb]/5">Previous</button>
-          <button onClick={handleNext} className="flex-2 w-full py-4 bg-[#c9ccbb] text-[#1b270e] rounded-full font-medium hover:bg-[#b5a642]">Next Step</button>
-        </div>
+            <div className="flex justify-between text-xs text-[#c9ccbb]/30 uppercase tracking-widest px-1">
+              <span>Strongly Disagree</span>
+              <span>Strongly Agree</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-12 flex justify-end">
+        <button onClick={handleNext} disabled={loading} className="flex items-center gap-2 px-8 py-4 bg-[#b5a642] text-[#1b270e] font-bold rounded-xl hover:bg-[#d4c55e] disabled:opacity-50">
+          {loading ? 'Saving...' : <>Next Part <ArrowRight size={20} /></>}
+        </button>
       </div>
     </div>
   )
