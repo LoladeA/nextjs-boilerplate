@@ -1,8 +1,9 @@
 'use client'
+
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { CheckCircle } from 'lucide-react'
+import { CheckCircle, Save } from 'lucide-react'
 import { assessmentProtocol } from '../../data/assessment-protocol'
 
 export default function AssessmentStep5() {
@@ -12,10 +13,10 @@ export default function AssessmentStep5() {
   const [loading, setLoading] = useState(false)
   const [responses, setResponses] = useState<Record<string, number>>({})
 
-  const handleFinish = async () => {
+  const saveProgress = async () => {
     setLoading(true)
     const { data: { session } } = await supabase.auth.getSession()
-    if (!session) return
+    if (!session) return false
 
     const updates = Object.entries(responses).map(([key, value]) => ({
       user_id: session.user.id,
@@ -24,20 +25,36 @@ export default function AssessmentStep5() {
       answer: { response: value }
     }))
 
-    await supabase.from('user_responses').upsert(updates)
-    
-    // REDIRECT TO REPORT (The Destination)
-    router.push('/assessments/report')
+    if (updates.length > 0) {
+      await supabase.from('user_responses').upsert(updates)
+    }
+    return true
+  }
+
+  const handleFinish = async () => {
+    const success = await saveProgress()
+    if (success) router.push('/assessments/report') // GO TO REPORT
+  }
+
+  const handleSaveExit = async () => {
+    const success = await saveProgress()
+    if (success) router.push('/dashboard')
   }
 
   return (
     <div className="min-h-screen p-6 md:p-12 flex flex-col max-w-2xl mx-auto">
-      <div className="mb-8">
-        <span className="text-[#b5a642] text-xs font-bold uppercase tracking-widest">Part {part.step}</span>
-        <h1 className="text-3xl font-serif text-[#c9ccbb] mb-2">{part.title}</h1>
-        <p className="text-[#c9ccbb]/60 italic">{part.description}</p>
-        <div className="w-full bg-[#c9ccbb]/10 h-1 rounded-full mt-4">
-          <div className="bg-[#b5a642] h-1 rounded-full w-full" />
+      <div className="mb-10 border-b border-[#c9ccbb]/10 pb-8">
+        <div className="flex justify-between items-baseline mb-2">
+          <span className="text-[#b5a642] text-xs font-bold uppercase tracking-widest">Part {part.step}</span>
+          <span className="text-[#c9ccbb]/40 text-xs uppercase tracking-widest">{part.subtitle}</span>
+        </div>
+        
+        <h1 className="text-3xl font-serif text-[#c9ccbb] mb-4">{part.title}</h1>
+        <h2 className="text-xl text-[#c9ccbb] mb-4 font-light leading-snug">{part.main_question}</h2>
+        <p className="text-[#c9ccbb]/60 text-sm leading-relaxed max-w-xl">{part.description}</p>
+
+        <div className="w-full bg-[#c9ccbb]/10 h-1 rounded-full mt-8">
+          <div className="bg-[#b5a642] h-1 rounded-full w-[100%]" />
         </div>
       </div>
 
@@ -68,8 +85,19 @@ export default function AssessmentStep5() {
         ))}
       </div>
 
-      <div className="mt-12 flex justify-end">
-        <button onClick={handleFinish} disabled={loading} className="flex items-center gap-2 px-8 py-4 bg-[#b5a642] text-[#1b270e] font-bold rounded-xl hover:bg-[#d4c55e] disabled:opacity-50">
+      <div className="mt-12 flex justify-between items-center">
+        <button 
+          onClick={handleSaveExit}
+          className="flex items-center gap-2 px-6 py-4 text-[#c9ccbb]/60 hover:text-[#c9ccbb] transition-colors text-sm font-medium"
+        >
+          <Save size={16} /> Save & Return Later
+        </button>
+
+        <button 
+          onClick={handleFinish}
+          disabled={loading}
+          className="flex items-center gap-2 px-8 py-4 bg-[#b5a642] text-[#1b270e] font-bold rounded-xl hover:bg-[#d4c55e] transition-all disabled:opacity-50"
+        >
           {loading ? 'Processing...' : <>View Analysis <CheckCircle size={20} /></>}
         </button>
       </div>
