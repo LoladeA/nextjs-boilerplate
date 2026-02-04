@@ -130,7 +130,7 @@ export default async function Dashboard() {
               <p className="text-sm text-[#c9ccbb]/50">Your sensory load across 5 key metrics.</p>
             </div>
             <Link href="/assessments/report" className="text-xs text-[#b5a642] uppercase tracking-widest hover:text-[#c9ccbb] transition-colors">
-              Analyze Details →
+              Analyse Details →
             </Link>
           </div>
           <div className="h-[300px] w-full">
