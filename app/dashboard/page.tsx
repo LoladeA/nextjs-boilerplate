@@ -12,26 +12,32 @@ import SensoryTools from '../components/SensoryTools'
 import SensoryRadar from '../components/SensoryRadar'
 import NeuroFlashcard from '../components/NeuroFlashcard'
 
+// --- THE FIX: FORCE DYNAMIC RENDERING ---
+// This tells Next.js: "Do not cache this page. Re-build it for every single user."
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default async function Dashboard() {
   const cookieStore = cookies()
   const supabase = createServerComponentClient({ cookies: () => cookieStore })
 
-  const { data: { session } } = await supabase.auth.getSession()
+  // --- THE FIX: USE getUser() INSTEAD OF getSession() ---
+  // getUser validates the token with the Supabase server, ensuring the user is real and current.
+  const { data: { user }, error } = await supabase.auth.getUser()
 
-  if (!session) {
+  // If no user is found or there is an error, kick them out
+  if (error || !user) {
     redirect('/login')
   }
 
   // --- DYNAMIC NAME LOGIC ---
-  // We try to get the full name; if not set, we take the part of the email before the '@'
-  const user = session.user
   const displayName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Member'
   
-  // Fetch real data
+  // Fetch real data using the validated user.id
   const { data: responses } = await supabase
     .from('user_responses')
     .select('*')
-    .eq('user_id', session.user.id)
+    .eq('user_id', user.id) // Querying specifically for THIS user
     .order('created_at', { ascending: true })
 
   const safeResponses = responses || []
@@ -127,10 +133,10 @@ export default async function Dashboard() {
           <div className="flex justify-between items-start mb-6">
             <div>
               <h3 className="font-serif text-[#c9ccbb] text-xl mb-1">Environmental Profile</h3>
-              <p className="text-sm text-[#c9ccbb]/50">Your sensory load across 5 key metrics.</p>
+              <p className="text-sm text-[#c9ccbb]/50">Your sensory load across 5 key dimensions.</p>
             </div>
             <Link href="/assessments/report" className="text-xs text-[#b5a642] uppercase tracking-widest hover:text-[#c9ccbb] transition-colors">
-              Analyse Details →
+              Analyze Details →
             </Link>
           </div>
           <div className="h-[300px] w-full">
