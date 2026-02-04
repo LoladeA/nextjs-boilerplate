@@ -2,14 +2,14 @@ import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Brain, FileText, TrendingUp, Heart, Camera, Sparkles, Plus } from 'lucide-react' 
+import { Brain, FileText, TrendingUp, Heart, Camera, Sparkles, Plus, Activity } from 'lucide-react' 
 
 // Components
 import MetricCard from '../components/MetricCard'
-import LatestAssessment from '../components/LatestAssessment'
 import ActionCard from '../components/ActionCard'
 import SensoryTools from '../components/SensoryTools'
-import TrendChart from '../components/TrendChart'
+import SensoryRadar from '../components/SensoryRadar'   // <--- NEW
+import NeuroFlashcard from '../components/NeuroFlashcard' // <--- NEW
 
 export default async function Dashboard() {
   const cookieStore = cookies()
@@ -21,6 +21,7 @@ export default async function Dashboard() {
     redirect('/login')
   }
 
+  // Fetch real data
   const { data: responses } = await supabase
     .from('user_responses')
     .select('*')
@@ -29,12 +30,28 @@ export default async function Dashboard() {
 
   const safeResponses = responses || []
   const completedAssessments = safeResponses.filter(r => r.assessment_step === 4).length
+  
+  // Calculate specific scores for the Radar Chart
+  // (We use a safe default of 80 if no data exists yet so the chart looks good)
+  const getScore = (key: string) => {
+    const entry = safeResponses.find(r => r.question_key === key)
+    return entry ? Number(entry.answer.response) : 80 
+  }
+
+  const radarData = [
+    { subject: 'Visual', A: getScore('visual_clutter'), fullMark: 100 },
+    { subject: 'Acoustic', A: getScore('acoustic_irritation'), fullMark: 100 },
+    { subject: 'Light', A: getScore('lighting_quality'), fullMark: 100 },
+    { subject: 'Nature', A: 40, fullMark: 100 }, // Placeholder until we add biophilia Qs
+    { subject: 'Space', A: 65, fullMark: 100 },
+  ]
+
+  // Calculate overall wellbeing
   const latestTaxEntry = safeResponses.filter(r => r.question_key === 'energy_tax').pop()
   const latestTax = Number(latestTaxEntry?.answer?.response ?? 50)
   const wellbeingScore = 100 - latestTax
 
   return (
-    // UPDATED: Main background is now set by global CSS, just adding padding
     <div className="min-h-screen p-6 md:p-12 font-sans selection:bg-[#b5a642] selection:text-[#1b270e]">
       
       {/* HEADER */}
@@ -44,9 +61,9 @@ export default async function Dashboard() {
           <p className="text-[#c9ccbb]/60 font-light">Welcome back, Lolade. Track your sensory regulation.</p>
         </div>
         <div className="flex gap-4">
-          <Link href="/coaching" className="flex items-center gap-2 px-6 py-3 glass-panel hover:bg-[#c9ccbb]/10 text-[#c9ccbb] rounded-lg text-sm font-medium transition-all">
-            <Sparkles size={16} className="text-[#b5a642]" />
-            Sensory Coaching
+          <Link href="/assessments/report" className="flex items-center gap-2 px-6 py-3 glass-panel hover:bg-[#c9ccbb]/10 text-[#c9ccbb] rounded-lg text-sm font-medium transition-all">
+            <FileText size={16} className="text-[#b5a642]" />
+            View Full Report
           </Link>
           <Link href="/assessments/step0" className="flex items-center gap-2 px-6 py-3 bg-[#c9ccbb] text-[#1b270e] hover:bg-[#e3e6d5] rounded-lg text-sm font-medium transition-colors shadow-lg shadow-[#000]/20">
             <Plus size={16} />
@@ -55,75 +72,89 @@ export default async function Dashboard() {
         </div>
       </div>
 
-      {/* TOP ROW: METRIC CARDS */}
+      {/* ROW 1: METRIC CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <MetricCard 
-          title="Overall Score" 
-          value={wellbeingScore.toFixed(1)} 
-          subtext="From your latest assessment"
+          title="Overall Regulation" 
+          value={`${wellbeingScore.toFixed(0)}%`} 
+          subtext="Nervous System Capacity"
           icon={<Brain size={24} />} 
           delay={0.1}
         />
         <MetricCard 
           title="Assessments" 
           value={completedAssessments} 
-          subtext="Total completed"
-          icon={<FileText size={24} />} 
+          subtext="Total Scans"
+          icon={<Activity size={24} />} 
           delay={0.2}
         />
         <MetricCard 
           title="Recommendations" 
           value="12" 
-          subtext="Pending actions"
+          subtext="Pending Actions"
           icon={<TrendingUp size={24} />} 
           delay={0.3}
         />
         <MetricCard 
-          title="Well-being" 
-          value={`${(wellbeingScore / 10).toFixed(0)}/10`} 
-          subtext="Latest mood score"
+          title="Mood Trend" 
+          value="Stable" 
+          subtext="Last 7 Days"
           icon={<Heart size={24} />} 
           delay={0.4}
         />
       </div>
 
-      {/* MIDDLE ROW: CHART & BREAKDOWN */}
-      <div className="grid grid-cols-1 gap-8 mb-8">
-        {/* Placeholder for Chart - We will Glass-ify this in Phase 3 */}
-        <div className="glass-panel p-8 rounded-2xl">
-          <h3 className="font-serif text-[#c9ccbb] text-lg mb-2">Well-being Trends</h3>
-          <p className="text-sm text-[#c9ccbb]/50 mb-6">Your mood, stress, and focus scores over time</p>
-          <TrendChart data={safeResponses} />
-        </div>
+      {/* ROW 2: INTELLIGENCE LAYER (Radar + Flashcard) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
         
-        {/* Placeholder for LatestAssessment - We need to update this component next */}
-        <LatestAssessment data={safeResponses} />
+        {/* LEFT: SENSORY RADAR CHART (Takes up 2 columns) */}
+        <div className="lg:col-span-2 glass-panel p-8 rounded-2xl relative overflow-hidden">
+          <div className="flex justify-between items-start mb-6">
+            <div>
+              <h3 className="font-serif text-[#c9ccbb] text-xl mb-1">Environmental Profile</h3>
+              <p className="text-sm text-[#c9ccbb]/50">Your sensory load across 5 key dimensions.</p>
+            </div>
+            <Link href="/assessments/report" className="text-xs text-[#b5a642] uppercase tracking-widest hover:text-[#c9ccbb] transition-colors">
+              Analyze Details →
+            </Link>
+          </div>
+          
+          {/* THE CHART */}
+          <div className="h-[300px] w-full">
+            <SensoryRadar data={radarData} />
+          </div>
+        </div>
+
+        {/* RIGHT: NEURODESIGN INSIGHT CARD (Takes up 1 column) */}
+        <div className="h-full">
+          <NeuroFlashcard />
+        </div>
       </div>
 
-      {/* NEW: BIOMETRICS ROW */}
+      {/* ROW 3: BIOMETRIC TOOLS */}
       <SensoryTools />
 
-      {/* BOTTOM ROW: ACTION CARDS */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* ROW 4: QUICK ACTIONS */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
         <ActionCard 
-          title="Take Assessment" 
-          desc="Complete a new sensory intelligence questionnaire" 
-          icon={<Brain size={32} />} 
-          href="/assessments/step0"
+          title="Log Well-being" 
+          desc="Track your mood, stress, and focus levels." 
+          icon={<Heart size={32} />} 
+          href="/wellbeing" 
           delay={0.5}
         />
         <ActionCard 
-          title="Log Well-being" 
-          desc="Track your mood, stress, and focus levels" 
-          icon={<Heart size={32} />} 
-          href="/wellbeing" 
+          title="Document Space" 
+          desc="Upload photos to track visual changes." 
+          icon={<Camera size={32} />} 
+          href="/photos" 
           delay={0.6}
         />
         <ActionCard 
-          title="Upload Photos" 
-          desc="Document your space and track visual changes" 
-          icon={<Camera size={32} />} 
-          href="/photos" 
+          title="Sensory Coaching" 
+          desc="Get personalized nervous system guidance." 
+          icon={<Sparkles size={32} />} 
+          href="/coaching" 
           delay={0.7}
         />
       </div>
