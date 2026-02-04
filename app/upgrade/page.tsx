@@ -8,7 +8,7 @@ export default function UpgradePage() {
   const benefits = [
     {
       title: "Full Access to Sensory Coaching",
-      desc: "Unlock all 28+ NeuroDesign protocols and somatic guides."
+      desc: "Unlock all 28+ NeuroDesign protocols, somatic guides and Sensory Coaching modules."
     },
     {
       title: "Advanced Light Meter",
