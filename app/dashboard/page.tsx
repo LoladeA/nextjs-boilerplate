@@ -2,14 +2,15 @@ import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Brain, FileText, TrendingUp, Heart, Camera, Sparkles, Plus, Activity } from 'lucide-react' 
 
 // Components
 import MetricCard from '../components/MetricCard'
 import ActionCard from '../components/ActionCard'
 import SensoryTools from '../components/SensoryTools'
-import SensoryRadar from '../components/SensoryRadar'   // <--- NEW
-import NeuroFlashcard from '../components/NeuroFlashcard' // <--- NEW
+import SensoryRadar from '../components/SensoryRadar'
+import NeuroFlashcard from '../components/NeuroFlashcard'
 
 export default async function Dashboard() {
   const cookieStore = cookies()
@@ -21,6 +22,11 @@ export default async function Dashboard() {
     redirect('/login')
   }
 
+  // --- DYNAMIC NAME LOGIC ---
+  // We try to get the full name; if not set, we take the part of the email before the '@'
+  const user = session.user
+  const displayName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Member'
+  
   // Fetch real data
   const { data: responses } = await supabase
     .from('user_responses')
@@ -32,7 +38,6 @@ export default async function Dashboard() {
   const completedAssessments = safeResponses.filter(r => r.assessment_step === 4).length
   
   // Calculate specific scores for the Radar Chart
-  // (We use a safe default of 80 if no data exists yet so the chart looks good)
   const getScore = (key: string) => {
     const entry = safeResponses.find(r => r.question_key === key)
     return entry ? Number(entry.answer.response) : 80 
@@ -42,7 +47,7 @@ export default async function Dashboard() {
     { subject: 'Visual', A: getScore('visual_clutter'), fullMark: 100 },
     { subject: 'Acoustic', A: getScore('acoustic_irritation'), fullMark: 100 },
     { subject: 'Light', A: getScore('lighting_quality'), fullMark: 100 },
-    { subject: 'Nature', A: 40, fullMark: 100 }, // Placeholder until we add biophilia Qs
+    { subject: 'Nature', A: 40, fullMark: 100 },
     { subject: 'Space', A: 65, fullMark: 100 },
   ]
 
@@ -57,8 +62,20 @@ export default async function Dashboard() {
       {/* HEADER */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-4">
         <div>
-          <h1 className="text-4xl font-bold mb-2 font-serif text-[#c9ccbb]">Sanctuary Status</h1>
-          <p className="text-[#c9ccbb]/60 font-light">Welcome back, Lolade. Track your sensory regulation.</p>
+          {/* LOGO */}
+          <div className="relative w-64 h-16 mb-2">
+            <Image 
+              src="/logo.PNG" 
+              alt="Sensory Intelligence" 
+              fill
+              className="object-contain object-left"
+              priority
+            />
+          </div>
+          {/* DYNAMIC GREETING */}
+          <p className="text-[#c9ccbb]/60 font-light capitalize">
+            Welcome back, {displayName}. Track your sensory regulation.
+          </p>
         </div>
         <div className="flex gap-4">
           <Link href="/assessments/report" className="flex items-center gap-2 px-6 py-3 glass-panel hover:bg-[#c9ccbb]/10 text-[#c9ccbb] rounded-lg text-sm font-medium transition-all">
@@ -104,30 +121,32 @@ export default async function Dashboard() {
         />
       </div>
 
-      {/* ROW 2: INTELLIGENCE LAYER (Radar + Flashcard) */}
+      {/* ROW 2: INTELLIGENCE LAYER */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-        
-        {/* LEFT: SENSORY RADAR CHART (Takes up 2 columns) */}
         <div className="lg:col-span-2 glass-panel p-8 rounded-2xl relative overflow-hidden">
           <div className="flex justify-between items-start mb-6">
             <div>
               <h3 className="font-serif text-[#c9ccbb] text-xl mb-1">Environmental Profile</h3>
-              <p className="text-sm text-[#c9ccbb]/50">Your sensory load across 5 key dimensions.</p>
+              <p className="text-sm text-[#c9ccbb]/50">Your sensory load across 5 key metrics.</p>
             </div>
             <Link href="/assessments/report" className="text-xs text-[#b5a642] uppercase tracking-widest hover:text-[#c9ccbb] transition-colors">
               Analyze Details →
             </Link>
           </div>
-          
-          {/* THE CHART */}
           <div className="h-[300px] w-full">
             <SensoryRadar data={radarData} />
           </div>
         </div>
 
-        {/* RIGHT: NEURODESIGN INSIGHT CARD (Takes up 1 column) */}
         <div className="h-full">
-          <NeuroFlashcard />
+          <NeuroFlashcard 
+            isPremium={false} 
+            scores={{
+              light: getScore('lighting_quality'),
+              visual: getScore('visual_clutter'),
+              acoustic: getScore('acoustic_irritation')
+            }}
+          />
         </div>
       </div>
 
