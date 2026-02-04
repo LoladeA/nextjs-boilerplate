@@ -3,14 +3,12 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Sparkles, RefreshCw, ArrowRight } from 'lucide-react'
-import { neuroInsights } from '../data/neuro-insights' // Import the data
+import { neuroInsights } from '../data/neuro-insights'
 
 export default function NeuroFlashcard() {
-  // Select a random card on load
   const [currentCard, setCurrentCard] = useState(neuroInsights[0])
   const [isFlipped, setIsFlipped] = useState(false)
 
-  // Hydration fix: Randomize only on client side to match server
   useEffect(() => {
     const random = neuroInsights[Math.floor(Math.random() * neuroInsights.length)]
     setCurrentCard(random)
@@ -31,19 +29,17 @@ export default function NeuroFlashcard() {
            <Sparkles className="text-[#b5a642]" size={20} />
            <h3 className="text-[#c9ccbb] font-serif text-lg">NeuroDesign Insight</h3>
         </div>
-        <button onClick={nextCard} className="text-[#c9ccbb]/40 hover:text-[#b5a642] transition-colors">
+        <button onClick={nextCard} className="text-[#c9ccbb]/40 hover:text-[#b5a642] transition-colors" title="Shuffle Card">
           <RefreshCw size={16} />
         </button>
       </div>
 
-      {/* THE CARD */}
       <div 
-        className="relative flex-grow cursor-pointer group perspective-1000"
+        className="relative flex-grow cursor-pointer group perspective-1000 min-h-[250px]"
         onClick={() => setIsFlipped(!isFlipped)}
       >
         <AnimatePresence mode="wait">
           {!isFlipped ? (
-            // FRONT OF CARD (THE SCIENCE)
             <motion.div 
               key="front"
               initial={{ opacity: 0, rotateY: -90 }}
@@ -57,7 +53,7 @@ export default function NeuroFlashcard() {
                   {currentCard.category}
                 </span>
                 <h4 className="text-xl font-serif text-[#c9ccbb] mb-4">{currentCard.title}</h4>
-                <p className="text-sm text-[#c9ccbb]/70 leading-relaxed">
+                <p className="text-sm text-[#c9ccbb]/70 leading-relaxed italic">
                   "{currentCard.science}"
                 </p>
               </div>
@@ -66,7 +62,6 @@ export default function NeuroFlashcard() {
               </div>
             </motion.div>
           ) : (
-            // BACK OF CARD (THE ACTION)
             <motion.div 
               key="back"
               initial={{ opacity: 0, rotateY: 90 }}
