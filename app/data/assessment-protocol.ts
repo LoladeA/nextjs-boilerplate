@@ -1,13 +1,3 @@
-export type Question = {
-  id: string
-  text: string
-  type: 'scale' | 'choice' | 'slider'
-  minLabel?: string
-  maxLabel?: string
-  options?: string[]
-  reverse?: boolean // For Q30
-}
-
 export const assessmentProtocol = {
   part0: {
     title: "Nervous System Snapshot",
@@ -20,6 +10,7 @@ export const assessmentProtocol = {
   },
   part1: {
     title: "Circadian Integrity (CII)",
+    step: 1,
     description: "Measures alignment with biological rhythms.",
     questions: [
       { id: 'q5', text: "I feel alert in the morning without needing to push myself.", type: 'scale' },
@@ -27,13 +18,11 @@ export const assessmentProtocol = {
       { id: 'q7', text: "My energy feels rhythmical rather than flat or chaotic.", type: 'scale' },
       { id: 'q8', text: "Bright lighting in the evening makes it harder to wind down.", type: 'scale' },
       { id: 'q9', text: "Dim daylight makes me feel low or foggy.", type: 'scale' },
-      // Choice questions for data gathering, not scoring
-      { id: 'q10', text: "Morning light (7–10am) feels:", type: 'choice', options: ['Too Dim', 'Adequate', 'Too Harsh'] },
-      { id: 'q11', text: "Evening light after sunset feels:", type: 'choice', options: ['Too Bright', 'Adequate', 'Too Dim'] },
     ]
   },
   part2: {
     title: "Autonomic Load (ALI)",
+    step: 2,
     description: "Measures nervous system vigilance.",
     questions: [
       { id: 'q12', text: "Small sensory changes quickly make me irritable or tense.", type: 'scale' },
@@ -44,6 +33,7 @@ export const assessmentProtocol = {
   },
   part3: {
     title: "Predictive Legibility (PLI)",
+    step: 3,
     description: "Measures spatial cognitive load.",
     questions: [
       { id: 'q16', text: "I immediately know what each space in my home is for when I enter it.", type: 'scale' },
@@ -55,6 +45,7 @@ export const assessmentProtocol = {
   },
   part4: {
     title: "Sensory Threat Load (STL)",
+    step: 4,
     description: "Measures sensory filtering effort.",
     questions: [
       { id: 'q21', text: "Visual clutter disrupts my focus.", type: 'scale' },
@@ -66,13 +57,14 @@ export const assessmentProtocol = {
   },
   part5: {
     title: "Recovery Capacity (RCI)",
+    step: 5,
     description: "Measures parasympathetic restoration.",
     questions: [
       { id: 'q26', text: "I avoid rooms that drain me.", type: 'scale' },
       { id: 'q27', text: "I feel less rested after time at home.", type: 'scale' },
       { id: 'q28', text: "I struggle to switch off mentally at night.", type: 'scale' },
       { id: 'q29', text: "My body feels safer outside my home than inside.", type: 'scale' },
-      { id: 'q30', text: "My home helps me recover, not just function.", type: 'scale', reverse: true }, // The Reverse Score Logic
+      { id: 'q30', text: "My home helps me recover, not just function.", type: 'scale', reverse: true },
     ]
   }
 }
