@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Sparkles, RefreshCw, Lock, Zap, Brain } from 'lucide-react'
+import Link from 'next/link' // <--- Added Link import
 import { neuroInsights } from '../data/neuro-insights'
 
 interface Props {
@@ -115,7 +116,7 @@ export default function NeuroFlashcard({ isPremium = false, scores }: Props) {
                 {/* SHARED SCIENCE (Always Visible) */}
                 <div className="mb-4">
                    <span className="text-[10px] font-bold tracking-widest uppercase text-[#b5a642] mb-2 block">
-                    The Science 
+                    The Science
                   </span>
                   <p className="text-sm text-[#c9ccbb] leading-relaxed italic opacity-90">
                     "{currentCard.science_fact}"
@@ -157,9 +158,13 @@ export default function NeuroFlashcard({ isPremium = false, scores }: Props) {
                         <p className="text-xs text-[#c9ccbb]/60 line-clamp-2">
                           {currentCard.cliffhanger}
                         </p>
-                        <button className="mt-2 px-4 py-2 bg-[#c9ccbb] text-[#1b270e] text-[10px] font-bold uppercase tracking-widest rounded-full hover:bg-[#fff] transition-all transform hover:scale-105">
-                          Unlock Protocol
-                        </button>
+                        
+                        {/* UPGRADE LINK */}
+                        <Link href="/upgrade" className="w-full flex justify-center">
+                          <button className="mt-2 px-4 py-2 bg-[#c9ccbb] text-[#1b270e] text-[10px] font-bold uppercase tracking-widest rounded-full hover:bg-[#fff] transition-all transform hover:scale-105">
+                            Unlock Protocol
+                          </button>
+                        </Link>
                       </div>
                     </div>
                   </div>
