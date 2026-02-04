@@ -10,8 +10,9 @@ import ActionCard from '../components/ActionCard'
 import SensoryTools from '../components/SensoryTools'
 import SensoryRadar from '../components/SensoryRadar'
 import NeuroFlashcard from '../components/NeuroFlashcard'
-import { calculateNeuroLoad } from '../utils/scoring-engine' // <--- IMPORT THE ENGINE
+import { calculateNeuroLoad } from '../utils/scoring-engine' 
 
+// --- CORRECT PLACEMENT: AFTER IMPORTS, BEFORE COMPONENT ---
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
@@ -35,7 +36,6 @@ export default async function Dashboard() {
   const { totalLoad, systemState, radarData } = calculateNeuroLoad(safeResponses)
   
   // Calculate specific scores for Flashcard Triggers
-  // If Circadian load is high (raw score > 15), trigger the light card
   const getVal = (id: string) => safeResponses.find(r => r.question_key === id)?.answer?.response || 0
   const circadianLoad = Number(getVal('q5')) + Number(getVal('q6')) + Number(getVal('q7')) + Number(getVal('q8')) + Number(getVal('q9'))
 
@@ -116,17 +116,16 @@ export default async function Dashboard() {
         <div className="h-full">
           <NeuroFlashcard 
             isPremium={false} 
-            // We pass low scores to trigger warnings (High Load = Low Health Score)
             scores={{
-              light: circadianLoad > 15 ? 40 : 80, // If load is high (>15), send '40' to trigger warning
-              visual: radarData[2].A, // Predictive Legibility
-              acoustic: radarData[3].A // Sensory Threat
+              light: circadianLoad > 15 ? 40 : 80,
+              visual: radarData[2].A, 
+              acoustic: radarData[3].A 
             }}
           />
         </div>
       </div>
 
-      {/* ROW 3 & 4 (Tools & Actions) - Same as before */}
+      {/* ROW 3 & 4 (Tools & Actions) */}
       <SensoryTools />
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
         <ActionCard title="Log Well-being" desc="Track your mood & focus." icon={<Heart size={32} />} href="/wellbeing" delay={0.5} />
