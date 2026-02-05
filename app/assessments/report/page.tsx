@@ -141,7 +141,7 @@ export default async function AssessmentReport() {
                  {criticalIssues.map(issue => (
                    <div key={issue.id} className="glass-panel p-6 rounded-xl border border-red-400/30 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                      <div>
-                       <h4 className="text-lg text-[#c9ccbb] font-bold">{issue.name} Load</h4>
+                       <h4 className="text-lg text-[#c9ccbb] font-bold">{issue.name}</h4>
                        <p className="text-[#c9ccbb]/60 text-sm">Status: <span className="text-red-400">{issue.status}</span> — {issue.description}</p>
                      </div>
                      <Link href="/coaching" className="px-6 py-2 bg-red-400/10 text-red-400 border border-red-400/20 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-red-400/20 transition-all whitespace-nowrap">
