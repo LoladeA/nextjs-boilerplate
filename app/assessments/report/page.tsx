@@ -2,7 +2,8 @@ import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import Link from 'next/link'
 import { ArrowLeft, Activity, Brain, ShieldAlert, Zap, Download, CheckCircle, AlertTriangle } from 'lucide-react'
-import { calculateNeuroLoad } from '@/app/utils/scoring-engine' // <--- The New Engine
+import { calculateNeuroLoad } from '@/app/utils/scoring-engine'
+import Sidebar from '../../components/Sidebar'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,12 +18,8 @@ export default async function AssessmentReport() {
     .eq('user_id', session?.user.id)
 
   const safeResponses = responses || []
-
-  // 1. RUN THE CLINICAL SCORING ENGINE
   const { indices, totalLoad, systemState } = calculateNeuroLoad(safeResponses)
 
-  // 2. DEFINE THE 5 INDICES & THRESHOLDS (Based on your NeuroDesign Model)
-  // We map the raw scores to your specific "State" labels.
   const domains = [
     {
       id: 'cii',
@@ -30,7 +27,6 @@ export default async function AssessmentReport() {
       score: indices.cii,
       max: 25,
       description: 'Alignment with biological light/dark rhythms.',
-      // Thresholds: 5-10 (Regulated), 11-15 (Misaligned), 16-20 (Dysregulated), 21+ (Threat)
       status: indices.cii <= 10 ? 'Regulated' : indices.cii <= 15 ? 'Misaligned' : indices.cii <= 20 ? 'Dysregulated' : 'Circadian Threat',
       priority: indices.cii > 15 ? 'High' : indices.cii > 10 ? 'Medium' : 'Low',
       icon: <Zap size={24} className={indices.cii > 15 ? "text-red-400" : "text-[#b5a642]"} />
@@ -41,7 +37,6 @@ export default async function AssessmentReport() {
       score: indices.ali,
       max: 20,
       description: 'Nervous system vigilance and stress axis activation.',
-      // Thresholds: 4-7 (Stable), 8-11 (Activated), 12-16 (Overloaded), 17+ (Threat)
       status: indices.ali <= 7 ? 'Stable' : indices.ali <= 11 ? 'Activated' : indices.ali <= 16 ? 'Overloaded' : 'Threat Mode',
       priority: indices.ali > 11 ? 'High' : indices.ali > 7 ? 'Medium' : 'Low',
       icon: <Activity size={24} className={indices.ali > 11 ? "text-red-400" : "text-[#b5a642]"} />
@@ -52,7 +47,6 @@ export default async function AssessmentReport() {
       score: indices.pli,
       max: 25,
       description: 'Spatial clarity and cognitive navigation effort.',
-      // Thresholds: 5-10 (Legible), 11-15 (Frictional), 16-20 (Unstable), 21+ (Threat)
       status: indices.pli <= 10 ? 'Legible' : indices.pli <= 15 ? 'Frictional' : indices.pli <= 20 ? 'Unstable' : 'Cognitive Threat',
       priority: indices.pli > 15 ? 'High' : indices.pli > 10 ? 'Medium' : 'Low',
       icon: <Brain size={24} className={indices.pli > 15 ? "text-red-400" : "text-[#b5a642]"} />
@@ -63,7 +57,6 @@ export default async function AssessmentReport() {
       score: indices.stl,
       max: 25,
       description: 'Cumulative impact of noise, clutter, and texture.',
-      // Thresholds: 5-10 (Low), 11-15 (Moderate), 16-20 (High), 21+ (Threat)
       status: indices.stl <= 10 ? 'Low Load' : indices.stl <= 15 ? 'Moderate' : indices.stl <= 20 ? 'High Load' : 'Sensory Threat',
       priority: indices.stl > 15 ? 'High' : indices.stl > 10 ? 'Medium' : 'Low',
       icon: <ShieldAlert size={24} className={indices.stl > 15 ? "text-red-400" : "text-[#b5a642]"} />
@@ -74,7 +67,6 @@ export default async function AssessmentReport() {
       score: indices.rci,
       max: 25,
       description: 'Ability of the home to support parasympathetic restoration.',
-      // Thresholds: 5-10 (Restorative), 11-15 (Incomplete), 16-20 (Depleted), 21+ (Failure)
       status: indices.rci <= 10 ? 'Restorative' : indices.rci <= 15 ? 'Incomplete' : indices.rci <= 20 ? 'Depleted' : 'Recovery Failure',
       priority: indices.rci > 15 ? 'High' : indices.rci > 10 ? 'Medium' : 'Low',
       icon: <CheckCircle size={24} className={indices.rci > 15 ? "text-red-400" : "text-[#b5a642]"} />
@@ -84,115 +76,116 @@ export default async function AssessmentReport() {
   const criticalIssues = domains.filter(d => d.priority === 'High')
 
   return (
-    <div className="min-h-screen p-6 md:p-12 font-sans">
-      <Link href="/dashboard" className="flex items-center text-[#c9ccbb]/60 hover:text-[#b5a642] mb-8 transition-colors w-fit">
-        <ArrowLeft size={20} className="mr-2" /> Back to Dashboard
-      </Link>
-
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-[#1b270e] font-sans">
+      <Sidebar />
+      <div className="md:ml-64 min-h-screen p-6 md:p-12">
         
-        {/* HEADER */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
-          <div>
-            <h1 className="text-4xl font-serif text-[#c9ccbb] mb-2">NeuroLoad™ Analysis</h1>
-            <p className="text-[#c9ccbb]/60">Diagnostic breakdown of environmental impact on nervous system regulation.</p>
+        <Link href="/dashboard" className="flex items-center text-[#c9ccbb]/60 hover:text-[#b5a642] mb-8 transition-colors w-fit">
+          <ArrowLeft size={20} className="mr-2" /> Back to Dashboard
+        </Link>
+
+        <div className="max-w-4xl mx-auto">
+          {/* HEADER */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
+            <div>
+              <h1 className="text-4xl font-serif text-[#c9ccbb] mb-2">NeuroLoad™ Analysis</h1>
+              <p className="text-[#c9ccbb]/60">Diagnostic breakdown of environmental impact on nervous system regulation.</p>
+            </div>
+            <button className="flex items-center gap-2 px-6 py-3 border border-[#c9ccbb]/20 rounded-lg text-[#c9ccbb] hover:bg-[#c9ccbb]/10 text-sm transition-all">
+               <Download size={16} /> Export Clinical PDF
+            </button>
           </div>
-          <button className="flex items-center gap-2 px-6 py-3 border border-[#c9ccbb]/20 rounded-lg text-[#c9ccbb] hover:bg-[#c9ccbb]/10 text-sm transition-all">
-             <Download size={16} /> Export Clinical PDF
-          </button>
-        </div>
 
-        {/* 1. EXECUTIVE SUMMARY CARD */}
-        <div className="glass-panel p-8 md:p-12 rounded-3xl mb-12 border-l-8 border-[#b5a642] relative overflow-hidden">
-           <div className="relative z-10">
-             <span className="text-[#b5a642] text-xs font-bold uppercase tracking-widest mb-2 block">System State Diagnosis</span>
-             <h2 className="text-4xl md:text-5xl font-serif text-[#c9ccbb] mb-6">{systemState}</h2>
-             
-             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-8 border-t border-[#c9ccbb]/10">
-               <div>
-                 <div className="text-3xl font-bold text-[#c9ccbb]">{totalLoad}<span className="text-base text-[#c9ccbb]/40 font-normal">/120</span></div>
-                 <div className="text-xs text-[#c9ccbb]/50 uppercase tracking-widest mt-1">Total NeuroLoad™</div>
-               </div>
-               <div>
-                 <div className="text-3xl font-bold text-[#c9ccbb]">{criticalIssues.length}</div>
-                 <div className="text-xs text-[#c9ccbb]/50 uppercase tracking-widest mt-1">Active Threats</div>
-               </div>
-               <div>
-                 <div className="text-3xl font-bold text-[#c9ccbb]">{domains.find(d=>d.id === 'rci')?.status}</div>
-                 <div className="text-xs text-[#c9ccbb]/50 uppercase tracking-widest mt-1">Recovery Status</div>
-               </div>
-             </div>
-           </div>
-           
-           {/* Background decorative glow */}
-           <div className="absolute right-0 top-0 w-64 h-64 bg-[#b5a642] rounded-full filter blur-[100px] opacity-10 pointer-events-none" />
-        </div>
-
-        {/* 2. CRITICAL INTERVENTIONS (If Any) */}
-        {criticalIssues.length > 0 && (
-          <div className="mb-16">
-             <div className="flex items-center gap-3 mb-6">
-               <AlertTriangle className="text-red-400" size={24} />
-               <h3 className="text-2xl font-serif text-[#c9ccbb]">Priority Interventions</h3>
-             </div>
-             <div className="grid gap-4">
-               {criticalIssues.map(issue => (
-                 <div key={issue.id} className="glass-panel p-6 rounded-xl border border-red-400/30 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                   <div>
-                     <h4 className="text-lg text-[#c9ccbb] font-bold">{issue.name} Failure</h4>
-                     <p className="text-[#c9ccbb]/60 text-sm">Status: <span className="text-red-400">{issue.status}</span> — {issue.description}</p>
-                   </div>
-                   <Link href="/coaching" className="px-6 py-2 bg-red-400/10 text-red-400 border border-red-400/20 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-red-400/20 transition-all whitespace-nowrap">
-                     Unlock Protocol
-                   </Link>
+          {/* EXECUTIVE SUMMARY */}
+          <div className="glass-panel p-8 md:p-12 rounded-3xl mb-12 border-l-8 border-[#b5a642] relative overflow-hidden">
+             <div className="relative z-10">
+               <span className="text-[#b5a642] text-xs font-bold uppercase tracking-widest mb-2 block">System State Diagnosis</span>
+               <h2 className="text-4xl md:text-5xl font-serif text-[#c9ccbb] mb-6">{systemState}</h2>
+               
+               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-8 border-t border-[#c9ccbb]/10">
+                 <div>
+                   <div className="text-3xl font-bold text-[#c9ccbb]">{totalLoad}<span className="text-base text-[#c9ccbb]/40 font-normal">/120</span></div>
+                   <div className="text-xs text-[#c9ccbb]/50 uppercase tracking-widest mt-1">Total NeuroLoad™</div>
                  </div>
-               ))}
+                 <div>
+                   <div className="text-3xl font-bold text-[#c9ccbb]">{criticalIssues.length}</div>
+                   <div className="text-xs text-[#c9ccbb]/50 uppercase tracking-widest mt-1">Active Threats</div>
+                 </div>
+                 <div>
+                   <div className="text-3xl font-bold text-[#c9ccbb]">{domains.find(d=>d.id === 'rci')?.status}</div>
+                   <div className="text-xs text-[#c9ccbb]/50 uppercase tracking-widest mt-1">Recovery Status</div>
+                 </div>
+               </div>
              </div>
+             
+             {/* Background glow */}
+             <div className="absolute right-0 top-0 w-64 h-64 bg-[#b5a642] rounded-full filter blur-[100px] opacity-10 pointer-events-none" />
           </div>
-        )}
 
-        {/* 3. THE 5 INDICES BREAKDOWN */}
-        <div className="mb-16">
-          <h3 className="text-2xl font-serif text-[#c9ccbb] mb-8">Clinical Indices Breakdown</h3>
-          <div className="grid gap-6">
-            {domains.map((domain) => (
-              <div key={domain.id} className="glass-panel p-8 rounded-2xl flex flex-col md:flex-row gap-6 items-start">
-                <div className="p-4 bg-[#1b270e] rounded-full border border-[#c9ccbb]/10 shrink-0">
-                  {domain.icon}
+          {/* CRITICAL INTERVENTIONS */}
+          {criticalIssues.length > 0 && (
+            <div className="mb-16">
+               <div className="flex items-center gap-3 mb-6">
+                 <AlertTriangle className="text-red-400" size={24} />
+                 <h3 className="text-2xl font-serif text-[#c9ccbb]">Priority Interventions</h3>
+               </div>
+               <div className="grid gap-4">
+                 {criticalIssues.map(issue => (
+                   <div key={issue.id} className="glass-panel p-6 rounded-xl border border-red-400/30 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                     <div>
+                       <h4 className="text-lg text-[#c9ccbb] font-bold">{issue.name} Failure</h4>
+                       <p className="text-[#c9ccbb]/60 text-sm">Status: <span className="text-red-400">{issue.status}</span> — {issue.description}</p>
+                     </div>
+                     <Link href="/coaching" className="px-6 py-2 bg-red-400/10 text-red-400 border border-red-400/20 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-red-400/20 transition-all whitespace-nowrap">
+                       Unlock Protocol
+                     </Link>
+                   </div>
+                 ))}
+               </div>
+            </div>
+          )}
+
+          {/* INDICES BREAKDOWN */}
+          <div className="mb-16">
+            <h3 className="text-2xl font-serif text-[#c9ccbb] mb-8">Clinical Indices Breakdown</h3>
+            <div className="grid gap-6">
+              {domains.map((domain) => (
+                <div key={domain.id} className="glass-panel p-8 rounded-2xl flex flex-col md:flex-row gap-6 items-start">
+                  <div className="p-4 bg-[#1b270e] rounded-full border border-[#c9ccbb]/10 shrink-0">
+                    {domain.icon}
+                  </div>
+                  <div className="flex-grow">
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="text-xl text-[#c9ccbb] font-serif">{domain.name} ({(domain.id).toUpperCase()})</h4>
+                      <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${
+                        domain.priority === 'High' ? 'bg-red-400/10 text-red-400' : 
+                        domain.priority === 'Medium' ? 'bg-orange-400/10 text-orange-400' : 
+                        'bg-[#b5a642]/10 text-[#b5a642]'
+                      }`}>
+                        {domain.status}
+                      </span>
+                    </div>
+                    <p className="text-[#c9ccbb]/60 text-sm mb-4">{domain.description}</p>
+                    
+                    <div className="w-full h-2 bg-[#c9ccbb]/10 rounded-full overflow-hidden">
+                      <div 
+                        className={`h-full rounded-full ${
+                          domain.priority === 'High' ? 'bg-red-400' : 
+                          domain.priority === 'Medium' ? 'bg-orange-400' : 'bg-[#b5a642]'
+                        }`} 
+                        style={{ width: `${(domain.score / domain.max) * 100}%` }}
+                      />
+                    </div>
+                    <div className="flex justify-between mt-2 text-[10px] text-[#c9ccbb]/30 uppercase tracking-widest">
+                      <span>Regulated</span>
+                      <span>Threat</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex-grow">
-                  <div className="flex justify-between items-start mb-2">
-                    <h4 className="text-xl text-[#c9ccbb] font-serif">{domain.name} ({(domain.id).toUpperCase()})</h4>
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${
-                      domain.priority === 'High' ? 'bg-red-400/10 text-red-400' : 
-                      domain.priority === 'Medium' ? 'bg-orange-400/10 text-orange-400' : 
-                      'bg-[#b5a642]/10 text-[#b5a642]'
-                    }`}>
-                      {domain.status}
-                    </span>
-                  </div>
-                  <p className="text-[#c9ccbb]/60 text-sm mb-4">{domain.description}</p>
-                  
-                  {/* Progress Bar Visual */}
-                  <div className="w-full h-2 bg-[#c9ccbb]/10 rounded-full overflow-hidden">
-                    <div 
-                      className={`h-full rounded-full ${
-                        domain.priority === 'High' ? 'bg-red-400' : 
-                        domain.priority === 'Medium' ? 'bg-orange-400' : 'bg-[#b5a642]'
-                      }`} 
-                      style={{ width: `${(domain.score / domain.max) * 100}%` }}
-                    />
-                  </div>
-                  <div className="flex justify-between mt-2 text-[10px] text-[#c9ccbb]/30 uppercase tracking-widest">
-                    <span>Regulated</span>
-                    <span>Threat</span>
-                  </div>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
-
       </div>
     </div>
   )
