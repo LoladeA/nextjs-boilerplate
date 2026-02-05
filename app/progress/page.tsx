@@ -26,10 +26,10 @@ export default function Progress() {
 
   // 2. ENVIRONMENTAL TAGS
   const envTags = [
-    { id: 'air', label: 'Fresh Air', icon: <Wind size={14} /> },
-    { id: 'light', label: 'Light Reset', icon: <Sun size={14} /> },
-    { id: 'sound', label: 'Sound Buffer', icon: <Volume2 size={14} /> },
-    { id: 'space', label: 'Surface Clear', icon: <CheckCircle size={14} /> },
+    { id: 'air', label: 'Ventilated Home', icon: <Wind size={14} /> },
+    { id: 'light', label: 'Got Early Morning Sunight', icon: <Sun size={14} /> },
+    { id: 'sound', label: 'Buffered Against Intrusive Noise', icon: <Volume2 size={14} /> },
+    { id: 'space', label: 'Decluttered Priority Area', icon: <CheckCircle size={14} /> },
   ]
 
   const toggleTag = (id: string) => {
@@ -60,7 +60,7 @@ export default function Progress() {
           <div className="mb-12">
             <h1 className="text-4xl font-serif text-[#c9ccbb] mb-2">Progress & Tracking</h1>
             <p className="text-[#c9ccbb]/60">
-              Log your daily state to train the system and reveal long-term patterns.
+              Log your daily state to train the nervous system and reveal long-term patterns.
             </p>
           </div>
 
@@ -155,7 +155,7 @@ export default function Progress() {
 
               <h2 className="text-2xl font-serif text-[#c9ccbb] mb-3">Data Accumulation In Progress</h2>
               <p className="text-[#c9ccbb]/50 max-w-lg mb-8 text-sm leading-relaxed">
-                As you log your daily check-ins, this dashboard will begin to visualize your recovery rate, circadian alignment, and stress correlation patterns.
+                As you log your daily check-ins, this dashboard will begin to visualise your recovery rate, circadian alignment, and stress correlation patterns.
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-2xl text-left">
