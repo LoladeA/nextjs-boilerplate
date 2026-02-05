@@ -71,7 +71,7 @@ export default function Progress() {
                <div className="w-10 h-10 rounded-full bg-[#b5a642]/10 flex items-center justify-center text-[#b5a642]">
                  <Heart size={20} />
                </div>
-               <h2 className="text-2xl font-serif text-[#c9ccbb]">Daily Check-In</h2>
+               <h2 className="text-2xl font-serif text-[#c9ccbb]">Daily Check-In: Today I Feel</h2>
             </div>
 
             {/* MOOD GRID */}
