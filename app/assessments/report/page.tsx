@@ -23,11 +23,11 @@ export default async function AssessmentReport() {
   const domains = [
     {
       id: 'cii',
-      name: 'Circadian Integrity',
+      name: 'Circadian Rhythm',
       score: indices.cii,
       max: 25,
-      description: 'Alignment with biological light/dark rhythms.',
-      status: indices.cii <= 10 ? 'Regulated' : indices.cii <= 15 ? 'Misaligned' : indices.cii <= 20 ? 'Dysregulated' : 'Circadian Threat',
+      description: 'Alignment with biological day/night rhythm.',
+      status: indices.cii <= 10 ? 'Regulated' : indices.cii <= 15 ? 'Misaligned' : indices.cii <= 20 ? 'Dysregulated' : 'Circadian Rhythm',
       priority: indices.cii > 15 ? 'High' : indices.cii > 10 ? 'Medium' : 'Low',
       icon: <Zap size={24} className={indices.cii > 15 ? "text-red-400" : "text-[#b5a642]"} />
     },
@@ -37,7 +37,7 @@ export default async function AssessmentReport() {
       score: indices.ali,
       max: 20,
       description: 'Nervous system vigilance and stress axis activation.',
-      status: indices.ali <= 7 ? 'Stable' : indices.ali <= 11 ? 'Activated' : indices.ali <= 16 ? 'Overloaded' : 'Threat Mode',
+      status: indices.ali <= 7 ? 'Stable' : indices.ali <= 11 ? 'Activated' : indices.ali <= 16 ? 'Overloaded' : 'High Vigilance',
       priority: indices.ali > 11 ? 'High' : indices.ali > 7 ? 'Medium' : 'Low',
       icon: <Activity size={24} className={indices.ali > 11 ? "text-red-400" : "text-[#b5a642]"} />
     },
@@ -46,28 +46,28 @@ export default async function AssessmentReport() {
       name: 'Predictive Legibility',
       score: indices.pli,
       max: 25,
-      description: 'Spatial clarity and cognitive navigation effort.',
-      status: indices.pli <= 10 ? 'Legible' : indices.pli <= 15 ? 'Frictional' : indices.pli <= 20 ? 'Unstable' : 'Cognitive Threat',
+      description: 'Spatial clarity and cognitive effort.',
+      status: indices.pli <= 10 ? 'Legible' : indices.pli <= 15 ? 'Frictional' : indices.pli <= 20 ? 'Unstable' : 'Cognitive Overload',
       priority: indices.pli > 15 ? 'High' : indices.pli > 10 ? 'Medium' : 'Low',
       icon: <Brain size={24} className={indices.pli > 15 ? "text-red-400" : "text-[#b5a642]"} />
     },
     {
       id: 'stl',
-      name: 'Sensory Threat Load',
+      name: 'Sensory Load',
       score: indices.stl,
       max: 25,
       description: 'Cumulative impact of noise, clutter, and texture.',
-      status: indices.stl <= 10 ? 'Low Load' : indices.stl <= 15 ? 'Moderate' : indices.stl <= 20 ? 'High Load' : 'Sensory Threat',
+      status: indices.stl <= 10 ? 'Low Load' : indices.stl <= 15 ? 'Moderate' : indices.stl <= 20 ? 'High Load' : 'Sensory Overload',
       priority: indices.stl > 15 ? 'High' : indices.stl > 10 ? 'Medium' : 'Low',
       icon: <ShieldAlert size={24} className={indices.stl > 15 ? "text-red-400" : "text-[#b5a642]"} />
     },
     {
       id: 'rci',
-      name: 'Recovery Capacity',
+      name: 'Recovery Support',
       score: indices.rci,
       max: 25,
       description: 'Ability of the home to support parasympathetic restoration.',
-      status: indices.rci <= 10 ? 'Restorative' : indices.rci <= 15 ? 'Incomplete' : indices.rci <= 20 ? 'Depleted' : 'Recovery Failure',
+      status: indices.rci <= 10 ? 'Restorative' : indices.rci <= 15 ? 'Recovery Supported' : indices.rci <= 20 ? 'Recovery Limited' : 'Recovery Not Yet Available',
       priority: indices.rci > 15 ? 'High' : indices.rci > 10 ? 'Medium' : 'Low',
       icon: <CheckCircle size={24} className={indices.rci > 15 ? "text-red-400" : "text-[#b5a642]"} />
     }
@@ -88,28 +88,28 @@ export default async function AssessmentReport() {
           {/* HEADER */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
             <div>
-              <h1 className="text-4xl font-serif text-[#c9ccbb] mb-2">NeuroLoad Analysis</h1>
-              <p className="text-[#c9ccbb]/60">Breakdown of environmental impact on nervous system regulation.</p>
+              <h1 className="text-4xl font-serif text-[#c9ccbb] mb-2">Your NeuroLoad Overview</h1>
+              <p className="text-[#c9ccbb]/60">How your home environment is currently interacting with your nervous system.</p>
             </div>
             <button className="flex items-center gap-2 px-6 py-3 border border-[#c9ccbb]/20 rounded-lg text-[#c9ccbb] hover:bg-[#c9ccbb]/10 text-sm transition-all">
-               <Download size={16} /> Export Clinical PDF
+               <Download size={16} /> Download Detailed Report
             </button>
           </div>
 
           {/* EXECUTIVE SUMMARY */}
           <div className="glass-panel p-8 md:p-12 rounded-3xl mb-12 border-l-8 border-[#b5a642] relative overflow-hidden">
              <div className="relative z-10">
-               <span className="text-[#b5a642] text-xs font-bold uppercase tracking-widest mb-2 block">System State Diagnosis</span>
+               <span className="text-[#b5a642] text-xs font-bold uppercase tracking-widest mb-2 block">Current Nervous System State</span>
                <h2 className="text-4xl md:text-5xl font-serif text-[#c9ccbb] mb-6">{systemState}</h2>
                
                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-8 border-t border-[#c9ccbb]/10">
                  <div>
                    <div className="text-3xl font-bold text-[#c9ccbb]">{totalLoad}<span className="text-base text-[#c9ccbb]/40 font-normal">/120</span></div>
-                   <div className="text-xs text-[#c9ccbb]/50 uppercase tracking-widest mt-1">Total NeuroLoad™</div>
+                   <div className="text-xs text-[#c9ccbb]/50 uppercase tracking-widest mt-1">NeuroLoad Score™</div>
                  </div>
                  <div>
                    <div className="text-3xl font-bold text-[#c9ccbb]">{criticalIssues.length}</div>
-                   <div className="text-xs text-[#c9ccbb]/50 uppercase tracking-widest mt-1">Active Threats</div>
+                   <div className="text-xs text-[#c9ccbb]/50 uppercase tracking-widest mt-1">Areas Needing Support</div>
                  </div>
                  <div>
                    <div className="text-3xl font-bold text-[#c9ccbb]">{domains.find(d=>d.id === 'rci')?.status}</div>
@@ -127,7 +127,7 @@ export default async function AssessmentReport() {
             <div className="mb-16">
                <div className="flex items-center gap-3 mb-6">
                  <AlertTriangle className="text-red-400" size={24} />
-                 <h3 className="text-2xl font-serif text-[#c9ccbb]">Priority Interventions</h3>
+                 <h3 className="text-2xl font-serif text-[#c9ccbb]">Priority Focus Areas</h3>
                </div>
                <div className="grid gap-4">
                  {criticalIssues.map(issue => (
@@ -178,7 +178,7 @@ export default async function AssessmentReport() {
                     </div>
                     <div className="flex justify-between mt-2 text-[10px] text-[#c9ccbb]/30 uppercase tracking-widest">
                       <span>Regulated</span>
-                      <span>Threat</span>
+                      <span>Dysregulated</span>
                     </div>
                   </div>
                 </div>
