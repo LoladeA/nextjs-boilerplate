@@ -24,12 +24,12 @@ export default function Progress() {
     { val: 5, label: 'Resonant', desc: 'Restorative', color: 'bg-emerald-400/20 border-emerald-400/50 text-emerald-400' }
   ]
 
-  // 2. ENVIRONMENTAL TAGS
+  // 2. ENVIRONMENTAL TAGS (Human-Centric)
   const envTags = [
     { id: 'air', label: 'Ventilated Home', icon: <Wind size={14} /> },
     { id: 'light', label: 'Got Early Morning Sunlight', icon: <Sun size={14} /> },
     { id: 'sound', label: 'Buffered Against Intrusive Noise', icon: <Volume2 size={14} /> },
-    { id: 'space', label: 'Decluttered Priority Area', icon: <CheckCircle size={14} /> },
+    { id: 'space', label: 'Decluttered Priority Areas', icon: <CheckCircle size={14} /> },
   ]
 
   const toggleTag = (id: string) => {
@@ -39,7 +39,7 @@ export default function Progress() {
   }
 
   const handleSave = async () => {
-    // Simulate API call
+    // Here we would save to Supabase
     setIsSaved(true)
     setTimeout(() => {
       setIsSaved(false)
@@ -60,7 +60,7 @@ export default function Progress() {
           <div className="mb-12">
             <h1 className="text-4xl font-serif text-[#c9ccbb] mb-2">Progress & Tracking</h1>
             <p className="text-[#c9ccbb]/60">
-              Log your daily state to train the nervous system and reveal long-term patterns.
+              Log your daily state to train the system and reveal long-term patterns.
             </p>
           </div>
 
@@ -71,7 +71,7 @@ export default function Progress() {
                <div className="w-10 h-10 rounded-full bg-[#b5a642]/10 flex items-center justify-center text-[#b5a642]">
                  <Heart size={20} />
                </div>
-               <h2 className="text-2xl font-serif text-[#c9ccbb]">Daily Check-In: Today I Feel</h2>
+               <h2 className="text-2xl font-serif text-[#c9ccbb]">Daily Check-In</h2>
             </div>
 
             {/* MOOD GRID */}
@@ -97,48 +97,60 @@ export default function Progress() {
               ))}
             </div>
 
-            {/* TAGS & SAVE */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 pt-6 border-t border-[#c9ccbb]/10">
-              
-              <div className="flex flex-wrap gap-2">
-                {envTags.map((tag) => (
-                  <button
-                    key={tag.id}
-                    onClick={() => toggleTag(tag.id)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full border text-[10px] font-bold uppercase tracking-widest transition-all ${
-                      loggedTags.includes(tag.id)
-                        ? 'bg-[#b5a642] border-[#b5a642] text-[#1b270e]'
-                        : 'bg-[#000]/20 border-[#c9ccbb]/10 text-[#c9ccbb]/50 hover:text-[#c9ccbb]'
-                    }`}
-                  >
-                    {tag.icon} {tag.label}
-                  </button>
-                ))}
-              </div>
+            {/* TAGS */}
+            <div className="flex flex-wrap gap-2 mb-8">
+              {envTags.map((tag) => (
+                <button
+                  key={tag.id}
+                  onClick={() => toggleTag(tag.id)}
+                  className={`flex items-center gap-2 px-4 py-3 h-auto rounded-full border text-[10px] font-bold uppercase tracking-widest transition-all ${
+                    loggedTags.includes(tag.id)
+                      ? 'bg-[#b5a642] border-[#b5a642] text-[#1b270e]'
+                      : 'bg-[#000]/20 border-[#c9ccbb]/10 text-[#c9ccbb]/50 hover:text-[#c9ccbb]'
+                  }`}
+                >
+                  {tag.icon} 
+                  <span className="whitespace-normal text-left leading-tight">{tag.label}</span>
+                </button>
+              ))}
+            </div>
 
-              <div className="flex items-center gap-4 w-full md:w-auto">
-                 <AnimatePresence>
-                   {isSaved && (
-                     <motion.span 
-                       initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
-                       className="text-[#b5a642] text-xs font-bold uppercase tracking-widest flex items-center gap-1"
-                     >
-                       <CheckCircle size={14} /> Saved
-                     </motion.span>
-                   )}
-                 </AnimatePresence>
-                 <button 
-                   onClick={handleSave}
-                   disabled={selectedMood === null}
-                   className={`flex-grow md:flex-grow-0 px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-all ${
-                     selectedMood !== null 
-                       ? 'bg-[#c9ccbb] text-[#1b270e] hover:bg-white' 
-                       : 'bg-[#c9ccbb]/10 text-[#c9ccbb]/20 cursor-not-allowed'
-                   }`}
-                 >
-                   Log Entry
-                 </button>
-              </div>
+            {/* OBSERVATIONS */}
+            <div className="mb-8">
+              <label className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-3 block">
+                Observations (Optional)
+              </label>
+              <textarea 
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="Noticed any specific triggers? (e.g., 'Felt calmer after dimming lights')"
+                className="w-full h-24 bg-[#000]/20 border border-[#c9ccbb]/10 rounded-xl p-4 text-[#c9ccbb] text-sm placeholder:text-[#c9ccbb]/20 focus:outline-none focus:border-[#b5a642]/50 resize-none font-sans"
+              />
+            </div>
+
+            {/* SAVE BUTTON */}
+            <div className="flex justify-end items-center gap-4 pt-6 border-t border-[#c9ccbb]/10">
+               <AnimatePresence>
+                 {isSaved && (
+                   <motion.span 
+                     initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
+                     className="text-[#b5a642] text-xs font-bold uppercase tracking-widest flex items-center gap-1"
+                   >
+                     <CheckCircle size={14} /> Saved
+                   </motion.span>
+                 )}
+               </AnimatePresence>
+               <button 
+                 onClick={handleSave}
+                 disabled={selectedMood === null}
+                 className={`px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-all ${
+                   selectedMood !== null 
+                     ? 'bg-[#c9ccbb] text-[#1b270e] hover:bg-white' 
+                     : 'bg-[#c9ccbb]/10 text-[#c9ccbb]/20 cursor-not-allowed'
+                 }`}
+               >
+                 Log Entry
+               </button>
             </div>
           </div>
 
@@ -155,7 +167,7 @@ export default function Progress() {
 
               <h2 className="text-2xl font-serif text-[#c9ccbb] mb-3">Data Accumulation In Progress</h2>
               <p className="text-[#c9ccbb]/50 max-w-lg mb-8 text-sm leading-relaxed">
-                As you log your daily check-ins, this dashboard will begin to visualise your recovery rate, circadian alignment, and stress correlation patterns.
+                As you log your daily check-ins, this dashboard will begin to visualize your recovery rate, circadian alignment, and stress correlation patterns.
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-2xl text-left">
