@@ -27,7 +27,7 @@ export default function Progress() {
   // 2. ENVIRONMENTAL TAGS
   const envTags = [
     { id: 'air', label: 'Ventilated Home', icon: <Wind size={14} /> },
-    { id: 'light', label: 'Got Early Morning Sunight', icon: <Sun size={14} /> },
+    { id: 'light', label: 'Got Early Morning Sunlight', icon: <Sun size={14} /> },
     { id: 'sound', label: 'Buffered Against Intrusive Noise', icon: <Volume2 size={14} /> },
     { id: 'space', label: 'Decluttered Priority Area', icon: <CheckCircle size={14} /> },
   ]
