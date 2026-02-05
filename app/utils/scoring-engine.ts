@@ -1,19 +1,17 @@
 export const calculateNeuroLoad = (responses: any[]) => {
   const getVal = (id: string) => {
-    // Safety check: ensure response exists
     if (!responses) return 0
     const r = responses.find((r: any) => r.question_key === id)
     return r ? Number(r.answer.response) : 0
   }
 
-  // Reverse Score Logic: 1->5, 5->1
   const getReverseVal = (id: string) => {
     const val = getVal(id)
     if (val === 0) return 0
     return 6 - val
   }
 
-  // Calculate Raw Scores (Summation)
+  // Calculate Raw Scores
   const rawCII = getVal('q5') + getVal('q6') + getVal('q7') + getVal('q8') + getVal('q9')
   const rawALI = getVal('q12') + getVal('q13') + getVal('q14') + getVal('q15')
   const rawPLI = getVal('q16') + getVal('q17') + getVal('q18') + getVal('q19') + getVal('q20')
@@ -22,15 +20,14 @@ export const calculateNeuroLoad = (responses: any[]) => {
 
   const totalLoad = rawCII + rawALI + rawPLI + rawSTL + rawRCI
 
-  // Determine System State
-  let systemState = "Regulated System"
-  if (totalLoad > 45) systemState = "Adaptive Load"
-  if (totalLoad > 70) systemState = "Chronic Overload"
-  if (totalLoad > 95) systemState = "Nervous System Threat"
+  // --- BRAND VOICE UPDATE: Matching your new supportive tone ---
+  let systemState = "Resonant System" 
+  if (totalLoad > 45) systemState = "Adaptive Load" // Neutral/Scientific
+  if (totalLoad > 70) systemState = "High Sensory Load" // Descriptive, not judgmental
+  if (totalLoad > 95) systemState = "Systemic Overload" // Urgent but objective
 
-  // Normalize for Radar Chart (100 = Best Health)
   const normalize = (score: number, max: number) => {
-    if (score === 0) return 50 // Default for empty data
+    if (score === 0) return 50
     return Math.round(((max - score) / max) * 100)
   }
 
@@ -42,7 +39,7 @@ export const calculateNeuroLoad = (responses: any[]) => {
     { subject: 'Recovery', A: normalize(rawRCI, 25), fullMark: 100 },
   ]
 
-  // --- CRITICAL FIX: RETURNING THE 'indices' OBJECT ---
+  // CRITICAL: Return 'indices' so the report page doesn't crash
   return { 
     indices: {
       cii: rawCII,
