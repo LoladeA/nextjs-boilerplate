@@ -137,14 +137,39 @@ export default async function Dashboard() {
         </div>
 
         {/* ROW 3 & 4 (Tools & Actions) */}
-        <SensoryTools />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-          <ActionCard title="Log Well-being" desc="Track your mood & focus." icon={<Heart size={32} />} href="/wellbeing" delay={0.5} />
-          <ActionCard title="Document Space" desc="Upload photos to track changes." icon={<Camera size={32} />} href="/photos" delay={0.6} />
-          <ActionCard title="Sensory Coaching" desc="Learn to shape your environment to support your nervous system." icon={<Sparkles size={32} />} href="/coaching" delay={0.7} />
-        </div>
-
+      
+      <SensoryTools />
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+        
+        {/* UPDATED: Now points to /progress */}
+        <ActionCard 
+          title="Log Well-being" 
+          desc="Track your mood & focus." 
+          icon={<Heart size={32} />} 
+          href="/progress"  
+          delay={0.5} 
+        />
+        
+        <ActionCard 
+          title="Document Space" 
+          desc="Upload photos to track changes." 
+          icon={<Camera size={32} />} 
+          href="/photos" 
+          delay={0.6} 
+        />
+        
+        <ActionCard 
+          title="Sensory Coaching" 
+          desc="Learn to shape your environment to support your nervous system." 
+          icon={<Sparkles size={32} />} 
+          href="/coaching" 
+          delay={0.7} 
+        />
+      
       </div>
+
     </div>
-  )
+  </div>
+)
 }
