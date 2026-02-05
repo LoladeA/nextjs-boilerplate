@@ -1,114 +1,127 @@
-'use client'
+import Sidebar from '../components/Sidebar'
+import { Sparkles, CheckCircle, ArrowRight, Brain, Shield, ExternalLink, Gem } from 'lucide-react'
 
-import Link from 'next/link'
-import { Check, X, ShieldCheck, Sparkles } from 'lucide-react'
-import { motion } from 'framer-motion'
+export default function Upgrade() {
+  
+  // LINKS
+  const STRIPE_PAYMENT_LINK = "https://buy.stripe.com/fZu14n4ZlbAldSyaxKgUM02" 
+  const EXTERNAL_PORTFOLIO_LINK = "https://www.lolade-ajai.com/services" // <--- Add your site here
 
-export default function UpgradePage() {
-  const benefits = [
-    {
-      title: "Full Access to Sensory Coaching",
-      desc: "Unlock all 28+ NeuroDesign protocols, somatic guides and Sensory Coaching modules."
-    },
-    {
-      title: "Advanced Light Meter",
-      desc: "Measure Lux, Kelvin, and Flicker risk with professional accuracy."
-    },
-    {
-      title: "Daily Light Integral",
-      desc: "Track cumulative light exposure for circadian alignment."
-    },
-    {
-      title: "Visual Noise Heatmaps",
-      desc: "Upload photos to identify and remove cognitive load triggers."
-    }
+  const digitalFeatures = [
+    "Full Sensory Coaching Library",
+    "Longitudinal Progress Tracking",
+    "Priority Access to New Protocols",
+    "Full Somatic Insights and Implementable Strategies"
+  ]
+
+  const privateFeatures = [
+    const privateFeatures = [
+    "NeuroDesign Blueprint™ Foundation",
+    "End to End Design Service",
+    "Turnkey Implementation & Styling"
   ]
 
   return (
-    <div className="min-h-screen bg-[#1b270e] relative overflow-hidden flex flex-col font-sans">
-      
-      {/* BACKGROUND EFFECTS (Subtle Luxury Glows) */}
-      <div className="absolute top-[-20%] left-[-20%] w-[500px] h-[500px] bg-[#b5a642] rounded-full mix-blend-overlay filter blur-[120px] opacity-20 animate-pulse" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[400px] h-[400px] bg-[#c9ccbb] rounded-full mix-blend-overlay filter blur-[100px] opacity-10" />
-
-      {/* HEADER: CLOSE BUTTON */}
-      <div className="relative z-10 p-6 flex justify-end">
-        <Link href="/dashboard" className="p-2 bg-[#000]/20 rounded-full text-[#c9ccbb] hover:bg-[#c9ccbb]/20 transition-all">
-          <X size={24} />
-        </Link>
-      </div>
-
-      {/* HERO SECTION */}
-      <div className="flex-grow flex flex-col justify-end p-8 pb-12 relative z-10">
+    <div className="min-h-screen bg-[#1b270e] font-sans selection:bg-[#b5a642] selection:text-[#1b270e]">
+      <Sidebar />
+      <div className="md:ml-64 min-h-screen p-6 md:p-12 flex flex-col justify-center">
         
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className="mb-2 flex items-center gap-2 text-[#b5a642] font-bold tracking-widest uppercase text-xs">
-            <Sparkles size={14} />
-            <span>Premium Membership</span>
-          </div>
-          <h1 className="text-4xl md:text-5xl font-serif text-[#c9ccbb] mb-4 leading-tight">
-            Design for <br/>
-            <span className="text-[#b5a642]">Nervous System</span> <br/>
-            Health.
-          </h1>
-          <p className="text-[#c9ccbb]/60 mb-8 text-lg">
-            Move from awareness to regulation. Unlock the tools to measure, track, and optimize your environment.
-          </p>
-        </motion.div>
-
-        {/* BENEFITS LIST */}
-        <div className="space-y-6 mb-10">
-          {benefits.map((item, i) => (
-            <motion.div 
-              key={i}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 + (i * 0.1) }}
-              className="flex gap-4"
-            >
-              <div className="mt-1 min-w-[24px] h-6 rounded-full bg-[#b5a642] flex items-center justify-center text-[#1b270e]">
-                <Check size={14} strokeWidth={3} />
-              </div>
-              <div>
-                <h3 className="text-[#c9ccbb] font-bold text-base">{item.title}</h3>
-                <p className="text-[#c9ccbb]/50 text-sm leading-relaxed">{item.desc}</p>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* PRICING & CTA */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="bg-[#c9ccbb]/5 border border-[#c9ccbb]/10 p-6 rounded-2xl backdrop-blur-md"
-        >
-          <div className="text-center mb-6">
-            <span className="text-3xl font-serif text-[#c9ccbb] font-bold">€19.99</span>
-            <span className="text-[#c9ccbb]/60 text-sm"> / month</span>
-            <p className="text-[#b5a642] text-xs uppercase tracking-widest mt-2">Cancel Anytime • 7-Day Free Trial</p>
-          </div>
-
-          {/* THE STRIPE LINK BUTTON */}
-          {/* REPLACE '#' WITH YOUR ACTUAL STRIPE PAYMENT LINK LATER */}
-          <a 
-            href="#" 
-            className="block w-full py-4 bg-[#b5a642] hover:bg-[#d4c55e] text-[#1b270e] font-bold text-center rounded-xl transition-all shadow-[0_0_20px_rgba(181,166,66,0.3)] hover:shadow-[0_0_30px_rgba(181,166,66,0.5)] hover:scale-[1.02]"
-          >
-            Start Free Trial
-          </a>
+        <div className="max-w-6xl mx-auto w-full">
           
-          <div className="mt-4 flex justify-center items-center gap-2 text-[#c9ccbb]/30 text-[10px] uppercase tracking-widest">
-            <ShieldCheck size={12} />
-            <span>Secure Payment via Stripe</span>
+          <div className="text-center mb-16">
+            <h1 className="text-4xl md:text-5xl font-serif text-[#c9ccbb] mb-4">
+              Choose your level of <span className="text-[#b5a642]">integration.</span>
+            </h1>
+            <p className="text-[#c9ccbb]/60 max-w-2xl mx-auto text-lg">
+              Whether you need the tools to self-regulate or a complete transformation, we have a path for you.
+            </p>
           </div>
-        </motion.div>
 
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+            
+            {/* OPTION 1: THE MEMBERSHIP (Digital) */}
+            <div className="glass-panel p-10 rounded-3xl border border-[#b5a642]/20 relative overflow-hidden flex flex-col">
+              <div className="absolute top-0 right-0 bg-[#b5a642] text-[#1b270e] text-[10px] font-bold uppercase tracking-widest px-4 py-2 rounded-bl-xl">
+                Most Popular
+              </div>
+              
+              <div className="mb-8">
+                <div className="w-12 h-12 bg-[#b5a642]/10 rounded-full flex items-center justify-center text-[#b5a642] mb-6">
+                  <Brain size={24} />
+                </div>
+                <h3 className="text-2xl font-serif text-[#c9ccbb] mb-2">Sentient Membership</h3>
+                <p className="text-[#c9ccbb]/60 text-sm h-10">
+                  The digital companion for ongoing regulation and environmental tuning.
+                </p>
+              </div>
+
+              <div className="mb-8">
+                <span className="text-4xl font-serif text-[#c9ccbb]">€19.99</span>
+                <span className="text-[#c9ccbb]/40 text-sm"> / month</span>
+              </div>
+
+              <ul className="space-y-4 mb-10 flex-grow">
+                {digitalFeatures.map((feature, i) => (
+                  <li key={i} className="flex items-center gap-3 text-[#c9ccbb] text-sm">
+                    <CheckCircle size={16} className="text-[#b5a642] shrink-0" />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <a 
+                href={STRIPE_PAYMENT_LINK}
+                className="w-full flex items-center justify-center gap-2 px-8 py-4 bg-[#b5a642] text-[#1b270e] font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-[#d4c55e] transition-all hover:scale-105"
+              >
+                Start Membership <ArrowRight size={16} />
+              </a>
+              <div className="mt-4 flex justify-center items-center gap-2 text-[#c9ccbb]/20 text-[10px] uppercase tracking-widest">
+                <Shield size={12} /> Secure Stripe Payment
+              </div>
+            </div>
+
+            {/* OPTION 2: PRIVATE PRACTICE (High Ticket) */}
+            <div className="glass-panel p-10 rounded-3xl border border-[#c9ccbb]/10 flex flex-col bg-[#000]/20">
+              
+              <div className="mb-8">
+                <div className="w-12 h-12 bg-[#c9ccbb]/5 rounded-full flex items-center justify-center text-[#c9ccbb] mb-6">
+                  <Gem size={24} />
+                </div>
+                <h3 className="text-2xl font-serif text-[#c9ccbb] mb-2">Private Practice</h3>
+                <p className="text-[#c9ccbb]/60 text-sm h-10">
+                  Full-service interior design and NeuroDesign implementation.
+                </p>
+              </div>
+
+              <div className="mb-8">
+                <span className="text-2xl font-serif text-[#c9ccbb]">By Application</span>
+              </div>
+
+              <ul className="space-y-4 mb-10 flex-grow">
+                {privateFeatures.map((feature, i) => (
+                  <li key={i} className="flex items-center gap-3 text-[#c9ccbb]/80 text-sm">
+                    <CheckCircle size={16} className="text-[#c9ccbb]/40 shrink-0" />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <a 
+                href={EXTERNAL_PORTFOLIO_LINK}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-center gap-2 px-8 py-4 border border-[#c9ccbb]/20 text-[#c9ccbb] font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-[#c9ccbb]/5 transition-all"
+              >
+                Learn More <ExternalLink size={16} />
+              </a>
+              <div className="mt-4 text-center text-[#c9ccbb]/20 text-[10px] uppercase tracking-widest">
+                Limited Availability for 2026
+              </div>
+            </div>
+
+          </div>
+
+        </div>
       </div>
     </div>
   )
