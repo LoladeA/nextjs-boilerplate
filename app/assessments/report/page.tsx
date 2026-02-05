@@ -18,7 +18,14 @@ export default async function AssessmentReport() {
     .eq('user_id', session?.user.id)
 
   const safeResponses = responses || []
-  const { indices, totalLoad, systemState } = calculateNeuroLoad(safeResponses)
+
+  // --- SAFETY CHECK: PREVENTS CRASHES ---
+  const engineResult = calculateNeuroLoad(safeResponses)
+  
+  // If indices are missing, use 0 as fallback
+  const indices = engineResult.indices || { cii: 0, ali: 0, pli: 0, stl: 0, rci: 0 }
+  const totalLoad = engineResult.totalLoad || 0
+  const systemState = engineResult.systemState || "Resonant System"
 
   const domains = [
     {
@@ -27,7 +34,7 @@ export default async function AssessmentReport() {
       score: indices.cii,
       max: 25,
       description: 'Alignment with biological day/night rhythm.',
-      status: indices.cii <= 10 ? 'Regulated' : indices.cii <= 15 ? 'Misaligned' : indices.cii <= 20 ? 'Dysregulated' : 'Circadian Rhythm',
+      status: indices.cii <= 10 ? 'Regulated' : indices.cii <= 15 ? 'Misaligned' : indices.cii <= 20 ? 'Dysregulated' : 'Circadian Shift',
       priority: indices.cii > 15 ? 'High' : indices.cii > 10 ? 'Medium' : 'Low',
       icon: <Zap size={24} className={indices.cii > 15 ? "text-red-400" : "text-[#b5a642]"} />
     },
@@ -47,7 +54,8 @@ export default async function AssessmentReport() {
       score: indices.pli,
       max: 25,
       description: 'Spatial clarity and cognitive effort.',
-      status: indices.pli <= 10 ? 'Legible' : indices.pli <= 15 ? 'Frictional' : indices.pli <= 20 ? 'Unstable' : 'Cognitive Overload',
+      // CHANGED 'Unstable' to 'Fragmented' here:
+      status: indices.pli <= 10 ? 'Legible' : indices.pli <= 15 ? 'Frictional' : indices.pli <= 20 ? 'Fragmented' : 'Cognitive Overload',
       priority: indices.pli > 15 ? 'High' : indices.pli > 10 ? 'Medium' : 'Low',
       icon: <Brain size={24} className={indices.pli > 15 ? "text-red-400" : "text-[#b5a642]"} />
     },
@@ -133,7 +141,7 @@ export default async function AssessmentReport() {
                  {criticalIssues.map(issue => (
                    <div key={issue.id} className="glass-panel p-6 rounded-xl border border-red-400/30 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                      <div>
-                       <h4 className="text-lg text-[#c9ccbb] font-bold">{issue.name} Failure</h4>
+                       <h4 className="text-lg text-[#c9ccbb] font-bold">{issue.name} Load</h4>
                        <p className="text-[#c9ccbb]/60 text-sm">Status: <span className="text-red-400">{issue.status}</span> — {issue.description}</p>
                      </div>
                      <Link href="/coaching" className="px-6 py-2 bg-red-400/10 text-red-400 border border-red-400/20 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-red-400/20 transition-all whitespace-nowrap">
