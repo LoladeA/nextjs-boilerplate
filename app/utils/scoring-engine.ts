@@ -1,5 +1,7 @@
 export const calculateNeuroLoad = (responses: any[]) => {
   const getVal = (id: string) => {
+    // Safety check: ensure response exists
+    if (!responses) return 0
     const r = responses.find((r: any) => r.question_key === id)
     return r ? Number(r.answer.response) : 0
   }
@@ -40,7 +42,7 @@ export const calculateNeuroLoad = (responses: any[]) => {
     { subject: 'Recovery', A: normalize(rawRCI, 25), fullMark: 100 },
   ]
 
-  // --- THE FIX IS HERE: WE NOW RETURN 'indices' ---
+  // --- CRITICAL FIX: RETURNING THE 'indices' OBJECT ---
   return { 
     indices: {
       cii: rawCII,
