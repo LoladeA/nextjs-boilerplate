@@ -4,8 +4,9 @@ import { Sparkles, CheckCircle, ArrowRight, Brain, Shield, ExternalLink, Gem } f
 export default function Upgrade() {
   
   // LINKS
-  const STRIPE_PAYMENT_LINK = "https://buy.stripe.com/fZu14n4ZlbAldSyaxKgUM02" 
-  const EXTERNAL_PORTFOLIO_LINK = "https://www.lolade-ajai.com/services" // <--- Add your site here
+  // Replace these with your actual links if you haven't yet
+  const STRIPE_PAYMENT_LINK = "https://buy.stripe.com/your-test-link-here" 
+  const EXTERNAL_PORTFOLIO_LINK = "https://www.lolade-ajai.com/services" 
 
   const digitalFeatures = [
     "Full Sensory Coaching Library",
@@ -15,7 +16,6 @@ export default function Upgrade() {
   ]
 
   const privateFeatures = [
-    const privateFeatures = [
     "NeuroDesign Blueprint™ Foundation",
     "End to End Design Service",
     "Turnkey Implementation & Styling"
@@ -33,7 +33,7 @@ export default function Upgrade() {
               Choose your level of <span className="text-[#b5a642]">integration.</span>
             </h1>
             <p className="text-[#c9ccbb]/60 max-w-2xl mx-auto text-lg">
-              Whether you need the tools to self-regulate or a complete transformation, we have a path for you.
+              Whether you need the tools to self-regulate or a complete environmental transformation, we have a path for you.
             </p>
           </div>
 
@@ -89,7 +89,7 @@ export default function Upgrade() {
                 </div>
                 <h3 className="text-2xl font-serif text-[#c9ccbb] mb-2">Private Practice</h3>
                 <p className="text-[#c9ccbb]/60 text-sm h-10">
-                  Full-service interior design and NeuroDesign implementation.
+                  Full-service interior design and neuro-architecture implementation.
                 </p>
               </div>
 
@@ -112,7 +112,7 @@ export default function Upgrade() {
                 rel="noopener noreferrer"
                 className="w-full flex items-center justify-center gap-2 px-8 py-4 border border-[#c9ccbb]/20 text-[#c9ccbb] font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-[#c9ccbb]/5 transition-all"
               >
-                Learn More <ExternalLink size={16} />
+                Inquire for 1:1 Service <ExternalLink size={16} />
               </a>
               <div className="mt-4 text-center text-[#c9ccbb]/20 text-[10px] uppercase tracking-widest">
                 Limited Availability for 2026
