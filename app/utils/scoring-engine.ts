@@ -20,18 +20,17 @@ export const calculateNeuroLoad = (responses: any[]) => {
 
   const totalLoad = rawCII + rawALI + rawPLI + rawSTL + rawRCI
 
-  // Determine System State (Based on your thresholds)
+  // Determine System State
   let systemState = "Regulated System"
   if (totalLoad > 45) systemState = "Adaptive Load"
   if (totalLoad > 70) systemState = "Chronic Overload"
   if (totalLoad > 95) systemState = "Nervous System Threat"
 
-  // Format for Radar Chart (Normalized to 100 for visual consistency)
-  // Note: High score in your model = High Load (Bad). 
-  // Radar charts usually show "Assets" (Big shape = Good).
-  // We will invert the visual for the chart so Big Shape = High Health.
-  // Max score for 5 items is 25.
-  const normalize = (score: number, max: number) => Math.round(((max - score) / max) * 100) || 50 // Default 50
+  // Normalize for Radar Chart (100 = Best Health)
+  const normalize = (score: number, max: number) => {
+    if (score === 0) return 50 // Default for empty data
+    return Math.round(((max - score) / max) * 100)
+  }
 
   const radarData = [
     { subject: 'Circadian', A: normalize(rawCII, 25), fullMark: 100 },
@@ -41,5 +40,17 @@ export const calculateNeuroLoad = (responses: any[]) => {
     { subject: 'Recovery', A: normalize(rawRCI, 25), fullMark: 100 },
   ]
 
-  return { totalLoad, systemState, radarData }
+  // --- THE FIX IS HERE: WE NOW RETURN 'indices' ---
+  return { 
+    indices: {
+      cii: rawCII,
+      ali: rawALI,
+      pli: rawPLI,
+      stl: rawSTL,
+      rci: rawRCI
+    },
+    totalLoad, 
+    systemState, 
+    radarData 
+  }
 }
