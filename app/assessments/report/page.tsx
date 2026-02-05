@@ -88,8 +88,8 @@ export default async function AssessmentReport() {
           {/* HEADER */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
             <div>
-              <h1 className="text-4xl font-serif text-[#c9ccbb] mb-2">NeuroLoad™ Analysis</h1>
-              <p className="text-[#c9ccbb]/60">Diagnostic breakdown of environmental impact on nervous system regulation.</p>
+              <h1 className="text-4xl font-serif text-[#c9ccbb] mb-2">NeuroLoad Analysis</h1>
+              <p className="text-[#c9ccbb]/60">Breakdown of environmental impact on nervous system regulation.</p>
             </div>
             <button className="flex items-center gap-2 px-6 py-3 border border-[#c9ccbb]/20 rounded-lg text-[#c9ccbb] hover:bg-[#c9ccbb]/10 text-sm transition-all">
                <Download size={16} /> Export Clinical PDF
@@ -147,7 +147,7 @@ export default async function AssessmentReport() {
 
           {/* INDICES BREAKDOWN */}
           <div className="mb-16">
-            <h3 className="text-2xl font-serif text-[#c9ccbb] mb-8">Clinical Indices Breakdown</h3>
+            <h3 className="text-2xl font-serif text-[#c9ccbb] mb-8">Indices Breakdown</h3>
             <div className="grid gap-6">
               {domains.map((domain) => (
                 <div key={domain.id} className="glass-panel p-8 rounded-2xl flex flex-col md:flex-row gap-6 items-start">
