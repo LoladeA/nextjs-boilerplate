@@ -11,9 +11,8 @@ import SensoryTools from '../components/SensoryTools'
 import SensoryRadar from '../components/SensoryRadar'
 import NeuroFlashcard from '../components/NeuroFlashcard'
 import { calculateNeuroLoad } from '../utils/scoring-engine' 
-import Sidebar from '../components/Sidebar' // <--- IMPORT SIDEBAR
+import Sidebar from '../components/Sidebar'
 
-// --- CORRECT PLACEMENT: AFTER IMPORTS, BEFORE COMPONENT ---
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
@@ -34,7 +33,6 @@ export default async function Dashboard() {
   const safeResponses = responses || []
 
   // --- NEW USER CHECK ---
-  // If no data, force them to start the assessment
   if (safeResponses.length === 0) {
     redirect('/assessments/step0')
   }
