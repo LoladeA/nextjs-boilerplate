@@ -70,7 +70,7 @@ export default async function Dashboard() {
             </Link>
             <Link href="/assessments/step0" className="flex items-center gap-2 px-6 py-3 bg-[#c9ccbb] text-[#1b270e] hover:bg-[#e3e6d5] rounded-lg text-sm font-medium transition-colors shadow-lg shadow-[#000]/20">
               <Plus size={16} />
-              New Scan
+              Retake Assessment
             </Link>
           </div>
         </div>
@@ -78,14 +78,14 @@ export default async function Dashboard() {
         {/* ROW 1: METRIC CARDS */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <MetricCard 
-            title="NeuroLoad™" 
+            title="NeuroLoad" 
             value={totalLoad.toString()} 
             subtext="Cumulative Strain (Low is Good)"
             icon={<Brain size={24} />} 
             delay={0.1}
           />
           <MetricCard 
-            title="System State" 
+            title="Nervous System State" 
             value={systemState.split(' ')[0]} 
             subtext={systemState.split(' ').slice(1).join(' ')}
             icon={<Activity size={24} />} 
@@ -99,7 +99,7 @@ export default async function Dashboard() {
             delay={0.3}
           />
           <MetricCard 
-            title="Sensory Threat" 
+            title="Sensory Load" 
             value={radarData[3].A < 50 ? "High" : "Stable"} 
             subtext="Current Threat Load"
             icon={<AlertTriangle size={24} />} 
@@ -112,11 +112,11 @@ export default async function Dashboard() {
           <div className="lg:col-span-2 glass-panel p-8 rounded-2xl relative overflow-hidden">
             <div className="flex justify-between items-start mb-6">
               <div>
-                <h3 className="font-serif text-[#c9ccbb] text-xl mb-1">NeuroDesign Profile</h3>
+                <h3 className="font-serif text-[#c9ccbb] text-xl mb-1">Your Sensory Profile</h3>
                 <p className="text-sm text-[#c9ccbb]/50">Circadian • Autonomic • Predictive • Sensory • Recovery</p>
               </div>
               <Link href="/assessments/report" className="text-xs text-[#b5a642] uppercase tracking-widest hover:text-[#c9ccbb] transition-colors">
-                Analyze Details →
+                Analyse Details →
               </Link>
             </div>
             <div className="h-[300px] w-full">
@@ -141,7 +141,7 @@ export default async function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
           <ActionCard title="Log Well-being" desc="Track your mood & focus." icon={<Heart size={32} />} href="/wellbeing" delay={0.5} />
           <ActionCard title="Document Space" desc="Upload photos to track changes." icon={<Camera size={32} />} href="/photos" delay={0.6} />
-          <ActionCard title="Sensory Coaching" desc="Get nervous system guidance." icon={<Sparkles size={32} />} href="/coaching" delay={0.7} />
+          <ActionCard title="Sensory Coaching" desc="Learn to shape your environment to support your nervous system." icon={<Sparkles size={32} />} href="/coaching" delay={0.7} />
         </div>
 
       </div>
