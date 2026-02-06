@@ -50,14 +50,14 @@ export default function Upgrade() {
                   <Brain size={24} />
                 </div>
                 <h3 className="text-2xl font-serif text-[#c9ccbb] mb-2">Sentient Membership</h3>
-                <p className="text-[#c9ccbb]/60 text-sm h-10">
+                <p className="text-[#cfc993]/60 text-sm h-10">
                   The digital companion for ongoing regulation and environmental tuning.
                 </p>
               </div>
 
               <div className="mb-8">
                 <span className="text-4xl font-serif text-[#c9ccbb]">€19.99</span>
-                <span className="text-[#c9ccbb]/40 text-sm"> / month</span>
+                <span className="text-[#cfc993]/40 text-sm"> / month</span>
               </div>
 
               <ul className="space-y-4 mb-10 flex-grow">
@@ -75,7 +75,7 @@ export default function Upgrade() {
               >
                 Start Membership <ArrowRight size={16} />
               </a>
-              <div className="mt-4 flex justify-center items-center gap-2 text-[#c9ccbb]/20 text-[10px] uppercase tracking-widest">
+              <div className="mt-4 flex justify-center items-center gap-2 text-[#cfc993]/20 text-[10px] uppercase tracking-widest">
                 <Shield size={12} /> Secure Stripe Payment
               </div>
             </div>
@@ -87,9 +87,9 @@ export default function Upgrade() {
                 <div className="w-12 h-12 bg-[#c9ccbb]/5 rounded-full flex items-center justify-center text-[#c9ccbb] mb-6">
                   <Gem size={24} />
                 </div>
-                <h3 className="text-2xl font-serif text-[#c9ccbb] mb-2">Private Practice</h3>
-                <p className="text-[#c9ccbb]/60 text-sm h-10">
-                  Full-service interior design and neuro-architecture implementation.
+                <h3 className="text-2xl font-serif text-[#c9ccbb] mb-2">Personalised Interior Design Service</h3>
+                <p className="text-[#cfc993]/60 text-sm h-10">
+                  Full-service interior design service.
                 </p>
               </div>
 
@@ -114,7 +114,7 @@ export default function Upgrade() {
               >
                 Inquire for 1:1 Service <ExternalLink size={16} />
               </a>
-              <div className="mt-4 text-center text-[#c9ccbb]/20 text-[10px] uppercase tracking-widest">
+              <div className="mt-4 text-center text-[#cfc993]/20 text-[10px] uppercase tracking-widest">
                 Limited Availability for 2026
               </div>
             </div>
