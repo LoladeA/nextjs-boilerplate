@@ -1,109 +1,153 @@
 'use client'
 
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
-import { User, LogOut, Shield, CreditCard, Bell, ChevronRight, Mail } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
-import Link from 'next/link'
+import { useState, useEffect } from 'react'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { User, Lock, Bell, Shield, LogOut, CheckCircle, AlertCircle } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 export default function Settings() {
-  const router = useRouter()
   const supabase = createClientComponentClient()
-  const [user, setUser] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
+  const router = useRouter()
+  
+  const [userEmail, setUserEmail] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+  
+  // Password Form State
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
 
   useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser()
-      setUser(user)
-      setLoading(false)
+      if (user) setUserEmail(user.email || '')
     }
     getUser()
   }, [supabase])
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setMessage(null)
+
+    if (newPassword !== confirmPassword) {
+      setMessage({ type: 'error', text: "Passwords do not match." })
+      setLoading(false)
+      return
+    }
+
+    if (newPassword.length < 6) {
+      setMessage({ type: 'error', text: "Password must be at least 6 characters." })
+      setLoading(false)
+      return
+    }
+
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword })
+      
+      if (error) throw error
+      
+      setMessage({ type: 'success', text: "Password updated successfully." })
+      setNewPassword('')
+      setConfirmPassword('')
+    } catch (error: any) {
+      setMessage({ type: 'error', text: error.message })
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
     router.push('/')
   }
 
-  if (loading) return <div className="min-h-screen bg-[#1b270e]" />
-
   return (
     <div className="min-h-screen bg-[#1b270e] font-sans selection:bg-[#b5a642] selection:text-[#1b270e]">
       <Sidebar />
       <div className="md:ml-64 min-h-screen p-6 md:p-12">
         
-        <h1 className="text-4xl font-serif text-[#c9ccbb] mb-2">Settings</h1>
-        <p className="text-[#c9ccbb]/60 mb-12">Manage your profile, subscription, and preferences.</p>
+        <div className="max-w-2xl mx-auto">
+          <h1 className="text-4xl font-serif text-[#c9ccbb] mb-8">Settings</h1>
 
-        <div className="max-w-2xl space-y-6">
-          
           {/* PROFILE CARD */}
-          <div className="glass-panel p-8 rounded-2xl flex items-center gap-6">
+          <div className="glass-panel p-8 rounded-3xl border border-[#c9ccbb]/10 mb-8 flex items-center gap-6">
             <div className="w-16 h-16 rounded-full bg-[#b5a642]/20 flex items-center justify-center text-[#b5a642]">
               <User size={32} />
             </div>
-            <div className="flex-grow">
-              <h3 className="text-[#c9ccbb] text-lg font-bold">Account Profile</h3>
-              <div className="flex items-center gap-2 text-[#c9ccbb]/60 text-sm mt-1">
-                <Mail size={14} />
-                {user?.email}
-              </div>
+            <div>
+              <h2 className="text-xl font-serif text-[#c9ccbb]">Account</h2>
+              <p className="text-[#c9ccbb]/50 text-sm">{userEmail}</p>
             </div>
-            <span className="px-3 py-1 rounded-full bg-[#b5a642]/10 text-[#b5a642] text-xs font-bold uppercase tracking-widest">
-              Active
-            </span>
           </div>
 
-          {/* MENU OPTIONS */}
-          <div className="glass-panel rounded-2xl overflow-hidden divide-y divide-[#c9ccbb]/10">
-            
-            <button className="w-full flex items-center justify-between p-6 hover:bg-[#c9ccbb]/5 transition-colors group text-left">
-              <div className="flex items-center gap-4">
-                <Shield className="text-[#c9ccbb]/40 group-hover:text-[#b5a642] transition-colors" size={20} />
-                <div>
-                  <h4 className="text-[#c9ccbb] font-medium">Password & Security</h4>
-                  <p className="text-[#c9ccbb]/40 text-xs mt-1">Update your login credentials</p>
-                </div>
-              </div>
-              <ChevronRight className="text-[#c9ccbb]/20" size={16} />
-            </button>
+          {/* SECURITY FORM */}
+          <div className="glass-panel p-8 rounded-3xl border border-[#c9ccbb]/10 mb-8">
+            <div className="flex items-center gap-3 mb-6">
+              <Lock className="text-[#b5a642]" size={20} />
+              <h2 className="text-xl font-serif text-[#c9ccbb]">Security</h2>
+            </div>
 
-            <button className="w-full flex items-center justify-between p-6 hover:bg-[#c9ccbb]/5 transition-colors group text-left">
-              <div className="flex items-center gap-4">
-                <CreditCard className="text-[#c9ccbb]/40 group-hover:text-[#b5a642] transition-colors" size={20} />
-                <div>
-                  <h4 className="text-[#c9ccbb] font-medium">Subscription Plan</h4>
-                  <p className="text-[#c9ccbb]/40 text-xs mt-1">Manage your NeuroDesign™ Access</p>
-                </div>
+            <form onSubmit={handleUpdatePassword} className="space-y-6">
+              
+              <div>
+                <label className="block text-[#c9ccbb]/60 text-xs font-bold uppercase tracking-widest mb-2">New Password</label>
+                <input 
+                  type="password" 
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full bg-[#000]/20 border border-[#c9ccbb]/10 rounded-xl p-4 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 transition-colors"
+                  placeholder="••••••••"
+                />
               </div>
-              <ChevronRight className="text-[#c9ccbb]/20" size={16} />
-            </button>
 
-            <button className="w-full flex items-center justify-between p-6 hover:bg-[#c9ccbb]/5 transition-colors group text-left">
-              <div className="flex items-center gap-4">
-                <Bell className="text-[#c9ccbb]/40 group-hover:text-[#b5a642] transition-colors" size={20} />
-                <div>
-                  <h4 className="text-[#c9ccbb] font-medium">Notifications</h4>
-                  <p className="text-[#c9ccbb]/40 text-xs mt-1">Email preferences & alerts</p>
-                </div>
+              <div>
+                <label className="block text-[#c9ccbb]/60 text-xs font-bold uppercase tracking-widest mb-2">Confirm New Password</label>
+                <input 
+                  type="password" 
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full bg-[#000]/20 border border-[#c9ccbb]/10 rounded-xl p-4 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 transition-colors"
+                  placeholder="••••••••"
+                />
               </div>
-              <ChevronRight className="text-[#c9ccbb]/20" size={16} />
-            </button>
+
+              {/* MESSAGES */}
+              {message && (
+                <div className={`p-4 rounded-xl flex items-center gap-3 text-sm ${
+                  message.type === 'success' 
+                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                    : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                }`}>
+                  {message.type === 'success' ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
+                  {message.text}
+                </div>
+              )}
+
+              <button 
+                type="submit" 
+                disabled={loading || !newPassword}
+                className={`w-full py-4 rounded-xl font-bold text-xs uppercase tracking-widest transition-all ${
+                  loading || !newPassword
+                    ? 'bg-[#c9ccbb]/5 text-[#c9ccbb]/20 cursor-not-allowed'
+                    : 'bg-[#b5a642] text-[#1b270e] hover:bg-[#d4c55e]'
+                }`}
+              >
+                {loading ? 'Updating...' : 'Update Password'}
+              </button>
+            </form>
           </div>
 
-          {/* DANGER ZONE / LOGOUT */}
-          <button 
-            onClick={handleSignOut}
-            className="w-full p-6 rounded-2xl border border-red-400/20 text-red-400 hover:bg-red-400/10 transition-colors flex items-center justify-center gap-2 font-bold uppercase tracking-widest text-xs"
-          >
-            <LogOut size={16} /> Sign Out
-          </button>
-          
-          <p className="text-center text-[#c9ccbb]/20 text-xs pt-4">
-            The Sentient Home v1.0 • ID: {user?.id?.slice(0, 8)}
-          </p>
+          {/* DANGER ZONE */}
+          <div className="border-t border-[#c9ccbb]/10 pt-8">
+             <button 
+               onClick={handleSignOut}
+               className="flex items-center gap-3 text-red-400 hover:text-red-300 transition-colors text-sm font-bold uppercase tracking-widest"
+             >
+               <LogOut size={16} /> Sign Out
+             </button>
+          </div>
 
         </div>
       </div>
