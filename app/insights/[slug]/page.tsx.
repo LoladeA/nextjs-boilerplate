@@ -1,0 +1,175 @@
+'use client'
+
+import { useParams } from 'next/navigation'
+import Sidebar from '../../components/Sidebar' // Adjust path if your Sidebar is elsewhere
+import { ArrowLeft, Clock, Share2 } from 'lucide-react'
+import Link from 'next/link'
+
+// --- 1. THE CONTENT DATABASE ---
+// This object acts as your internal library. 
+// The "key" (e.g., 'cortisol-space-connection') matches the Link href you set in the previous step.
+const articles: any = {
+  
+  "cortisol-space-connection": {
+    title: "The Cortisol-Space Connection",
+    category: "Neuroscience",
+    readTime: "6 min read",
+    date: "Feb 06, 2026",
+    content: `
+      <p class="text-xl text-[#c9ccbb] leading-relaxed mb-8">
+        How open floor plans can inadvertently trigger low-level fight-or-flight responses.
+      </p>
+      <h3 class="text-2xl font-serif text-[#b5a642] mb-4">The Biology of Enclosure</h3>
+      <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+        When we lack protective boundaries (walls, nooks, defined edges), our amygdala remains slightly activated, constantly scanning the horizon for threats. This is an evolutionary holdover. In vast, open spaces without "refuge," we feel exposed.
+      </p>
+      <p class="text-[#c9ccbb]/80 leading-relaxed">
+        <strong>The Fix:</strong> Create "psychological enclosure" using high-backed furniture, rugs to define zones, and lower lighting pools.
+      </p>
+    `
+  },
+
+  "circadian-anchors": {
+    title: "Circadian Anchors in the Home",
+    category: "Light",
+    readTime: "4 min read",
+    date: "Jan 20, 2026",
+    content: `
+      <p class="text-xl text-[#c9ccbb] leading-relaxed mb-8">
+        Designing lighting protocols that reset your biological clock rather than disrupting it.
+      </p>
+      <h3 class="text-2xl font-serif text-[#b5a642] mb-4">The Sunset Protocol</h3>
+      <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+        Light is the primary time-giver for the human body. Yet, most homes have "flat" lighting profiles. To reset your biological clock, your home must mimic the sun. 
+      </p>
+      <p class="text-[#c9ccbb]/80 leading-relaxed">
+        <strong>Action:</strong> Establish "Anchors"—specific warm lights that only turn on at sunset to signal rest to the brain.
+      </p>
+    `
+  },
+
+  "silent-stressor-reverberation": {
+    title: "The Silent Stressor: Reverberation",
+    category: "Acoustics",
+    readTime: "5 min read",
+    date: "Jan 15, 2026",
+    content: `
+      <p class="text-xl text-[#c9ccbb] leading-relaxed mb-8">
+        Why modern hard surfaces increase cognitive load and reduce social connection.
+      </p>
+      <h3 class="text-2xl font-serif text-[#b5a642] mb-4">Cognitive Fatigue</h3>
+      <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+        Modern aesthetics favor hard surfaces: concrete, glass, stone. These reflect sound waves, creating a "cacophony of reflections." Your brain works harder to filter out echoes to process speech, draining your energy battery.
+      </p>
+    `
+  },
+
+  "refuge-and-prospect": {
+    title: "Refuge and Prospect",
+    category: "Psychology",
+    readTime: "7 min read",
+    date: "Jan 10, 2026",
+    content: `
+      <p class="text-xl text-[#c9ccbb] leading-relaxed mb-8">
+        The evolutionary reason you feel safer with your back to a wall.
+      </p>
+      <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+        <strong>Prospect</strong> is the ability to see what is coming. <br/>
+        <strong>Refuge</strong> is the protection from being seen from behind.
+      </p>
+      <p class="text-[#c9ccbb]/80 leading-relaxed">
+        A room that offers both (like a window seat with a solid back) is inherently regulating to the human nervous system.
+      </p>
+    `
+  },
+
+  "somatic-grounding": {
+    title: "Somatic Grounding",
+    category: "Texture",
+    readTime: "3 min read",
+    date: "Jan 05, 2026",
+    content: `
+      <p class="text-xl text-[#c9ccbb] leading-relaxed mb-8">
+        Using tactile surfaces to manually down-regulate the nervous system.
+      </p>
+      <p class="text-[#c9ccbb]/80 leading-relaxed">
+        Texture is a direct input to the vagus nerve. Smooth, cold surfaces signal alertness. Rough, organic, or soft surfaces signal safety and encourage the body to settle.
+      </p>
+    `
+  }
+}
+
+// --- 2. THE PAGE COMPONENT ---
+export default function ArticlePage() {
+  const params = useParams()
+  
+  // Grab the slug from the URL (e.g. 'cortisol-space-connection')
+  // We check if it exists to satisfy TypeScript
+  const slug = typeof params?.slug === 'string' ? params.slug : ''
+  
+  // Find the matching article in our "database" above
+  const article = articles[slug]
+
+  // If URL is random/wrong, show a simple "Not Found" state
+  if (!article) {
+    return (
+      <div className="min-h-screen bg-[#1b270e] flex items-center justify-center text-[#c9ccbb]">
+        <div className="text-center">
+            <h1 className="text-4xl font-serif mb-4">Insight Not Found</h1>
+            <Link href="/insights" className="text-[#b5a642] underline">Return to Library</Link>
+        </div>
+      </div>
+    )
+  }
+
+  // Render the Article
+  return (
+    <div className="min-h-screen bg-[#1b270e] font-sans selection:bg-[#b5a642] selection:text-[#1b270e]">
+      <Sidebar />
+      <div className="md:ml-64 min-h-screen relative">
+        
+        {/* Banner Area */}
+        <div className="h-64 bg-gradient-to-b from-[#b5a642]/10 to-[#1b270e] absolute top-0 w-full z-0" />
+
+        <div className="relative z-10 p-6 md:p-12 max-w-3xl mx-auto pt-32">
+            
+            {/* Nav Back */}
+            <Link href="/insights" className="inline-flex items-center gap-2 text-[#c9ccbb]/60 hover:text-[#b5a642] transition-colors mb-8 uppercase tracking-widest text-xs font-bold">
+                <ArrowLeft size={16} /> Back to Library
+            </Link>
+
+            {/* Meta Tags */}
+            <div className="flex items-center gap-4 mb-6">
+                <span className="px-3 py-1 rounded-full border border-[#b5a642]/30 text-[#b5a642] text-[10px] font-bold uppercase tracking-widest bg-[#b5a642]/10">
+                    {article.category}
+                </span>
+                <span className="flex items-center gap-2 text-[#c9ccbb]/40 text-xs font-bold uppercase tracking-widest">
+                    <Clock size={14} /> {article.readTime}
+                </span>
+            </div>
+
+            {/* Headline */}
+            <h1 className="text-4xl md:text-5xl font-serif text-[#c9ccbb] mb-12 leading-tight">
+                {article.title}
+            </h1>
+
+            {/* The Article Content (Injected safely) */}
+            <div className="prose prose-invert prose-lg max-w-none">
+                <div dangerouslySetInnerHTML={{ __html: article.content }} />
+            </div>
+
+            {/* Footer Share */}
+            <div className="mt-16 pt-8 border-t border-[#c9ccbb]/10 flex justify-between items-center">
+                <p className="text-[#c9ccbb]/40 text-xs italic">
+                    Added to your library on {article.date}
+                </p>
+                <button className="flex items-center gap-2 text-[#c9ccbb]/60 hover:text-[#b5a642] transition-colors text-xs font-bold uppercase tracking-widest">
+                    <Share2 size={16} /> Share Insight
+                </button>
+            </div>
+
+        </div>
+      </div>
+    </div>
+  )
+}
