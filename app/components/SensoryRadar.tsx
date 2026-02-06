@@ -19,7 +19,7 @@ export default function SensoryRadar({ data = defaultData }) {
           <PolarGrid stroke="#c9ccbb" strokeOpacity={0.1} />
           <PolarAngleAxis 
             dataKey="subject" 
-            tick={{ fill: '#c9ccbb', fontSize: 12, opacity: 0.6 }} 
+            tick={{ fill: '#b5a642', fontSize: 14, opacity: 0.6 }} 
           />
           <PolarRadiusAxis angle={30} domain={[0, 150]} tick={false} axisLine={false} />
           <Radar
