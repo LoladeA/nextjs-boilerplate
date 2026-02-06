@@ -8,8 +8,8 @@ export default function Home() {
       {/* NAVIGATION */}
       <nav className="fixed w-full z-50 px-6 py-6 flex justify-between items-center bg-[#1b270e]/90 backdrop-blur-md border-b border-[#c9ccbb]/5">
         <div className="flex items-center gap-3">
-          {/* LOGO: Ensure you have a file named 'logo.png' in your public folder */}
-          <img src="/logo.PNG" alt="Logo" className="h-8 w-auto object-contain" />
+          {/* LOGO */}
+          <img src="/logo.png" alt="Logo" className="h-8 w-auto object-contain" />
           <div className="text-2xl font-serif tracking-tight">
             The Sentient Home
           </div>
@@ -24,7 +24,7 @@ export default function Home() {
             <LogIn size={14} /> Sign In
           </Link>
           <Link 
-            href="/assessments/intro" 
+            href="/signup" 
             className="px-6 py-2 bg-[#b5a642] text-[#1b270e] rounded-full hover:bg-[#d4c55e] transition-all text-xs uppercase tracking-widest font-bold"
           >
             Get Started
@@ -49,8 +49,9 @@ export default function Home() {
         </p>
 
         <div className="flex flex-col md:flex-row gap-4 animate-fade-in-up delay-300">
+          {/* UPDATED: Points to /login to restore original sequence */}
           <Link 
-            href="/assessments/intro" 
+            href="/login" 
             className="px-8 py-4 bg-[#b5a642] text-[#1b270e] rounded-xl font-bold text-sm uppercase tracking-widest hover:scale-105 transition-transform flex items-center gap-2"
           >
             Take Assessment <ArrowRight size={16} />
@@ -77,7 +78,7 @@ export default function Home() {
             <h3 className="text-xl font-serif text-[#c9ccbb] mb-3">Neuropsychology-Informed</h3>
             <ul className="text-[#c9ccbb]/60 text-sm space-y-2">
               <li>Designed around how your brain actually processes space.</li>
-              <li>Developed from The NeuroDesign Blueprint™: a science-backed methodology that integrates neuroscience, environmental psychology, and sensory design to create spaces that quiet your mind, restore your energy, and eliminate hidden stressors that drain your capacity.</li>
+              <li>Built from neuroscience, environmental psychology, circadian biology, and stress physiology.</li>
             </ul>
           </div>
 
@@ -111,7 +112,7 @@ export default function Home() {
             </ul>
           </div>
 
-          {/* Card 5 - Coaching (Spans 2 cols on LG) */}
+          {/* Card 5 - Coaching */}
           <div className="p-8 rounded-3xl bg-[#b5a642]/10 border border-[#b5a642]/20 hover:border-[#b5a642]/40 transition-all backdrop-blur-sm md:col-span-2 lg:col-span-2">
             <Sparkles className="text-[#b5a642] mb-4" size={32} />
             <h3 className="text-xl font-serif text-[#c9ccbb] mb-3">Sensory Intelligence Coaching™</h3>
@@ -137,7 +138,7 @@ export default function Home() {
                </div>
                <h3 className="text-xl font-serif text-[#c9ccbb] mb-3">Complete the Assessment</h3>
                <p className="text-[#c9ccbb]/60 text-sm leading-relaxed">
-                 Answer questions about your space's lighting, acoustics, layout, textures, and colours. The assessment takes about 25 minutes.
+                 Answer questions about your space's lighting, acoustics, layout, textures, and colours. The assessment takes about 10 minutes.
                </p>
             </div>
 
@@ -173,7 +174,7 @@ export default function Home() {
               {[
                 "Which sensory inputs cost you the most energy",
                 "Which rooms support regulation, and which erode it",
-                "How light, sound, material choices, and spatial flow affect your nervous system regulation at home",
+                "How light, sound, materials, and spatial flow affect your sleep and focus",
                 "Why certain environments feel off even when they look fine",
                 "How your nervous system responds over time, not just in moments"
               ].map((item, i) => (
@@ -213,8 +214,9 @@ export default function Home() {
         <p className="text-[#c9ccbb]/60 mb-10 max-w-xl mx-auto">
           Join others who are creating healthier, more productive home environments through evidence-based design.
         </p>
+        {/* UPDATED: Points to /login to restore original sequence */}
         <Link 
-          href="/assessments/intro" 
+          href="/login" 
           className="inline-flex items-center gap-2 px-10 py-5 bg-[#b5a642] text-[#1b270e] rounded-full font-bold uppercase tracking-widest hover:bg-[#d4c55e] transition-all"
         >
           Start Your Assessment <ArrowRight size={18} />
