@@ -9,7 +9,7 @@ export default function Home() {
       <nav className="fixed w-full z-50 px-6 py-6 flex justify-between items-center bg-[#1b270e]/90 backdrop-blur-md border-b border-[#c9ccbb]/5">
         <div className="flex items-center gap-3">
           {/* LOGO */}
-          <img src="/logo.png" alt="Logo" className="h-8 w-auto object-contain" />
+          <img src="/logo.PNG" alt="Logo" className="h-8 w-auto object-contain" />
           <div className="text-2xl font-serif tracking-tight">
             The Sentient Home
           </div>
