@@ -8,10 +8,10 @@ export default function Home() {
       {/* NAVIGATION */}
       <nav className="fixed w-full z-50 px-6 py-6 flex justify-between items-center bg-gradient-to-b from-[#1b270e] to-transparent">
         <div className="text-2xl font-serif tracking-tight">
-          Sentient<span className="text-[#b5a642]">Home</span>
+          The Sentient<span className="text-[#b5a642]">Home</span>
         </div>
         <div className="flex gap-4">
-           {/* LOGIN BUTTON (New Addition) */}
+           {/* LOGIN BUTTON */}
            <Link 
             href="/login" 
             className="hidden md:flex items-center gap-2 px-6 py-2 border border-[#c9ccbb]/20 rounded-full hover:bg-[#c9ccbb]/10 transition-all text-xs uppercase tracking-widest font-bold"
@@ -40,7 +40,7 @@ export default function Home() {
         </h1>
 
         <p className="text-lg md:text-xl text-[#c9ccbb]/60 mb-10 max-w-2xl animate-fade-in-up delay-200">
-          Decode the hidden sensory friction in your environment. 
+          Decode the hidden sensory friction in your home environment. 
           Move from coping to thriving with the NeuroDesign Intelligence™ platform.
         </p>
 
@@ -52,7 +52,6 @@ export default function Home() {
             Take Assessment <ArrowRight size={16} />
           </Link>
           
-          {/* SECONDARY SIGN IN (For Returning Users) */}
           <Link 
             href="/login" 
             className="px-8 py-4 border border-[#c9ccbb]/20 rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-[#c9ccbb]/5 transition-all flex items-center gap-2"
@@ -67,12 +66,48 @@ export default function Home() {
       <section className="py-32 border-t border-[#c9ccbb]/10 text-center">
         <h2 className="text-4xl font-serif mb-8">Ready to regulate?</h2>
         <Link 
-          href="/assessments/intro"  // <-- FIXED: Now points correctly to the assessment
+          href="/assessments/intro" 
           className="inline-flex items-center gap-2 px-10 py-5 bg-[#c9ccbb] text-[#1b270e] rounded-full font-bold uppercase tracking-widest hover:bg-white transition-all"
         >
           Begin Assessment <ArrowRight size={18} />
         </Link>
       </section>
+
+    {/* THE LEGIBLE FOOTER */}
+      <footer className="py-12 border-t border-[#c9ccbb]/5 bg-[#141d0b]">
+        <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+          
+          <div className="text-[#c9ccbb]/40 text-xs font-bold uppercase tracking-widest">
+            © 2026 The Sentient Home. All rights reserved.
+          </div>
+
+          <div className="flex gap-8">
+            {/* UPDATED: Links to your main website */}
+            <a 
+              href="https://www.lolade-ajai.com/privacypolicy" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-[#c9ccbb]/60 hover:text-[#b5a642] text-xs font-bold uppercase tracking-widest transition-colors"
+            >
+              Privacy Policy
+            </a>
+            
+            <a 
+              href="https://www.lolade-ajai.com/termsandconditions" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-[#c9ccbb]/60 hover:text-[#b5a642] text-xs font-bold uppercase tracking-widest transition-colors"
+            >
+              Terms of Service
+            </a>
+            
+            <a href="mailto:hello@lolade-ajai.com" className="text-[#c9ccbb]/60 hover:text-[#b5a642] text-xs font-bold uppercase tracking-widest transition-colors">
+              Contact Support
+            </a>
+          </div>
+
+        </div>
+      </footer>
 
     </div>
   )
