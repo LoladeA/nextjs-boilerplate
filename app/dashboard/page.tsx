@@ -101,7 +101,7 @@ export default async function Dashboard() {
           <MetricCard 
             title="Sensory Load" 
             value={radarData[3].A < 50 ? "High" : "Stable"} 
-            subtext="Current Threat Load"
+            subtext="Current Stress Load"
             icon={<AlertTriangle size={24} />} 
             delay={0.4}
           />
