@@ -7,11 +7,16 @@ export default function Home() {
       
       {/* NAVIGATION */}
       <nav className="fixed w-full z-50 px-6 py-6 flex justify-between items-center bg-[#1b270e]/90 backdrop-blur-md border-b border-[#c9ccbb]/5">
-        <div className="text-2xl font-serif tracking-tight">
-          The Sentient Home <span className="text-[#b5a642]">+</span> Logo
+        <div className="flex items-center gap-3">
+          {/* LOGO: Ensure you have a file named 'logo.png' in your public folder */}
+          <img src="/logo.PNG" alt="Logo" className="h-8 w-auto object-contain" />
+          <div className="text-2xl font-serif tracking-tight">
+            The Sentient Home
+          </div>
         </div>
+        
         <div className="flex gap-4">
-           {/* LOGIN BUTTON (Added per request) */}
+           {/* LOGIN BUTTON */}
            <Link 
             href="/login" 
             className="hidden md:flex items-center gap-2 px-6 py-2 border border-[#c9ccbb]/20 rounded-full hover:bg-[#c9ccbb]/10 transition-all text-xs uppercase tracking-widest font-bold"
@@ -132,7 +137,7 @@ export default function Home() {
                </div>
                <h3 className="text-xl font-serif text-[#c9ccbb] mb-3">Complete the Assessment</h3>
                <p className="text-[#c9ccbb]/60 text-sm leading-relaxed">
-                 Answer questions about your space's lighting, acoustics, layout, textures, and colours. The assessment takes about 10 minutes.
+                 Answer questions about your space's lighting, acoustics, layout, textures, and colours. The assessment takes about 25 minutes.
                </p>
             </div>
 
@@ -168,7 +173,7 @@ export default function Home() {
               {[
                 "Which sensory inputs cost you the most energy",
                 "Which rooms support regulation, and which erode it",
-                "How light, sound, material choices, and spatial flow affect your rest, recovery, sleep and focus",
+                "How light, sound, material choices, and spatial flow affect your nervous system regulation at home",
                 "Why certain environments feel off even when they look fine",
                 "How your nervous system responds over time, not just in moments"
               ].map((item, i) => (
@@ -202,7 +207,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* {/* FOOTER CTA */}
+      {/* FOOTER CTA */}
       <section className="py-32 border-t border-[#c9ccbb]/10 text-center bg-gradient-to-t from-[#000]/40 to-transparent">
         <h2 className="text-4xl font-serif mb-6">Ready to Transform Your Space?</h2>
         <p className="text-[#c9ccbb]/60 mb-10 max-w-xl mx-auto">
