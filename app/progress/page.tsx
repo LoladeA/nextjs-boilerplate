@@ -2,7 +2,7 @@
 
 import Sidebar from '../components/Sidebar'
 import { useState, useEffect } from 'react'
-import { Heart, Wind, Sun, Volume2, CheckCircle, TrendingUp, Activity, Calendar } from 'lucide-react'
+import { Heart, Wind, Sun, Volume2, CheckCircle, TrendingUp, Activity, AlertCircle } from 'lucide-react' // Added AlertCircle
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
@@ -14,12 +14,13 @@ export default function Progress() {
   const [selectedMood, setSelectedMood] = useState<number | null>(null)
   const [loggedTags, setLoggedTags] = useState<string[]>([])
   const [note, setNote] = useState('')
-  const [isSaved, setIsSaved] = useState(false)
+  const [status, setStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle')
+  const [errorMessage, setErrorMessage] = useState('') // New Error State
   
   // CHART STATE
   const [chartData, setChartData] = useState<any[]>([])
 
-  // 1. SOMATIC STATES (Your definitions)
+  // 1. SOMATIC STATES
   const moods = [
     { val: 1, label: 'Dysregulated', desc: 'Overwhelmed', color: 'bg-red-500/20 border-red-500/50 text-red-400' },
     { val: 2, label: 'High Alert', desc: 'Vigilant', color: 'bg-orange-500/20 border-orange-500/50 text-orange-400' },
@@ -48,7 +49,7 @@ export default function Progress() {
 
     const today = new Date().toISOString().split('T')[0]
     
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('daily_logs')
       .select('*')
       .eq('user_id', user.id)
@@ -66,7 +67,6 @@ export default function Progress() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    // Get last 7 days of logs
     const { data } = await supabase
       .from('daily_logs')
       .select('date, mood_score')
@@ -75,7 +75,6 @@ export default function Progress() {
       .limit(7)
 
     if (data) {
-        // Format for Recharts
         const formatted = data.map(d => ({
             day: new Date(d.date).toLocaleDateString('en-US', { weekday: 'short' }),
             score: d.mood_score
@@ -84,7 +83,7 @@ export default function Progress() {
     }
   }
 
-  // --- SAVE HANDLER ---
+  // --- SAVE HANDLER (DEBUGGED) ---
   const toggleTag = (id: string) => {
     setLoggedTags(prev => 
       prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
@@ -92,26 +91,42 @@ export default function Progress() {
   }
 
   const handleSave = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    setStatus('saving')
+    setErrorMessage('') // Clear previous errors
 
-    const today = new Date().toISOString().split('T')[0]
+    try {
+        const { data: { user } } = await supabase.auth.getUser()
+        
+        if (!user) {
+            throw new Error("No user logged in")
+        }
 
-    // Upsert = Insert if new, Update if exists
-    const { error } = await supabase
-      .from('daily_logs')
-      .upsert({
-        user_id: user.id,
-        date: today,
-        mood_score: selectedMood,
-        tags: loggedTags,
-        note: note
-      }, { onConflict: 'user_id, date' })
+        const today = new Date().toISOString().split('T')[0]
 
-    if (!error) {
-        setIsSaved(true)
-        fetchHistory() // Refresh the chart immediately
-        setTimeout(() => setIsSaved(false), 2000)
+        // DEBUG: Log what we are trying to send
+        console.log("Attempting save:", { user_id: user.id, date: today, mood: selectedMood })
+
+        const { error } = await supabase
+        .from('daily_logs')
+        .upsert({
+            user_id: user.id,
+            date: today,
+            mood_score: selectedMood,
+            tags: loggedTags,
+            note: note
+        }, { onConflict: 'user_id, date' })
+
+        if (error) throw error
+
+        // Success!
+        setStatus('success')
+        fetchHistory()
+        setTimeout(() => setStatus('idle'), 2000)
+
+    } catch (err: any) {
+        console.error("Save Error:", err)
+        setStatus('error')
+        setErrorMessage(err.message || "Failed to save to database")
     }
   }
 
@@ -122,15 +137,13 @@ export default function Progress() {
         
         <div className="max-w-4xl mx-auto">
           
-          {/* HEADER */}
           <div className="mb-12">
             <h1 className="text-4xl font-serif text-[#c9ccbb] mb-2">Progress & Tracking</h1>
             <p className="text-[#c9ccbb]/60">
-              Log your daily state to train your nervous system and reveal long-term patterns.
+              Log your daily state to train the system and reveal long-term patterns.
             </p>
           </div>
 
-          {/* --- SECTION 1: THE INPUT (DAILY LOG) --- */}
           <div className="glass-panel p-8 rounded-3xl mb-16 relative overflow-hidden border border-[#c9ccbb]/10">
             
             <div className="flex items-center gap-3 mb-8">
@@ -194,10 +207,18 @@ export default function Progress() {
               />
             </div>
 
+            {/* ERROR MESSAGE (Visible Feedback) */}
+            {status === 'error' && (
+                <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl flex items-center gap-3 text-red-400 text-xs font-bold uppercase tracking-widest">
+                    <AlertCircle size={16} />
+                    <span>Error: {errorMessage}</span>
+                </div>
+            )}
+
             {/* SAVE BUTTON */}
             <div className="flex justify-end items-center gap-4 pt-6 border-t border-[#c9ccbb]/10">
                <AnimatePresence>
-                 {isSaved && (
+                 {status === 'success' && (
                    <motion.span 
                      initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
                      className="text-[#b5a642] text-xs font-bold uppercase tracking-widest flex items-center gap-1"
@@ -208,19 +229,19 @@ export default function Progress() {
                </AnimatePresence>
                <button 
                  onClick={handleSave}
-                 disabled={selectedMood === null}
+                 disabled={selectedMood === null || status === 'saving'}
                  className={`px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-all ${
                    selectedMood !== null 
                      ? 'bg-[#c9ccbb] text-[#1b270e] hover:bg-white' 
                      : 'bg-[#c9ccbb]/10 text-[#c9ccbb]/20 cursor-not-allowed'
                  }`}
                >
-                 Log Entry
+                 {status === 'saving' ? 'Saving...' : 'Log Entry'}
                </button>
             </div>
           </div>
 
-          {/* --- SECTION 2: THE OUTPUT (LIVE CHART) --- */}
+          {/* --- CHART SECTION --- */}
           <div className="animate-fade-in-up delay-100">
               <div className="flex items-center gap-2 mb-6 text-[#c9ccbb]/40 text-xs font-bold uppercase tracking-widest">
                 <TrendingUp size={14} /> Nervous System Rhythm (Last 7 Days)
@@ -247,7 +268,7 @@ export default function Progress() {
                          />
                          <YAxis 
                             hide={true} 
-                            domain={[0, 6]} // Keep generic padding
+                            domain={[0, 6]} 
                          />
                          <Tooltip 
                             contentStyle={{ backgroundColor: '#1b270e', borderColor: '#c9ccbb33', color: '#c9ccbb' }}
@@ -271,7 +292,6 @@ export default function Progress() {
                    </div>
                 </div>
               ) : (
-                /* EMPTY STATE (If no data yet) */
                 <div className="glass-panel p-12 rounded-3xl border border-dashed border-[#c9ccbb]/10 flex flex-col items-center text-center">
                    <div className="w-16 h-16 bg-[#b5a642]/10 rounded-full flex items-center justify-center text-[#b5a642] mb-6">
                      <Activity size={32} />
