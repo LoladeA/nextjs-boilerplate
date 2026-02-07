@@ -3,18 +3,25 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Brain, FileText, TrendingUp, Heart, Camera, Sparkles, Plus, Activity, AlertTriangle } from 'lucide-react' 
+import { FileText, Heart, Camera, Sparkles, Plus, PlayCircle, ArrowRight, CheckCircle, Lock } from 'lucide-react' 
 
-import MetricCard from '../components/MetricCard'
 import ActionCard from '../components/ActionCard'
 import SensoryTools from '../components/SensoryTools'
 import SensoryRadar from '../components/SensoryRadar'
 import NeuroFlashcard from '../components/NeuroFlashcard'
+import DashboardPulse from '../components/DashboardPulse' // <--- IMPORT NEW COMPONENT
 import { calculateNeuroLoad } from '../utils/scoring-engine' 
 import Sidebar from '../components/Sidebar'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
+
+// --- COACHING CURRICULUM DATA (To determine next step) ---
+const CURRICULUM = [
+  { slug: 'sensory-orientation', title: 'Week 0: Sensory Orientation', subtitle: 'Understanding your biological baseline.' },
+  { slug: 'silent-conversation', title: 'Week 1: Silent Conversation', subtitle: 'Cognitive load & environmental vigilance.' },
+  { slug: 'light-as-signal', title: 'Week 2: Light as Signal', subtitle: 'Circadian rhythms and cortisol control.' }
+]
 
 export default async function Dashboard() {
   const cookieStore = cookies()
@@ -25,32 +32,39 @@ export default async function Dashboard() {
 
   const displayName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Member'
   
-  const { data: responses } = await supabase
-    .from('user_responses')
-    .select('*')
-    .eq('user_id', user.id)
+  // 1. FETCH ALL DATA IN PARALLEL
+  const [responsesRes, logsRes, progressRes] = await Promise.all([
+    supabase.from('user_responses').select('*').eq('user_id', user.id),
+    supabase.from('daily_logs').select('mood_score, date').eq('user_id', user.id).order('date', { ascending: false }).limit(7),
+    supabase.from('module_progress').select('module_slug').eq('user_id', user.id)
+  ])
 
-  const safeResponses = responses || []
+  const safeResponses = responsesRes.data || []
+  const recentLogs = logsRes.data || []
+  const completedModules = (progressRes.data || []).map(r => r.module_slug)
 
   // --- NEW USER CHECK ---
   if (safeResponses.length === 0) {
     redirect('/assessments/step0')
   }
   
-  // --- USE THE NEW ENGINE ---
+  // --- CALCULATE ENGINES ---
   const { totalLoad, systemState, radarData } = calculateNeuroLoad(safeResponses)
   
-  // Calculate specific scores for Flashcard Triggers
+  // Flashcard Logic
   const getVal = (id: string) => safeResponses.find(r => r.question_key === id)?.answer?.response || 0
   const circadianLoad = Number(getVal('q5')) + Number(getVal('q6')) + Number(getVal('q7')) + Number(getVal('q8')) + Number(getVal('q9'))
+
+  // --- DETERMINE "NEXT BEST STEP" ---
+  // Find the first module in the curriculum that isn't completed
+  const nextModule = CURRICULUM.find(m => !completedModules.includes(m.slug)) || CURRICULUM[CURRICULUM.length - 1]
+  const isAllComplete = completedModules.length === CURRICULUM.length
 
   return (
     <div className="min-h-screen bg-[#1b270e] font-sans selection:bg-[#b5a642] selection:text-[#1b270e]">
       
-      {/* 1. THE SIDEBAR */}
       <Sidebar />
 
-      {/* 2. MAIN CONTENT WRAPPER (Pushed right by sidebar on desktop) */}
       <div className="md:ml-64 min-h-screen p-6 md:p-12">
       
         {/* HEADER */}
@@ -60,7 +74,7 @@ export default async function Dashboard() {
               <Image src="/logo.PNG" alt="Sensory Intelligence" fill className="object-contain object-left" priority />
             </div>
             <p className="text-[#c9ccbb]/60 font-light capitalize">
-              Welcome back, {displayName}. System Status: <span className="text-[#b5a642] font-bold">{systemState}</span>
+              Welcome back, {displayName}.
             </p>
           </div>
           <div className="flex gap-4">
@@ -70,46 +84,80 @@ export default async function Dashboard() {
             </Link>
             <Link href="/assessments/step0" className="flex items-center gap-2 px-6 py-3 bg-[#c9ccbb] text-[#1b270e] hover:bg-[#e3e6d5] rounded-lg text-sm font-medium transition-colors shadow-lg shadow-[#000]/20">
               <Plus size={16} />
-              Retake Assessment
+              Check In
             </Link>
           </div>
         </div>
 
-        {/* ROW 1: METRIC CARDS */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <MetricCard 
-            title="NeuroLoad" 
-            value={totalLoad.toString()} 
-            subtext="Cumulative Strain (Low is Good)"
-            icon={<Brain size={24} />} 
-            delay={0.1}
-          />
-          <MetricCard 
-            title="Nervous System State" 
-            value={systemState.split(' ')[0]} 
-            subtext={systemState.split(' ').slice(1).join(' ')}
-            icon={<Activity size={24} />} 
-            delay={0.2}
-          />
-          <MetricCard 
-            title="Recovery Capacity" 
-            value={`${radarData[4].A}%`} 
-            subtext="Restoration Potential"
-            icon={<TrendingUp size={24} />} 
-            delay={0.3}
-          />
-          <MetricCard 
-            title="Sensory Load" 
-            value={radarData[3].A < 50 ? "High" : "Stable"} 
-            subtext="Current Stress Load"
-            icon={<AlertTriangle size={24} />} 
-            delay={0.4}
-          />
+        {/* --- SECTION 1: THE COCKPIT (Pulse & Compass) --- */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            
+            {/* THE PULSE (Left - 2 Cols) */}
+            <div className="md:col-span-2 glass-panel p-6 rounded-3xl relative overflow-hidden flex flex-col justify-between min-h-[180px]">
+                <div className="relative z-10 flex justify-between items-start mb-4">
+                    <div>
+                        <h3 className="text-[#c9ccbb] font-serif text-xl">Nervous System Rhythm</h3>
+                        <p className="text-[#c9ccbb]/50 text-xs uppercase tracking-widest mt-1">Last 7 Days Trend</p>
+                    </div>
+                    {recentLogs.length > 0 && (
+                         <div className="text-right">
+                             <div className="text-2xl font-serif text-[#c9ccbb]">{recentLogs[0].mood_score}<span className="text-sm text-[#c9ccbb]/40">/5</span></div>
+                             <div className="text-[10px] text-[#c9ccbb]/40 uppercase tracking-widest">Latest Log</div>
+                         </div>
+                    )}
+                </div>
+                
+                {/* The Waveform Chart */}
+                <div className="absolute bottom-0 left-0 right-0 h-32 opacity-80 pointer-events-none">
+                    <DashboardPulse logs={recentLogs} />
+                </div>
+            </div>
+
+            {/* THE COMPASS (Right - 1 Col) */}
+            <div className="glass-panel p-6 rounded-3xl flex flex-col justify-center items-center text-center relative overflow-hidden border-l-4 border-[#b5a642]">
+                <div className="relative z-10">
+                    <div className="text-[10px] text-[#b5a642] font-bold uppercase tracking-widest mb-2">Current Baseline</div>
+                    <div className="text-5xl font-serif text-[#c9ccbb] mb-2">{totalLoad}</div>
+                    <div className="text-sm text-[#c9ccbb]/60 mb-4">{systemState}</div>
+                    <div className="text-[10px] text-[#c9ccbb]/30 uppercase tracking-widest">NeuroLoad Score™</div>
+                </div>
+                {/* Background Glow */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-[#b5a642]/10 rounded-full blur-2xl" />
+            </div>
         </div>
 
-        {/* ROW 2: INTELLIGENCE LAYER */}
+        {/* --- SECTION 2: NEXT BEST STEP (Hero) --- */}
+        <div className="mb-12">
+            <h3 className="text-[#c9ccbb]/40 text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
+                <Sparkles size={14} /> Recommended Action
+            </h3>
+            
+            <Link href={`/coaching/${nextModule.slug}`} className="block group">
+                <div className="glass-panel p-8 md:p-10 rounded-3xl border border-[#c9ccbb]/10 hover:border-[#b5a642]/50 transition-all relative overflow-hidden">
+                    <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
+                        <div>
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-[#b5a642] text-[#1b270e] text-[10px] font-bold uppercase tracking-widest mb-4">
+                                {isAllComplete ? "Review" : "Up Next"}
+                            </div>
+                            <h2 className="text-3xl md:text-4xl font-serif text-[#c9ccbb] mb-2 group-hover:text-[#b5a642] transition-colors">
+                                {nextModule.title}
+                            </h2>
+                            <p className="text-[#c9ccbb]/60 text-lg max-w-xl">
+                                {nextModule.subtitle}
+                            </p>
+                        </div>
+                        
+                        <div className="h-16 w-16 rounded-full bg-[#b5a642]/10 border border-[#b5a642]/20 flex items-center justify-center text-[#b5a642] group-hover:scale-110 group-hover:bg-[#b5a642] group-hover:text-[#1b270e] transition-all shrink-0">
+                            {isAllComplete ? <CheckCircle size={32} /> : <PlayCircle size={32} />}
+                        </div>
+                    </div>
+                </div>
+            </Link>
+        </div>
+
+        {/* --- SECTION 3: INTELLIGENCE (Radar & Flashcard) --- */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-          <div className="lg:col-span-2 glass-panel p-8 rounded-2xl relative overflow-hidden">
+          <div className="lg:col-span-2 glass-panel p-8 rounded-3xl relative overflow-hidden">
             <div className="flex justify-between items-start mb-6">
               <div>
                 <h3 className="font-serif text-[#c9ccbb] text-xl mb-1">Your Sensory Profile</h3>
@@ -136,40 +184,37 @@ export default async function Dashboard() {
           </div>
         </div>
 
-        {/* ROW 3 & 4 (Tools & Actions) */}
+        {/* --- SECTION 4: TOOLS & QUICK ACTIONS --- */}
+        <div className="mb-4">
+            <h3 className="text-[#c9ccbb]/40 text-xs font-bold uppercase tracking-widest mb-4">Toolkit</h3>
+            <SensoryTools />
+        </div>
       
-      <SensoryTools />
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-        
-        {/* UPDATED: Now points to /progress */}
-        <ActionCard 
-          title="Log Well-being" 
-          desc="Track your mood & focus." 
-          icon={<Heart size={32} />} 
-          href="/progress"  
-          delay={0.5} 
-        />
-        
-        <ActionCard 
-          title="Document Space" 
-          desc="Upload photos to track changes." 
-          icon={<Camera size={32} />} 
-          href="/photos" 
-          delay={0.6} 
-        />
-        
-        <ActionCard 
-          title="Sensory Coaching" 
-          desc="Learn to shape your environment to support your nervous system." 
-          icon={<Sparkles size={32} />} 
-          href="/coaching" 
-          delay={0.7} 
-        />
-      
-      </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+          <ActionCard 
+            title="Log Well-being" 
+            desc="Track your mood & focus." 
+            icon={<Heart size={32} />} 
+            href="/progress"  
+            delay={0.5} 
+          />
+          <ActionCard 
+            title="Document Space" 
+            desc="Upload photos to track changes." 
+            icon={<Camera size={32} />} 
+            href="/photos" 
+            delay={0.6} 
+          />
+          <ActionCard 
+            title="Sensory Coaching" 
+            desc="Full curriculum access." 
+            icon={<Sparkles size={32} />} 
+            href="/coaching" 
+            delay={0.7} 
+          />
+        </div>
 
+      </div>
     </div>
-  </div>
-)
+  )
 }
