@@ -98,7 +98,7 @@ export default async function Dashboard() {
             </Link>
             <Link href="/assessments/step0" className="flex items-center gap-2 px-6 py-3 bg-[#c9ccbb] text-[#1b270e] hover:bg-[#e3e6d5] rounded-lg text-sm font-medium transition-colors shadow-lg shadow-[#000]/20">
               <Plus size={16} />
-              Check In
+              Retake Assessment
             </Link>
           </div>
         </div>
