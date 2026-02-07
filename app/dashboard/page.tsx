@@ -3,25 +3,39 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { FileText, Heart, Camera, Sparkles, Plus, PlayCircle, CheckCircle } from 'lucide-react' 
+import { FileText, Heart, Camera, Sparkles, Plus, PlayCircle, CheckCircle, Lock } from 'lucide-react' 
 
 import ActionCard from '../components/ActionCard'
 import SensoryTools from '../components/SensoryTools'
 import SensoryRadar from '../components/SensoryRadar'
 import NeuroFlashcard from '../components/NeuroFlashcard'
-import DashboardPulse from '../components/DashboardPulse' // <--- The new heartbeat
+import DashboardPulse from '../components/DashboardPulse' 
 import { calculateNeuroLoad } from '../utils/scoring-engine' 
 import Sidebar from '../components/Sidebar'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
-// --- THE COACHING CURRICULUM ---
-// This helps the dashboard decide what to recommend next
+// --- THE COACHING CURRICULUM (With Paywall Logic) ---
 const CURRICULUM = [
-  { slug: 'sensory-orientation', title: 'Week 0: Sensory Orientation', subtitle: 'Understanding your biological baseline.' },
-  { slug: 'silent-conversation', title: 'Week 1: Silent Conversation', subtitle: 'Cognitive load & environmental vigilance.' },
-  { slug: 'light-as-signal', title: 'Week 2: Light as Signal', subtitle: 'Circadian rhythms and cortisol control.' }
+  { 
+    slug: 'sensory-orientation', 
+    title: 'Week 0: Sensory Orientation', 
+    subtitle: 'Understanding your biological baseline.',
+    isPremium: false 
+  },
+  { 
+    slug: 'silent-conversation', 
+    title: 'Week 1: Silent Conversation', 
+    subtitle: 'Cognitive load & environmental vigilance.',
+    isPremium: true // LOCKED
+  },
+  { 
+    slug: 'light-as-signal', 
+    title: 'Week 2: Light as Signal', 
+    subtitle: 'Circadian rhythms and cortisol control.',
+    isPremium: true // LOCKED
+  }
 ]
 
 export default async function Dashboard() {
@@ -33,7 +47,7 @@ export default async function Dashboard() {
 
   const displayName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Member'
   
-  // 1. FETCH EVERYTHING IN PARALLEL (Fast Load)
+  // 1. FETCH DATA
   const [responsesRes, logsRes, progressRes] = await Promise.all([
     supabase.from('user_responses').select('*').eq('user_id', user.id),
     supabase.from('daily_logs').select('mood_score, date').eq('user_id', user.id).order('date', { ascending: false }).limit(7),
@@ -44,22 +58,21 @@ export default async function Dashboard() {
   const recentLogs = logsRes.data || []
   const completedModules = (progressRes.data || []).map(r => r.module_slug)
 
-  // --- NEW USER CHECK ---
-  if (safeResponses.length === 0) {
-    redirect('/assessments/step0')
-  }
+  if (safeResponses.length === 0) redirect('/assessments/step0')
   
-  // --- CALCULATE ENGINES ---
+  // 2. CALCULATE ENGINES
   const { totalLoad, systemState, radarData } = calculateNeuroLoad(safeResponses)
   
-  // Flashcard Logic
   const getVal = (id: string) => safeResponses.find(r => r.question_key === id)?.answer?.response || 0
   const circadianLoad = Number(getVal('q5')) + Number(getVal('q6')) + Number(getVal('q7')) + Number(getVal('q8')) + Number(getVal('q9'))
 
-  // --- DETERMINE "NEXT BEST STEP" ---
-  // Find the first module in the curriculum that isn't completed
+  // 3. DETERMINE NEXT STEP & LOCK STATUS
   const nextModule = CURRICULUM.find(m => !completedModules.includes(m.slug)) || CURRICULUM[CURRICULUM.length - 1]
   const isAllComplete = completedModules.length === CURRICULUM.length
+  
+  // Logic: If it's premium, send to Upgrade. If free, send to Class.
+  const isLocked = nextModule.isPremium 
+  const targetLink = isLocked ? '/upgrade' : `/coaching/${nextModule.slug}`
 
   return (
     <div className="min-h-screen bg-[#1b270e] font-sans selection:bg-[#b5a642] selection:text-[#1b270e]">
@@ -90,10 +103,8 @@ export default async function Dashboard() {
           </div>
         </div>
 
-        {/* --- SECTION 1: THE COCKPIT (Pulse & Compass) --- */}
+        {/* --- SECTION 1: THE COCKPIT --- */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            
-            {/* THE PULSE (Left - 2 Cols) */}
             <div className="md:col-span-2 glass-panel p-6 rounded-3xl relative overflow-hidden flex flex-col justify-between min-h-[220px]">
                 <div className="relative z-10 flex justify-between items-start mb-4">
                     <div>
@@ -107,14 +118,11 @@ export default async function Dashboard() {
                          </div>
                     )}
                 </div>
-                
-                {/* The Waveform Chart */}
                 <div className="absolute bottom-0 left-0 right-0 h-40 opacity-80 pointer-events-none">
                     <DashboardPulse logs={recentLogs} />
                 </div>
             </div>
 
-            {/* THE COMPASS (Right - 1 Col) */}
             <div className="glass-panel p-6 rounded-3xl flex flex-col justify-center items-center text-center relative overflow-hidden border-l-4 border-[#b5a642]">
                 <div className="relative z-10">
                     <div className="text-[10px] text-[#b5a642] font-bold uppercase tracking-widest mb-2">Current Baseline</div>
@@ -122,25 +130,32 @@ export default async function Dashboard() {
                     <div className="text-sm text-[#c9ccbb]/60 mb-4">{systemState}</div>
                     <div className="text-[10px] text-[#c9ccbb]/30 uppercase tracking-widest">NeuroLoad Score™</div>
                 </div>
-                {/* Background Glow */}
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-[#b5a642]/10 rounded-full blur-2xl" />
             </div>
         </div>
 
-        {/* --- SECTION 2: NEXT BEST STEP (Hero) --- */}
+        {/* --- SECTION 2: NEXT BEST STEP (Smart Paywall) --- */}
         <div className="mb-12">
             <h3 className="text-[#c9ccbb]/40 text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
                 <Sparkles size={14} /> Recommended Action
             </h3>
             
-            <Link href={`/coaching/${nextModule.slug}`} className="block group">
-                <div className="glass-panel p-8 md:p-10 rounded-3xl border border-[#c9ccbb]/10 hover:border-[#b5a642]/50 transition-all relative overflow-hidden">
+            <Link href={targetLink} className="block group">
+                <div className={`
+                    p-8 md:p-10 rounded-3xl border transition-all relative overflow-hidden
+                    ${isLocked 
+                        ? 'bg-gradient-to-br from-[#b5a642]/20 to-[#1b270e] border-[#b5a642]/40' // GOLD/LOCKED
+                        : 'glass-panel border-[#c9ccbb]/10 hover:border-[#b5a642]/50' // STANDARD/FREE
+                    }
+                `}>
                     <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
                         <div>
-                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-[#b5a642] text-[#1b270e] text-[10px] font-bold uppercase tracking-widest mb-4">
-                                {isAllComplete ? "Review" : "Up Next"}
+                            <div className={`inline-flex items-center gap-2 px-3 py-1 rounded text-[10px] font-bold uppercase tracking-widest mb-4
+                                ${isLocked ? 'bg-[#b5a642] text-[#1b270e]' : 'bg-[#b5a642] text-[#1b270e]'}
+                            `}>
+                                {isAllComplete ? "Review" : isLocked ? "Locked Content" : "Up Next"}
                             </div>
-                            <h2 className="text-3xl md:text-4xl font-serif text-[#c9ccbb] mb-2 group-hover:text-[#b5a642] transition-colors">
+                            <h2 className={`text-3xl md:text-4xl font-serif mb-2 transition-colors ${isLocked ? 'text-[#f0e6b5]' : 'text-[#c9ccbb] group-hover:text-[#b5a642]'}`}>
                                 {nextModule.title}
                             </h2>
                             <p className="text-[#c9ccbb]/60 text-lg max-w-xl">
@@ -148,15 +163,21 @@ export default async function Dashboard() {
                             </p>
                         </div>
                         
-                        <div className="h-16 w-16 rounded-full bg-[#b5a642]/10 border border-[#b5a642]/20 flex items-center justify-center text-[#b5a642] group-hover:scale-110 group-hover:bg-[#b5a642] group-hover:text-[#1b270e] transition-all shrink-0">
-                            {isAllComplete ? <CheckCircle size={32} /> : <PlayCircle size={32} />}
+                        <div className={`
+                            h-16 w-16 rounded-full flex items-center justify-center transition-all shrink-0
+                            ${isLocked 
+                                ? 'bg-[#b5a642]/20 text-[#b5a642] border border-[#b5a642]/50' 
+                                : 'bg-[#b5a642]/10 border border-[#b5a642]/20 text-[#b5a642] group-hover:scale-110 group-hover:bg-[#b5a642] group-hover:text-[#1b270e]'
+                            }
+                        `}>
+                            {isLocked ? <Lock size={28} /> : isAllComplete ? <CheckCircle size={32} /> : <PlayCircle size={32} />}
                         </div>
                     </div>
                 </div>
             </Link>
         </div>
 
-        {/* --- SECTION 3: INTELLIGENCE (Radar & Flashcard) --- */}
+        {/* --- SECTION 3: INTELLIGENCE --- */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
           <div className="lg:col-span-2 glass-panel p-8 rounded-3xl relative overflow-hidden">
             <div className="flex justify-between items-start mb-6">
@@ -185,7 +206,7 @@ export default async function Dashboard() {
           </div>
         </div>
 
-        {/* --- SECTION 4: TOOLS & QUICK ACTIONS --- */}
+        {/* --- SECTION 4: TOOLKIT --- */}
         <div className="mb-4">
             <h3 className="text-[#c9ccbb]/40 text-xs font-bold uppercase tracking-widest mb-4">Toolkit</h3>
             <SensoryTools />
