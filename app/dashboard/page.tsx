@@ -3,20 +3,21 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { FileText, Heart, Camera, Sparkles, Plus, PlayCircle, ArrowRight, CheckCircle, Lock } from 'lucide-react' 
+import { FileText, Heart, Camera, Sparkles, Plus, PlayCircle, CheckCircle } from 'lucide-react' 
 
 import ActionCard from '../components/ActionCard'
 import SensoryTools from '../components/SensoryTools'
 import SensoryRadar from '../components/SensoryRadar'
 import NeuroFlashcard from '../components/NeuroFlashcard'
-import DashboardPulse from '../components/DashboardPulse' // <--- IMPORT NEW COMPONENT
+import DashboardPulse from '../components/DashboardPulse' // <--- The new heartbeat
 import { calculateNeuroLoad } from '../utils/scoring-engine' 
 import Sidebar from '../components/Sidebar'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
-// --- COACHING CURRICULUM DATA (To determine next step) ---
+// --- THE COACHING CURRICULUM ---
+// This helps the dashboard decide what to recommend next
 const CURRICULUM = [
   { slug: 'sensory-orientation', title: 'Week 0: Sensory Orientation', subtitle: 'Understanding your biological baseline.' },
   { slug: 'silent-conversation', title: 'Week 1: Silent Conversation', subtitle: 'Cognitive load & environmental vigilance.' },
@@ -32,7 +33,7 @@ export default async function Dashboard() {
 
   const displayName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Member'
   
-  // 1. FETCH ALL DATA IN PARALLEL
+  // 1. FETCH EVERYTHING IN PARALLEL (Fast Load)
   const [responsesRes, logsRes, progressRes] = await Promise.all([
     supabase.from('user_responses').select('*').eq('user_id', user.id),
     supabase.from('daily_logs').select('mood_score, date').eq('user_id', user.id).order('date', { ascending: false }).limit(7),
@@ -93,7 +94,7 @@ export default async function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             
             {/* THE PULSE (Left - 2 Cols) */}
-            <div className="md:col-span-2 glass-panel p-6 rounded-3xl relative overflow-hidden flex flex-col justify-between min-h-[180px]">
+            <div className="md:col-span-2 glass-panel p-6 rounded-3xl relative overflow-hidden flex flex-col justify-between min-h-[220px]">
                 <div className="relative z-10 flex justify-between items-start mb-4">
                     <div>
                         <h3 className="text-[#c9ccbb] font-serif text-xl">Nervous System Rhythm</h3>
@@ -108,7 +109,7 @@ export default async function Dashboard() {
                 </div>
                 
                 {/* The Waveform Chart */}
-                <div className="absolute bottom-0 left-0 right-0 h-32 opacity-80 pointer-events-none">
+                <div className="absolute bottom-0 left-0 right-0 h-40 opacity-80 pointer-events-none">
                     <DashboardPulse logs={recentLogs} />
                 </div>
             </div>
