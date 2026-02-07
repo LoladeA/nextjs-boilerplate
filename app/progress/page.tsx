@@ -2,7 +2,7 @@
 
 import Sidebar from '../components/Sidebar'
 import { useState, useEffect } from 'react'
-import { Heart, Wind, Sun, Volume2, CheckCircle, TrendingUp, Activity, AlertCircle } from 'lucide-react' // Added AlertCircle
+import { Heart, Wind, Sun, Volume2, CheckCircle, TrendingUp, Activity, AlertCircle, Zap, ShieldAlert } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
@@ -14,8 +14,13 @@ export default function Progress() {
   const [selectedMood, setSelectedMood] = useState<number | null>(null)
   const [loggedTags, setLoggedTags] = useState<string[]>([])
   const [note, setNote] = useState('')
+  
+  // NEW: SENSORY METRICS STATE
+  const [luxScore, setLuxScore] = useState<string>('') // Using string for input handling
+  const [dbScore, setDbScore] = useState<string>('')
+
   const [status, setStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle')
-  const [errorMessage, setErrorMessage] = useState('') // New Error State
+  const [errorMessage, setErrorMessage] = useState('')
   
   // CHART STATE
   const [chartData, setChartData] = useState<any[]>([])
@@ -60,6 +65,9 @@ export default function Progress() {
       setSelectedMood(data.mood_score)
       setLoggedTags(data.tags || [])
       setNote(data.note || '')
+      // Load saved sensory data
+      if (data.lux_score) setLuxScore(data.lux_score.toString())
+      if (data.db_score) setDbScore(data.db_score.toString())
     }
   }
 
@@ -83,7 +91,7 @@ export default function Progress() {
     }
   }
 
-  // --- SAVE HANDLER (DEBUGGED) ---
+  // --- SAVE HANDLER ---
   const toggleTag = (id: string) => {
     setLoggedTags(prev => 
       prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
@@ -92,19 +100,13 @@ export default function Progress() {
 
   const handleSave = async () => {
     setStatus('saving')
-    setErrorMessage('') // Clear previous errors
+    setErrorMessage('')
 
     try {
         const { data: { user } } = await supabase.auth.getUser()
-        
-        if (!user) {
-            throw new Error("No user logged in")
-        }
+        if (!user) throw new Error("No user logged in")
 
         const today = new Date().toISOString().split('T')[0]
-
-        // DEBUG: Log what we are trying to send
-        console.log("Attempting save:", { user_id: user.id, date: today, mood: selectedMood })
 
         const { error } = await supabase
         .from('daily_logs')
@@ -113,12 +115,13 @@ export default function Progress() {
             date: today,
             mood_score: selectedMood,
             tags: loggedTags,
-            note: note
+            note: note,
+            lux_score: luxScore ? parseInt(luxScore) : null, // Save Lux
+            db_score: dbScore ? parseInt(dbScore) : null     // Save dB
         }, { onConflict: 'user_id, date' })
 
         if (error) throw error
 
-        // Success!
         setStatus('success')
         fetchHistory()
         setTimeout(() => setStatus('idle'), 2000)
@@ -126,7 +129,7 @@ export default function Progress() {
     } catch (err: any) {
         console.error("Save Error:", err)
         setStatus('error')
-        setErrorMessage(err.message || "Failed to save to database")
+        setErrorMessage(err.message || "Failed to save")
     }
   }
 
@@ -146,6 +149,7 @@ export default function Progress() {
 
           <div className="glass-panel p-8 rounded-3xl mb-16 relative overflow-hidden border border-[#c9ccbb]/10">
             
+            {/* 1. MOOD CHECK-IN */}
             <div className="flex items-center gap-3 mb-8">
                <div className="w-10 h-10 rounded-full bg-[#b5a642]/10 flex items-center justify-center text-[#b5a642]">
                  <Heart size={20} />
@@ -153,7 +157,6 @@ export default function Progress() {
                <h2 className="text-2xl font-serif text-[#c9ccbb]">Daily Check-In</h2>
             </div>
 
-            {/* MOOD GRID */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-8">
               {moods.map((mood) => (
                 <button
@@ -176,7 +179,42 @@ export default function Progress() {
               ))}
             </div>
 
-            {/* TAGS */}
+            {/* 2. SENSORY DATA (NEW) */}
+            <div className="mb-8 p-6 bg-[#000]/20 rounded-2xl border border-[#c9ccbb]/5">
+                <label className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-4 block flex items-center gap-2">
+                    <Activity size={12} /> Objective Metrics (Optional)
+                </label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Lux Input */}
+                    <div>
+                        <div className="flex items-center gap-2 mb-2 text-[#c9ccbb]/60 text-xs font-bold uppercase tracking-widest">
+                            <Zap size={14} className="text-orange-400" /> Morning Light (Lux)
+                        </div>
+                        <input 
+                            type="number" 
+                            placeholder="e.g. 500"
+                            value={luxScore}
+                            onChange={(e) => setLuxScore(e.target.value)}
+                            className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
+                        />
+                    </div>
+                    {/* dB Input */}
+                    <div>
+                        <div className="flex items-center gap-2 mb-2 text-[#c9ccbb]/60 text-xs font-bold uppercase tracking-widest">
+                            <ShieldAlert size={14} className="text-blue-400" /> Avg Noise (dB)
+                        </div>
+                        <input 
+                            type="number" 
+                            placeholder="e.g. 45"
+                            value={dbScore}
+                            onChange={(e) => setDbScore(e.target.value)}
+                            className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            {/* 3. HABIT TAGS */}
             <div className="flex flex-wrap gap-2 mb-8">
               {envTags.map((tag) => (
                 <button
@@ -194,20 +232,16 @@ export default function Progress() {
               ))}
             </div>
 
-            {/* OBSERVATIONS */}
+            {/* 4. NOTES & SAVE */}
             <div className="mb-8">
-              <label className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-3 block">
-                Observations (Optional)
-              </label>
               <textarea 
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                placeholder="Noticed any specific triggers? (e.g., 'Felt calmer after dimming lights')"
+                placeholder="Observations? (e.g. 'Felt calmer after using the Dorsal Seat')"
                 className="w-full h-24 bg-[#000]/20 border border-[#c9ccbb]/10 rounded-xl p-4 text-[#c9ccbb] text-sm placeholder:text-[#c9ccbb]/20 focus:outline-none focus:border-[#b5a642]/50 resize-none font-sans"
               />
             </div>
 
-            {/* ERROR MESSAGE (Visible Feedback) */}
             {status === 'error' && (
                 <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl flex items-center gap-3 text-red-400 text-xs font-bold uppercase tracking-widest">
                     <AlertCircle size={16} />
@@ -215,7 +249,6 @@ export default function Progress() {
                 </div>
             )}
 
-            {/* SAVE BUTTON */}
             <div className="flex justify-end items-center gap-4 pt-6 border-t border-[#c9ccbb]/10">
                <AnimatePresence>
                  {status === 'success' && (
@@ -246,7 +279,6 @@ export default function Progress() {
               <div className="flex items-center gap-2 mb-6 text-[#c9ccbb]/40 text-xs font-bold uppercase tracking-widest">
                 <TrendingUp size={14} /> Nervous System Rhythm (Last 7 Days)
               </div>
-
               {chartData.length > 0 ? (
                 <div className="glass-panel p-8 rounded-3xl border border-[#c9ccbb]/10">
                    <div className="h-[250px] w-full">
@@ -258,48 +290,18 @@ export default function Progress() {
                              <stop offset="95%" stopColor="#b5a642" stopOpacity={0}/>
                            </linearGradient>
                          </defs>
-                         <XAxis 
-                            dataKey="day" 
-                            stroke="#c9ccbb" 
-                            opacity={0.3} 
-                            tick={{fontSize: 10}} 
-                            axisLine={false}
-                            tickLine={false}
-                         />
-                         <YAxis 
-                            hide={true} 
-                            domain={[0, 6]} 
-                         />
-                         <Tooltip 
-                            contentStyle={{ backgroundColor: '#1b270e', borderColor: '#c9ccbb33', color: '#c9ccbb' }}
-                            itemStyle={{ color: '#b5a642' }}
-                            cursor={{ stroke: '#c9ccbb', strokeWidth: 1, strokeDasharray: '3 3' }}
-                         />
-                         <Area 
-                            type="monotone" 
-                            dataKey="score" 
-                            stroke="#b5a642" 
-                            strokeWidth={3}
-                            fillOpacity={1} 
-                            fill="url(#colorScore)" 
-                         />
+                         <XAxis dataKey="day" stroke="#c9ccbb" opacity={0.3} tick={{fontSize: 10}} axisLine={false} tickLine={false} />
+                         <YAxis hide={true} domain={[0, 6]} />
+                         <Tooltip contentStyle={{ backgroundColor: '#1b270e', borderColor: '#c9ccbb33', color: '#c9ccbb' }} itemStyle={{ color: '#b5a642' }} cursor={{ stroke: '#c9ccbb', strokeWidth: 1, strokeDasharray: '3 3' }} />
+                         <Area type="monotone" dataKey="score" stroke="#b5a642" strokeWidth={3} fillOpacity={1} fill="url(#colorScore)" />
                        </AreaChart>
                      </ResponsiveContainer>
-                   </div>
-                   <div className="flex justify-between items-center px-4 mt-4 text-[10px] text-[#c9ccbb]/40 uppercase tracking-widest">
-                      <span>Dysregulated (1)</span>
-                      <span>Resonant (5)</span>
                    </div>
                 </div>
               ) : (
                 <div className="glass-panel p-12 rounded-3xl border border-dashed border-[#c9ccbb]/10 flex flex-col items-center text-center">
-                   <div className="w-16 h-16 bg-[#b5a642]/10 rounded-full flex items-center justify-center text-[#b5a642] mb-6">
-                     <Activity size={32} />
-                   </div>
-                   <h2 className="text-xl font-serif text-[#c9ccbb] mb-3">No Rhythm Detected Yet</h2>
-                   <p className="text-[#c9ccbb]/50 max-w-sm text-sm">
-                     Log your first check-in above to initialise your nervous system baseline.
-                   </p>
+                   <Activity size={32} className="text-[#b5a642] mb-4 opacity-50" />
+                   <p className="text-[#c9ccbb]/50 text-sm">Log your first check-in to see your trend.</p>
                 </div>
               )}
           </div>
