@@ -1,10 +1,11 @@
 'use client'
 
 import Sidebar from '../components/Sidebar'
-import { useState } from 'react'
-import { Heart, Wind, Sun, Volume2, CheckCircle, Save, TrendingUp, Calendar, Activity } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Heart, Wind, Sun, Volume2, CheckCircle, TrendingUp, Activity, Calendar } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 
 export default function Progress() {
   const supabase = createClientComponentClient()
@@ -14,24 +15,76 @@ export default function Progress() {
   const [loggedTags, setLoggedTags] = useState<string[]>([])
   const [note, setNote] = useState('')
   const [isSaved, setIsSaved] = useState(false)
+  
+  // CHART STATE
+  const [chartData, setChartData] = useState<any[]>([])
 
-  // 1. SOMATIC STATES
+  // 1. SOMATIC STATES (Your definitions)
   const moods = [
-    { val: 1, label: 'Dysregulated', desc: 'Overwhelmed', color: 'bg-red-400/20 border-red-400/50 text-red-400' },
-    { val: 2, label: 'High Alert', desc: 'Vigilant', color: 'bg-orange-400/20 border-orange-400/50 text-orange-400' },
+    { val: 1, label: 'Dysregulated', desc: 'Overwhelmed', color: 'bg-red-500/20 border-red-500/50 text-red-400' },
+    { val: 2, label: 'High Alert', desc: 'Vigilant', color: 'bg-orange-500/20 border-orange-500/50 text-orange-400' },
     { val: 3, label: 'Neutral', desc: 'Functional', color: 'bg-[#c9ccbb]/10 border-[#c9ccbb]/30 text-[#c9ccbb]' },
     { val: 4, label: 'Regulated', desc: 'Calm', color: 'bg-[#b5a642]/20 border-[#b5a642]/50 text-[#b5a642]' },
-    { val: 5, label: 'Resonant', desc: 'Restorative', color: 'bg-emerald-400/20 border-emerald-400/50 text-emerald-400' }
+    { val: 5, label: 'Resonant', desc: 'Restorative', color: 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400' }
   ]
 
-  // 2. ENVIRONMENTAL TAGS (Human-Centric)
+  // 2. ENVIRONMENTAL TAGS
   const envTags = [
-    { id: 'air', label: 'Ventilated Home', icon: <Wind size={14} /> },
-    { id: 'light', label: 'Got Early Morning Sunlight', icon: <Sun size={14} /> },
-    { id: 'sound', label: 'Buffered Against Intrusive Noise', icon: <Volume2 size={14} /> },
-    { id: 'space', label: 'Decluttered Priority Areas', icon: <CheckCircle size={14} /> },
+    { id: 'ventilation', label: 'Ventilated Home', icon: <Wind size={14} /> },
+    { id: 'sunlight', label: 'Got Early Morning Sunlight', icon: <Sun size={14} /> },
+    { id: 'noise_buffer', label: 'Buffered Against Intrusive Noise', icon: <Volume2 size={14} /> },
+    { id: 'declutter', label: 'Decluttered Priority Areas', icon: <CheckCircle size={14} /> },
   ]
 
+  // --- INITIAL DATA FETCH ---
+  useEffect(() => {
+    fetchTodayLog()
+    fetchHistory()
+  }, [])
+
+  const fetchTodayLog = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const today = new Date().toISOString().split('T')[0]
+    
+    const { data, error } = await supabase
+      .from('daily_logs')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('date', today)
+      .single()
+
+    if (data) {
+      setSelectedMood(data.mood_score)
+      setLoggedTags(data.tags || [])
+      setNote(data.note || '')
+    }
+  }
+
+  const fetchHistory = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    // Get last 7 days of logs
+    const { data } = await supabase
+      .from('daily_logs')
+      .select('date, mood_score')
+      .eq('user_id', user.id)
+      .order('date', { ascending: true })
+      .limit(7)
+
+    if (data) {
+        // Format for Recharts
+        const formatted = data.map(d => ({
+            day: new Date(d.date).toLocaleDateString('en-US', { weekday: 'short' }),
+            score: d.mood_score
+        }))
+        setChartData(formatted)
+    }
+  }
+
+  // --- SAVE HANDLER ---
   const toggleTag = (id: string) => {
     setLoggedTags(prev => 
       prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
@@ -39,14 +92,27 @@ export default function Progress() {
   }
 
   const handleSave = async () => {
-    // Here we would save to Supabase
-    setIsSaved(true)
-    setTimeout(() => {
-      setIsSaved(false)
-      setSelectedMood(null)
-      setLoggedTags([])
-      setNote('')
-    }, 2000)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const today = new Date().toISOString().split('T')[0]
+
+    // Upsert = Insert if new, Update if exists
+    const { error } = await supabase
+      .from('daily_logs')
+      .upsert({
+        user_id: user.id,
+        date: today,
+        mood_score: selectedMood,
+        tags: loggedTags,
+        note: note
+      }, { onConflict: 'user_id, date' })
+
+    if (!error) {
+        setIsSaved(true)
+        fetchHistory() // Refresh the chart immediately
+        setTimeout(() => setIsSaved(false), 2000)
+    }
   }
 
   return (
@@ -60,7 +126,7 @@ export default function Progress() {
           <div className="mb-12">
             <h1 className="text-4xl font-serif text-[#c9ccbb] mb-2">Progress & Tracking</h1>
             <p className="text-[#c9ccbb]/60">
-              Log your daily state to train the system and reveal long-term patterns.
+              Log your daily state to train your nervous system and reveal long-term patterns.
             </p>
           </div>
 
@@ -154,40 +220,68 @@ export default function Progress() {
             </div>
           </div>
 
-          {/* --- SECTION 2: THE OUTPUT (TRENDS PLACEHOLDER) --- */}
-          <div className="opacity-60 hover:opacity-100 transition-opacity duration-500">
-             <div className="flex items-center gap-2 mb-6 text-[#c9ccbb]/40 text-xs font-bold uppercase tracking-widest">
-               <TrendingUp size={14} /> Long-term Analysis
-             </div>
-
-             <div className="glass-panel p-12 rounded-3xl border border-dashed border-[#c9ccbb]/10 flex flex-col items-center text-center">
-              <div className="w-16 h-16 bg-[#b5a642]/10 rounded-full flex items-center justify-center text-[#b5a642] mb-6">
-                <Activity size={32} />
+          {/* --- SECTION 2: THE OUTPUT (LIVE CHART) --- */}
+          <div className="animate-fade-in-up delay-100">
+              <div className="flex items-center gap-2 mb-6 text-[#c9ccbb]/40 text-xs font-bold uppercase tracking-widest">
+                <TrendingUp size={14} /> Nervous System Rhythm (Last 7 Days)
               </div>
 
-              <h2 className="text-2xl font-serif text-[#c9ccbb] mb-3">Data Accumulation In Progress</h2>
-              <p className="text-[#c9ccbb]/50 max-w-lg mb-8 text-sm leading-relaxed">
-                As you log your daily check-ins, this dashboard will begin to visualize your recovery rate, circadian alignment, and stress correlation patterns.
-              </p>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-2xl text-left">
-                <div className="p-4 bg-[#000]/20 rounded-xl border border-[#c9ccbb]/5">
-                  <Calendar className="text-[#b5a642]/50 mb-2" size={20} />
-                  <h4 className="text-[#c9ccbb] font-bold text-xs mb-1">Timeline</h4>
-                  <p className="text-[#c9ccbb]/30 text-[10px]">Monthly trends</p>
+              {chartData.length > 0 ? (
+                <div className="glass-panel p-8 rounded-3xl border border-[#c9ccbb]/10">
+                   <div className="h-[250px] w-full">
+                     <ResponsiveContainer width="100%" height="100%">
+                       <AreaChart data={chartData}>
+                         <defs>
+                           <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
+                             <stop offset="5%" stopColor="#b5a642" stopOpacity={0.3}/>
+                             <stop offset="95%" stopColor="#b5a642" stopOpacity={0}/>
+                           </linearGradient>
+                         </defs>
+                         <XAxis 
+                            dataKey="day" 
+                            stroke="#c9ccbb" 
+                            opacity={0.3} 
+                            tick={{fontSize: 10}} 
+                            axisLine={false}
+                            tickLine={false}
+                         />
+                         <YAxis 
+                            hide={true} 
+                            domain={[0, 6]} // Keep generic padding
+                         />
+                         <Tooltip 
+                            contentStyle={{ backgroundColor: '#1b270e', borderColor: '#c9ccbb33', color: '#c9ccbb' }}
+                            itemStyle={{ color: '#b5a642' }}
+                            cursor={{ stroke: '#c9ccbb', strokeWidth: 1, strokeDasharray: '3 3' }}
+                         />
+                         <Area 
+                            type="monotone" 
+                            dataKey="score" 
+                            stroke="#b5a642" 
+                            strokeWidth={3}
+                            fillOpacity={1} 
+                            fill="url(#colorScore)" 
+                         />
+                       </AreaChart>
+                     </ResponsiveContainer>
+                   </div>
+                   <div className="flex justify-between items-center px-4 mt-4 text-[10px] text-[#c9ccbb]/40 uppercase tracking-widest">
+                      <span>Dysregulated (1)</span>
+                      <span>Resonant (5)</span>
+                   </div>
                 </div>
-                <div className="p-4 bg-[#000]/20 rounded-xl border border-[#c9ccbb]/5">
-                  <Activity className="text-[#b5a642]/50 mb-2" size={20} />
-                  <h4 className="text-[#c9ccbb] font-bold text-xs mb-1">Correlation</h4>
-                  <p className="text-[#c9ccbb]/30 text-[10px]">Environment vs Mood</p>
+              ) : (
+                /* EMPTY STATE (If no data yet) */
+                <div className="glass-panel p-12 rounded-3xl border border-dashed border-[#c9ccbb]/10 flex flex-col items-center text-center">
+                   <div className="w-16 h-16 bg-[#b5a642]/10 rounded-full flex items-center justify-center text-[#b5a642] mb-6">
+                     <Activity size={32} />
+                   </div>
+                   <h2 className="text-xl font-serif text-[#c9ccbb] mb-3">No Rhythm Detected Yet</h2>
+                   <p className="text-[#c9ccbb]/50 max-w-sm text-sm">
+                     Log your first check-in above to initialise your nervous system baseline.
+                   </p>
                 </div>
-                <div className="p-4 bg-[#000]/20 rounded-xl border border-[#c9ccbb]/5">
-                  <TrendingUp className="text-[#b5a642]/50 mb-2" size={20} />
-                  <h4 className="text-[#c9ccbb] font-bold text-xs mb-1">Recovery</h4>
-                  <p className="text-[#c9ccbb]/30 text-[10px]">Restoration metrics</p>
-                </div>
-              </div>
-            </div>
+              )}
           </div>
 
         </div>
