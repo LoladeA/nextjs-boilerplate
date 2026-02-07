@@ -1,9 +1,10 @@
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import Link from 'next/link'
-import { ArrowLeft, Activity, Brain, ShieldAlert, Zap, Download, CheckCircle, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, Activity, Brain, ShieldAlert, Zap, Download, CheckCircle, Moon } from 'lucide-react'
 import { calculateNeuroLoad } from '@/app/utils/scoring-engine'
 import Sidebar from '../../components/Sidebar'
+import PriorityList from './PriorityList' // <--- IMPORT THE NEW COMPONENT
 
 export const dynamic = 'force-dynamic'
 
@@ -54,7 +55,6 @@ export default async function AssessmentReport() {
       score: indices.pli,
       max: 25,
       description: 'Spatial clarity and cognitive effort.',
-      // CHANGED 'Unstable' to 'Fragmented' here:
       status: indices.pli <= 10 ? 'Legible' : indices.pli <= 15 ? 'Frictional' : indices.pli <= 20 ? 'Fragmented' : 'Cognitive Overload',
       priority: indices.pli > 15 ? 'High' : indices.pli > 10 ? 'Medium' : 'Low',
       icon: <Brain size={24} className={indices.pli > 15 ? "text-red-400" : "text-[#b5a642]"} />
@@ -130,27 +130,12 @@ export default async function AssessmentReport() {
              <div className="absolute right-0 top-0 w-64 h-64 bg-[#b5a642] rounded-full filter blur-[100px] opacity-10 pointer-events-none" />
           </div>
 
-          {/* CRITICAL INTERVENTIONS */}
+          {/* --- NEW SECTION: PRIORITY FOCUS AREAS (ACCORDION) --- */}
           {criticalIssues.length > 0 && (
-            <div className="mb-16">
-               <div className="flex items-center gap-3 mb-6">
-                 <AlertTriangle className="text-red-400" size={24} />
-                 <h3 className="text-2xl font-serif text-[#c9ccbb]">Priority Focus Areas</h3>
-               </div>
-               <div className="grid gap-4">
-                 {criticalIssues.map(issue => (
-                   <div key={issue.id} className="glass-panel p-6 rounded-xl border border-red-400/30 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                     <div>
-                       <h4 className="text-lg text-[#c9ccbb] font-bold">{issue.name}</h4>
-                       <p className="text-[#c9ccbb]/60 text-sm">Status: <span className="text-red-400">{issue.status}</span> — {issue.description}</p>
-                     </div>
-                     <Link href="/coaching" className="px-6 py-2 bg-red-400/10 text-red-400 border border-red-400/20 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-red-400/20 transition-all whitespace-nowrap">
-                       Unlock Protocol
-                     </Link>
-                   </div>
-                 ))}
-               </div>
-            </div>
+             <div className="mb-16">
+                {/* We pass the critical domains to the new component */}
+                <PriorityList areas={criticalIssues} />
+             </div>
           )}
 
           {/* INDICES BREAKDOWN */}
