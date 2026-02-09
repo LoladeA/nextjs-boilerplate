@@ -1,18 +1,18 @@
+import { useState } from 'react'
 import Sidebar from '../components/Sidebar'
-import { Sparkles, CheckCircle, ArrowRight, Brain, Shield, ExternalLink, Gem } from 'lucide-react'
+import { Sparkles, CheckCircle, ArrowRight, Brain, Shield, ExternalLink, Gem, Loader2 } from 'lucide-react'
 
 export default function Upgrade() {
-  
+  const [isLoading, setIsLoading] = useState(false)
+
   // LINKS
-  // Replace these with your actual links if you haven't yet
-  const STRIPE_PAYMENT_LINK = "https://buy.stripe.com/your-test-link-here" 
   const EXTERNAL_PORTFOLIO_LINK = "https://www.lolade-ajai.com/services" 
 
   const digitalFeatures = [
     "Full Sensory Coaching Library",
     "Longitudinal Progress Tracking",
     "Priority Access to New Protocols",
-    "Full Somatic Insights and Implementable Strategies"
+    "Full Somatic Insights & Strategy"
   ]
 
   const privateFeatures = [
@@ -20,6 +20,36 @@ export default function Upgrade() {
     "End to End Design Service",
     "Turnkey Implementation & Styling"
   ]
+
+  // This function triggers the Stripe Checkout using your Vercel Keys
+  const handleCheckout = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        // We send the Price ID we just set in your Environment Variables
+        body: JSON.stringify({ 
+          priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID 
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.url) {
+        window.location.href = data.url; // Redirect to Stripe
+      } else {
+        console.error('Stripe error:', data);
+        alert('Payment system is initializing. Please try again in a moment.');
+        setIsLoading(false);
+      }
+    } catch (error) {
+      console.error('Checkout failed:', error);
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#1b270e] font-sans selection:bg-[#b5a642] selection:text-[#1b270e]">
@@ -39,7 +69,7 @@ export default function Upgrade() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
             
-            {/* OPTION 1: THE MEMBERSHIP (Digital) */}
+            {/* OPTION 1: FOUNDATION ACCESS (Digital) */}
             <div className="glass-panel p-10 rounded-3xl border border-[#b5a642]/20 relative overflow-hidden flex flex-col">
               <div className="absolute top-0 right-0 bg-[#b5a642] text-[#1b270e] text-[10px] font-bold uppercase tracking-widest px-4 py-2 rounded-bl-xl">
                 Most Popular
@@ -49,14 +79,16 @@ export default function Upgrade() {
                 <div className="w-12 h-12 bg-[#b5a642]/10 rounded-full flex items-center justify-center text-[#b5a642] mb-6">
                   <Brain size={24} />
                 </div>
-                <h3 className="text-2xl font-serif text-[#c9ccbb] mb-2">Sentient Membership</h3>
+                {/* UPDATED TITLE */}
+                <h3 className="text-2xl font-serif text-[#c9ccbb] mb-2">Foundation Access</h3>
                 <p className="text-[#cfc993]/60 text-sm h-10">
-                  The digital companion for ongoing regulation and environmental tuning.
+                  The intelligence layer for interior design. Methodology, audits, and regulation protocols.
                 </p>
               </div>
 
               <div className="mb-8">
-                <span className="text-4xl font-serif text-[#c9ccbb]">€19.99</span>
+                {/* UPDATED PRICE */}
+                <span className="text-4xl font-serif text-[#c9ccbb]">€49.00</span>
                 <span className="text-[#cfc993]/40 text-sm"> / month</span>
               </div>
 
@@ -69,14 +101,22 @@ export default function Upgrade() {
                 ))}
               </ul>
 
-              <a 
-                href={STRIPE_PAYMENT_LINK}
-                className="w-full flex items-center justify-center gap-2 px-8 py-4 bg-[#b5a642] text-[#1b270e] font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-[#d4c55e] transition-all hover:scale-105"
+              {/* UPDATED BUTTON: Calls API instead of simple link */}
+              <button 
+                onClick={handleCheckout}
+                disabled={isLoading}
+                className="w-full flex items-center justify-center gap-2 px-8 py-4 bg-[#b5a642] text-[#1b270e] font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-[#d4c55e] transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Start Membership <ArrowRight size={16} />
-              </a>
-              <div className="mt-4 flex justify-center items-center gap-2 text-[#cfc993]/20 text-[10px] uppercase tracking-widest">
-                <Shield size={12} /> Secure Stripe Payment
+                {isLoading ? (
+                  <>Processing <Loader2 size={16} className="animate-spin" /></>
+                ) : (
+                  <>Start Membership <ArrowRight size={16} /></>
+                )}
+              </button>
+              
+              {/* UPDATED TEXT COLOR: Now using the headline color for better readability */}
+              <div className="mt-4 flex justify-center items-center gap-2 text-[#c9ccbb] text-[10px] uppercase tracking-widest">
+                <Shield size={12} /> Secure Stripe Payment • 30-Day Guarantee
               </div>
             </div>
 
@@ -114,7 +154,8 @@ export default function Upgrade() {
               >
                 Inquire for 1:1 Service <ExternalLink size={16} />
               </a>
-              <div className="mt-4 text-center text-[#cfc993]/20 text-[10px] uppercase tracking-widest">
+              {/* UPDATED TEXT COLOR: Now using the headline color for better readability */}
+              <div className="mt-4 text-center text-[#c9ccbb] text-[10px] uppercase tracking-widest">
                 Limited Availability for 2026
               </div>
             </div>
