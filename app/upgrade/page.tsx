@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react'
 import Sidebar from '../components/Sidebar'
 import { Sparkles, CheckCircle, ArrowRight, Brain, Shield, ExternalLink, Gem, Loader2 } from 'lucide-react'
