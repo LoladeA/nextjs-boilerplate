@@ -57,7 +57,7 @@ function LightSensorModal({ onClose, onSave }: { onClose: () => void, onSave: (l
         <button onClick={onClose} className="absolute top-4 right-4 p-2 bg-[#000]/20 rounded-full text-[#c9ccbb] hover:text-[#b5a642]"><X size={20} /></button>
         
         <h2 className="text-2xl font-serif text-[#c9ccbb] mb-2 flex items-center gap-2"><Zap size={24} className="text-[#b5a642]" /> Light Estimator</h2>
-        <p className="text-[#c9ccbb]/50 text-xs mb-8">Point camera at your workspace surface.</p>
+        <p className="text-[#c9ccbb]/50 text-xs mb-8">Scan your room.</p>
 
         <div className="relative w-48 h-48 bg-[#000] rounded-full mx-auto mb-8 border-4 border-[#c9ccbb]/10 overflow-hidden flex items-center justify-center">
             <video ref={videoRef} autoPlay playsInline muted className="absolute inset-0 w-full h-full object-cover opacity-30" />
@@ -110,27 +110,27 @@ export default function LightMeterTool() {
     if (hour >= 5 && hour < 11) { // Morning
       if (currentLux < 1000) {
         status = 'too_low'
-        advice = isDysregulated ? "Nervous system needs an anchor. Sit within 1m of a window." : "Insufficient for wakefulness. Step outside."
+        advice = isDysregulated ? "Your nervous system needs an anchor. Sit within 1m of a window." : "Insufficient for wakefulness. Step outside."
         science = "Morning photons trigger the SCN to clear adenosine."
       } else advice = "Excellent. Supports cortisol production."
     } else if (hour >= 11 && hour < 17) { // Midday
       if (currentLux < 500) {
         status = 'too_low'
-        advice = "Low light may cause drowsiness. Increase ambient brightness."
+        advice = "Low light levels may cause drowsiness. Increase ambient brightness."
       } else if (currentLux > 2000 && isDysregulated) {
         status = 'too_high'
-        advice = "High intensity may overstimulate. Diffuse glare."
+        advice = "High intensity may overstimulate. Diffuse glare with sheer curtains or blinds."
       } else advice = "Optimal range for focus."
     } else if (hour >= 17 && hour < 21) { // Evening
       if (currentLux > 50) {
         status = 'too_high'
-        advice = isDysregulated ? "CRITICAL: Blocking melatonin. Turn off overheads." : "Too bright. Switch to floor lamps (<2700K)."
+        advice = isDysregulated ? "Your current light levels is actively blocking melatonin release. Turn off overheads." : "Too bright. Switch to floor and table lamps (<2700K)."
         science = "Lux > 50 suppresses melatonin by up to 50%."
       } else advice = "Perfect 'twilight' level."
     } else { // Night
       if (currentLux > 10) {
         status = 'too_high'
-        advice = "Light pollution detected. Use blackout curtains."
+        advice = "Light pollution detected. Wear an eye mask or use blackout curtains."
       } else advice = "Deep darkness achieved."
     }
     setRecommendation({ status, advice, science })
@@ -149,7 +149,7 @@ export default function LightMeterTool() {
               <Sun size={14} /> Circadian Alignment Tool
             </div>
             <h1 className="text-4xl font-serif text-[#c9ccbb] mb-2">Light Logic™ Meter</h1>
-            <p className="text-[#c9ccbb]/60">Measure, don't guess. Align environment with biology.</p>
+            <p className="text-[#c9ccbb]/60">Measure, don't guess. Align your home environment with your biology.</p>
           </div>
 
           <div className="glass-panel p-8 rounded-3xl border border-[#c9ccbb]/10 bg-[#000]/20">
