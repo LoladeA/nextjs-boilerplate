@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, Zap, Activity, Brain, Eye, Moon, AlertCircle } from 'lucide-react'
+import { ChevronDown, Zap, Activity, Brain, Eye, Moon } from 'lucide-react'
 
 // --- THE WARM WISDOM DICTIONARY ---
 const insightContent: any = {
