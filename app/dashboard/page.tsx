@@ -224,7 +224,7 @@ export default async function Dashboard() {
             title="Document Space" 
             desc="Upload photos to track changes." 
             icon={<Camera size={32} />} 
-            href="/photos" 
+            href="/room-audit"  
             delay={0.6} 
           />
           <ActionCard 
