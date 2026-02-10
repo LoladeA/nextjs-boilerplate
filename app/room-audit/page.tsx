@@ -2,7 +2,7 @@
 
 import Sidebar from '../components/Sidebar'
 import { useState, useRef, useEffect } from 'react'
-import { Camera, Loader2, ScanEye, CheckCircle, AlertTriangle, Lock, Brain, Lightbulb } from 'lucide-react'
+import { Camera, Upload, ArrowRight, Loader2, ScanEye, CheckCircle, AlertTriangle, Lock, Sparkles, Brain, Lightbulb } from 'lucide-react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import Link from 'next/link'
 
@@ -10,7 +10,7 @@ export default function RoomAudit() {
   const supabase = createClientComponentClient()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // --- STATE ---
+  // STATE
   const [loading, setLoading] = useState(true)
   const [isSubscribed, setIsSubscribed] = useState(false)
   
@@ -19,32 +19,32 @@ export default function RoomAudit() {
   const [file, setFile] = useState<File | null>(null)
   const [status, setStatus] = useState<'idle' | 'analyzing' | 'success'>('idle')
   
-  // Analysis Results State
+  // NEW: Analysis Results State
   const [result, setResult] = useState<any>(null)
 
   const rooms = ['Living Room', 'Bedroom', 'Home Office', 'Kitchen', 'Entryway']
 
-  // --- 1. CHECK SUBSCRIPTION ---
+  // 0. CHECK SUBSCRIPTION
   useEffect(() => {
-    const checkSubscription = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const { data: subscription } = await supabase
-          .from('subscriptions')
-          .select('status')
-          .eq('user_id', user.id)
-          .in('status', ['active', 'trialing'])
-          .single()
-
-        if (subscription) setIsSubscribed(true)
-      }
-      setLoading(false)
-    }
-
     checkSubscription()
   }, [])
 
-  // --- 2. HANDLE FILE SELECTION ---
+  const checkSubscription = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      const { data: subscription } = await supabase
+        .from('subscriptions')
+        .select('status')
+        .eq('user_id', user.id)
+        .in('status', ['active', 'trialing'])
+        .single()
+
+      if (subscription) setIsSubscribed(true)
+    }
+    setLoading(false)
+  }
+
+  // 1. HANDLE FILE
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0]
@@ -55,7 +55,7 @@ export default function RoomAudit() {
     }
   }
 
-  // --- 3. UPLOAD & ANALYZE ---
+  // 2. UPLOAD & ANALYZE
   const handleUpload = async () => {
     if (!file) return
     setStatus('analyzing')
@@ -80,9 +80,6 @@ export default function RoomAudit() {
             imageUrl: publicUrl 
         })
       })
-      
-      if (!response.ok) throw new Error('Analysis failed')
-      
       const analysis = await response.json()
 
       // C. Save to DB
@@ -105,16 +102,8 @@ export default function RoomAudit() {
     }
   }
 
-  // --- LOADING STATE ---
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#1b270e] flex items-center justify-center">
-        <Loader2 size={32} className="animate-spin text-[#b5a642]" />
-      </div>
-    )
-  }
+  if (loading) return <div className="min-h-screen bg-[#1b270e] flex items-center justify-center"><Loader2 className="animate-spin text-[#b5a642]" /></div>
 
-  // --- MAIN RENDER ---
   return (
     <div className="min-h-screen bg-[#1b270e] font-sans selection:bg-[#b5a642] selection:text-[#1b270e]">
       <Sidebar />
