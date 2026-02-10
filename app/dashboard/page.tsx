@@ -3,8 +3,7 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-// ADDED "Sun" to imports below
-import { FileText, Heart, Camera, Sparkles, Plus, PlayCircle, CheckCircle, Lock, Sun } from 'lucide-react' 
+import { FileText, Heart, Camera, Sparkles, Plus, PlayCircle, CheckCircle, Lock } from 'lucide-react' 
 
 import ActionCard from '../components/ActionCard'
 import SensoryTools from '../components/SensoryTools'
@@ -17,7 +16,7 @@ import Sidebar from '../components/Sidebar'
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
-// --- THE COACHING CURRICULUM (With Paywall Logic) ---
+// --- THE COACHING CURRICULUM ---
 const CURRICULUM = [
   { 
     slug: 'sensory-orientation', 
@@ -71,7 +70,6 @@ export default async function Dashboard() {
   const nextModule = CURRICULUM.find(m => !completedModules.includes(m.slug)) || CURRICULUM[CURRICULUM.length - 1]
   const isAllComplete = completedModules.length === CURRICULUM.length
   
-  // Logic: If it's premium, send to Upgrade. If free, send to Class.
   const isLocked = nextModule.isPremium 
   const targetLink = isLocked ? '/upgrade' : `/coaching/${nextModule.slug}`
 
@@ -135,7 +133,7 @@ export default async function Dashboard() {
             </div>
         </div>
 
-        {/* --- SECTION 2: NEXT BEST STEP (Smart Paywall) --- */}
+        {/* --- SECTION 2: NEXT BEST STEP --- */}
         <div className="mb-12">
             <h3 className="text-[#c9ccbb]/40 text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
                 <Sparkles size={14} /> Recommended Action
@@ -145,8 +143,8 @@ export default async function Dashboard() {
                 <div className={`
                     p-8 md:p-10 rounded-3xl border transition-all relative overflow-hidden
                     ${isLocked 
-                        ? 'bg-gradient-to-br from-[#b5a642]/20 to-[#1b270e] border-[#b5a642]/40' // GOLD/LOCKED
-                        : 'glass-panel border-[#c9ccbb]/10 hover:border-[#b5a642]/50' // STANDARD/FREE
+                        ? 'bg-gradient-to-br from-[#b5a642]/20 to-[#1b270e] border-[#b5a642]/40' 
+                        : 'glass-panel border-[#c9ccbb]/10 hover:border-[#b5a642]/50'
                     }
                 `}>
                     <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
@@ -210,11 +208,12 @@ export default async function Dashboard() {
         {/* --- SECTION 4: TOOLKIT --- */}
         <div className="mb-4">
             <h3 className="text-[#c9ccbb]/40 text-xs font-bold uppercase tracking-widest mb-4">Toolkit</h3>
+            {/* The Light Meter Link is INSIDE this component */}
             <SensoryTools />
         </div>
       
-        {/* UPDATED GRID: Added Light Logic Card */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mt-8">
+        {/* BOTTOM ROW: Only 3 Items now (No Duplicate Light Logic) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
           <ActionCard 
             title="Log Well-being" 
             desc="Track your mood & focus." 
@@ -230,18 +229,11 @@ export default async function Dashboard() {
             delay={0.6} 
           />
           <ActionCard 
-            title="Light Logic™" 
-            desc="Check circadian alignment." 
-            icon={<Sun size={32} />} 
-            href="/tools/light-meter"  
-            delay={0.7} 
-          />
-          <ActionCard 
             title="Sensory Coaching" 
             desc="Full curriculum access." 
             icon={<Sparkles size={32} />} 
             href="/coaching" 
-            delay={0.8} 
+            delay={0.7} 
           />
         </div>
 
