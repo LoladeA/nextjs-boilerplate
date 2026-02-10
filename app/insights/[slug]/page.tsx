@@ -2,8 +2,9 @@
 
 import { useParams } from 'next/navigation'
 import Sidebar from '../../components/Sidebar' 
-import { ArrowLeft, Clock, Share2 } from 'lucide-react'
+import { ArrowLeft, Clock, Share2, Linkedin, Mail, Twitter, Link as LinkIcon, Check } from 'lucide-react'
 import Link from 'next/link'
+import { useState } from 'react'
 
 // --- 1. THE CONTENT DATABASE ---
 const articles: Record<string, any> = {
@@ -237,12 +238,22 @@ const articles: Record<string, any> = {
 // --- 2. THE PAGE COMPONENT ---
 export default function ArticlePage() {
   const params = useParams()
+  const [showShare, setShowShare] = useState(false)
+  const [isCopied, setIsCopied] = useState(false)
   
   // Grab the slug from the URL
   const slug = typeof params?.slug === 'string' ? params.slug : ''
-  
-  // Find the matching article in our "database" above
   const article = articles[slug]
+  
+  // Get Current URL for sharing
+  const shareUrl = typeof window !== 'undefined' ? window.location.href : ''
+
+  // Copy to Clipboard
+  const handleCopy = () => {
+    navigator.clipboard.writeText(shareUrl)
+    setIsCopied(true)
+    setTimeout(() => setIsCopied(false), 2000)
+  }
 
   // If URL is random/wrong, show a simple "Not Found" state
   if (!article) {
@@ -293,13 +304,64 @@ export default function ArticlePage() {
             </div>
 
             {/* Footer Share */}
-            <div className="mt-16 pt-8 border-t border-[#c9ccbb]/10 flex justify-between items-center">
+            <div className="mt-16 pt-8 border-t border-[#c9ccbb]/10 flex flex-col md:flex-row justify-between items-center gap-4">
                 <p className="text-[#c9ccbb]/40 text-xs italic">
                     Added to your library on {article.date}
                 </p>
-                <button className="flex items-center gap-2 text-[#c9ccbb]/60 hover:text-[#b5a642] transition-colors text-xs font-bold uppercase tracking-widest">
-                    <Share2 size={16} /> Share Insight
-                </button>
+                
+                {/* INTERACTIVE SHARE MENU */}
+                <div className="relative">
+                    {!showShare ? (
+                        <button 
+                            onClick={() => setShowShare(true)}
+                            className="flex items-center gap-2 text-[#c9ccbb]/60 hover:text-[#b5a642] transition-colors text-xs font-bold uppercase tracking-widest px-4 py-2 hover:bg-[#b5a642]/10 rounded-full"
+                        >
+                            <Share2 size={16} /> Share Insight
+                        </button>
+                    ) : (
+                        <div className="flex items-center gap-2 animate-fade-in bg-[#000]/20 rounded-full p-1 border border-[#c9ccbb]/10">
+                            {/* LinkedIn */}
+                            <a 
+                                href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="p-2 text-[#c9ccbb]/60 hover:text-[#0A66C2] hover:bg-[#c9ccbb]/10 rounded-full transition-colors"
+                                title="Share on LinkedIn"
+                            >
+                                <Linkedin size={16} />
+                            </a>
+                            
+                            {/* X / Twitter */}
+                            <a 
+                                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(article.title)}&url=${encodeURIComponent(shareUrl)}`} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="p-2 text-[#c9ccbb]/60 hover:text-[#1DA1F2] hover:bg-[#c9ccbb]/10 rounded-full transition-colors"
+                                title="Share on X"
+                            >
+                                <Twitter size={16} />
+                            </a>
+
+                            {/* Email */}
+                            <a 
+                                href={`mailto:?subject=${encodeURIComponent(article.title)}&body=Read this insight: ${encodeURIComponent(shareUrl)}`}
+                                className="p-2 text-[#c9ccbb]/60 hover:text-[#EA4335] hover:bg-[#c9ccbb]/10 rounded-full transition-colors"
+                                title="Share via Email"
+                            >
+                                <Mail size={16} />
+                            </a>
+
+                            {/* Copy Link */}
+                            <button 
+                                onClick={handleCopy}
+                                className={`p-2 rounded-full transition-colors ${isCopied ? 'text-[#b5a642] bg-[#b5a642]/10' : 'text-[#c9ccbb]/60 hover:text-[#b5a642] hover:bg-[#c9ccbb]/10'}`}
+                                title="Copy Link"
+                            >
+                                {isCopied ? <Check size={16} /> : <LinkIcon size={16} />}
+                            </button>
+                        </div>
+                    )}
+                </div>
             </div>
 
         </div>
