@@ -3,7 +3,8 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { FileText, Heart, Camera, Sparkles, Plus, PlayCircle, CheckCircle, Lock } from 'lucide-react' 
+// ADDED "Sun" to imports below
+import { FileText, Heart, Camera, Sparkles, Plus, PlayCircle, CheckCircle, Lock, Sun } from 'lucide-react' 
 
 import ActionCard from '../components/ActionCard'
 import SensoryTools from '../components/SensoryTools'
@@ -212,7 +213,8 @@ export default async function Dashboard() {
             <SensoryTools />
         </div>
       
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+        {/* UPDATED GRID: Added Light Logic Card */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mt-8">
           <ActionCard 
             title="Log Well-being" 
             desc="Track your mood & focus." 
@@ -228,11 +230,18 @@ export default async function Dashboard() {
             delay={0.6} 
           />
           <ActionCard 
+            title="Light Logic™" 
+            desc="Check circadian alignment." 
+            icon={<Sun size={32} />} 
+            href="/tools/light-meter"  
+            delay={0.7} 
+          />
+          <ActionCard 
             title="Sensory Coaching" 
             desc="Full curriculum access." 
             icon={<Sparkles size={32} />} 
             href="/coaching" 
-            delay={0.7} 
+            delay={0.8} 
           />
         </div>
 
