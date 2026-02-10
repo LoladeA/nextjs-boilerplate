@@ -1,8 +1,9 @@
 'use client'
 
-import Sidebar from '../../../components/Sidebar'
+// FIXED IMPORT PATH BELOW (Removed one level of depth)
+import Sidebar from '../../components/Sidebar'
 import { useState, useEffect } from 'react'
-import { Sun, Moon, Zap, ArrowDown, ArrowUp, CheckCircle, AlertTriangle, Info } from 'lucide-react'
+import { Sun, CheckCircle, ArrowDown, ArrowUp, Info } from 'lucide-react'
 import Link from 'next/link'
 
 export default function LightMeterTool() {
@@ -27,7 +28,6 @@ export default function LightMeterTool() {
     const isDysregulated = mood <= 2 // High Stress
     
     let phase = ''
-    let target = ''
     let status: 'ideal' | 'too_high' | 'too_low' = 'ideal'
     let advice = ''
     let science = ''
@@ -171,7 +171,7 @@ export default function LightMeterTool() {
               disabled={!lux}
               className="w-full py-4 bg-[#c9ccbb]/10 border border-[#c9ccbb]/20 hover:bg-[#b5a642] hover:text-[#1b270e] hover:border-[#b5a642] text-[#c9ccbb] rounded-xl font-bold text-xs uppercase tracking-widest transition-all mb-8"
             >
-              Analyse Light Load
+              Analyze Light Load
             </button>
 
             {/* RESULTS DASHBOARD */}
