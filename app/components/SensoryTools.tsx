@@ -1,75 +1,53 @@
 'use client'
 
-import { useState } from 'react'
 import { Sun, Mic, Wind, Activity } from 'lucide-react'
-import EnvironmentalScanner from './EnvironmentalScanner' // Keeping this for Acoustic
-import LightMeter from './tools/LightMeter' // Using this for Light
+import Link from 'next/link'
 
 export default function SensoryTools() {
-  const [activeTool, setActiveTool] = useState<'acoustic' | 'light' | null>(null)
-
-  // Handler for when the new Light Meter saves data
-  const handleSaveLux = (lux: number) => {
-    console.log("Saving Lux:", lux)
-    // In the future, we will connect this to Supabase here
-    setActiveTool(null)
-  }
-
   return (
-    <>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        
-        {/* LIGHT METER (Uses New Camera Tool) */}
-        <button 
-          onClick={() => setActiveTool('light')}
-          className="glass-panel p-6 rounded-xl text-left hover:bg-[#c9ccbb]/5 transition-all group"
-        >
-          <Sun className="text-[#b5a642] mb-3 group-hover:scale-110 transition-transform" size={24} />
-          <h3 className="text-[#c9ccbb] font-serif text-lg">Light Meter</h3>
-          <p className="text-[#c9ccbb]/40 text-xs mt-1">Check Lux levels</p>
-        </button>
-
-        {/* ACOUSTIC METER (Uses Existing Scanner) */}
-        <button 
-          onClick={() => setActiveTool('acoustic')}
-          className="glass-panel p-6 rounded-xl text-left hover:bg-[#c9ccbb]/5 transition-all group"
-        >
-          <Mic className="text-[#b5a642] mb-3 group-hover:scale-110 transition-transform" size={24} />
-          <h3 className="text-[#c9ccbb] font-serif text-lg">Noise Level</h3>
-          <p className="text-[#c9ccbb]/40 text-xs mt-1">Monitor dBA load</p>
-        </button>
-
-        {/* PLACEHOLDERS */}
-        <div className="glass-panel p-6 rounded-xl text-left opacity-60">
-          <Wind className="text-[#c9ccbb] mb-3" size={24} />
-          <h3 className="text-[#c9ccbb] font-serif text-lg">Air Quality</h3>
-          <p className="text-[#c9ccbb]/40 text-xs mt-1">Connect Sensor</p>
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      
+      {/* 1. LIGHT METER - LINKS TO THE TOOL */}
+      <Link href="/tools/light-meter" className="block group">
+        <div className="p-6 rounded-2xl bg-[#1b270e] border border-[#c9ccbb]/10 hover:border-[#b5a642]/50 transition-all h-full relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-10 transition-opacity">
+            <Sun size={48} />
+          </div>
+          <div className="text-[#b5a642] mb-3">
+            <Sun size={24} />
+          </div>
+          <h4 className="text-[#c9ccbb] font-serif text-lg mb-1 group-hover:text-[#b5a642] transition-colors">Light Meter</h4>
+          <p className="text-[#c9ccbb]/50 text-xs">Check Lux levels</p>
         </div>
-        
-        <div className="glass-panel p-6 rounded-xl text-left opacity-60">
-          <Activity className="text-[#c9ccbb] mb-3" size={24} />
-          <h3 className="text-[#c9ccbb] font-serif text-lg">HRV Sync</h3>
-          <p className="text-[#c9ccbb]/40 text-xs mt-1">Coming Soon</p>
+      </Link>
+
+      {/* 2. NOISE LEVEL (Placeholder) */}
+      <div className="p-6 rounded-2xl bg-[#1b270e] border border-[#c9ccbb]/10 opacity-50 cursor-not-allowed h-full">
+        <div className="text-[#b5a642] mb-3">
+          <Mic size={24} />
         </div>
+        <h4 className="text-[#c9ccbb] font-serif text-lg mb-1">Noise Level</h4>
+        <p className="text-[#c9ccbb]/50 text-xs">Monitor dBA load</p>
       </div>
 
-      {/* CONDITIONAL RENDERING */}
-      
-      {/* 1. If 'light' is active, show the NEW Camera Meter */}
-      {activeTool === 'light' && (
-        <LightMeter 
-          onClose={() => setActiveTool(null)} 
-          onSave={handleSaveLux}
-        />
-      )}
+      {/* 3. AIR QUALITY (Placeholder) */}
+      <div className="p-6 rounded-2xl bg-[#1b270e] border border-[#c9ccbb]/10 opacity-50 cursor-not-allowed h-full">
+        <div className="text-[#b5a642] mb-3">
+          <Wind size={24} />
+        </div>
+        <h4 className="text-[#c9ccbb] font-serif text-lg mb-1">Air Quality</h4>
+        <p className="text-[#c9ccbb]/50 text-xs">Connect Sensor</p>
+      </div>
 
-      {/* 2. If 'acoustic' is active, show your OLD Reliable Scanner */}
-      {activeTool === 'acoustic' && (
-        <EnvironmentalScanner 
-          type="acoustic" 
-          onClose={() => setActiveTool(null)} 
-        />
-      )}
-    </>
+      {/* 4. HRV SYNC (Placeholder) */}
+      <div className="p-6 rounded-2xl bg-[#1b270e] border border-[#c9ccbb]/10 opacity-50 cursor-not-allowed h-full">
+        <div className="text-[#c9ccbb] mb-3">
+          <Activity size={24} />
+        </div>
+        <h4 className="text-[#c9ccbb] font-serif text-lg mb-1">HRV Sync</h4>
+        <p className="text-[#c9ccbb]/50 text-xs">Coming Soon</p>
+      </div>
+
+    </div>
   )
 }
