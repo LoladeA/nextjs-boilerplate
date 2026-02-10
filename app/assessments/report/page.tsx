@@ -4,7 +4,8 @@ import Link from 'next/link'
 import { ArrowLeft, Activity, Brain, ShieldAlert, Zap, Download, CheckCircle, Moon } from 'lucide-react'
 import { calculateNeuroLoad } from '@/app/utils/scoring-engine'
 import Sidebar from '../../components/Sidebar'
-import PriorityList from './PriorityList' // <--- IMPORT THE NEW COMPONENT
+import PriorityList from './PriorityList'
+import HumanScorecard from '../../components/HumanScorecard' // <--- 1. NEW IMPORT ADDED
 
 export const dynamic = 'force-dynamic'
 
@@ -84,7 +85,7 @@ export default async function AssessmentReport() {
   const criticalIssues = domains.filter(d => d.priority === 'High')
 
   return (
-    <div className="min-h-screen bg-[#1b270e] font-sans">
+    <div className="min-h-screen bg-[#1b270e] font-sans selection:bg-[#b5a642] selection:text-[#1b270e]">
       <Sidebar />
       <div className="md:ml-64 min-h-screen p-6 md:p-12">
         
@@ -130,54 +131,25 @@ export default async function AssessmentReport() {
              <div className="absolute right-0 top-0 w-64 h-64 bg-[#b5a642] rounded-full filter blur-[100px] opacity-10 pointer-events-none" />
           </div>
 
-          {/* --- NEW SECTION: PRIORITY FOCUS AREAS (ACCORDION) --- */}
+          {/* PRIORITY FOCUS AREAS (ACCORDION) */}
           {criticalIssues.length > 0 && (
              <div className="mb-16">
-                {/* We pass the critical domains to the new component */}
-                <PriorityList areas={criticalIssues} />
+               <h3 className="text-2xl font-serif text-[#c9ccbb] mb-8">Priority Actions</h3>
+               <PriorityList areas={criticalIssues} />
              </div>
           )}
 
-          {/* INDICES BREAKDOWN */}
+          {/* 2. HUMAN SCORECARD (REPLACED OLD LOOP) */}
           <div className="mb-16">
-            <h3 className="text-2xl font-serif text-[#c9ccbb] mb-8">Indices Breakdown</h3>
-            <div className="grid gap-6">
-              {domains.map((domain) => (
-                <div key={domain.id} className="glass-panel p-8 rounded-2xl flex flex-col md:flex-row gap-6 items-start">
-                  <div className="p-4 bg-[#1b270e] rounded-full border border-[#c9ccbb]/10 shrink-0">
-                    {domain.icon}
-                  </div>
-                  <div className="flex-grow">
-                    <div className="flex justify-between items-start mb-2">
-                      <h4 className="text-xl text-[#c9ccbb] font-serif">{domain.name} ({(domain.id).toUpperCase()})</h4>
-                      <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${
-                        domain.priority === 'High' ? 'bg-red-400/10 text-red-400' : 
-                        domain.priority === 'Medium' ? 'bg-orange-400/10 text-orange-400' : 
-                        'bg-[#b5a642]/10 text-[#b5a642]'
-                      }`}>
-                        {domain.status}
-                      </span>
-                    </div>
-                    <p className="text-[#c9ccbb]/60 text-sm mb-4">{domain.description}</p>
-                    
-                    <div className="w-full h-2 bg-[#c9ccbb]/10 rounded-full overflow-hidden">
-                      <div 
-                        className={`h-full rounded-full ${
-                          domain.priority === 'High' ? 'bg-red-400' : 
-                          domain.priority === 'Medium' ? 'bg-orange-400' : 'bg-[#b5a642]'
-                        }`} 
-                        style={{ width: `${(domain.score / domain.max) * 100}%` }}
-                      />
-                    </div>
-                    <div className="flex justify-between mt-2 text-[10px] text-[#c9ccbb]/30 uppercase tracking-widest">
-                      <span>Regulated</span>
-                      <span>Dysregulated</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+             <h3 className="text-2xl font-serif text-[#c9ccbb] mb-8">Detailed Analysis</h3>
+             <HumanScorecard scores={{
+                circadian: (indices.cii / 25) * 100,
+                autonomic: (indices.ali / 20) * 100,
+                legibility: (indices.pli / 25) * 100,
+                sensory: (indices.stl / 25) * 100
+             }} />
           </div>
+
         </div>
       </div>
     </div>
