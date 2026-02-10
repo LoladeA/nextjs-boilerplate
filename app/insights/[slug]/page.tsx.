@@ -10,93 +10,228 @@ import Link from 'next/link'
 // The "key" (e.g., 'cortisol-space-connection') matches the Link href you set in the previous step.
 const articles: any = {
   
-  "cortisol-space-connection": {
-    title: "The Cortisol-Space Connection",
-    category: "Neuroscience",
-    readTime: "6 min read",
-    date: "Feb 06, 2026",
-    content: `
-      <p class="text-xl text-[#c9ccbb] leading-relaxed mb-8">
-        How open floor plans can inadvertently trigger low-level fight-or-flight responses.
-      </p>
-      <h3 class="text-2xl font-serif text-[#b5a642] mb-4">The Biology of Enclosure</h3>
-      <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
-        When we lack protective boundaries (walls, nooks, defined edges), our amygdala remains slightly activated, constantly scanning the horizon for threats. This is an evolutionary holdover. In vast, open spaces without "refuge," we feel exposed.
-      </p>
-      <p class="text-[#c9ccbb]/80 leading-relaxed">
-        <strong>The Fix:</strong> Create "psychological enclosure" using high-backed furniture, rugs to define zones, and lower lighting pools.
-      </p>
-    `
-  },
+ "cortisol-space-connection": {
+  title: "The Cortisol-Space Connection",
+  category: "Neuroscience",
+  readTime: "6 min read",
+  date: "Feb 06, 2026",
+  content: `
+    <p class="text-xl text-[#c9ccbb] leading-relaxed mb-8">
+      This explores how spatial openness, enclosure and sensory predictability influence cortisol levels and the nervous system's sense of safety.
+    </p>
 
-  "circadian-anchors": {
-    title: "Circadian Anchors in the Home",
-    category: "Light",
-    readTime: "4 min read",
-    date: "Jan 20, 2026",
-    content: `
-      <p class="text-xl text-[#c9ccbb] leading-relaxed mb-8">
-        Designing lighting protocols that reset your biological clock rather than disrupting it.
-      </p>
-      <h3 class="text-2xl font-serif text-[#b5a642] mb-4">The Sunset Protocol</h3>
-      <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
-        Light is the primary time-giver for the human body. Yet, most homes have "flat" lighting profiles. To reset your biological clock, your home must mimic the sun. 
-      </p>
-      <p class="text-[#c9ccbb]/80 leading-relaxed">
-        <strong>Action:</strong> Establish "Anchors"—specific warm lights that only turn on at sunset to signal rest to the brain.
-      </p>
-    `
-  },
+    <h3 class="text-2xl font-serif text-[#b5a642] mb-4">The Biology of Enclosure</h3>
+    <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+      Cortisol is the body’s primary stress hormone, which is released when the brain detects uncertainty or potential threat. In environments that lack protective boundaries, such as large open-plan spaces with few visual edges, the amygdala remains mildly activated, continuously scanning the environment. This low-grade vigilance is an evolutionary survival response, but when sustained, it can elevate baseline cortisol levels.
+    </p>
 
-  "silent-stressor-reverberation": {
-    title: "The Silent Stressor: Reverberation",
-    category: "Acoustics",
-    readTime: "5 min read",
-    date: "Jan 15, 2026",
-    content: `
-      <p class="text-xl text-[#c9ccbb] leading-relaxed mb-8">
-        Why modern hard surfaces increase cognitive load and reduce social connection.
-      </p>
-      <h3 class="text-2xl font-serif text-[#b5a642] mb-4">Cognitive Fatigue</h3>
-      <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
-        Modern aesthetics favor hard surfaces: concrete, glass, stone. These reflect sound waves, creating a "cacophony of reflections." Your brain works harder to filter out echoes to process speech, draining your energy battery.
-      </p>
-    `
-  },
+    <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+      Research in environmental psychology shows that humans instinctively seek both prospect (the ability to see outwards) and refuge (a sense of protection). When refuge is absent, the nervous system interprets the space as exposed, even if no conscious stress is reported.
+    </p>
 
-  "refuge-and-prospect": {
-    title: "Refuge and Prospect",
-    category: "Psychology",
-    readTime: "7 min read",
-    date: "Jan 10, 2026",
-    content: `
-      <p class="text-xl text-[#c9ccbb] leading-relaxed mb-8">
-        The evolutionary reason you feel safer with your back to a wall.
-      </p>
-      <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
-        <strong>Prospect</strong> is the ability to see what is coming. <br/>
-        <strong>Refuge</strong> is the protection from being seen from behind.
-      </p>
-      <p class="text-[#c9ccbb]/80 leading-relaxed">
-        A room that offers both (like a window seat with a solid back) is inherently regulating to the human nervous system.
-      </p>
-    `
-  },
+    <h3 class="text-2xl font-serif text-[#b5a642] mb-4">Safety Signals Across Design Traditions</h3>
+    <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+        Even before the advent of modern neuroscience, design systems such as Ayurveda and Feng Shui recognised the importance of enclosure, grounding and spatial predictability for human well-being. When viewed through a neurobiological lens, these principles align with environments that reduce sensory uncertainty and support cortisol regulation.
+    </p>
 
-  "somatic-grounding": {
-    title: "Somatic Grounding",
-    category: "Texture",
-    readTime: "3 min read",
-    date: "Jan 05, 2026",
-    content: `
-      <p class="text-xl text-[#c9ccbb] leading-relaxed mb-8">
-        Using tactile surfaces to manually down-regulate the nervous system.
-      </p>
-      <p class="text-[#c9ccbb]/80 leading-relaxed">
-        Texture is a direct input to the vagus nerve. Smooth, cold surfaces signal alertness. Rough, organic, or soft surfaces signal safety and encourage the body to settle.
-      </p>
-    `
-  }
+    <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+      <strong>What the nervous system detects:</strong> Clear edges, protected positioning and stable visual fields.<br />
+      <strong>Associated response:</strong> Reduced amygdala scanning and lower tonic cortisol release.<br />
+      <strong>Why it matters:</strong> As vigilance decreases, cognitive and emotional resources become available for focus, creativity and recovery.
+    </p>
+
+    <h3 class="text-2xl font-serif text-[#b5a642] mb-4">Psychological Enclosure and Stress Regulation</h3>
+    <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+       Psychological enclosure does not require fully closed rooms. Partial boundaries, such as changes in height, texture or lighting, can signal containment to the nervous system. These cues reduce the need for constant environmental monitoring, supporting a shift out of low-level fight-or-flight responses.
+    </p>
+
+    <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+      <strong>The Design Strategy:</strong>   Create signals of refuge and predictability by establishing defined zones, using layered lighting and arranging the space so that you can see outside from protected positions.
+    </p>
+
+    <p class="text-[#c9ccbb]/80 leading-relaxed">
+       Even subtle changes in enclosure and spatial definition can influence cortisol dynamics, making environments feel calmer, safer and more supportive for the brain.
+    </p>
+  `
+},
+
+"circadian-anchors": {
+  title: "Circadian Anchors in the Home",
+  category: "Light",
+  readTime: "4 min read",
+  date: "Jan 20, 2026",
+  content: `
+    <p class="text-xl text-[#c9ccbb] leading-relaxed mb-8">
+      This article explores how lighting cues in the home can either reinforce or disrupt the body’s internal clock.
+    </p>
+
+    <h3 class="text-2xl font-serif text-[#b5a642] mb-4">Light as a Biological Signal</h3>
+    <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+        Light is the most powerful regulator of the human circadian rhythm. Specialised photoreceptors in the eye send direct signals to the brain’s master clock, informing the body when to release cortisol to promote alertness and when to produce melatonin to encourage rest. When lighting patterns are inconsistent or biologically mismatched, circadian timing becomes unstable.
+    </p>
+
+    <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+       Modern interiors often rely on static, uniform lighting that does not take the time of day into account. This 'flat' lighting can confuse the nervous system, reducing natural cortisol peaks in the morning and delaying melatonin release at night.
+    </p>
+
+    <h3 class="text-2xl font-serif text-[#b5a642] mb-4">Circadian Anchors and Predictability</h3>
+    <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+      The brain relies on repeated environmental cues—known as <em>zeitgebers</em>—to keep circadian rhythms aligned. In the home, consistent lighting transitions act as these anchors, reinforcing temporal predictability and helping the nervous system to anticipate rest or activity.
+    </p>
+
+    <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+      <strong>What the nervous system detects:</strong> As evening approaches, we see warmth, dimming, and reduced visual contrast.<br />
+      <strong>Associated response:</strong> Decreased cortisol signalling and gradual melatonin onset.<br />
+      <strong>Why it matters:</strong> Clear temporal cues can reduce physiological confusion and support sleep quality, mood regulation and metabolic health.
+    </p>
+
+    <h3 class="text-2xl font-serif text-[#b5a642] mb-4">The Sunset Protocol</h3>
+    <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+      Evening light that mimics sunset conditions helps the brain to transition out of alert mode. Warm, localised lighting creates a sensory environment associated with safety and rest, signalling that vigilance is no longer required.
+    </p>
+
+    <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+      <strong>Action:</strong> Establish circadian 'anchors' — specific, consistent light cues that appear only at sunset to reinforce the brain's expectation of evening and recovery.
+    </p>
+
+    <p class="text-[#c9ccbb]/80 leading-relaxed">
+      Over time, these anchors can stabilise circadian rhythms, enabling cortisol and melatonin to follow their natural cycles instead of competing for dominance.
+    </p>
+  `
+},
+
+"silent-stressor-reverberation": {
+  title: "The Silent Stressor: Reverberation",
+  category: "Acoustics",
+  readTime: "5 min read",
+  date: "Jan 15, 2026",
+  content: `
+    <p class="text-xl text-[#c9ccbb] leading-relaxed mb-8">
+      How reflective interiors can quietly increase cognitive effort, stress signalling and social fatigue.
+    </p>
+
+    <h3 class="text-2xl font-serif text-[#b5a642] mb-4">Sound as Cognitive Load</h3>
+    <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+      The human auditory system has evolved to detect meaningful signals within complex soundscapes. In spaces dominated by hard, reflective surfaces such as concrete, glass and stone, sound waves bounce and overlap, creating persistent reverberation. While often unnoticed consciously, this acoustic complexity increases the brain’s processing demands.
+    </p>
+
+    <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+      When echoes distort speech and environmental cues, the brain has to work harder to distinguish the signal from the noise. This continuous filtering increases cognitive load, contributing to mental fatigue and reduced attentional capacity over time.
+    </p>
+
+    <h3 class="text-2xl font-serif text-[#b5a642] mb-4">Reverberation and Stress Physiology</h3>
+    <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+      The nervous system interprets persistent acoustic unpredictability as a form of environmental uncertainty. Research in neuroscience and psychoacoustics links such conditions to elevated stress responses, including increased sympathetic activation and higher baseline cortisol signalling.
+    </p>
+
+    <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+      <strong>What the nervous system detects:</strong> Overlapping sound reflections and reduced speech clarity.<br />
+      <strong>Associated response:</strong> Increased listening effort and sustained alertness.<br />
+      <strong>Why it matters:</strong> When auditory processing remains effortful, mental energy is diverted away from learning, creativity, and emotional regulation.
+    </p>
+
+    <h3 class="text-2xl font-serif text-[#b5a642] mb-4">Social Connection and Acoustic Safety</h3>
+    <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+      Clear sound is essential for social bonding. Reverberant environments reduce vocal nuance and speech intelligibility, subtly impairing the cues the brain uses to assess trust, emotion, and intention. Over time, this can make social interaction feel more taxing, leading to withdrawal or irritability.
+    </p>
+
+    <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+      <strong>The Design Strategy:</strong> Support acoustic safety by introducing elements that soften, absorb and stabilise sound, thereby reducing reverberation and easing the demands placed on auditory processing.
+    </p>
+
+    <p class="text-[#c9ccbb]/80 leading-relaxed">
+      Acoustically supportive environments lower cognitive strain, improve communication and help the nervous system to shift out of constant listening vigilance.
+    </p>
+  `
+}
+ "refuge-and-prospect": {
+  title: "Refuge and Prospect",
+  category: "Psychology",
+  readTime: "7 min read",
+  date: "Jan 10, 2026",
+  content: `
+    <p class="text-xl text-[#c9ccbb] leading-relaxed mb-8">
+      Why environments that combine visibility and protection feel instinctively safer to the human nervous system.
+    </p>
+
+    <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+      <strong>Prospect</strong> is the ability to see what is approaching.<br />
+      <strong>Refuge</strong> is protection from being approached or observed from behind.
+    </p>
+
+    <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+      Together, these conditions form a spatial pattern that the human brain has relied on for survival for hundreds of thousands of years.
+    </p>
+
+    <h3 class="text-2xl font-serif text-[#b5a642] mb-4">An Evolutionary Safety Pattern</h3>
+    <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+      Long before modern buildings existed, survival depended on finding positions that allowed early threat detection without exposure. Locations offering outward visibility alongside physical protection reduced the need for constant vigilance. This pattern became neurologically encoded as a signal of safety.
+    </p>
+
+    <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+       In contemporary environments, the same pattern persists. When refuge is absent, such as when seated with exposed backs or with circulation behind the body, the nervous system increases environmental scanning, even if the individual feels 'fine' consciously.
+    </p>
+
+    <h3 class="text-2xl font-serif text-[#b5a642] mb-4">The Neurobiology of Feeling Safe</h3>
+    <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+      The brain continuously evaluates spatial conditions for potential threats. When visual access is clear and the body is protected from behind, the amygdala reduces monitoring activity. This lowers baseline stress signalling and supports nervous system regulation.
+    </p>
+
+    <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+      <strong>What the nervous system detects:</strong> Clear sightlines paired with physical backing.<br />
+      <strong>Associated response:</strong> Reduced vigilance and decreased tonic cortisol release.<br />
+      <strong>Why it matters:</strong> When threat detection demands drop, attention, learning, and emotional regulation improve.
+    </p>
+
+    <h3 class="text-2xl font-serif text-[#b5a642] mb-4">Refuge, Prospect, and Cognitive Ease</h3>
+    <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+      Spaces that provide both refuge and prospect are consistently described as calming, grounding, and restorative. This reflects a reduction in cognitive and physiological workload.
+    </p>
+
+    <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+      When environments fail to provide refuge, the brain compensates by maintaining a low level of alertness. Over time, this background vigilance can lead to fatigue, irritability and a reduced ability to focus.
+    </p>
+
+    <p class="text-[#c9ccbb]/80 leading-relaxed">
+      Environments that balance refuge and prospect support a state of relaxed awareness, allowing the nervous system to conserve energy while remaining oriented and engaged.
+    </p>
+  `
+}
+ "somatic-grounding": {
+  title: "Somatic Grounding",
+  category: "Texture",
+  readTime: "3 min read",
+  date: "Jan 05, 2026",
+  content: `
+    <p class="text-xl text-[#c9ccbb] leading-relaxed mb-8">
+      How tactile contact with the built environment can help calm the nervous system.
+    </p>
+
+    <h3 class="text-2xl font-serif text-[#b5a642] mb-4">Touch as a Neural Signal</h3>
+    <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+      Touch is one of the fastest pathways into the nervous system. Sensory receptors in the skin send continuous feedback to the brain, informing it about safety, stability, and bodily orientation. Unlike visual or auditory input, tactile signals are processed with minimal cognitive filtering.
+    </p>
+
+    <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+      Texture plays a critical role in this process. Smooth, cold and uniform textures tend to signal precision and alertness. In contrast, irregular, warm or yielding surfaces provide richer sensory information, which the nervous system often interprets as grounding and supportive.
+    </p>
+
+    <h3 class="text-2xl font-serif text-[#b5a642] mb-4">Somatic Grounding and Vagal Regulation</h3>
+    <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+      Tactile input activates pressure-sensitive mechanoreceptors associated with interoception, which is the brain’s awareness of the body’s internal state. This sensory feedback is closely linked to vagal pathways involved in calming and regulation.
+    </p>
+
+    <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+      <strong>What the nervous system detects:</strong> Texture, temperature, and resistance during contact.<br />
+      <strong>Associated response:</strong> Increased bodily awareness and reduced sympathetic arousal.<br />
+      <strong>Why it matters:</strong> When the body feels supported and oriented, stress signalling can soften without conscious effort.
+    </p>
+
+    <p class="text-[#c9ccbb]/80 leading-relaxed">
+      Environments that offer varied, tactile points of contact give the nervous system opportunities to settle, helping to restore a sense of physical presence and ease.
+    </p>
+  `
+}
 }
 
 // --- 2. THE PAGE COMPONENT ---
