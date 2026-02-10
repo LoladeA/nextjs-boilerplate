@@ -2,7 +2,7 @@
 
 import Sidebar from '../components/Sidebar'
 import { useState, useEffect } from 'react'
-import { Heart, Wind, Sun, Volume2, CheckCircle, TrendingUp, Activity, AlertCircle, Zap, ShieldAlert } from 'lucide-react'
+import { Heart, Wind, Sun, Volume2, CheckCircle, TrendingUp, Activity, AlertCircle, Zap, ShieldAlert, Loader2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
@@ -15,8 +15,8 @@ export default function Progress() {
   const [loggedTags, setLoggedTags] = useState<string[]>([])
   const [note, setNote] = useState('')
   
-  // NEW: SENSORY METRICS STATE
-  const [luxScore, setLuxScore] = useState<string>('') // Using string for input handling
+  // SENSORY METRICS STATE
+  const [luxScore, setLuxScore] = useState<string>('') 
   const [dbScore, setDbScore] = useState<string>('')
 
   const [status, setStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle')
@@ -25,13 +25,13 @@ export default function Progress() {
   // CHART STATE
   const [chartData, setChartData] = useState<any[]>([])
 
-  // 1. SOMATIC STATES
+  // 1. SOMATIC STATES (Enhanced with DB Mapping)
   const moods = [
-    { val: 1, label: 'Dysregulated', desc: 'Overwhelmed', color: 'bg-red-500/20 border-red-500/50 text-red-400' },
-    { val: 2, label: 'High Alert', desc: 'Vigilant', color: 'bg-orange-500/20 border-orange-500/50 text-orange-400' },
-    { val: 3, label: 'Neutral', desc: 'Functional', color: 'bg-[#c9ccbb]/10 border-[#c9ccbb]/30 text-[#c9ccbb]' },
-    { val: 4, label: 'Regulated', desc: 'Calm', color: 'bg-[#b5a642]/20 border-[#b5a642]/50 text-[#b5a642]' },
-    { val: 5, label: 'Resonant', desc: 'Restorative', color: 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400' }
+    { val: 1, label: 'Dysregulated', desc: 'Overwhelmed', stress: 'HIGH', readiness: 20, color: 'bg-red-500/20 border-red-500/50 text-red-400' },
+    { val: 2, label: 'High Alert', desc: 'Vigilant', stress: 'HIGH', readiness: 40, color: 'bg-orange-500/20 border-orange-500/50 text-orange-400' },
+    { val: 3, label: 'Neutral', desc: 'Functional', stress: 'MEDIUM', readiness: 60, color: 'bg-[#c9ccbb]/10 border-[#c9ccbb]/30 text-[#c9ccbb]' },
+    { val: 4, label: 'Regulated', desc: 'Calm', stress: 'LOW', readiness: 80, color: 'bg-[#b5a642]/20 border-[#b5a642]/50 text-[#b5a642]' },
+    { val: 5, label: 'Resonant', desc: 'Restorative', stress: 'LOW', readiness: 100, color: 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400' }
   ]
 
   // 2. ENVIRONMENTAL TAGS
@@ -65,7 +65,6 @@ export default function Progress() {
       setSelectedMood(data.mood_score)
       setLoggedTags(data.tags || [])
       setNote(data.note || '')
-      // Load saved sensory data
       if (data.lux_score) setLuxScore(data.lux_score.toString())
       if (data.db_score) setDbScore(data.db_score.toString())
     }
@@ -108,22 +107,34 @@ export default function Progress() {
 
         const today = new Date().toISOString().split('T')[0]
 
+        // Find the full mood object to get the hidden metrics
+        const moodData = moods.find(m => m.val === selectedMood)
+
         const { error } = await supabase
         .from('daily_logs')
         .upsert({
             user_id: user.id,
             date: today,
+            
+            // 1. The Core Mood
             mood_score: selectedMood,
+            
+            // 2. The Hidden Intelligence Data (New Columns)
+            stress_level: moodData?.stress,
+            readiness_score: moodData?.readiness,
+            
+            // 3. User Input
             tags: loggedTags,
             note: note,
-            lux_score: luxScore ? parseInt(luxScore) : null, // Save Lux
-            db_score: dbScore ? parseInt(dbScore) : null     // Save dB
+            lux_score: luxScore ? parseInt(luxScore) : null,
+            db_score: dbScore ? parseInt(dbScore) : null
+            
         }, { onConflict: 'user_id, date' })
 
         if (error) throw error
 
         setStatus('success')
-        fetchHistory()
+        fetchHistory() // Refresh the chart immediately
         setTimeout(() => setStatus('idle'), 2000)
 
     } catch (err: any) {
@@ -143,7 +154,7 @@ export default function Progress() {
           <div className="mb-12">
             <h1 className="text-4xl font-serif text-[#c9ccbb] mb-2">Progress & Tracking</h1>
             <p className="text-[#c9ccbb]/60">
-              Log your daily state to train the system and reveal long-term patterns.
+              Log your daily state to train the nervous system and reveal long-term patterns.
             </p>
           </div>
 
@@ -263,13 +274,15 @@ export default function Progress() {
                <button 
                  onClick={handleSave}
                  disabled={selectedMood === null || status === 'saving'}
-                 className={`px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-all ${
+                 className={`px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-all flex items-center gap-2 ${
                    selectedMood !== null 
                      ? 'bg-[#c9ccbb] text-[#1b270e] hover:bg-white' 
                      : 'bg-[#c9ccbb]/10 text-[#c9ccbb]/20 cursor-not-allowed'
                  }`}
                >
-                 {status === 'saving' ? 'Saving...' : 'Log Entry'}
+                 {status === 'saving' ? (
+                    <>Saving <Loader2 size={14} className="animate-spin" /></>
+                 ) : 'Log Entry'}
                </button>
             </div>
           </div>
