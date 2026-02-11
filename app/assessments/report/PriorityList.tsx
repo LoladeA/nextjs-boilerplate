@@ -112,7 +112,7 @@ export default function PriorityList({ areas }: { areas: any[] }) {
                     )}
                   </div>
                   {!isOpen && (
-                    <p className="text-[#c9ccbb]/50 text-sm line-clamp-1">
+                    <p className="text-[#c9ccbb]/70 text-sm line-clamp-1">
                       {content.concept}
                     </p>
                   )}
@@ -120,7 +120,7 @@ export default function PriorityList({ areas }: { areas: any[] }) {
               </div>
 
               <ChevronDown 
-                className={`text-[#c9ccbb]/40 transition-transform duration-300 ${isOpen ? 'rotate-180 text-orange-400' : ''}`} 
+                className={`text-[#c9ccbb]/70 transition-transform duration-300 ${isOpen ? 'rotate-180 text-orange-400' : ''}`} 
               />
             </div>
 
@@ -166,7 +166,7 @@ export default function PriorityList({ areas }: { areas: any[] }) {
                         
                         <div>
                           <p className="text-orange-400 text-xs font-bold uppercase tracking-widest mb-2">The Feeling</p>
-                          <p className="text-[#c9ccbb]/60 text-sm leading-relaxed">{content.feeling}</p>
+                          <p className="text-[#c9ccbb]/70 text-sm leading-relaxed">{content.feeling}</p>
                         </div>
                       </div>
                     </div>
