@@ -57,7 +57,7 @@ function LightSensorModal({ onClose, onSave }: { onClose: () => void, onSave: (l
         <button onClick={onClose} className="absolute top-4 right-4 p-2 bg-[#000]/20 rounded-full text-[#c9ccbb] hover:text-[#b5a642]"><X size={20} /></button>
         
         <h2 className="text-2xl font-serif text-[#c9ccbb] mb-2 flex items-center gap-2"><Zap size={24} className="text-[#b5a642]" /> Light Estimator</h2>
-        <p className="text-[#c9ccbb]/50 text-xs mb-8">Scan your room.</p>
+        <p className="text-[#c9ccbb]/70 text-xs mb-8">Scan your room.</p>
 
         <div className="relative w-48 h-48 bg-[#000] rounded-full mx-auto mb-8 border-4 border-[#c9ccbb]/10 overflow-hidden flex items-center justify-center">
             <video ref={videoRef} autoPlay playsInline muted className="absolute inset-0 w-full h-full object-cover opacity-30" />
@@ -149,7 +149,7 @@ export default function LightMeterTool() {
               <Sun size={14} /> Circadian Alignment Tool
             </div>
             <h1 className="text-4xl font-serif text-[#c9ccbb] mb-2">Light Logic™ Meter</h1>
-            <p className="text-[#c9ccbb]/60">Measure, don't guess. Align your home environment with your biology.</p>
+            <p className="text-[#c9ccbb]/70">Measure, don't guess. Align your home environment with your biology.</p>
           </div>
 
           <div className="glass-panel p-8 rounded-3xl border border-[#c9ccbb]/10 bg-[#000]/20">
@@ -166,29 +166,29 @@ export default function LightMeterTool() {
                 <div className="relative group cursor-pointer" onClick={() => !lux && setShowScanner(true)}>
                   <input type="number" value={lux} onChange={(e) => setLux(e.target.value)} placeholder="e.g. 350"
                     className="w-full bg-[#1b270e] border border-[#c9ccbb]/20 rounded-xl p-4 text-[#c9ccbb] text-lg font-serif focus:outline-none focus:border-[#b5a642]" />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#c9ccbb]/30 text-xs font-bold">LUX</span>
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#c9ccbb]/50 text-xs font-bold">LUX</span>
                 </div>
-                {!lux && <p className="text-[10px] text-[#c9ccbb]/30 mt-2">*Tap 'Scan' to use camera.</p>}
+                {!lux && <p className="text-[10px] text-[#c9ccbb]/70 mt-2">*Tap 'Scan' to use camera.</p>}
               </div>
 
               {/* MOOD INPUT */}
               <div>
-                <label className="text-[#c9ccbb]/60 text-xs font-bold uppercase tracking-widest mb-3 block">Current State</label>
+                <label className="text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest mb-3 block">Current State</label>
                 <div className="flex justify-between gap-2 bg-[#1b270e] p-1 rounded-xl border border-[#c9ccbb]/20">
                   {[1, 2, 3, 4, 5].map((level) => (
                     <button key={level} onClick={() => setMood(level)}
-                      className={`w-full py-3 rounded-lg text-sm font-bold transition-all ${mood === level ? 'bg-[#b5a642] text-[#1b270e]' : 'text-[#c9ccbb]/40 hover:text-[#c9ccbb]'}`}>
+                      className={`w-full py-3 rounded-lg text-sm font-bold transition-all ${mood === level ? 'bg-[#b5a642] text-[#1b270e]' : 'text-[#c9ccbb]/70 hover:text-[#c9ccbb]'}`}>
                       {level}
                     </button>
                   ))}
                 </div>
-                <div className="flex justify-between mt-2 text-[10px] text-[#c9ccbb]/40 uppercase tracking-widest"><span>Dysregulated</span><span>Resonant</span></div>
+                <div className="flex justify-between mt-2 text-[10px] text-[#c9ccbb]/70 uppercase tracking-widest"><span>Dysregulated</span><span>Resonant</span></div>
               </div>
             </div>
 
             <button onClick={analyzeLight} disabled={!lux}
               className="w-full py-4 bg-[#c9ccbb]/10 border border-[#c9ccbb]/20 hover:bg-[#b5a642] hover:text-[#1b270e] hover:border-[#b5a642] text-[#c9ccbb] rounded-xl font-bold text-xs uppercase tracking-widest transition-all mb-8">
-              Analyze Light Load
+              Analyse Light Load
             </button>
 
             {recommendation && (
@@ -201,7 +201,7 @@ export default function LightMeterTool() {
                     <div>
                       <h3 className="text-xl font-serif text-[#c9ccbb] mb-1">{recommendation.status === 'ideal' ? 'Environment Aligned' : recommendation.status === 'too_high' ? 'Reduce Intensity' : 'Increase Intensity'}</h3>
                       <p className="text-[#c9ccbb]/80 text-sm leading-relaxed mb-4">{recommendation.advice}</p>
-                      {recommendation.science && <div className="flex gap-2 text-[10px] text-[#c9ccbb]/50 uppercase tracking-widest border-t border-[#c9ccbb]/10 pt-3"><Info size={12} /><span>Science: {recommendation.science}</span></div>}
+                      {recommendation.science && <div className="flex gap-2 text-[10px] text-[#c9ccbb]/70 uppercase tracking-widest border-t border-[#c9ccbb]/10 pt-3"><Info size={12} /><span>Science: {recommendation.science}</span></div>}
                     </div>
                   </div>
                 </div>
@@ -209,7 +209,7 @@ export default function LightMeterTool() {
             )}
             
             <div className="text-center">
-                <Link href="/dashboard" className="text-[#c9ccbb]/40 text-xs hover:text-[#b5a642] transition-colors">← Back to Toolkit</Link>
+                <Link href="/dashboard" className="text-[#c9ccbb]/70 text-xs hover:text-[#b5a642] transition-colors">← Back to Toolkit</Link>
             </div>
           </div>
         </div>
