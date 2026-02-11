@@ -60,14 +60,14 @@ export default function Coaching() {
         
         <div className="max-w-7xl mx-auto">
           
-          <Link href="/dashboard" className="text-[#c9ccbb]/40 text-xs font-bold uppercase tracking-widest hover:text-[#b5a642] mb-8 inline-block">
+          <Link href="/dashboard" className="text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest hover:text-[#b5a642] mb-8 inline-block">
             ← Back to Dashboard
           </Link>
 
           {/* --- UPDATED HEADER SECTION --- */}
           <div className="mb-12">
             <h1 className="text-4xl font-serif text-[#c9ccbb] mb-6">Your Sensory Coaching Journey</h1>
-            <div className="text-[#c9ccbb]/60 max-w-3xl leading-relaxed space-y-4">
+            <div className="text-[#c9ccbb]/70 max-w-3xl leading-relaxed space-y-4">
               <p>
                 Your home is constantly communicating with your nervous system, whether you’re aware of it or not.
               </p>
@@ -90,7 +90,7 @@ export default function Coaching() {
                   className={`group relative flex flex-col justify-between p-8 rounded-3xl border transition-all duration-500 overflow-hidden min-h-[400px]
                     ${item.isPremium 
                       ? 'bg-gradient-to-br from-[#b5a642]/20 to-[#b5a642]/5 border-[#b5a642]/30' // GOLD CARD
-                      : 'bg-[#1b270e] border-[#c9ccbb]/10 hover:border-[#b5a642]/50' // STANDARD CARD
+                      : 'bg-[#1b270e] border-[#c9ccbb]/50 hover:border-[#b5a642]/50' // STANDARD CARD
                     }
                   `}
                 >
@@ -108,7 +108,7 @@ export default function Coaching() {
                       <h3 className={`text-2xl font-serif mb-2 ${item.isPremium ? 'text-[#c9ccbb]' : 'text-[#c9ccbb]'}`}>
                           {item.title}
                       </h3>
-                      <p className="text-[#c9ccbb]/60 text-sm mb-8">{item.subtitle}</p>
+                      <p className="text-[#c9ccbb]/70 text-sm mb-8">{item.subtitle}</p>
                       
                       {/* LIST ITEMS */}
                       <div className="space-y-3 mb-8">
