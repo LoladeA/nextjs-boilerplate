@@ -4,21 +4,21 @@ export type NeuroInsight = {
   title: string
   // TIER 1: The Hook (Visible)
   free: {
-    sciencefact: string      // Updated Key
-    whyitmatters: string     // Updated Key
+    sciencefact: string
+    whyitmatters: string
   }
   // TIER 2: The Solution (Paid/Locked)
   paid: {
     protocol: string
-    primaryadjustment: string // Updated Key
+    primaryadjustment: string
     refinement: string[]
-    whyitWorks: string        // Updated Key
+    whyitWorks: string
     integrationcue: string
   }
 }
 
 export const neuroInsights: NeuroInsight[] = [
-  // --- CARD 1: EXACT MATCH TO YOUR REQUEST ---
+  // --- CARD 1: COGNITIVE LOAD ---
   {
     id: 1,
     category: "Cognitive Load",
@@ -68,8 +68,7 @@ export const neuroInsights: NeuroInsight[] = [
     title: "Circadian Misalignment",
     free: {
       sciencefact: "Light is the primary regulator of your internal clock. Bright light at night or insufficient morning light disrupts melatonin production and hormonal balance, which impacts energy rhythms and sleep timing.",
-      whyitmatters: "Misaligned light cues keep the body alert when it should be winding down, and vice versa.
-."
+      whyitmatters: "Misaligned light cues keep the body alert when it should be winding down, and vice versa."
     },
     paid: {
       protocol: "Luminous Entrainment Protocol",
@@ -102,7 +101,7 @@ export const neuroInsights: NeuroInsight[] = [
         "Use floor lamps instead of overhead downlights.",
         "Create a 'protected back' zone in your main room.",
         "If full lighting replacement isn’t possible, lower intensity by 30–40% in the evening."
-        ],
+      ],
       whyitWorks: "The nervous system relaxes when light transitions are gradual and predictable.",
       integrationcue: "Doorways and transition areas feel less activating and more neutral."
     }
@@ -127,7 +126,7 @@ export const neuroInsights: NeuroInsight[] = [
         "If structural changes aren’t possible, use rugs or lighting to visually define movement flow."
       ],
       whyitWorks: "Predictable environments consume less metabolic energy, allowing for deeper relaxation.",
-      cue: "Movement through the your environment will feel automatic rather than effortful."
+      integrationcue: "Movement through your environment will feel automatic rather than effortful."
     }
   },
 
@@ -144,7 +143,7 @@ export const neuroInsights: NeuroInsight[] = [
       protocol: "Micro-Thermoregulation Protocol",
       primaryadjustment: "Provide one accessible form of thermal control within arm's reach, such as a fan, a breathable throw or layered bedding.",
       refinement: [
-        "Ensure at least two temperature-adjustable layers in sleep and work zones (e.g., light blanket + weighted layer)",
+        "Ensure at least two temperature-adjustable layers in sleep and work zones (e.g., light blanket + weighted layer).",
         "Use breathable, natural fibers for contact points.",
         "Ensure airflow can be directed manually.",
         "If HVAC control is limited, create micro-climates using localised air movement (desk fan, heated footrest)."
@@ -167,36 +166,4 @@ export const neuroInsights: NeuroInsight[] = [
       protocol: "Cognitive Offloading Protocol",
       primaryadjustment: "Implement a Matte-Only policy in zones with bright or direct light sources; and shield light sources.",
       refinement: [
-        "Cover glossy surfaces with matte desk mats.Position task lighting to the side—not directly overhead.",
-        "Position screens perpendicular to windows.",
-        "If glare cannot be eliminated, reduce bulb brightness by 30% and introduce a diffusing lamp shade.",
-        "Use bias lighting behind monitors."
-      ],
-      whyitWorks: "Reducing glare eliminates the micro-adjustments your eyes and brain must make constantly.",
-      integrationcue: "You experience longer focus sessions without the familiar mental drain."
-    }
-  },
-
-  // --- CARD 8: PSYCHOLOGICAL SAFETY ---
-  {
-    id: 8,
-    category: "Psychological Safety",
-    title: "Identity & Safety",
-    free: {
-      sciencefact: "A home that feels misaligned with your identity acts as a constant 'second skin' irritant, undermining emotional safety.",
-      whyitmatters: "Environmental resonance signals to the nervous system that 'this is my territory,' enabling deep rest."
-    },
-    paid: {
-      protocol: "Atmosphere Architecture Protocol",
-      primaryadjustment: "Align visual anchors with personal identity markers.",
-      refinement: [
-        "Identify one visible object that reflects a past version of you and remove or replace it.",
-        "Remove decor that feels 'performative' or obligatory.",
-        "Introduce one authentic identity anchor (art, material, colour, scent) that reflects who you are now.",
-        "f removal feels difficult, relocate outdated objects to a transitional storage zone."
-      ],
-      whyitWorks: "Identity alignment signals safety to the social engagement system (Vagus Nerve).",
-      integrationcue: "You will feel more at home and regulated in your own home."
-    }
-  }
-]
+        "Cover glossy surfaces with matte desk mats. Position task lighting to the side—not directly overhead.",
