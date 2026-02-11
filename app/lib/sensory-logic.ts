@@ -5,7 +5,7 @@ type StressLevel = 'low' | 'medium' | 'high'
 
 /**
  * THE SENSORY LOAD BALANCING ALGORITHM
- * * Input: Time (Biological Clock) + Stress (Current State)
+ * Input: Time (Biological Clock) + Stress (Current State)
  * Output: The correct Protocol (Prescription)
  */
 export function determineProtocol(time: TimeOfDay, stress: StressLevel): Protocol {
@@ -30,8 +30,8 @@ export function determineProtocol(time: TimeOfDay, stress: StressLevel): Protoco
     return PROTOCOLS['morning-activation']
   }
 
-  // --- AFTERNOON LOGIC (Default Fallback for now) ---
-  // For MVP, afternoon treats high stress like evening prep, and low stress like morning activation
+  // --- AFTERNOON LOGIC ---
+  // High stress in the afternoon requires a reset.
   if (stress === 'high') {
     return PROTOCOLS['evening-shelter'] // Early restorative break
   }
@@ -40,7 +40,20 @@ export function determineProtocol(time: TimeOfDay, stress: StressLevel): Protoco
 }
 
 /**
- * Helper to get current time of day automatically
+ * HELPER: Automates the "Stress" input based on the User's Assessment Score.
+ * * Thresholds:
+ * 0-35  = Low Load (Resilient)
+ * 36-65 = Medium Load (Strained)
+ * 66+   = High Load (Dysregulated)
+ */
+export function mapScoreToStress(score: number): StressLevel {
+  if (score <= 35) return 'low'
+  if (score <= 65) return 'medium'
+  return 'high'
+}
+
+/**
+ * HELPER: Get current time of day automatically
  */
 export function getCurrentTimeOfDay(): TimeOfDay {
   const hour = new Date().getHours()
