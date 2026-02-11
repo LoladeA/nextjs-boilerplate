@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Sparkles, RefreshCw, Lock, Zap, Brain } from 'lucide-react'
-import Link from 'next/link' // <--- Added Link import
+import { Sparkles, RefreshCw, Lock, Zap, Brain, ArrowRight } from 'lucide-react'
+import Link from 'next/link'
 import { neuroInsights } from '../data/neuro-insights'
 
 interface Props {
@@ -21,26 +21,23 @@ export default function NeuroFlashcard({ isPremium = false, scores }: Props) {
 
   // INTELLIGENT SELECTION LOGIC
   useEffect(() => {
-    // 1. If Light Score is POOR (< 50), FORCE the Light Warning Card (Card 3)
     if (scores && scores.light < 50) {
-      const alertCard = neuroInsights.find(c => c.id === 3) // Circadian Misalignment
+      const alertCard = neuroInsights.find(c => c.id === 3)
       if (alertCard) {
         setCurrentCard(alertCard)
         return
       }
     }
-    
-    // 2. Else, random shuffle (Hydration safe)
-    const random = neuroInsights[Math.floor(Math.random() * neuroInsights.length)]
-    setCurrentCard(random)
+    const randomIndex = Math.floor(Math.random() * neuroInsights.length)
+    setCurrentCard(neuroInsights[randomIndex])
   }, [scores])
 
   const nextCard = (e: React.MouseEvent) => {
-    e.stopPropagation() // Prevent flip when clicking shuffle
+    e.stopPropagation() 
     setIsFlipped(false)
     setTimeout(() => {
-      const random = neuroInsights[Math.floor(Math.random() * neuroInsights.length)]
-      setCurrentCard(random)
+      const randomIndex = Math.floor(Math.random() * neuroInsights.length)
+      setCurrentCard(neuroInsights[randomIndex])
     }, 300)
   }
 
@@ -65,108 +62,133 @@ export default function NeuroFlashcard({ isPremium = false, scores }: Props) {
 
       {/* THE CARD */}
       <div 
-        className="relative flex-grow cursor-pointer group perspective-1000 min-h-[340px]"
+        className="relative flex-grow cursor-pointer group perspective-1000 min-h-[400px]"
         onClick={() => setIsFlipped(!isFlipped)}
       >
         <AnimatePresence mode="wait">
           {!isFlipped ? (
-            // --- FRONT OF CARD (THE MYSTERY) ---
+            // --- FRONT OF CARD (THE CONTEXT / FREE) ---
             <motion.div 
               key="front"
               initial={{ opacity: 0, rotateY: -90 }}
               animate={{ opacity: 1, rotateY: 0 }}
               exit={{ opacity: 0, rotateY: 90 }}
               transition={{ duration: 0.3 }}
-              className="glass-panel p-8 rounded-2xl h-full border border-[#c9ccbb]/10 flex flex-col justify-center items-center text-center hover:bg-[#c9ccbb]/5 transition-colors relative overflow-hidden"
+              className="glass-panel p-8 rounded-2xl h-full border border-[#c9ccbb]/10 flex flex-col justify-between text-left hover:bg-[#c9ccbb]/5 transition-colors relative overflow-hidden"
             >
-              {/* Subtle background glow */}
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#b5a642]/50 to-transparent opacity-50" />
-              
-              <div className="mb-6 p-4 rounded-full bg-[#1b270e] border border-[#b5a642]/30 text-[#b5a642] shadow-[0_0_30px_rgba(181,166,66,0.1)]">
-                <Sparkles size={32} />
+              {/* Header Info */}
+              <div>
+                  <div className="flex justify-between items-start mb-4">
+                    <span className="inline-block px-3 py-1 text-[10px] font-bold tracking-widest uppercase text-[#b5a642] bg-[#b5a642]/10 rounded-full">
+                        {currentCard.category}
+                    </span>
+                    <Sparkles size={16} className="text-[#b5a642]/40" />
+                  </div>
+
+                  <h4 className="text-2xl font-serif text-[#c9ccbb] mb-6 leading-tight">
+                    {currentCard.title}
+                  </h4>
+
+                  {/* 1. Science Fact */}
+                  <div className="mb-6">
+                    <span className="text-[#b5a642] text-[10px] uppercase font-bold block mb-2 opacity-70">Science Fact</span>
+                    <p className="text-sm text-[#c9ccbb] leading-relaxed border-l-2 border-[#b5a642]/30 pl-4 italic">
+                        "{currentCard.free.sciencefact}"
+                    </p>
+                  </div>
               </div>
 
-              <span className="inline-block px-3 py-1 mb-4 text-[10px] font-bold tracking-widest uppercase text-[#b5a642] bg-[#b5a642]/10 rounded-full">
-                  {currentCard.category}
-              </span>
-
-              <h4 className="text-2xl font-serif text-[#c9ccbb] mb-4 leading-tight">
-                {currentCard.title}
-              </h4>
-              
-              <p className="text-[#c9ccbb]/40 text-xs uppercase tracking-[0.2em] mt-2">
-                Tap to Reveal Logic
-              </p>
+              {/* 2. Why This Matters */}
+              <div className="mt-auto">
+                 <span className="text-[#b5a642] text-[10px] uppercase font-bold block mb-2 opacity-70">Why This Matters</span>
+                 <p className="text-sm text-[#c9ccbb]/80 leading-relaxed">
+                    {currentCard.free.whyitmatters}
+                 </p>
+                 
+                 <div className="w-full mt-6 py-3 border-t border-[#c9ccbb]/10 text-center">
+                    <p className="text-[#c9ccbb]/40 text-xs uppercase tracking-[0.2em]">
+                        Tap to Reveal Protocol
+                    </p>
+                 </div>
+              </div>
             </motion.div>
           ) : (
-            // --- BACK OF CARD (THE REVEAL) ---
+            // --- BACK OF CARD (THE PROTOCOL / PAID) ---
             <motion.div 
               key="back"
               initial={{ opacity: 0, rotateY: 90 }}
               animate={{ opacity: 1, rotateY: 0 }}
               exit={{ opacity: 0, rotateY: -90 }}
               transition={{ duration: 0.3 }}
-              className={`glass-panel p-6 rounded-2xl h-full flex flex-col justify-between text-left relative overflow-hidden ${
+              className={`glass-panel p-6 rounded-2xl h-full flex flex-col text-left relative overflow-hidden ${
                 isPremium 
                   ? "bg-[#b5a642]/5 border-[#b5a642]/30" 
                   : "bg-[#000]/20 border border-[#c9ccbb]/10"
               }`}
             >
-              <div className="overflow-y-auto pr-2 custom-scrollbar">
-                {/* SHARED SCIENCE (Always Visible) */}
-                <div className="mb-4">
-                   <span className="text-[10px] font-bold tracking-widest uppercase text-[#b5a642] mb-2 block">
-                    The Science
-                  </span>
-                  <p className="text-sm text-[#c9ccbb] leading-relaxed italic opacity-90">
-                    "{currentCard.science_fact}"
-                  </p>
-                </div>
-
+              <div className="overflow-y-auto pr-2 custom-scrollbar h-full">
+                
                 {isPremium ? (
-                  // --- TIER 2: PAID USER (THE SOLUTION) ---
-                  <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <div className="p-3 bg-[#b5a642]/10 rounded-lg border-l-2 border-[#b5a642]">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[#b5a642] text-[10px] uppercase font-bold">Design Specification</span>
-                      </div>
-                      <p className="text-sm text-[#c9ccbb]">{currentCard.design_spec}</p>
+                  // --- PAID USER SEES FULL PROTOCOL ---
+                  <div className="space-y-6">
+                    {/* Header */}
+                    <div className="flex items-center gap-2 border-b border-[#b5a642]/20 pb-4">
+                        <Zap size={16} className="text-[#b5a642]" />
+                        <span className="text-[#b5a642] text-xs font-bold uppercase tracking-widest">{currentCard.paid.protocol}</span>
                     </div>
-                    
-                    <div className="flex items-start gap-3">
-                      <Zap size={16} className="text-[#b5a642] mt-1 shrink-0" />
-                      <div>
-                        <span className="text-[#b5a642] text-[10px] uppercase font-bold block mb-1">Tool Integration</span>
-                        <p className="text-xs text-[#c9ccbb]/70">{currentCard.tool_integration}</p>
-                      </div>
+
+                    {/* 1. Primary Adjustment */}
+                    <div>
+                        <span className="text-[#c9ccbb]/40 text-[10px] uppercase font-bold block mb-2">Primary Adjustment</span>
+                        <p className="text-base text-[#c9ccbb] font-serif leading-relaxed">
+                            {currentCard.paid.primaryadjustment}
+                        </p>
+                    </div>
+
+                    {/* 2. Refinement List */}
+                    <div>
+                        <span className="text-[#c9ccbb]/40 text-[10px] uppercase font-bold block mb-3">Refinement</span>
+                        <ul className="space-y-3">
+                            {currentCard.paid.refinement.map((step, i) => (
+                                <li key={i} className="flex gap-3 text-sm text-[#c9ccbb]/70 leading-relaxed">
+                                    <ArrowRight size={14} className="text-[#b5a642] shrink-0 mt-1" />
+                                    {step}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+
+                    {/* 3. Why It Works & Cue */}
+                    <div className="p-4 bg-[#b5a642]/5 rounded-xl border border-[#b5a642]/10 space-y-4">
+                        <div>
+                             <span className="text-[#b5a642] text-[10px] uppercase font-bold block mb-1">Why It Works</span>
+                             <p className="text-xs text-[#c9ccbb]/60">{currentCard.paid.whyitWorks}</p>
+                        </div>
+                        <div>
+                             <span className="text-[#b5a642] text-[10px] uppercase font-bold block mb-1">Integration Cue</span>
+                             <p className="text-xs text-[#c9ccbb] italic">"{currentCard.paid.integrationcue}"</p>
+                        </div>
                     </div>
                   </div>
                 ) : (
-                  // --- TIER 1: FREE USER (THE SOMATIC PING) ---
-                  <div className="space-y-4">
+                  // --- FREE USER SEES LOCK ---
+                  <div className="h-full flex flex-col items-center justify-center text-center space-y-6">
+                    <div className="p-4 rounded-full bg-[#000]/40 border border-[#c9ccbb]/10">
+                        <Lock size={32} className="text-[#c9ccbb]/40" />
+                    </div>
+                    
                     <div>
-                      <span className="text-red-300 text-[10px] uppercase font-bold mb-1 block">Somatic Check</span>
-                      <p className="text-sm text-[#c9ccbb]/80">
-                        {currentCard.somatic_prompt || "Does this environment make you feel unregulated?"}
-                      </p>
+                        <h4 className="text-lg text-[#c9ccbb] font-serif mb-2">Protocol Locked</h4>
+                        <p className="text-sm text-[#c9ccbb]/60 max-w-[200px] mx-auto">
+                           Unlock the <strong>{currentCard.paid.protocol}</strong> to resolve this issue.
+                        </p>
                     </div>
 
-                    {/* THE PAYWALL LOCK */}
-                    <div className="mt-4 p-4 rounded-xl bg-[#000]/40 border border-[#c9ccbb]/10 text-center relative overflow-hidden group">
-                      <div className="flex flex-col items-center justify-center gap-2">
-                        <Lock size={20} className="text-[#c9ccbb]/40 group-hover:text-[#b5a642] transition-colors" />
-                        <p className="text-xs text-[#c9ccbb]/60 line-clamp-2">
-                          {currentCard.cliffhanger}
-                        </p>
-                        
-                        {/* UPGRADE LINK */}
-                        <Link href="/upgrade" className="w-full flex justify-center">
-                          <button className="mt-2 px-4 py-2 bg-[#c9ccbb] text-[#1b270e] text-[10px] font-bold uppercase tracking-widest rounded-full hover:bg-[#fff] transition-all transform hover:scale-105">
-                            Unlock Protocol
-                          </button>
-                        </Link>
-                      </div>
-                    </div>
+                    <Link href="/upgrade" className="w-full max-w-[200px]">
+                      <button className="w-full py-3 bg-[#c9ccbb] text-[#1b270e] text-xs font-bold uppercase tracking-widest rounded-full hover:bg-[#fff] transition-all transform hover:scale-105 shadow-lg shadow-[#c9ccbb]/10">
+                        Unlock Now
+                      </button>
+                    </Link>
                   </div>
                 )}
               </div>
