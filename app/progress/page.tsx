@@ -42,7 +42,7 @@ export default function Progress() {
   const moods = [
     { val: 1, label: 'Dysregulated', desc: 'Overwhelmed', color: 'bg-red-500/20 border-red-500/50 text-red-400' },
     { val: 2, label: 'High Alert', desc: 'Vigilant', color: 'bg-orange-500/20 border-orange-500/50 text-orange-400' },
-    { val: 3, label: 'Neutral', desc: 'Functional', color: 'bg-[#c9ccbb]/10 border-[#c9ccbb]/30 text-[#c9ccbb]' },
+    { val: 3, label: 'Neutral', desc: 'Functional', color: 'bg-[#c9ccbb]/70 border-[#c9ccbb]/50 text-[#c9ccbb]' },
     { val: 4, label: 'Regulated', desc: 'Calm', color: 'bg-[#b5a642]/20 border-[#b5a642]/50 text-[#b5a642]' },
     { val: 5, label: 'Resonant', desc: 'Restorative', color: 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400' }
   ]
@@ -201,7 +201,7 @@ export default function Progress() {
           
           <div className="mb-12">
             <h1 className="text-4xl font-serif text-[#c9ccbb] mb-2">Progress & Tracking</h1>
-            <p className="text-[#c9ccbb]/60">
+            <p className="text-[#c9ccbb]/70">
               Log your daily state to train the system and reveal long-term patterns.
             </p>
           </div>
@@ -214,7 +214,7 @@ export default function Progress() {
                     <button 
                         onClick={() => setActiveTab('morning')}
                         className={`flex items-center gap-2 px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${
-                            activeTab === 'morning' ? 'bg-[#b5a642] text-[#1b270e]' : 'text-[#c9ccbb]/40 hover:text-[#c9ccbb]'
+                            activeTab === 'morning' ? 'bg-[#b5a642] text-[#1b270e]' : 'text-[#c9ccbb]/70 hover:text-[#c9ccbb]'
                         }`}
                     >
                         <Sunrise size={14} /> Morning
@@ -222,7 +222,7 @@ export default function Progress() {
                     <button 
                         onClick={() => setActiveTab('evening')}
                         className={`flex items-center gap-2 px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${
-                            activeTab === 'evening' ? 'bg-[#b5a642] text-[#1b270e]' : 'text-[#c9ccbb]/40 hover:text-[#c9ccbb]'
+                            activeTab === 'evening' ? 'bg-[#b5a642] text-[#1b270e]' : 'text-[#c9ccbb]/70 hover:text-[#c9ccbb]'
                         }`}
                     >
                         <Moon size={14} /> Evening
@@ -270,7 +270,7 @@ export default function Progress() {
                     </label>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <div className="flex items-center gap-2 mb-2 text-[#c9ccbb]/60 text-xs font-bold uppercase tracking-widest">
+                            <div className="flex items-center gap-2 mb-2 text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest">
                                 <Zap size={14} className="text-orange-400" /> Morning Light (Lux)
                             </div>
                             <input 
@@ -282,7 +282,7 @@ export default function Progress() {
                             />
                         </div>
                         <div>
-                            <div className="flex items-center gap-2 mb-2 text-[#c9ccbb]/60 text-xs font-bold uppercase tracking-widest">
+                            <div className="flex items-center gap-2 mb-2 text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest">
                                 <ShieldAlert size={14} className="text-blue-400" /> Avg Noise (dB)
                             </div>
                             <input 
@@ -321,7 +321,7 @@ export default function Progress() {
                 value={currentNote}
                 onChange={(e) => setCurrentNote(e.target.value)}
                 placeholder={activeTab === 'morning' ? "Morning Observations? (e.g. 'Woke up feeling rested')" : "Evening Observations? (e.g. 'Felt calmer after dimming lights')"}
-                className="w-full h-24 bg-[#000]/20 border border-[#c9ccbb]/10 rounded-xl p-4 text-[#c9ccbb] text-sm placeholder:text-[#c9ccbb]/20 focus:outline-none focus:border-[#b5a642]/50 resize-none font-sans"
+                className="w-full h-24 bg-[#000]/20 border border-[#c9ccbb]/10 rounded-xl p-4 text-[#c9ccbb] text-sm placeholder:text-[#c9ccbb]/50 focus:outline-none focus:border-[#b5a642]/50 resize-none font-sans"
               />
             </div>
 
@@ -349,7 +349,7 @@ export default function Progress() {
                  className={`px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-all flex items-center gap-2 ${
                    currentMood !== null 
                      ? 'bg-[#c9ccbb] text-[#1b270e] hover:bg-white' 
-                     : 'bg-[#c9ccbb]/10 text-[#c9ccbb]/20 cursor-not-allowed'
+                     : 'bg-[#c9ccbb]/10 text-[#c9ccbb]/50 cursor-not-allowed'
                  }`}
                >
                  {status === 'saving' ? (
@@ -361,7 +361,7 @@ export default function Progress() {
 
           {/* --- CHART SECTION --- */}
           <div className="animate-fade-in-up delay-100">
-              <div className="flex items-center gap-2 mb-6 text-[#c9ccbb]/40 text-xs font-bold uppercase tracking-widest">
+              <div className="flex items-center gap-2 mb-6 text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest">
                 <TrendingUp size={14} /> Nervous System Rhythm (Morning Baseline)
               </div>
               {chartData.length > 0 ? (
@@ -385,8 +385,8 @@ export default function Progress() {
                 </div>
               ) : (
                 <div className="glass-panel p-12 rounded-3xl border border-dashed border-[#c9ccbb]/10 flex flex-col items-center text-center">
-                   <Activity size={32} className="text-[#b5a642] mb-4 opacity-50" />
-                   <p className="text-[#c9ccbb]/50 text-sm">Log your first check-in to see your trend.</p>
+                   <Activity size={32} className="text-[#b5a642] mb-4 opacity-70" />
+                   <p className="text-[#c9ccbb]/70 text-sm">Log your first check-in to see your trend.</p>
                 </div>
               )}
           </div>
