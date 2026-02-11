@@ -10,6 +10,7 @@ import SensoryTools from '../components/SensoryTools'
 import SensoryRadar from '../components/SensoryRadar'
 import NeuroFlashcard from '../components/NeuroFlashcard'
 import DashboardPulse from '../components/DashboardPulse' 
+import DebugSensoryLogic from '../components/DebugSensoryLogic' // <--- IMPORT THE BRAIN TESTER
 import { calculateNeuroLoad } from '../utils/scoring-engine' 
 import Sidebar from '../components/Sidebar'
 
@@ -101,6 +102,11 @@ export default async function Dashboard() {
             </Link>
           </div>
         </div>
+
+        {/* --- BRAIN VERIFICATION (DEBUG PANEL) --- */}
+        {/* We drop the logic tester right here at the top */}
+        <DebugSensoryLogic />
+        {/* ---------------------------------------- */}
 
         {/* --- SECTION 1: THE COCKPIT --- */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
