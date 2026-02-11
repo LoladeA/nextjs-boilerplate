@@ -49,7 +49,7 @@ export default function Insights() {
       <div className="md:ml-64 min-h-screen p-6 md:p-12">
         
         <h1 className="text-4xl font-serif text-[#c9ccbb] mb-2">Insights Library</h1>
-        <p className="text-[#c9ccbb]/60 mb-12 max-w-2xl">
+        <p className="text-[#c9ccbb]/70 mb-12 max-w-2xl">
           Evidence-based research on Neuroscience, Environmental Psychology, Interior Design and Sensory Health.
         </p>
 
@@ -70,12 +70,12 @@ export default function Insights() {
                       <h3 className="text-xl font-serif text-[#c9ccbb] mb-3 group-hover:text-[#f0e6b5] transition-colors">
                         {article.title}
                       </h3>
-                      <p className="text-[#c9ccbb]/60 text-sm leading-relaxed mb-6">
+                      <p className="text-[#c9ccbb]/70 text-sm leading-relaxed mb-6">
                         {article.excerpt}
                       </p>
                   </div>
                   
-                  <div className="flex items-center gap-2 text-[#c9ccbb]/40 text-xs uppercase tracking-widest pt-4 border-t border-[#c9ccbb]/5">
+                  <div className="flex items-center gap-2 text-[#c9ccbb]/70 text-xs uppercase tracking-widest pt-4 border-t border-[#c9ccbb]/5">
                     <BookOpen size={12} />
                     {article.readTime}
                   </div>
