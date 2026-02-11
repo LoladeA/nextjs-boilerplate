@@ -95,7 +95,7 @@ export default function NoiseMeterTool() {
                 <Activity size={14} /> Acoustic Health
                 </div>
                 <h1 className="text-4xl font-serif text-[#c9ccbb] mb-2">Noise Monitor</h1>
-                <p className="text-[#c9ccbb]/60">Check auditory load on your nervous system.</p>
+                <p className="text-[#c9ccbb]/70">Check auditory load on your nervous system.</p>
             </div>
 
             <div className="glass-panel p-8 rounded-3xl border border-[#c9ccbb]/10 bg-[#000]/20 relative overflow-hidden">
@@ -114,7 +114,7 @@ export default function NoiseMeterTool() {
                                 <div className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mt-1">dB (Approx)</div>
                              </>
                          ) : (
-                             <div className="text-[#c9ccbb]/30 flex flex-col items-center">
+                             <div className="text-[#c9ccbb]/70 flex flex-col items-center">
                                  <Mic size={32} className="mb-2" />
                                  <span className="text-xs uppercase">Tap Start</span>
                              </div>
@@ -138,7 +138,7 @@ export default function NoiseMeterTool() {
                 {isListening && (
                     <div className="text-center mb-8 animate-fade-in-up">
                         <h3 className={`text-xl font-serif mb-1 ${status.color}`}>{status.label}</h3>
-                        <p className="text-[#c9ccbb]/60 text-sm">{status.desc}</p>
+                        <p className="text-[#c9ccbb]/70 text-sm">{status.desc}</p>
                     </div>
                 )}
 
@@ -160,7 +160,7 @@ export default function NoiseMeterTool() {
             </div>
 
             <div className="text-center mt-8">
-                <Link href="/dashboard" className="text-[#c9ccbb]/40 text-xs hover:text-[#b5a642] transition-colors">← Back to Toolkit</Link>
+                <Link href="/dashboard" className="text-[#c9ccbb]/70 text-xs hover:text-[#b5a642] transition-colors">← Back to Toolkit</Link>
             </div>
         </div>
       </div>
