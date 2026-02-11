@@ -87,7 +87,7 @@ export default function Settings() {
             </div>
             <div>
               <h2 className="text-xl font-serif text-[#c9ccbb]">Account</h2>
-              <p className="text-[#c9ccbb]/50 text-sm">{userEmail}</p>
+              <p className="text-[#c9ccbb]/70 text-sm">{userEmail}</p>
             </div>
           </div>
 
@@ -106,7 +106,7 @@ export default function Settings() {
             <div className="bg-[#000]/20 rounded-xl p-6 flex flex-col md:flex-row items-center justify-between gap-4">
               <div>
                 <h3 className="text-[#c9ccbb] font-bold text-sm mb-1">Sentient Membership</h3>
-                <p className="text-[#c9ccbb]/40 text-xs">Unlock full sensory diagnostics and history.</p>
+                <p className="text-[#c9ccbb]/70 text-xs">Unlock full sensory diagnostics and history.</p>
               </div>
               <Link 
                 href="/upgrade"
@@ -129,7 +129,7 @@ export default function Settings() {
               <div className="flex items-center justify-between p-4 rounded-xl hover:bg-[#c9ccbb]/5 transition-colors">
                 <div>
                    <div className="text-[#c9ccbb] text-sm font-bold">Weekly Digest</div>
-                   <div className="text-[#c9ccbb]/40 text-xs">Summary of your nervous system logs.</div>
+                   <div className="text-[#c9ccbb]/70 text-xs">Summary of your nervous system logs.</div>
                 </div>
                 <button 
                   onClick={() => setEmailDigest(!emailDigest)}
@@ -143,7 +143,7 @@ export default function Settings() {
               <div className="flex items-center justify-between p-4 rounded-xl hover:bg-[#c9ccbb]/5 transition-colors">
                 <div>
                    <div className="text-[#c9ccbb] text-sm font-bold">Product Updates</div>
-                   <div className="text-[#c9ccbb]/40 text-xs">News about new sensory features.</div>
+                   <div className="text-[#c9ccbb]/70 text-xs">News about new sensory features.</div>
                 </div>
                 <button 
                   onClick={() => setProductUpdates(!productUpdates)}
@@ -175,7 +175,7 @@ export default function Settings() {
               </div>
 
               <div>
-                <label className="block text-[#c9ccbb]/60 text-xs font-bold uppercase tracking-widest mb-2">Confirm New Password</label>
+                <label className="block text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest mb-2">Confirm New Password</label>
                 <input 
                   type="password" 
                   value={confirmPassword}
