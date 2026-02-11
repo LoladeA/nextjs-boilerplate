@@ -87,7 +87,7 @@ export default async function Dashboard() {
             <div className="relative w-64 h-16 mb-2">
               <Image src="/logo.PNG" alt="Sensory Intelligence" fill className="object-contain object-left" priority />
             </div>
-            <p className="text-[#c9ccbb]/60 font-light capitalize">
+            <p className="text-[#c9ccbb]/70 font-light capitalize">
               Welcome back, {displayName}.
             </p>
           </div>
@@ -114,12 +114,12 @@ export default async function Dashboard() {
                 <div className="relative z-10 flex justify-between items-start mb-4">
                     <div>
                         <h3 className="text-[#c9ccbb] font-serif text-xl">Nervous System Rhythm</h3>
-                        <p className="text-[#c9ccbb]/50 text-xs uppercase tracking-widest mt-1">Last 7 Days Trend</p>
+                        <p className="text-[#c9ccbb]/70 text-xs uppercase tracking-widest mt-1">Last 7 Days Trend</p>
                     </div>
                     {recentLogs.length > 0 && (
                          <div className="text-right">
-                             <div className="text-2xl font-serif text-[#c9ccbb]">{recentLogs[0].mood_score}<span className="text-sm text-[#c9ccbb]/40">/5</span></div>
-                             <div className="text-[10px] text-[#c9ccbb]/40 uppercase tracking-widest">Latest Log</div>
+                             <div className="text-2xl font-serif text-[#c9ccbb]">{recentLogs[0].mood_score}<span className="text-sm text-[#c9ccbb]/70">/5</span></div>
+                             <div className="text-[10px] text-[#c9ccbb]/70 uppercase tracking-widest">Latest Log</div>
                          </div>
                     )}
                 </div>
@@ -132,8 +132,8 @@ export default async function Dashboard() {
                 <div className="relative z-10">
                     <div className="text-[10px] text-[#b5a642] font-bold uppercase tracking-widest mb-2">Current Baseline</div>
                     <div className="text-5xl font-serif text-[#c9ccbb] mb-2">{totalLoad}</div>
-                    <div className="text-sm text-[#c9ccbb]/60 mb-4">{systemState}</div>
-                    <div className="text-[10px] text-[#c9ccbb]/30 uppercase tracking-widest">NeuroLoad Score™</div>
+                    <div className="text-sm text-[#c9ccbb]/70 mb-4">{systemState}</div>
+                    <div className="text-[10px] text-[#c9ccbb]/70 uppercase tracking-widest">NeuroLoad Score™</div>
                 </div>
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-[#b5a642]/10 rounded-full blur-2xl" />
             </div>
@@ -141,7 +141,7 @@ export default async function Dashboard() {
 
         {/* --- SECTION 2: NEXT BEST STEP --- */}
         <div className="mb-12">
-            <h3 className="text-[#c9ccbb]/40 text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
+            <h3 className="text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
                 <Sparkles size={14} /> Recommended Action
             </h3>
             
@@ -163,7 +163,7 @@ export default async function Dashboard() {
                             <h2 className={`text-3xl md:text-4xl font-serif mb-2 transition-colors ${isLocked ? 'text-[#f0e6b5]' : 'text-[#c9ccbb] group-hover:text-[#b5a642]'}`}>
                                 {nextModule.title}
                             </h2>
-                            <p className="text-[#c9ccbb]/60 text-lg max-w-xl">
+                            <p className="text-[#c9ccbb]/70 text-lg max-w-xl">
                                 {nextModule.subtitle}
                             </p>
                         </div>
@@ -188,7 +188,7 @@ export default async function Dashboard() {
             <div className="flex justify-between items-start mb-6">
               <div>
                 <h3 className="font-serif text-[#c9ccbb] text-xl mb-1">Your Sensory Profile</h3>
-                <p className="text-sm text-[#c9ccbb]/50">Circadian • Autonomic • Predictive • Sensory • Recovery</p>
+                <p className="text-sm text-[#c9ccbb]/70">Circadian • Autonomic • Predictive • Sensory • Recovery</p>
               </div>
               <Link href="/assessments/report" className="text-xs text-[#b5a642] uppercase tracking-widest hover:text-[#c9ccbb] transition-colors">
                 Analyse Details →
