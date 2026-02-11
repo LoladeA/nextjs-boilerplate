@@ -98,9 +98,9 @@ export default async function AssessmentReport() {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
             <div>
               <h1 className="text-4xl font-serif text-[#c9ccbb] mb-2">Your NeuroLoad Overview</h1>
-              <p className="text-[#c9ccbb]/60">How your home environment is currently interacting with your nervous system.</p>
+              <p className="text-[#c9ccbb]/70">How your home environment is currently interacting with your nervous system.</p>
             </div>
-            <button className="flex items-center gap-2 px-6 py-3 border border-[#c9ccbb]/20 rounded-lg text-[#c9ccbb] hover:bg-[#c9ccbb]/10 text-sm transition-all">
+            <button className="flex items-center gap-2 px-6 py-3 border border-[#c9ccbb]/70 rounded-lg text-[#c9ccbb] hover:bg-[#c9ccbb]/70 text-sm transition-all">
                <Download size={16} /> Download Detailed Report
             </button>
           </div>
@@ -113,16 +113,16 @@ export default async function AssessmentReport() {
                
                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-8 border-t border-[#c9ccbb]/10">
                  <div>
-                   <div className="text-3xl font-bold text-[#c9ccbb]">{totalLoad}<span className="text-base text-[#c9ccbb]/40 font-normal">/120</span></div>
-                   <div className="text-xs text-[#c9ccbb]/50 uppercase tracking-widest mt-1">NeuroLoad Score™</div>
+                   <div className="text-3xl font-bold text-[#c9ccbb]">{totalLoad}<span className="text-base text-[#c9ccbb]/70 font-normal">/120</span></div>
+                   <div className="text-xs text-[#c9ccbb]/70 uppercase tracking-widest mt-1">NeuroLoad Score™</div>
                  </div>
                  <div>
                    <div className="text-3xl font-bold text-[#c9ccbb]">{criticalIssues.length}</div>
-                   <div className="text-xs text-[#c9ccbb]/50 uppercase tracking-widest mt-1">Areas Needing Support</div>
+                   <div className="text-xs text-[#c9ccbb]/70 uppercase tracking-widest mt-1">Areas Needing Support</div>
                  </div>
                  <div>
                    <div className="text-3xl font-bold text-[#c9ccbb]">{domains.find(d=>d.id === 'rci')?.status}</div>
-                   <div className="text-xs text-[#c9ccbb]/50 uppercase tracking-widest mt-1">Recovery Status</div>
+                   <div className="text-xs text-[#c9ccbb]/70 uppercase tracking-widest mt-1">Recovery Status</div>
                  </div>
                </div>
              </div>
