@@ -118,7 +118,7 @@ export const neuroInsights: NeuroInsight[] = [
     },
     paid: {
       protocol: "Spatial Order Protocol",
-      primaryadjustment: "Establish clear visual pathways, consistent lighting anchors and establish one clear focal anchor in each main room (eg art, plant, architectural feature).",
+      primaryadjustment: "Establish clear visual pathways, consistent lighting anchors and establish one clear focal anchor in each main room (e.g., art, plant, architectural feature).",
       refinement: [
         "Clear all walkways of obstacles.",
         "Align lighting so the brightest point supports the primary function of the room.",
@@ -167,3 +167,35 @@ export const neuroInsights: NeuroInsight[] = [
       primaryadjustment: "Implement a Matte-Only policy in zones with bright or direct light sources; and shield light sources.",
       refinement: [
         "Cover glossy surfaces with matte desk mats. Position task lighting to the side—not directly overhead.",
+        "Position screens perpendicular to windows.",
+        "If glare cannot be eliminated, reduce bulb brightness by 30% and introduce a diffusing lamp shade.",
+        "Use bias lighting behind monitors."
+      ],
+      whyitWorks: "Reducing glare eliminates the micro-adjustments your eyes and brain must make constantly.",
+      integrationcue: "You experience longer focus sessions without the familiar mental drain."
+    }
+  },
+
+  // --- CARD 8: PSYCHOLOGICAL SAFETY ---
+  {
+    id: 8,
+    category: "Psychological Safety",
+    title: "Identity & Safety",
+    free: {
+      sciencefact: "A home that feels misaligned with your identity acts as a constant 'second skin' irritant, undermining emotional safety.",
+      whyitmatters: "Environmental resonance signals to the nervous system that 'this is my territory,' enabling deep rest."
+    },
+    paid: {
+      protocol: "Atmosphere Architecture Protocol",
+      primaryadjustment: "Align visual anchors with personal identity markers.",
+      refinement: [
+        "Identify one visible object that reflects a past version of you and remove or replace it.",
+        "Remove decor that feels 'performative' or obligatory.",
+        "Introduce one authentic identity anchor (art, material, colour, scent) that reflects who you are now.",
+        "If removal feels difficult, relocate outdated objects to a transitional storage zone."
+      ],
+      whyitWorks: "Identity alignment signals safety to the social engagement system (Vagus Nerve).",
+      integrationcue: "You will feel more at home and regulated in your own home."
+    }
+  }
+]
