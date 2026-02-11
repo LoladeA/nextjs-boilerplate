@@ -64,7 +64,7 @@ export default function Upgrade() {
             <h1 className="text-4xl md:text-5xl font-serif text-[#c9ccbb] mb-4">
               Choose your level of <span className="text-[#b5a642]">integration.</span>
             </h1>
-            <p className="text-[#c9ccbb]/60 max-w-2xl mx-auto text-lg">
+            <p className="text-[#c9ccbb]/70 max-w-2xl mx-auto text-lg">
               Whether you need the tools to self-regulate or a complete environmental transformation, we have a path for you.
             </p>
           </div>
@@ -74,7 +74,7 @@ export default function Upgrade() {
             {/* OPTION 1: FOUNDATION ACCESS (Digital) */}
             <div className="glass-panel p-10 rounded-3xl border border-[#b5a642]/20 relative overflow-hidden flex flex-col">
               <div className="absolute top-0 right-0 bg-[#b5a642] text-[#1b270e] text-[10px] font-bold uppercase tracking-widest px-4 py-2 rounded-bl-xl">
-                Most Popular
+                Recommended
               </div>
               
               <div className="mb-8">
@@ -83,7 +83,7 @@ export default function Upgrade() {
                 </div>
                 {/* UPDATED TITLE */}
                 <h3 className="text-2xl font-serif text-[#c9ccbb] mb-2">Foundation Access</h3>
-                <p className="text-[#cfc993]/60 text-sm h-10">
+                <p className="text-[#cfc993]/70 text-sm h-10">
                   The intelligence layer for interior design. Methodology, audits, and regulation protocols.
                 </p>
               </div>
@@ -91,7 +91,7 @@ export default function Upgrade() {
               <div className="mb-8">
                 {/* UPDATED PRICE */}
                 <span className="text-4xl font-serif text-[#c9ccbb]">€49.00</span>
-                <span className="text-[#cfc993]/40 text-sm"> / month</span>
+                <span className="text-[#cfc993]/70 text-sm"> / month</span>
               </div>
 
               <ul className="space-y-4 mb-10 flex-grow">
@@ -129,20 +129,20 @@ export default function Upgrade() {
                 <div className="w-12 h-12 bg-[#c9ccbb]/5 rounded-full flex items-center justify-center text-[#c9ccbb] mb-6">
                   <Gem size={24} />
                 </div>
-                <h3 className="text-2xl font-serif text-[#c9ccbb] mb-2">Personalised Interior Design Service</h3>
-                <p className="text-[#cfc993]/60 text-sm h-10">
+                <h3 className="text-2xl font-serif text-[#c9ccbb] mb-2">Interior Design Service</h3>
+                <p className="text-[#cfc993]/70 text-sm h-10">
                   Full-service interior design service.
                 </p>
               </div>
 
               <div className="mb-8">
-                <span className="text-2xl font-serif text-[#c9ccbb]">By Application</span>
+                <span className="text-2xl font-serif text-[#c9ccbb]">By Request</span>
               </div>
 
               <ul className="space-y-4 mb-10 flex-grow">
                 {privateFeatures.map((feature, i) => (
                   <li key={i} className="flex items-center gap-3 text-[#c9ccbb]/80 text-sm">
-                    <CheckCircle size={16} className="text-[#c9ccbb]/40 shrink-0" />
+                    <CheckCircle size={16} className="text-[#c9ccbb]/70 shrink-0" />
                     <span>{feature}</span>
                   </li>
                 ))}
