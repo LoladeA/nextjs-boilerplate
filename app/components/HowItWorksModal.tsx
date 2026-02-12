@@ -118,7 +118,7 @@ export default function HowItWorksModal({ isOpen, onClose }: Props) {
                         <div>
                              <h4 className="text-[#c9ccbb] font-bold text-sm uppercase tracking-wide mb-1">Insights Library</h4>
                              <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
-                                Access 40+ somatic cards decoding the science behind your environment. Understand the <em>why</em> behind every protocol.
+                                Access 120+ somatic cards decoding the science behind your environment. Understand the <em>why</em> behind every protocol.
                              </p>
                         </div>
                     </div>
