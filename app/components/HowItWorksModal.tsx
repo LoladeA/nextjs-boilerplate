@@ -1,7 +1,7 @@
 'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
-import { Activity, Zap, RefreshCw, X } from 'lucide-react'
+import { Activity, Zap, RefreshCw, X, BookOpen, Sparkles } from 'lucide-react'
 
 interface Props {
   isOpen: boolean
@@ -47,10 +47,10 @@ export default function HowItWorksModal({ isOpen, onClose }: Props) {
             {/* Background Glow */}
             <div className="absolute top-0 right-0 w-96 h-96 bg-[#b5a642]/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
 
-            <div className="p-8 md:p-12 relative z-10">
+            <div className="p-8 md:p-12 relative z-10 max-h-[90vh] overflow-y-auto">
               
               {/* Header */}
-              <div className="flex justify-between items-start mb-10">
+              <div className="flex justify-between items-start mb-8">
                 <div>
                   <h2 className="text-[#c9ccbb] font-serif text-3xl mb-3">Calibration Roadmap</h2>
                   <p className="text-[#c9ccbb]/80 text-base max-w-xl leading-relaxed">
@@ -66,51 +66,83 @@ export default function HowItWorksModal({ isOpen, onClose }: Props) {
                 </button>
               </div>
 
-              {/* The 3-Step Loop */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                
+              {/* SECTION 1: THE ACTIVE LOOP */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
                 {/* STEP 1: MEASURE */}
                 <div className="group p-6 rounded-2xl border border-[#c9ccbb]/10 bg-[#c9ccbb]/5 hover:border-[#b5a642]/30 transition-colors">
-                  <div className="w-12 h-12 rounded-full bg-[#b5a642]/10 text-[#b5a642] flex items-center justify-center mb-6">
-                    <Activity size={24} />
+                  <div className="w-10 h-10 rounded-full bg-[#b5a642]/10 text-[#b5a642] flex items-center justify-center mb-4">
+                    <Activity size={20} />
                   </div>
                   <div className="text-[10px] text-[#b5a642] font-bold uppercase tracking-widest mb-2">Bi-Weekly</div>
-                  <h3 className="text-[#c9ccbb] font-bold text-lg mb-3">1. Measure</h3>
-                  <p className="text-[#c9ccbb]/80 text-sm leading-relaxed">
-                    Take the Assessment every 14 days. This updates your <strong>NeuroLoad Score™</strong> and recalibrates the logic engine to your new baseline.
+                  <h3 className="text-[#c9ccbb] font-bold text-base mb-2">1. Measure</h3>
+                  <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
+                    Retake the Assessment every 14 days. This updates your <strong>NeuroLoad Score™</strong> and recalibrates the logic engine.
                   </p>
                 </div>
 
                 {/* STEP 2: TUNE */}
                 <div className="group p-6 rounded-2xl border border-[#c9ccbb]/10 bg-[#c9ccbb]/5 hover:border-[#b5a642]/30 transition-colors">
-                  <div className="w-12 h-12 rounded-full bg-[#b5a642]/10 text-[#b5a642] flex items-center justify-center mb-6">
-                    <Zap size={24} />
+                  <div className="w-10 h-10 rounded-full bg-[#b5a642]/10 text-[#b5a642] flex items-center justify-center mb-4">
+                    <Zap size={20} />
                   </div>
                   <div className="text-[10px] text-[#b5a642] font-bold uppercase tracking-widest mb-2">Daily Ritual</div>
-                  <h3 className="text-[#c9ccbb] font-bold text-lg mb-3">2. Tune</h3>
-                  <p className="text-[#c9ccbb]/80 text-sm leading-relaxed">
+                  <h3 className="text-[#c9ccbb] font-bold text-base mb-2">2. Tune</h3>
+                  <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
                     Check your Dashboard 3x a day. The system automatically prescribes the specific <strong>Protocol</strong> needed for that moment.
                   </p>
                 </div>
 
                 {/* STEP 3: VERIFY */}
                 <div className="group p-6 rounded-2xl border border-[#c9ccbb]/10 bg-[#c9ccbb]/5 hover:border-[#b5a642]/30 transition-colors">
-                  <div className="w-12 h-12 rounded-full bg-[#b5a642]/10 text-[#b5a642] flex items-center justify-center mb-6">
-                    <RefreshCw size={24} />
+                  <div className="w-10 h-10 rounded-full bg-[#b5a642]/10 text-[#b5a642] flex items-center justify-center mb-4">
+                    <RefreshCw size={20} />
                   </div>
                   <div className="text-[10px] text-[#b5a642] font-bold uppercase tracking-widest mb-2">As Needed</div>
-                  <h3 className="text-[#c9ccbb] font-bold text-lg mb-3">3. Verify</h3>
-                  <p className="text-[#c9ccbb]/80 text-sm leading-relaxed">
+                  <h3 className="text-[#c9ccbb] font-bold text-base mb-2">3. Verify</h3>
+                  <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
                     Use the <strong>Toolkit</strong> to audit new spaces. Validate that your lighting and sound levels match biological safety standards.
                   </p>
                 </div>
+              </div>
 
+              {/* SECTION 2: DEEPEN YOUR PRACTICE (NEW) */}
+              <div className="border-t border-[#b5a642]/20 pt-8 mb-6">
+                 <h3 className="text-[#c9ccbb] font-serif text-xl mb-6 text-center">Deepen Your Practice</h3>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    {/* INSIGHTS */}
+                    <div className="flex gap-5 p-5 rounded-2xl bg-[#141d0b] border border-[#c9ccbb]/10 hover:border-[#b5a642]/30 transition-colors">
+                        <div className="shrink-0 w-12 h-12 rounded-full bg-[#b5a642]/10 text-[#b5a642] flex items-center justify-center border border-[#b5a642]/20">
+                            <BookOpen size={20} />
+                        </div>
+                        <div>
+                             <h4 className="text-[#c9ccbb] font-bold text-sm uppercase tracking-wide mb-1">Insights Library</h4>
+                             <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
+                                Access 40+ somatic cards decoding the science behind your environment. Understand the <em>why</em> behind every protocol.
+                             </p>
+                        </div>
+                    </div>
+
+                    {/* COACHING */}
+                    <div className="flex gap-5 p-5 rounded-2xl bg-[#141d0b] border border-[#c9ccbb]/10 hover:border-[#b5a642]/30 transition-colors">
+                        <div className="shrink-0 w-12 h-12 rounded-full bg-[#b5a642]/10 text-[#b5a642] flex items-center justify-center border border-[#b5a642]/20">
+                            <Sparkles size={20} />
+                        </div>
+                        <div>
+                             <h4 className="text-[#c9ccbb] font-bold text-sm uppercase tracking-wide mb-1">Coaching Modules</h4>
+                             <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
+                                Step-by-step masterclasses and audio guides. Move from quick fixes to deep, structural home calibration.
+                             </p>
+                        </div>
+                    </div>
+
+                 </div>
               </div>
               
-              <div className="mt-10 text-center">
+              <div className="mt-8 text-center">
                  <button 
                     onClick={onClose}
-                    className="px-8 py-3 bg-[#b5a642] text-[#1b270e] font-bold text-xs uppercase tracking-widest rounded-lg hover:bg-[#c4b550] transition-colors"
+                    className="px-10 py-3 bg-[#b5a642] text-[#1b270e] font-bold text-xs uppercase tracking-widest rounded-lg hover:bg-[#c4b550] transition-colors shadow-lg shadow-[#b5a642]/20"
                  >
                     Begin Calibration
                  </button>
