@@ -1,3 +1,6 @@
+export type TimeOfDay = 'morning' | 'afternoon' | 'evening'
+export type StressLevel = 'low' | 'medium' | 'high'
+
 export type SensoryAction = {
   type: 'light' | 'sound' | 'space' | 'somatic'
   label: string
@@ -6,23 +9,26 @@ export type SensoryAction = {
   toolLink?: string 
 }
 
-export type Protocol = {
+export type Ritual = {
   id: string
   name: string
   tagline: string
   description: string
   triggerCondition: string 
+  spotifyLink?: string // Added Audio Link
   steps: SensoryAction[]
 }
 
-export const PROTOCOLS: Record<string, Protocol> = {
-  // --- MORNING RECIPES ---
+export const RITUALS: Record<string, Ritual> = {
+  
+  // --- MORNING RHYTHMS (Morning Jazz) ---
   'morning-activation': {
     id: 'morning-activation',
-    name: 'Photon Anchor',
+    name: 'First Light Rhythm', // Replaced 'Photon Anchor'
     tagline: 'Master Your Morning: Activate Your Neuro-Hormonal Advantage.',
     description: "Your internal clock, the Suprachiasmatic Nucleus (SCN), is the CEO of your day. To unlock peak cognitive clarity and sustained energy, we must strategically signal the Cortisol Awakening Response (CAR): a natural neuro-hormonal surge that prepares your system for the demands ahead. You are designing your physiological launch sequence for optimal performance and resilience.",
     triggerCondition: 'Morning + Low Energy / Suboptimal Focus',
+    spotifyLink: 'https://open.spotify.com/playlist/37i9dQZF1DX71VcjjnyaBQ?si=e12650b962364f16', // Morning Jazz
     steps: [
       { 
         type: 'light', 
@@ -33,7 +39,7 @@ export const PROTOCOLS: Record<string, Protocol> = {
       { 
         type: 'space', 
         label: 'Open Boundaries: Expand Your Cognitive Horizon', 
-        instruction: "Open all curtains and blinds, and if possible, windows. This action maximises 'Visual Expansion', which reduces perceived confinement and cognitive load. By physically opening your space, you're signaling to your nervous system that the environment is adapting to you, fostering a sense of agency and clarity. You are creating an expansive mental and physical landscape for your day." 
+        instruction: "Open all curtains and blinds, and if possible, windows. This action maximises Visual Expansion, which reduces perceived confinement and cognitive load. By physically opening your space, you're signaling to your nervous system that the environment is adapting to you, fostering a sense of agency and clarity. You are creating an expansive mental and physical landscape for your day." 
       },
       { 
         type: 'somatic', 
@@ -44,10 +50,11 @@ export const PROTOCOLS: Record<string, Protocol> = {
   },
   'morning-calm': {
     id: 'morning-calm',
-    name: 'Optical Expansion',
+    name: 'First Light Rhythm', // Replaced 'Optical Expansion'
     tagline: 'Strategic Calm.',
     description: "When morning stress or anxiety takes hold, your amygdala—the brain's alarm system—can become overactive, narrowing your focus and creating a sense of threat. 'Optical Expansion' is your de-escalation protocol, leveraging the neuroscience of panoramic vision to signal safety to your nervous system. By consciously broadening your visual field and curating your sensory environment, you reclaim agency, down-regulate the amygdala, and transition from reactive anxiety to proactive calm.",
     triggerCondition: 'Morning + High Stress / Amygdala Over-activation',
+    spotifyLink: 'https://open.spotify.com/playlist/37i9dQZF1DX71VcjjnyaBQ?si=e12650b962364f16', // Morning Jazz
     steps: [
       { 
         type: 'space', 
@@ -68,13 +75,14 @@ export const PROTOCOLS: Record<string, Protocol> = {
     ]
   },
 
-  // --- AFTERNOON RECIPES ---
+  // --- AFTERNOON RHYTHMS (Meditation / Focus) ---
   'afternoon-reset': {
     id: 'afternoon-reset',
-    name: 'The NSDR Reset',
+    name: 'The Second Wind', // Replaced 'The NSDR Reset'
     tagline: 'Non-Sleep Deep Rest: Reboot Your Nervous System.',
     description: "The afternoon slump is a biological reality—a dip in circadian alertness. Pushing through with caffeine increases cortisol. Instead, we use Non-Sleep Deep Rest (NSDR) to simulate a sleep cycle in 10 minutes, clearing adenosine and restoring dopamine levels for a second wind of cognitive output.",
     triggerCondition: 'Afternoon + High Stress / Fatigue',
+    spotifyLink: 'https://insig.ht/sfhwepBFH0b', // Peaceful Meditation
     steps: [
       { 
         type: 'somatic', 
@@ -85,8 +93,8 @@ export const PROTOCOLS: Record<string, Protocol> = {
       { 
         type: 'sound', 
         label: 'Audio Guide: NSDR Protocol', 
-        instruction: "Listen to a specific NSDR or Yoga Nidra track. This guides your brainwaves from Beta (active) to Alpha/Theta (dreamlike), allowing for rapid neuroplasticity and recovery without the grogginess of a nap.", 
-        toolLink: 'https://www.youtube.com/watch?v=pL02HRFk2vo' 
+        instruction: "Listen to a specific NSDR, Vipassana or Yoga Nidra track. This guides your brainwaves from Beta (active) to Alpha/Theta (dreamlike), allowing for rapid neuroplasticity and recovery without the grogginess of a nap.", 
+        toolLink: 'https://insig.ht/J3T6sFJFH0b' 
       },
       { 
         type: 'light', 
@@ -97,10 +105,11 @@ export const PROTOCOLS: Record<string, Protocol> = {
   },
   'afternoon-focus': {
     id: 'afternoon-focus',
-    name: 'Ultradian Sprint',
+    name: 'The Second Wind', // Replaced 'Ultradian Sprint'
     tagline: 'Capture Your Second Peak.',
     description: "Your brain operates in 90-minute ultradian cycles. To trigger a second peak of focus in the afternoon, we need to heighten alertness slightly without spiking anxiety. We use sound and breath to sharpen the prefrontal cortex.",
     triggerCondition: 'Afternoon + Low Stress / Focus Block',
+    spotifyLink: 'https://open.spotify.com/playlist/14KtkIpsvzDSCXR24EqHCL?si=c83b5de7305f4aea', // Deep Focus
     steps: [
       { 
         type: 'sound', 
@@ -122,13 +131,14 @@ export const PROTOCOLS: Record<string, Protocol> = {
     ]
   },
   
-  // --- EVENING RECIPES ---
+  // --- EVENING RHYTHMS (Evening Jazz) ---
   'evening-taper': {
     id: 'evening-taper',
-    name: 'Sunset Taper',
+    name: 'The Descent', // Replaced 'Sunset Taper'
     tagline: 'Engineer Your Evening for Deep Restoration.',
     description: "As the day concludes, your nervous system craves a deliberate transition, not a chaotic crash. You are actively engineering your internal environment for sleep onset, depth, and quality. We're moving beyond hoping for rest to designing your recovery, ensuring your body and mind are primed for optimal restoration and resilience.",
     triggerCondition: 'Evening + Normal / Proactive Sleep Preparation',
+    spotifyLink: 'https://open.spotify.com/playlist/37i9dQZF1DXa1rZf8gLhyz?si=1ca7ede5762c4362', // Late Night Jazz
     steps: [
       { 
         type: 'light', 
@@ -150,10 +160,11 @@ export const PROTOCOLS: Record<string, Protocol> = {
   },
   'evening-shelter': {
     id: 'evening-shelter',
-    name: 'Shelter Protocol',
+    name: 'The Descent', // Replaced 'Shelter Protocol'
     tagline: 'Emergency Reset: Reclaim Calm from Overwhelm.',
-    description: "When the day's demands leave your nervous system 'wired and stressed' and your amygdala is stuck in overdrive, the natural descent into restorative sleep feels impossible. You are leveraging environmental and somatic signals to de-escalate acute stress, reclaim your internal agency, and initiate profound recovery when you need it most.",
+    description: "When the day's demands leave your nervous system wired and stressed and your amygdala is stuck in overdrive, the natural descent into restorative sleep feels impossible. You are leveraging environmental and somatic signals to de-escalate acute stress, reclaim your internal agency, and initiate profound recovery when you need it most.",
     triggerCondition: 'Evening + High Stress / Amygdala Over-activation',
+    spotifyLink: 'https://app.declutterthemind.com/?meditation=1667765819764x345910268725559300', // Late Night Jazz
     steps: [
       { 
         type: 'light', 
