@@ -115,7 +115,7 @@ export const RITUALS: Record<string, Ritual> = {
         type: 'sound', 
         label: 'Binaural Beats: 40Hz Gamma', 
         instruction: "Use headphones to listen to 40Hz Gamma waves. This frequency is associated with high-level cognitive synthesis and problem-solving, acting as an 'audio caffeine' without the jitters.", 
-        toolLink: '/tools/soundscapes' 
+        toolLink: 'https://insig.ht/l0UVsTfHH0b' 
       },
       { 
         type: 'somatic', 
@@ -168,14 +168,14 @@ export const RITUALS: Record<string, Ritual> = {
     steps: [
       { 
         type: 'light', 
-        label: 'Blackout Mode: Absolute Darkness Protocol', 
+        label: 'Blackout Mode: Absolute Darkness Mode', 
         instruction: "Turn off ALL artificial lights. Use only true blackout curtains. If any light is necessary, use candlelight in heat-safe containers or a dedicated amber-only nightlight. You are creating absolute darkness to maximise melatonin release and signal to your brain that it is time to cease vigilance and initiate deep physiological repair. Every photon is a signal; in this mode, the signal is 'safe to rest'.", 
       },
       { 
         type: 'sound', 
         label: 'Brown Noise: The Auditory Anchor', 
         instruction: "Play Brown Noise at a consistent, low volume. Unlike silence, which can make internal sounds (like heartbeats) more prominent and trigger anxiety, Brown Noise provides a deep, continuous, and non-threatening auditory anchor. It effectively masks sudden, jarring sounds that could trigger a startle response, allowing your amygdala to stand down and your nervous system to find a state of sustained calm.", 
-        toolLink: '/tools/noise-meter'
+        toolLink: 'https://insig.ht/ZPJaIBnHH0b'
       },
       { 
         type: 'somatic', 
