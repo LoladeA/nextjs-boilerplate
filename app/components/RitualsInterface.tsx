@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { determineProtocol, mapScoreToStress, getCurrentTimeOfDay } from '../lib/sensory-logic'
-import { Clock, ExternalLink, ChevronDown, ChevronUp, Zap } from 'lucide-react'
+import { Clock, ExternalLink, ChevronDown, ChevronUp, Zap, Check, CheckCircle2 } from 'lucide-react'
 import Link from 'next/link'
 
 interface Props {
@@ -14,7 +14,8 @@ export default function RitualsInterface({ neuroLoadScore }: Props) {
   // 1. State
   const [timeOfDay, setTimeOfDay] = useState<'morning'|'afternoon'|'evening'>('morning')
   const [mounted, setMounted] = useState(false)
-  const [isOpen, setIsOpen] = useState(false) // Default to closed (clutter-free)
+  const [isOpen, setIsOpen] = useState(false) 
+  const [completedSteps, setCompletedSteps] = useState<number[]>([]) // Tracks checked items
 
   useEffect(() => {
     setMounted(true)
@@ -24,6 +25,19 @@ export default function RitualsInterface({ neuroLoadScore }: Props) {
   // 2. Logic Connection
   const stressLevel = mapScoreToStress(neuroLoadScore)
   const activeProtocol = determineProtocol(timeOfDay, stressLevel)
+
+  // 3. Interaction Handler
+  const toggleStep = (index: number) => {
+    setCompletedSteps(prev => 
+      prev.includes(index) 
+        ? prev.filter(i => i !== index) // Uncheck
+        : [...prev, index]              // Check
+    )
+  }
+
+  // 4. Progress Calculation
+  const progress = Math.round((completedSteps.length / activeProtocol.steps.length) * 100)
+  const isComplete = progress === 100
 
   if (!mounted) return null
 
@@ -54,15 +68,17 @@ export default function RitualsInterface({ neuroLoadScore }: Props) {
                 
                 {/* Left: Identity */}
                 <div className="flex items-center gap-6">
-                    {/* Icon Circle */}
+                    {/* Icon Circle (Changes to Check when 100% complete) */}
                     <div className={`
-                        shrink-0 w-12 h-12 rounded-full flex items-center justify-center border transition-colors
-                        ${isOpen 
-                            ? 'bg-[#b5a642] text-[#1b270e] border-[#b5a642]' 
-                            : 'bg-[#b5a642]/10 text-[#b5a642] border-[#b5a642]/20 group-hover:border-[#b5a642]'
+                        shrink-0 w-12 h-12 rounded-full flex items-center justify-center border transition-all duration-500
+                        ${isComplete && !isOpen
+                            ? 'bg-[#b5a642] text-[#1b270e] border-[#b5a642] scale-110' // Celebration State
+                            : isOpen 
+                                ? 'bg-[#b5a642] text-[#1b270e] border-[#b5a642]' 
+                                : 'bg-[#b5a642]/10 text-[#b5a642] border-[#b5a642]/20 group-hover:border-[#b5a642]'
                         }
                     `}>
-                        {isOpen ? <ChevronUp size={24} /> : <Zap size={24} />}
+                        {isComplete && !isOpen ? <Check size={24} strokeWidth={3} /> : isOpen ? <ChevronUp size={24} /> : <Zap size={24} />}
                     </div>
 
                     <div>
@@ -72,11 +88,16 @@ export default function RitualsInterface({ neuroLoadScore }: Props) {
                              }`}>
                                 {timeOfDay} Ritual
                             </span>
-                            <span className="text-[#c9ccbb]/40 text-[10px] uppercase tracking-widest hidden md:inline-block">
-                                • Status: {stressLevel} Load
-                            </span>
+                            {/* Progress Indicator (Visible when closed) */}
+                            {!isOpen && completedSteps.length > 0 && (
+                                <span className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest">
+                                    {progress}% Complete
+                                </span>
+                            )}
                         </div>
-                        <h2 className={`font-serif text-2xl md:text-3xl transition-colors ${isOpen ? 'text-[#c9ccbb]' : 'text-[#c9ccbb]/80 group-hover:text-[#c9ccbb]'}`}>
+                        <h2 className={`font-serif text-2xl md:text-3xl transition-colors ${
+                            isOpen ? 'text-[#c9ccbb]' : 'text-[#c9ccbb]/80 group-hover:text-[#c9ccbb]'
+                        }`}>
                             {activeProtocol.name}
                         </h2>
                     </div>
@@ -84,8 +105,8 @@ export default function RitualsInterface({ neuroLoadScore }: Props) {
 
                 {/* Right: Tagline or Chevron */}
                 <div className="flex items-center gap-4 pl-16 md:pl-0">
-                     <p className="text-[#b5a642] text-xs font-bold uppercase tracking-widest hidden md:block text-right">
-                        {isOpen ? "Active Protocol" : "Tap to Expand"}
+                     <p className="text-[#b5a642] text-xs font-bold uppercase tracking-widest hidden md:block text-right transition-all">
+                        {isComplete ? "Protocol Complete" : isOpen ? "Active Protocol" : "Tap to Expand"}
                      </p>
                      <ChevronDown 
                         size={20} 
@@ -103,7 +124,7 @@ export default function RitualsInterface({ neuroLoadScore }: Props) {
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.4, ease: "easeInOut" }}
                     >
-                        <div className="px-6 md:px-8 pb-8 pt-0 relative z-10 border-t border-[#b5a642]/10 mt-2">
+                        <div className="px-6 md:px-8 pb-8 pt-0 relative z-10 border-t border-[#b5a642]/10 mt-2 cursor-default" onClick={(e) => e.stopPropagation()}>
                             
                             {/* Description */}
                             <div className="py-6">
@@ -115,40 +136,60 @@ export default function RitualsInterface({ neuroLoadScore }: Props) {
                                 </p>
                             </div>
                             
-                            {/* Steps Grid */}
+                            {/* INTERACTIVE STEPS GRID */}
                             <div className="grid grid-cols-1 gap-3">
-                                {activeProtocol.steps.map((step, i) => (
-                                    <div key={i} className="flex gap-4 p-4 rounded-xl bg-[#c9ccbb]/5 border border-[#b5a642]/10 hover:border-[#b5a642]/30 transition-colors">
-                                        <div className="shrink-0 w-6 h-6 rounded-full bg-[#b5a642]/10 text-[#b5a642] flex items-center justify-center font-serif text-xs font-bold border border-[#b5a642]/20 mt-0.5">
-                                            {i + 1}
-                                        </div>
-                                        
-                                        <div className="space-y-1 w-full">
-                                            <div className="flex justify-between items-start">
-                                                <h4 className="text-[#c9ccbb] font-bold text-sm uppercase tracking-wide">
-                                                    {step.label}
-                                                </h4>
-                                                <div className="flex gap-2">
-                                                    {step.duration && (
-                                                        <span className="flex items-center gap-1 text-[10px] text-[#b5a642] uppercase font-bold bg-[#b5a642]/10 px-2 py-0.5 rounded border border-[#b5a642]/20">
-                                                            <Clock size={10} /> {step.duration}
-                                                        </span>
-                                                    )}
-                                                    {step.toolLink && (
-                                                        <Link href={step.toolLink} onClick={(e) => e.stopPropagation()}>
-                                                            <span className="flex items-center gap-1 text-[10px] text-[#c9ccbb]/60 hover:text-[#b5a642] uppercase font-bold border border-[#c9ccbb]/20 hover:border-[#b5a642] px-2 py-0.5 rounded transition-colors cursor-pointer">
-                                                                <ExternalLink size={10} /> Tool
-                                                            </span>
-                                                        </Link>
-                                                    )}
-                                                </div>
+                                {activeProtocol.steps.map((step, i) => {
+                                    const isChecked = completedSteps.includes(i)
+                                    return (
+                                        <div 
+                                            key={i} 
+                                            onClick={() => toggleStep(i)}
+                                            className={`
+                                                flex gap-4 p-4 rounded-xl border transition-all cursor-pointer group/step select-none
+                                                ${isChecked 
+                                                    ? 'bg-[#1b270e] border-[#b5a642]/10 opacity-60 hover:opacity-100' // Checked State
+                                                    : 'bg-[#c9ccbb]/5 border-[#b5a642]/10 hover:border-[#b5a642]/40 hover:bg-[#c9ccbb]/10' // Active State
+                                                }
+                                            `}
+                                        >
+                                            {/* Checkbox / Number */}
+                                            <div className={`
+                                                shrink-0 w-6 h-6 rounded-full flex items-center justify-center font-serif text-xs font-bold border mt-0.5 transition-all
+                                                ${isChecked 
+                                                    ? 'bg-[#b5a642] text-[#1b270e] border-[#b5a642]' 
+                                                    : 'bg-[#b5a642]/10 text-[#b5a642] border-[#b5a642]/20 group-hover/step:border-[#b5a642]'
+                                                }
+                                            `}>
+                                                {isChecked ? <Check size={14} strokeWidth={3} /> : i + 1}
                                             </div>
-                                            <p className="text-[#c9ccbb]/70 text-sm leading-relaxed">
-                                                {step.instruction}
-                                            </p>
+                                            
+                                            <div className="space-y-1 w-full">
+                                                <div className="flex justify-between items-start">
+                                                    <h4 className={`font-bold text-sm uppercase tracking-wide transition-colors ${isChecked ? 'text-[#c9ccbb]/40 line-through decoration-[#b5a642]/50' : 'text-[#c9ccbb]'}`}>
+                                                        {step.label}
+                                                    </h4>
+                                                    <div className="flex gap-2">
+                                                        {step.duration && (
+                                                            <span className={`flex items-center gap-1 text-[10px] uppercase font-bold px-2 py-0.5 rounded border transition-colors ${isChecked ? 'text-[#c9ccbb]/30 border-[#c9ccbb]/10' : 'text-[#b5a642] bg-[#b5a642]/10 border-[#b5a642]/20'}`}>
+                                                                <Clock size={10} /> {step.duration}
+                                                            </span>
+                                                        )}
+                                                        {step.toolLink && (
+                                                            <Link href={step.toolLink} onClick={(e) => e.stopPropagation()}>
+                                                                <span className={`flex items-center gap-1 text-[10px] uppercase font-bold border px-2 py-0.5 rounded transition-colors cursor-pointer ${isChecked ? 'text-[#c9ccbb]/30 border-[#c9ccbb]/10' : 'text-[#c9ccbb]/60 hover:text-[#b5a642] border-[#c9ccbb]/20 hover:border-[#b5a642]'}`}>
+                                                                    <ExternalLink size={10} /> Tool
+                                                                </span>
+                                                            </Link>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <p className={`text-sm leading-relaxed transition-colors ${isChecked ? 'text-[#c9ccbb]/30' : 'text-[#c9ccbb]/70'}`}>
+                                                    {step.instruction}
+                                                </p>
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    )
+                                })}
                             </div>
 
                             {/* Collapse Button (Bottom) */}
@@ -156,7 +197,7 @@ export default function RitualsInterface({ neuroLoadScore }: Props) {
                                 onClick={(e) => { e.stopPropagation(); setIsOpen(false); }}
                                 className="w-full mt-6 py-3 border border-[#c9ccbb]/10 text-[#c9ccbb]/40 hover:text-[#b5a642] hover:border-[#b5a642]/30 text-[10px] font-bold uppercase tracking-widest rounded-xl transition-all"
                             >
-                                Close Protocol
+                                {isComplete ? "Complete Ritual" : "Close Protocol"}
                             </button>
                         </div>
                     </motion.div>
