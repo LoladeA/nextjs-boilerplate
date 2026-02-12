@@ -67,7 +67,7 @@ export const neuroInsights: NeuroInsight[] = [
     category: "Circadian Integrity",
     title: "Circadian Misalignment",
     free: {
-      sciencefact: "Light is the primary regulator of your internal clock. Bright light at night or insufficient morning light disrupts melatonin production and hormonal balance, which impacts energy rhythms and sleep timing.",
+      sciencefact: "Light is the primary regulator of your internal clock. Bright light at night or insufficient morning light disrupts melatonin production and hormonal balance.",
       whyitmatters: "Misaligned light cues keep the body alert when it should be winding down, and vice versa."
     },
     paid: {
@@ -118,7 +118,7 @@ export const neuroInsights: NeuroInsight[] = [
     },
     paid: {
       protocol: "Spatial Order Protocol",
-      primaryadjustment: "Establish clear visual pathways, consistent lighting anchors and establish one clear focal anchor in each main room (e.g., art, plant, architectural feature).",
+      primaryadjustment: "Establish clear visual pathways, consistent lighting anchors and establish one clear focal anchor in each main room.",
       refinement: [
         "Clear all walkways of obstacles.",
         "Align lighting so the brightest point supports the primary function of the room.",
@@ -146,7 +146,7 @@ export const neuroInsights: NeuroInsight[] = [
         "Ensure at least two temperature-adjustable layers in sleep and work zones (e.g., light blanket + weighted layer).",
         "Use breathable, natural fibers for contact points.",
         "Ensure airflow can be directed manually.",
-        "If HVAC control is limited, create micro-climates using localised air movement (desk fan, heated footrest)."
+        "If HVAC control is limited, create micro-climates using localised air movement."
       ],
       whyitWorks: "Immediate thermal agency reduces the panic response associated with physical discomfort.",
       integrationcue: "You stop constantly adjusting clothing or shifting position to regulate comfort."
@@ -197,7 +197,7 @@ export const neuroInsights: NeuroInsight[] = [
       whyitWorks: "Identity alignment signals safety to the social engagement system (Vagus Nerve).",
       integrationcue: "You will feel more at home and regulated in your own home."
     }
-  }
+  },
 
   // --- CARD 9: ENTRYWAY DYNAMICS ---
   {
@@ -394,18 +394,17 @@ export const neuroInsights: NeuroInsight[] = [
     category: "Workflow Friction",
     title: "The Kitchen Triangle",
     free: {
-      sciencefact: "When core tasks require inefficient movement patterns, the brain must actively plan each step instead of relying on automatic motor memory. This turns cooking from a flow state into a cognitive task.",
-      whyitmatters: "our body is designed to move on autopilot during familiar tasks. When it can’t, your brain stays switched on. That low-grade activation turns a regulating ritual into something that quietly exhausts you."
-  },
+      sciencefact: "Illogical spatial sequencing forces the brain to constantly engage in 'Motor Planning,' rather than relying on muscle memory. This turns cooking from a flow state into a cognitive task.",
+      whyitmatters: "Do you feel physically clumsy or obstructed when moving between the sink, stove, and fridge?"
+    },
     paid: {
       protocol: "NeuroDesign Protocol",
-      primaryadjustment: "Establish an unobstructed Work Triangle: a clear, unobstructed path between sink, stove, and fridge. Ensure the path between major appliances is clear of islands or bin placements.",
+      primaryadjustment: "Establish an unobstructed 'Work Triangle.' Ensure the path between major appliances is clear of islands or bin placements.",
       refinement: [
-        "Ensure no bins, stools, or islands interrupt the triangle."
-        "Keep frequently used utensils within one arm’s reach of each primary appliance."
+        "Tool: Use the Flow Mapper to trace your cooking path."
       ],
-      whyitWorks: "When movement becomes automatic, cognitive load drops and rhythm returns.",
-      integrationcue: "Cooking feels smoother. You stop bumping into objects or second-guessing your steps."
+      whyitWorks: "Reduces micro-decisions during task execution.",
+      integrationcue: "Movement becomes automatic and rhythmic."
     }
   },
 
@@ -416,16 +415,16 @@ export const neuroInsights: NeuroInsight[] = [
     title: "The 'Command Position'",
     free: {
       sciencefact: "Evolutionarily, humans feel safest when they have a view of the entry point without being directly in line with it. This satisfies the 'Prospect and Refuge' instinct.",
-      whyitmatters: "If you cannot see who might enter, your nervous system stays half-alert. If you sit directly in the path of entry, you feel exposed. Both reduce ease."
+      whyitmatters: "Do you feel a subtle unease or need to constantly turn your head when sitting at your desk or sofa?"
     },
     paid: {
       protocol: "NeuroDesign Protocol",
       primaryadjustment: "Position primary seating (bed, desk, sofa) so you can see the door without turning, but are not directly in the doorway's path.",
       refinement: [
-        "Avoid sitting directly in line with the doorway. Create slight diagonal positioning if possible."
+        "Tool: Consultation Trigger: Structural layout constraints."
       ],
-      whyitWorks: "Visibility without exposure satisfies your brain’s safety-mapping instinct.",
-      integrationcue: "You stop scanning the room for movement and settle faster into rest or focus."
+      whyitWorks: "Visual control of the entry lowers background amygdala activation.",
+      integrationcue: "You feel physically settled without needing to scan the room."
     }
   },
 
@@ -436,16 +435,16 @@ export const neuroInsights: NeuroInsight[] = [
     title: "Door Swing Conflict",
     free: {
       sciencefact: "Doors that open into high-traffic paths or block cabinetry create 'Micro-Frictions'—tiny moments of hesitation that accumulate into frustration.",
-      whyitmatters: "Every time you dance around objects, your body registers obstruction. Small friction, repeated daily, becomes irritation."
+      whyitmatters: "Do you have to 'dance' around a door to access a cupboard or enter a room?"
     },
     paid: {
       protocol: "NeuroDesign Protocol",
-      primaryadjustment: "Rehang doors to swing against a wall (opening the view).",
+      primaryadjustment: "Rehang doors to swing against a wall (opening the view) or install sliding pocket doors in tight corridors.",
       refinement: [
-        "In narrow corridors, consider sliding or pocket alternatives. Ensure full clearance when doors are open."
+        "Tool: Use the Flow Mapper to identify swing conflicts."
       ],
       whyitWorks: "Eliminating physical barriers creates a sense of spatial fluidity.",
-      integrationcue: "Transitions between rooms feel fluid instead of awkward."
+      integrationcue: "Navigation feels effortless and unobstructed."
     }
   },
 
@@ -456,13 +455,13 @@ export const neuroInsights: NeuroInsight[] = [
     title: "The 'Dead Corner' Stagnation",
     free: {
       sciencefact: "Undefined spaces accumulate entropy (clutter). The brain reads these stagnant areas as 'unresolved,' keeping a background tab open.",
-      whyitmatters: "An unresolved corner keeps a subtle mental tab open. Even when you ignore it, your brain does not."
+      whyitmatters: "Is there a corner of your room that collects piles of items simply because it has no clear purpose?"
     },
     paid: {
       protocol: "NeuroDesign Protocol",
-      primaryadjustment: "Assign a specific function (a plant, a floor lamp) or leave it intentionally, flawlessly empty. Do not use it for random storage.",
+      primaryadjustment: "Assign a specific function (a plant, a floor lamp) or leave it intentionally, flawlessly empty. Do not use it for storage.",
       refinement: [
-        "Assign every corner a clear role or leave it intentionally empty."
+        "Tool: Rate your 'Visual Clarity'."
       ],
       whyitWorks: "Defining space closes the cognitive loop of 'what goes here?'",
       integrationcue: "The room feels complete rather than unfinished."
@@ -476,15 +475,15 @@ export const neuroInsights: NeuroInsight[] = [
     title: "Hallway Compression",
     free: {
       sciencefact: "Narrow corridors invade 'Peripersonal Space,' triggering a subconscious defensive posture (hunched shoulders) as you traverse them.",
-      whyitmatters: "Your nervous system interprets compression as mild threat. You feel the need to speed up or hold your breath when walking through a cramped hallway."
+      whyitmatters: "Do you feel the need to speed up or hold your breath when walking through your hallway?"
     },
     paid: {
       protocol: "NeuroDesign Protocol",
-      primaryadjustment: "Maintain a minimum 1-metre clearance.",
+      primaryadjustment: "Maintain a minimum 1-metre clearance. Remove console tables or hooks if the width falls below this threshold.",
       refinement: [
-        "Remove console tables or hooks if the width falls below this threshold."
+        "Tool: Log your 'Movement Ease'."
       ],
-      whyitWorks: "Adequate clearance signals physical safety to the brain stem, restores natural arm swing and relaxed posture.",
+      whyitWorks: "Adequate clearance signals physical safety to the brain stem.",
       integrationcue: "You walk through the hall with relaxed shoulders."
     }
   },
@@ -493,20 +492,19 @@ export const neuroInsights: NeuroInsight[] = [
   {
     id: 23,
     category: "Spatial Volume",
-    title: "Vertical Oppression (low ceilings)",
+    title: "Vertical Oppression",
     free: {
       sciencefact: "Low vertical boundaries correlate with confined, analytical thinking, whereas height promotes abstraction and relational thinking.",
-      whyitmatters: "Rooms with unnaturally low ceilings (under 2.5m) feel claustrophobic and reduce perceived psychological freedom"
+      whyitmatters: "Does the room feel like it is 'pressing down' on you, making deep breathing difficult?"
     },
     paid: {
       protocol: "NeuroDesign Protocol",
       primaryadjustment: "Install curtain tracks directly at the ceiling line (not the window frame) to visually elongate the wall height.",
       refinement: [
-        "Use vertical lines, tall mirrors, or upward-facing lighting to visually extend height.",
-        "Lighter ceilings create a sense of height, Perimeter lighting and lit shadow gaps also create a sense of expansion."
+        "Tool: Use the Visual Noise Filter."
       ],
       whyitWorks: "Drawing the eye upward creates a perception of volume and breath.",
-      integrationcue: "You intuitively take deeper breaths in the room. The room feels less compressive."
+      integrationcue: "You intuitively take deeper breaths in the room."
     }
   },
 
@@ -517,13 +515,14 @@ export const neuroInsights: NeuroInsight[] = [
     title: "Fractal Fluency",
     free: {
       sciencefact: "The human eye is designed to process natural, self-repeating patterns (fractals). Looking at wood grain or stone reduces physiological stress by up to 60%.",
-      whyitmatters: "Homes that feel flat or plastic lack the visual complexity the brain finds familiar."
+      whyitmatters: "Does your home feel 'flat' or 'plastic,' lacking the visual texture that holds your gaze?"
     },
     paid: {
       protocol: "NeuroDesign Protocol",
       primaryadjustment: "Introduce high-fidelity natural textures (unpainted wood, marble, wool) into your immediate sightline.",
       refinement: [
-        "Avoid repetitive, synthetic, geometric wallpapers."
+        "Avoid repetitive geometric wallpapers.",
+        "Tool: Log 'Minutes of Nature Exposure' in the Biophilic Tracker."
       ],
       whyitWorks: "Fractal patterns engage the visual cortex effortlessly (Alpha state).",
       integrationcue: "Your gaze lingers on surfaces without fatigue."
@@ -537,13 +536,13 @@ export const neuroInsights: NeuroInsight[] = [
     title: "Bilateral Symmetry",
     free: {
       sciencefact: "The brain processes symmetrical images faster than asymmetrical ones. This 'Processing Fluency' is interpreted as calmness and safety.",
-      whyitmatters: "Visual imbalance increases subtle cognitive effort. Symmetry feels stabilising."
+      whyitmatters: "Does your shelving or furniture arrangement feel 'lopsided,' creating a sense of visual imbalance?"
     },
     paid: {
       protocol: "NeuroDesign Protocol",
       primaryadjustment: "Frame a focal point (e.g., a bed or fireplace) with matching pairs (lamps, side tables) to signal stability.",
       refinement: [
-        "Use balanced lighting or furniture alignment to create visual stability around beds, sofas, or fireplaces."
+        "Tool: Rate your 'Visual Calm' score."
       ],
       whyitWorks: "Symmetry reduces the computational load of processing the room.",
       integrationcue: "The room feels stable and grounded."
@@ -556,17 +555,17 @@ export const neuroInsights: NeuroInsight[] = [
     category: "Transition Zones",
     title: "The Threshold Pause",
     free: {
-      sciencefact: "Crossing a threshold (moving from one zone to another) requires a Context Switch.",
-      whyitmatters: "Without a transition zone, mood states bleed into other areas of your home without your brain getting a chance to recalibrate."
+      sciencefact: "Crossing a threshold requires a 'Context Switch.' Without a physical zone to decompress, external stress is carried into the sanctuary.",
+      whyitmatters: "Do you walk straight from the chaotic street into your living room without a moment to reset?"
     },
     paid: {
       protocol: "NeuroDesign Protocol",
-      primaryadjustment: "Create a 'Pause Point' (a bench or shelf) immediately inside the door to visually and emotionally transition between zones.'",
+      primaryadjustment: "Create a 'Pause Point' (a bench or shelf) immediately inside the door to physically separate 'Outside' from 'Inside.'",
       refinement: [
-        "Introduce light levels that can signal your transition from a high activity zone to low activity, and vice versa."
+        "Tool: Log your 'Entry Mood' in the Daily Check-in."
       ],
       whyitWorks: "Physical separation allows for psychological gear-shifting.",
-      integrationcue: "You will feel a distinct and intentional shift in mood states when transitioning between zones."
+      integrationcue: "You feel a distinct shift in energy upon entering."
     }
   },
 
@@ -576,16 +575,17 @@ export const neuroInsights: NeuroInsight[] = [
     category: "Ergonomics",
     title: "Ergonomic Reach Zones",
     free: {
-      sciencefact: "Repeated bending and overreaching causes repetitive strain injury and increases baseline stress levels.",
-      whyitmatters: "If retrieving daily items feels effortful, your brain categorises those tasks as costly"
+      sciencefact: "Frequent bending or over-reaching increases physical cortisol. 'Convenience' is biological energy conservation.",
+      whyitmatters: "Do you avoid using certain items because retrieving them feels like too much physical effort?"
     },
     paid: {
       protocol: "NeuroDesign Protocol",
       primaryadjustment: "Store daily-use items in the 'Golden Zone' (between waist and shoulder height). Relegate monthly items to high/low shelves.",
       refinement: [
-        "Use a step ladder for items that are relegated to infrequentt use."
+        "Tool: Complete the Zone Audit."
       ],
-      whyitWorks: "Reducing physical friction preserves energy for meaningful tasks.",
-      integrationcue: "You complete routine actions without hesitation or resistance."
+      whyitWorks: "Reducing physical friction lowers the activation energy for tasks.",
+      integrationcue: "Daily routines feel frictionless and light."
     }
   }
+]
