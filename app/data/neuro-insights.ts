@@ -587,7 +587,7 @@ export const neuroInsights: NeuroInsight[] = [
       whyitWorks: "Reducing physical friction lowers the activation energy for tasks.",
       integrationcue: "Daily routines feel frictionless and light."
     }
-  }
+  },
 
  // --- CARD 28: LIGHTING & CIRCADIAN ---
   {
