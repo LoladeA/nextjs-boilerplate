@@ -3,41 +3,18 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { FileText, Heart, Camera, Sparkles, Plus, PlayCircle, CheckCircle, Lock } from 'lucide-react' 
+import { FileText } from 'lucide-react' 
 
-import ActionCard from '../components/ActionCard'
 import SensoryTools from '../components/SensoryTools'
 import SensoryRadar from '../components/SensoryRadar'
 import NeuroFlashcard from '../components/NeuroFlashcard'
 import DashboardPulse from '../components/DashboardPulse' 
-import DebugSensoryLogic from '../components/DebugSensoryLogic' // <--- IMPORT THE BRAIN TESTER
+import RitualsInterface from '../components/RitualsInterface' 
 import { calculateNeuroLoad } from '../utils/scoring-engine' 
 import Sidebar from '../components/Sidebar'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
-
-// --- THE COACHING CURRICULUM ---
-const CURRICULUM = [
-  { 
-    slug: 'sensory-orientation', 
-    title: 'Week 0: Sensory Orientation', 
-    subtitle: 'Understanding your biological baseline.',
-    isPremium: false 
-  },
-  { 
-    slug: 'silent-conversation', 
-    title: 'Week 1: Silent Conversation', 
-    subtitle: 'Cognitive load & environmental vigilance.',
-    isPremium: true // LOCKED
-  },
-  { 
-    slug: 'light-as-signal', 
-    title: 'Week 2: Light as Signal', 
-    subtitle: 'Circadian rhythms and cortisol control.',
-    isPremium: true // LOCKED
-  }
-]
 
 export default async function Dashboard() {
   const cookieStore = cookies()
@@ -49,15 +26,13 @@ export default async function Dashboard() {
   const displayName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Member'
   
   // 1. FETCH DATA
-  const [responsesRes, logsRes, progressRes] = await Promise.all([
+  const [responsesRes, logsRes] = await Promise.all([
     supabase.from('user_responses').select('*').eq('user_id', user.id),
-    supabase.from('daily_logs').select('mood_score, date').eq('user_id', user.id).order('date', { ascending: false }).limit(7),
-    supabase.from('module_progress').select('module_slug').eq('user_id', user.id)
+    supabase.from('daily_logs').select('mood_score, date').eq('user_id', user.id).order('date', { ascending: false }).limit(7)
   ])
 
   const safeResponses = responsesRes.data || []
   const recentLogs = logsRes.data || []
-  const completedModules = (progressRes.data || []).map(r => r.module_slug)
 
   if (safeResponses.length === 0) redirect('/assessments/step0')
   
@@ -67,13 +42,6 @@ export default async function Dashboard() {
   const getVal = (id: string) => safeResponses.find(r => r.question_key === id)?.answer?.response || 0
   const circadianLoad = Number(getVal('q5')) + Number(getVal('q6')) + Number(getVal('q7')) + Number(getVal('q8')) + Number(getVal('q9'))
 
-  // 3. DETERMINE NEXT STEP & LOCK STATUS
-  const nextModule = CURRICULUM.find(m => !completedModules.includes(m.slug)) || CURRICULUM[CURRICULUM.length - 1]
-  const isAllComplete = completedModules.length === CURRICULUM.length
-  
-  const isLocked = nextModule.isPremium 
-  const targetLink = isLocked ? '/upgrade' : `/coaching/${nextModule.slug}`
-
   return (
     <div className="min-h-screen bg-[#1b270e] font-sans selection:bg-[#b5a642] selection:text-[#1b270e]">
       
@@ -81,14 +49,14 @@ export default async function Dashboard() {
 
       <div className="md:ml-64 min-h-screen p-6 md:p-12">
       
-        {/* HEADER */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-4">
+        {/* HEADER: GREETING */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
             <div className="relative w-64 h-16 mb-2">
               <Image src="/logo.PNG" alt="Sensory Intelligence" fill className="object-contain object-left" priority />
             </div>
-            <p className="text-[#c9ccbb]/70 font-light capitalize">
-              Welcome back, {displayName}.
+            <p className="text-[#c9ccbb]/80 font-light capitalize text-lg">
+              Welcome back, <span className="text-[#c9ccbb] font-normal">{displayName}</span>.
             </p>
           </div>
           <div className="flex gap-4">
@@ -96,30 +64,22 @@ export default async function Dashboard() {
               <FileText size={16} className="text-[#b5a642]" />
               View Report
             </Link>
-            <Link href="/assessments/step0" className="flex items-center gap-2 px-6 py-3 bg-[#c9ccbb] text-[#1b270e] hover:bg-[#e3e6d5] rounded-lg text-sm font-medium transition-colors shadow-lg shadow-[#000]/20">
-              <Plus size={16} />
-              Retake Assessment
-            </Link>
           </div>
         </div>
 
-        {/* --- BRAIN VERIFICATION (DEBUG PANEL) --- */}
-        {/* We drop the logic tester right here at the top */}
-        <DebugSensoryLogic />
-        {/* ---------------------------------------- */}
-
-        {/* --- SECTION 1: THE COCKPIT --- */}
+        {/* --- ROW 1: STATS (RHYTHM + SCORE) --- */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="md:col-span-2 glass-panel p-6 rounded-3xl relative overflow-hidden flex flex-col justify-between min-h-[220px]">
+            {/* RHYTHM */}
+            <div className="md:col-span-2 glass-panel p-6 rounded-3xl relative overflow-hidden flex flex-col justify-between min-h-[220px] border border-[#c9ccbb]/10">
                 <div className="relative z-10 flex justify-between items-start mb-4">
                     <div>
                         <h3 className="text-[#c9ccbb] font-serif text-xl">Nervous System Rhythm</h3>
-                        <p className="text-[#c9ccbb]/70 text-xs uppercase tracking-widest mt-1">Last 7 Days Trend</p>
+                        <p className="text-[#c9ccbb]/80 text-xs uppercase tracking-widest mt-1">Last 7 Days Trend</p>
                     </div>
                     {recentLogs.length > 0 && (
                          <div className="text-right">
-                             <div className="text-2xl font-serif text-[#c9ccbb]">{recentLogs[0].mood_score}<span className="text-sm text-[#c9ccbb]/70">/5</span></div>
-                             <div className="text-[10px] text-[#c9ccbb]/70 uppercase tracking-widest">Latest Log</div>
+                             <div className="text-2xl font-serif text-[#c9ccbb]">{recentLogs[0].mood_score}<span className="text-sm text-[#c9ccbb]/40">/5</span></div>
+                             <div className="text-[10px] text-[#c9ccbb]/80 uppercase tracking-widest">Latest Log</div>
                          </div>
                     )}
                 </div>
@@ -128,77 +88,34 @@ export default async function Dashboard() {
                 </div>
             </div>
 
+            {/* BASELINE SCORE */}
             <div className="glass-panel p-6 rounded-3xl flex flex-col justify-center items-center text-center relative overflow-hidden border-l-4 border-[#b5a642]">
                 <div className="relative z-10">
                     <div className="text-[10px] text-[#b5a642] font-bold uppercase tracking-widest mb-2">Current Baseline</div>
                     <div className="text-5xl font-serif text-[#c9ccbb] mb-2">{totalLoad}</div>
-                    <div className="text-sm text-[#c9ccbb]/70 mb-4">{systemState}</div>
-                    <div className="text-[10px] text-[#c9ccbb]/70 uppercase tracking-widest">NeuroLoad Score™</div>
+                    <div className="text-sm text-[#c9ccbb]/80 mb-4">{systemState}</div>
+                    <div className="text-[10px] text-[#c9ccbb]/80 uppercase tracking-widest">NeuroLoad Score™</div>
                 </div>
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-[#b5a642]/10 rounded-full blur-2xl" />
             </div>
         </div>
 
-        {/* --- SECTION 2: NEXT BEST STEP --- */}
-        <div className="mb-12">
-            <h3 className="text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
-                <Sparkles size={14} /> Recommended Action
-            </h3>
-            
-            <Link href={targetLink} className="block group">
-                <div className={`
-                    p-8 md:p-10 rounded-3xl border transition-all relative overflow-hidden
-                    ${isLocked 
-                        ? 'bg-gradient-to-br from-[#b5a642]/20 to-[#1b270e] border-[#b5a642]/40' 
-                        : 'glass-panel border-[#c9ccbb]/10 hover:border-[#b5a642]/50'
-                    }
-                `}>
-                    <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
-                        <div>
-                            <div className={`inline-flex items-center gap-2 px-3 py-1 rounded text-[10px] font-bold uppercase tracking-widest mb-4
-                                ${isLocked ? 'bg-[#b5a642] text-[#1b270e]' : 'bg-[#b5a642] text-[#1b270e]'}
-                            `}>
-                                {isAllComplete ? "Review" : isLocked ? "Locked Content" : "Up Next"}
-                            </div>
-                            <h2 className={`text-3xl md:text-4xl font-serif mb-2 transition-colors ${isLocked ? 'text-[#f0e6b5]' : 'text-[#c9ccbb] group-hover:text-[#b5a642]'}`}>
-                                {nextModule.title}
-                            </h2>
-                            <p className="text-[#c9ccbb]/70 text-lg max-w-xl">
-                                {nextModule.subtitle}
-                            </p>
-                        </div>
-                        
-                        <div className={`
-                            h-16 w-16 rounded-full flex items-center justify-center transition-all shrink-0
-                            ${isLocked 
-                                ? 'bg-[#b5a642]/20 text-[#b5a642] border border-[#b5a642]/50' 
-                                : 'bg-[#b5a642]/10 border border-[#b5a642]/20 text-[#b5a642] group-hover:scale-110 group-hover:bg-[#b5a642] group-hover:text-[#1b270e]'
-                            }
-                        `}>
-                            {isLocked ? <Lock size={28} /> : isAllComplete ? <CheckCircle size={32} /> : <PlayCircle size={32} />}
-                        </div>
-                    </div>
-                </div>
-            </Link>
-        </div>
-
-        {/* --- SECTION 3: INTELLIGENCE --- */}
+        {/* --- ROW 2: INTELLIGENCE (RADAR + FLASHCARD) --- */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-          <div className="lg:col-span-2 glass-panel p-8 rounded-3xl relative overflow-hidden">
+          {/* SENSORY PROFILE */}
+          <div className="lg:col-span-2 glass-panel p-8 rounded-3xl relative overflow-hidden border border-[#c9ccbb]/10">
             <div className="flex justify-between items-start mb-6">
               <div>
                 <h3 className="font-serif text-[#c9ccbb] text-xl mb-1">Your Sensory Profile</h3>
-                <p className="text-sm text-[#c9ccbb]/70">Circadian • Autonomic • Predictive • Sensory • Recovery</p>
+                <p className="text-sm text-[#c9ccbb]/80">Circadian • Autonomic • Predictive • Sensory • Recovery</p>
               </div>
-              <Link href="/assessments/report" className="text-xs text-[#b5a642] uppercase tracking-widest hover:text-[#c9ccbb] transition-colors">
-                Analyse Details →
-              </Link>
             </div>
             <div className="h-[300px] w-full">
               <SensoryRadar data={radarData} />
             </div>
           </div>
 
+          {/* SOMATIC INSIGHT */}
           <div className="h-full">
             <NeuroFlashcard 
               isPremium={false} 
@@ -211,39 +128,19 @@ export default async function Dashboard() {
           </div>
         </div>
 
-        {/* --- SECTION 4: TOOLKIT --- */}
+        {/* --- ROW 3: RITUALS (ACCORDION) --- */}
+        <div className="mb-8">
+             <RitualsInterface neuroLoadScore={totalLoad} />
+        </div>
+
+        {/* --- ROW 4: TOOLKIT --- */}
         <div className="mb-4">
-            <h3 className="text-[#c9ccbb]/40 text-xs font-bold uppercase tracking-widest mb-4">Toolkit</h3>
-            {/* The Light Meter Link is INSIDE this component */}
+            <h3 className="text-[#c9ccbb]/80 text-xs font-bold uppercase tracking-widest mb-6">Toolkit</h3>
             <SensoryTools />
         </div>
       
-        {/* BOTTOM ROW: Only 3 Items now (No Duplicate Light Logic) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-          <ActionCard 
-            title="Log Well-being" 
-            desc="Track your mood & focus." 
-            icon={<Heart size={32} />} 
-            href="/progress"  
-            delay={0.5} 
-          />
-          <ActionCard 
-            title="Document Space" 
-            desc="Upload photos to track changes." 
-            icon={<Camera size={32} />} 
-            href="/room-audit"  
-            delay={0.6} 
-          />
-          <ActionCard 
-            title="Sensory Coaching" 
-            desc="Full curriculum access." 
-            icon={<Sparkles size={32} />} 
-            href="/coaching" 
-            delay={0.7} 
-          />
-        </div>
-
       </div>
     </div>
   )
+}
 }
