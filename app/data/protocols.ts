@@ -68,6 +68,60 @@ export const PROTOCOLS: Record<string, Protocol> = {
     ]
   },
 
+  // --- AFTERNOON RECIPES ---
+  'afternoon-reset': {
+    id: 'afternoon-reset',
+    name: 'The NSDR Reset',
+    tagline: 'Non-Sleep Deep Rest: Reboot Your Nervous System.',
+    description: "The afternoon slump is a biological reality—a dip in circadian alertness. Pushing through with caffeine increases cortisol. Instead, we use Non-Sleep Deep Rest (NSDR) to simulate a sleep cycle in 10 minutes, clearing adenosine and restoring dopamine levels for a second wind of cognitive output.",
+    triggerCondition: 'Afternoon + High Stress / Fatigue',
+    steps: [
+      { 
+        type: 'somatic', 
+        label: 'Horizontal Grounding', 
+        instruction: "Lie down on your back (floor or sofa) with legs slightly elevated. This posture signals immediate safety to the brainstem and aids venous return, reducing physical fatigue.", 
+        duration: '10 min' 
+      },
+      { 
+        type: 'sound', 
+        label: 'Audio Guide: NSDR Protocol', 
+        instruction: "Listen to a specific NSDR or Yoga Nidra track. This guides your brainwaves from Beta (active) to Alpha/Theta (dreamlike), allowing for rapid neuroplasticity and recovery without the grogginess of a nap.", 
+        toolLink: 'https://www.youtube.com/watch?v=pL02HRFk2vo' 
+      },
+      { 
+        type: 'light', 
+        label: 'Visual Break', 
+        instruction: "Cover your eyes or dim the room significantly. Removing visual data processing frees up roughly 30% of your brain's energy for restoration." 
+      }
+    ]
+  },
+  'afternoon-focus': {
+    id: 'afternoon-focus',
+    name: 'Ultradian Sprint',
+    tagline: 'Capture Your Second Peak.',
+    description: "Your brain operates in 90-minute ultradian cycles. To trigger a second peak of focus in the afternoon, we need to heighten alertness slightly without spiking anxiety. We use sound and breath to sharpen the prefrontal cortex.",
+    triggerCondition: 'Afternoon + Low Stress / Focus Block',
+    steps: [
+      { 
+        type: 'sound', 
+        label: 'Binaural Beats: 40Hz Gamma', 
+        instruction: "Use headphones to listen to 40Hz Gamma waves. This frequency is associated with high-level cognitive synthesis and problem-solving, acting as an 'audio caffeine' without the jitters.", 
+        toolLink: '/tools/soundscapes' 
+      },
+      { 
+        type: 'somatic', 
+        label: 'Physiological Sigh', 
+        instruction: "Perform 5 rounds of the double-inhale, long-exhale breathing pattern. This mechanically pops open the alveoli in the lungs, offloading CO2 and sharpening alertness instantly.", 
+        duration: '1 min' 
+      },
+      { 
+        type: 'space', 
+        label: 'The ISO-Stand', 
+        instruction: "Switch to a standing position or change your seating location. Novel proprioceptive input wakes up the reticular activating system (RAS), preventing the lethargy of static posture." 
+      }
+    ]
+  },
+  
   // --- EVENING RECIPES ---
   'evening-taper': {
     id: 'evening-taper',
