@@ -1,47 +1,18 @@
-import { PROTOCOLS, Protocol } from '../data/protocols'
-
-type TimeOfDay = 'morning' | 'afternoon' | 'evening'
-type StressLevel = 'low' | 'medium' | 'high'
+// IMPORT: Notice we now import 'RITUALS' and 'Ritual' to match your new data file
+import { RITUALS, Ritual, TimeOfDay, StressLevel } from '../data/protocols'
 
 /**
- * THE SENSORY LOAD BALANCING ALGORITHM
- * Input: Time (Biological Clock) + Stress (Current State)
- * Output: The correct Protocol (Prescription)
+ * HELPER: Get current time of day automatically
  */
-export function determineProtocol(time: TimeOfDay, stress: StressLevel): Protocol {
-  
-  // --- EVENING LOGIC (The most critical window) ---
-  if (time === 'evening') {
-    // If stress is HIGH, we need the "Emergency Brake" (Shelter)
-    if (stress === 'high') {
-      return PROTOCOLS['evening-shelter']
-    }
-    // Otherwise, standard wind-down
-    return PROTOCOLS['evening-taper']
-  }
-
-  // --- MORNING LOGIC ---
-  if (time === 'morning') {
-    // If stress is HIGH, don't blast them with light yet. Calm them down first.
-    if (stress === 'high') {
-      return PROTOCOLS['morning-calm']
-    }
-    // If low/medium stress, wake them up!
-    return PROTOCOLS['morning-activation']
-  }
-
-  // --- AFTERNOON LOGIC ---
-  // High stress in the afternoon requires a reset.
-  if (stress === 'high') {
-    return PROTOCOLS['evening-shelter'] // Early restorative break
-  }
-  
-  return PROTOCOLS['evening-taper'] // Default gentle mode
+export function getCurrentTimeOfDay(): TimeOfDay {
+  const hour = new Date().getHours()
+  if (hour >= 5 && hour < 12) return 'morning'
+  if (hour >= 12 && hour < 17) return 'afternoon' // 12 PM - 5 PM
+  return 'evening'
 }
 
 /**
  * HELPER: Automates the "Stress" input based on the User's Assessment Score.
- * * Thresholds:
  * 0-35  = Low Load (Resilient)
  * 36-65 = Medium Load (Strained)
  * 66+   = High Load (Dysregulated)
@@ -53,12 +24,35 @@ export function mapScoreToStress(score: number): StressLevel {
 }
 
 /**
- * HELPER: Get current time of day automatically
+ * THE SENSORY LOAD BALANCING ALGORITHM
+ * Input: Time + Stress
+ * Output: The correct Ritual (Prescription)
  */
-export function getCurrentTimeOfDay(): TimeOfDay {
-  const hour = new Date().getHours()
+export function determineProtocol(time: TimeOfDay, stress: StressLevel): Ritual {
   
-  if (hour >= 5 && hour < 12) return 'morning'
-  if (hour >= 12 && hour < 17) return 'afternoon'
-  return 'evening'
+  // --- MORNING LOGIC ---
+  if (time === 'morning') {
+    // High Stress -> Needs Calm (First Light Rhythm: Optical Expansion)
+    if (stress === 'high') return RITUALS['morning-calm']
+    
+    // Low/Med Stress -> Needs Activation (First Light Rhythm: Photon Anchor)
+    return RITUALS['morning-activation']
+  }
+
+  // --- AFTERNOON LOGIC (NEW) ---
+  // We now have specific content for this, so we don't need to fallback to evening!
+  if (time === 'afternoon') {
+    // High Stress -> Needs Reset (The Second Wind: NSDR)
+    if (stress === 'high') return RITUALS['afternoon-reset']
+    
+    // Low/Med Stress -> Needs Focus (The Second Wind: Ultradian Sprint)
+    return RITUALS['afternoon-focus']
+  }
+
+  // --- EVENING LOGIC ---
+  // High Stress -> Needs Shelter (The Descent: Deep Pressure)
+  if (stress === 'high') return RITUALS['evening-shelter']
+  
+  // Normal -> Needs Taper (The Descent: Kelvin Drop)
+  return RITUALS['evening-taper']
 }
