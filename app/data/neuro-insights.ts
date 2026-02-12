@@ -580,12 +580,306 @@ export const neuroInsights: NeuroInsight[] = [
     },
     paid: {
       protocol: "NeuroDesign Protocol",
-      primaryadjustment: "Store daily-use items in the 'Golden Zone' (between waist and shoulder height). Relegate monthly items to high/low shelves.",
+      primaryadjustment: "Store daily-use items in the Golden Zone (between waist and shoulder height). Relegate monthly items to high/low shelves.",
       refinement: [
         "Tool: Complete the Zone Audit."
       ],
       whyitWorks: "Reducing physical friction lowers the activation energy for tasks.",
       integrationcue: "Daily routines feel frictionless and light."
+    }
+  }
+
+ // --- CARD 28: LIGHTING & CIRCADIAN ---
+  {
+    id: 28,
+    category: "Hormonal Regulation",
+    title: "Overhead Lighting & Cortisol",
+    free: {
+      sciencefact: "Overhead lighting mimics the angle of the sun at noon, signaling peak alertness to the brain and suppressing the body's natural wind-down mechanisms.",
+      whyitmatters: "High-angle lighting can trigger a subtle threat response, keeping your nervous system in survival mode during hours meant for recovery."
+    },
+    paid: {
+      protocol: "The Horizon Shift",
+      primaryadjustment: "After sunset, switch exclusively to floor and table lamps positioned below eye level.",
+      refinement: [
+        "Eliminate all Big Light (ceiling fixtures) in the 2 hours before bed.",
+        "Use warm-toned, low-wattage bulbs (2200K-2700K) to mimic the spectral quality and angle of a campfire."
+      ],
+      whyitWorks: "Lower-angle light stimulates the lower retina, which has a weaker connection to the SCN's alertness centers, allowing melatonin to rise naturally.",
+      integrationcue: "You experience a smoother transition into Rest & Digest mode and a lower evening agitation."
+    }
+  },
+
+  // --- CARD 29: SLEEP ARCHITECTURE ---
+  {
+    id: 29,
+    category: "Sleep Architecture",
+    title: "Spectrum Toxicity",
+    free: {
+      sciencefact: "Short-wavelength blue light (460-480nm) suppresses melatonin production twice as effectively as warm-spectrum light, delaying REM sleep onset.",
+      whyitmatters: "Exposure to cool white LEDs at night shortens your body's internal representation of night, leading to fragmented sleep."
+    },
+    paid: {
+      protocol: "The Amber Shield",
+      primaryadjustment: "Ensure all bedroom and bathroom bulbs are rated 2700K (Warm White) or lower.",
+      refinement: [
+        "Ideally, use 2000K (Amber) or red-spectrum bulbs for bedside reading and night-time bathroom visits.",
+        "Install blue-light filtering software or physical filters on all essential evening devices."
+      ],
+      whyitWorks: "Melatonin is highly sensitive to blue light; by shifting to the red/amber end of the spectrum, you allow the hormone of darkness to reach its peak concentration.",
+      integrationcue: "You will notice falling asleep faster and a significant increase in deep sleep duration."
+    }
+  },
+
+  // --- CARD 30: DAYTIME PERFORMANCE ---
+  {
+    id: 30,
+    category: "Daytime Performance",
+    title: "The Biological Darkness Gap",
+    free: {
+      sciencefact: "Most interiors are biologically dark (<300 lux) during the day, which fails to stimulate the brain's alertness centers, leading to chronic lethargy.",
+      whyitmatters: "The human brain evolved to operate under 10,000+ lux. Working in low-light caves erodes focus and mood."
+    },
+    paid: {
+      protocol: "Luminous Saturation",
+      primaryadjustment: "Position your primary work surface perpendicular to a window to maximise daylight intake.",
+      refinement: [
+        "Aim for >500 lux on your work surface during the day (measure with a light meter app).",
+        "If natural light is insufficient, supplement with high-CRI (90+) full-spectrum LED panels."
+      ],
+      whyitWorks: "High-intensity daytime light strengthens the circadian signal, improving both daytime vigilance and nighttime sleep quality.",
+      integrationcue: "You experience sustained cognitive energy throughout the afternoon and a reduced need for caffeine boosts."
+    }
+  },
+
+  // --- CARD 31: VISUAL STRESS ---
+  {
+    id: 31,
+    category: "Visual Stress",
+    title: "Glare & Headaches",
+    free: {
+      sciencefact: "High-contrast glare—a bright light source against a dark background—forces the pupil to constantly constrict and dilate, causing rapid eye muscle fatigue.",
+      whyitmatters: "This visual tug-of-war is a primary cause of afternoon headaches and reduced reading stamina."
+    },
+    paid: {
+      protocol: "The Diffusion Layer",
+      primaryadjustment: "Use shades, diffusers, or frosted glass on all light sources to eliminate naked bulbs from your line of sight.",
+      refinement: [
+        "Ensure the background wall behind a screen or lamp is also softly illuminated (Bias Lighting) to reduce contrast ratios.",
+        "Never allow a bare filament or direct sun-spot to hit reflective surfaces."
+      ],
+      whyitWorks: "Softening the light source reduces the luminance contrast, allowing the eye to maintain a stable aperture and reducing neural processing load.",
+      integrationcue: " You notice a significant drop in eye strain and a significant reduction or disappearance of tension headaches."
+    }
+  },
+
+  // --- CARD 32: SENSORY OVERLOAD ---
+  {
+    id: 32,
+    category: "Sensory Overload",
+    title: "The Flicker Effect",
+    free: {
+      sciencefact: "Many LED bulbs flicker at high frequencies (100Hz+) that are invisible to the eye but processed by the brain, triggering sensory overwhelm and migraines.",
+      whyitmatters: "This stroboscopic effect keeps the nervous system in a state of low-level micro-startle, eroding your focus and calm. You will feel inexplicably nauseous, spacy, or irritable under certain artificial lights."
+    },
+    paid: {
+      protocol: "The Flicker Audit",
+      primaryadjustment: "Replace all cheap LED bulbs with flicker-free or high-quality DC-driven LED sources.",
+      refinement: [
+        "The Phone Test: View your lights through your phone's slo-mo camera mode; if you see moving bands or strobing, the bulb is low-quality.",
+        "Prioritise flicker-free drivers for any dimmable lighting systems."
+      ],
+      whyitWorks: "Removing the high-frequency pulse reduces the sampling load on the visual cortex, allowing the nervous system to settle into a deeper state of focus.",
+      integrationcue: "You notice a quieting of your sensory environment and a reduction in unexplained fatigue at the end of the day."
+    }
+  },
+
+  // --- CARD 33: TRANSITION DESIGN ---
+  {
+    id: 33,
+    category: "Transition Design",
+    title: "Evening Tapering",
+    free: {
+      sciencefact: "Abruptly switching from Bright to Dark prevents the brain from transitioning. The nervous system requires a dusk simulation to down-regulate.",
+      whyitmatters: "Going to bed with a wired brain leads to sleep-onset insomnia and racing thoughts. This is often triggered when you stay in bright, daytime light until the moment you get into bed."
+    },
+    paid: {
+      protocol: "The 60-Minute Taper",
+      primaryadjustment: "Dim your lighting intensity by 50% exactly one hour before your target sleep time.",
+      refinement: [
+        "Automate this shift using smart bulbs to remove the decision fatigue of remembering to dim down.",
+        "Combine the dimming with a shift to warmer colour temperatures (1800K-2200K)."
+      ],
+      whyitWorks: "A gradual reduction in light mimics the natural setting of the sun, cueing the brain to transition from Alpha to Theta waves.",
+      integrationcue: "You find yourself naturally yawning and feeling ready for bed before your head hits the pillow."
+    }
+  },
+
+  // --- CARD 34: VISUAL NOISE ---
+  {
+    id: 34,
+    category: "Visual Noise",
+    title: "Reflective Surfaces",
+    free: {
+      sciencefact: "High-gloss floors or screens reflect overhead light directly into the eye, effectively doubling the visual stress load on the visual cortex.",
+      whyitmatters: "This specular glare creates visual noise that competes with your primary task for the brain's attention. This shows up as a shine or glint on your table or floor that makes it hard to focus on the objects resting on it."
+    },
+    paid: {
+      protocol: "Matte Optimisation",
+      primaryadjustment: "Use matte or low-sheen finishes for all primary work and focus surfaces.",
+      refinement: [
+        "Cover glossy surfaces with a felt pad or leather blotter to absorb light.",
+        "Angle screens to ensure windows or lamps aren't reflected in the glass (Bias Lighting can help here too)."
+      ],
+      whyitWorks: "Matte surfaces diffuse light, preventing high-intensity hot spots from hitting the retina and reducing the brain's sorting effort.",
+      integrationcue: "You notice a calmer visual field and an increased ability to maintain deep focus on reading or writing tasks."
+    }
+  },
+
+  // --- CARD 35: SLEEP PROTECTION ---
+  {
+    id: 35,
+    category: "Sleep Protection",
+    title: "Bedroom Blackout",
+    free: {
+      sciencefact: "Even trace amounts of light (street lamps, standby LEDs) can penetrate the eyelid and disrupt the transition into deep, restorative sleep cycles.",
+      whyitmatters: "light pollution in the bedroom prevents the brain from reaching the lowest levels of metabolic activity needed for detoxification. If you can you see your hand clearly in front of your face when the lights are out at night, your sleep onset will be affected."
+    },
+    paid: {
+      protocol: "Zero-Lux Sanctuary",
+      primaryadjustment: "Install blackout linings on curtains or use a high-quality silk eye mask to achieve near 0 lux.",
+      refinement: [
+        "Use blackout tape to cover standby LEDs on TVs, monitors, and chargers.",
+        "Ensure the bedroom door is sealed against hallway light leaks."
+      ],
+      whyitWorks: "Total darkness is the biological requirement for peak melatonin production and brain waste clearance (glymphatic system).",
+      integrationcue: "You wake up feeling actually refreshed and see an increase in your restoration score."
+    }
+  },
+
+  // --- CARD 36: PERFORMANCE LAUNCH ---
+  {
+    id: 36,
+    category: "Performance Launch",
+    title: "Morning Activation",
+    free: {
+      sciencefact: "The Cortisol Awakening Response (CAR) is triggered by light intensity hitting the retina, not just the act of waking up.",
+      whyitmatters: "Without a strong light signal, sleep inertia (that heavy grogginess) can persist for hours, eroding your morning productivity. This persists if you keep the curtains closed or stay in a dim room for the first hour of your day."
+    },
+    paid: {
+      protocol: "The Luminous Launch",
+      primaryadjustment: "Open all curtains and blinds immediately upon waking to flood the room with natural light.",
+      refinement: [
+        "In winter or low-light climates, use a 10,000 lux SAD lamp for 20 minutes while having breakfast.",
+        "Step outside for 2 minutes to get direct, unfiltered sky-light."
+      ],
+      whyitWorks: "High-intensity light (>1,000 lux) provides the hard reset for the circadian clock, firing the starting gun for your metabolic day.",
+      integrationcue: "ou notice morning grogginess disappearing within 15 minutes of waking and a sharper start to your first work block."
+    }
+  },
+
+  // --- CARD 37: AUDITORY STRESS ---
+  {
+    id: 37,
+    category: "Auditory Stress",
+    title: "The Startle Response",
+    free: {
+      sciencefact: "Unpredictable or sharp noises trigger the amygdala—the brain's threat-detection center—faster than any other sensory input.",
+      whyitmatters: "Constant micro-startles from traffic, sirens, or neighbors keep your nervous system in a state of low-level alertness, preventing deep focus and restoration. You may find yourself losing your train of thought every time a car passes or a door slams."
+    },
+    paid: {
+      protocol: "The Acoustic Buffer",
+      primaryadjustment: "Use a high-fidelity white or pink noise machine near windows or doors to mask unpredictable outdoor sounds.",
+      refinement: [
+        "Set the volume to just below the level of the intruding noise; the goal is masking, not competing.",
+        "Prioritise pink noise for focus; the brain finds it less fatiguing than pure white noise."
+      ],
+      whyitWorks: "Consistent background sound raises the auditory floor, making sudden peaks in noise less prominent.",
+      integrationcue: "You notice a steadier mental state during deep work and a significant reduction in mid-task interruptions."
+    }
+  },
+
+  // --- CARD 38: COGNITIVE LOAD ---
+  {
+    id: 38,
+    category: "Cognitive Load",
+    title: "The Echo Tax",
+    free: {
+      sciencefact: "In rooms with high reverberation (echo), the brain has to work significantly harder to de-noise speech, leading to rapid listening fatigue.",
+      whyitmatters: "Hard, reflective surfaces (glass, concrete, tile) bounce sound waves, creating a sonic smear that erodes your cognitive bandwidth. You will find it exhausting to have conversations in your home, and feel a sense of relief when you step into a carpeted room."
+    },
+    paid: {
+      protocol: "The Soft Surface Ratio",
+      primaryadjustment: "Ensure at least 25% of the room's hard surfaces are covered with sound-absorbent materials (rugs, heavy curtains, acoustic panels).",
+      refinement: [
+        "Position absorbent materials at ear level where sound waves are most likely to bounce.",
+        "Use open bookshelves or textured art to diffuse sound waves and break up echoes."
+      ],
+      whyitWorks: "Reducing the reverberation time (RT60) allows the brain to process sound signals clearly and immediately, freeing up working memory for higher-level thinking.",
+      integrationcue: "You notice you can stay in meetings longer without feeling drained and that your home feels quieter even when the volume is the same."
+    }
+  },
+
+  // --- CARD 39: BACKGROUND STRESS ---
+  {
+    id: 39,
+    category: "Background Stress",
+    title: "Intermittent Hums",
+    free: {
+      sciencefact: "Low-frequency hums from appliances create a background stress load that the brain processes subconsciously, even if you don't hear it.",
+      whyitmatters: "This constant auditory friction contributes to unexplained irritability and a lack of deep relaxation. You will feel a sudden, profound sense of peace when the fridge or air conditioner finally clicks off."
+    },
+    paid: {
+      protocol: "Vibration Isolation",
+      primaryadjustment: "Isolate noisy appliances behind closed doors or use vibration-dampening pads under them.",
+      refinement: [
+        "Move servers or loud computer towers to a different room or inside a ventilated cabinet.",
+        "dentify phantom hums (like old chargers or LED drivers) and replace them with silent alternatives."
+      ],
+      whyitWorks: "Removing low-frequency drones lowers your silence baseline, allowing your nervous system to fully rest.",
+      integrationcue: "You experience a deeper sense of settling when you enter your home and a higher  silence baseline score in your journal."
+    }
+  },
+
+  // --- CARD 40: PSYCHOLOGICAL SAFETY ---
+  {
+    id: 40,
+    category: "Psychological Safety",
+    title: "Social Privacy",
+    free: {
+      sciencefact: "Being able to hear muffled conversations, even if unintelligible, prevents the brain from entering deep focus.",
+      whyitmatters: "The human brain is evolutionarily tuned to prioritise human speech; if you can hear it, you can't fully ignore it. You may find yourself subconsciously listening in to conversations in the next room while you're trying to work or read."
+    },
+    paid: {
+      protocol: "The Speech Privacy Gap",
+      primaryadjustment: "Use acoustic seals on doors and internal windows to block speech frequencies between rooms.",
+      refinement: [
+        "Add a sweep to the bottom of your doors to close the largest gap for sound travel.",
+        "Use a white noise machine outside your door to provide an auditory screen."
+      ],
+      whyitWorks: "Establishing auditory boundaries provides the psychological safety needed for deep work, ensuring your brain isn't constantly scanning for social information.",
+      integrationcue: "You notice an immediate increase in deep work blocks and a feeling of true privacy within your own home."
+    }
+  },
+
+  // --- CARD 41: RECOVERY DESIGN ---
+  {
+    id: 41,
+    category: "Recovery Design",
+    title: "The Quiet Room",
+    free: {
+      sciencefact: "For the nervous system to truly reset, it requires periods of exposure to sound levels below 30dB (the level of a quiet library).",
+      whyitmatters: "Most modern homes hover at 45–55 dB, which is high enough to keep the brain in a state of low-level vigilance."
+    },
+    paid: {
+      protocol: "The Silence Sanctuary",
+      primaryadjustment: "Designate one room (ideally the bedroom) as a zero-noise zone where all electronics and mechanical noise are eliminated.",
+      refinement: [
+        "Use heavy, multi-layered acoustic curtains to block street noise.",
+        "Spend at least 20 minutes a day in this silence sanctuary to allow your nervous system to down-regulate."
+      ],
+      whyitWorks: "True silence allows the brain's Default Mode Network (DMN) to activate, which is essential for creativity,self reflection and emotional processing.",
+      integrationcue: "You notice a reduction in sensory overwhelm and a clearer sense of internal direction and calm."
     }
   }
 ]
