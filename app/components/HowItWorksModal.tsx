@@ -101,7 +101,7 @@ export default function HowItWorksModal({ isOpen, onClose }: Props) {
                   <div className="text-[10px] text-[#b5a642] font-bold uppercase tracking-widest mb-2">As Needed</div>
                   <h3 className="text-[#c9ccbb] font-bold text-lg mb-3">3. Verify</h3>
                   <p className="text-[#c9ccbb]/80 text-sm leading-relaxed">
-                    Use the <strong>Toolkit</strong> to audit new spaces. Validate that your lighting and sound levels match your biological safety standards.
+                    Use the <strong>Toolkit</strong> to audit new spaces. Validate that your lighting and sound levels match biological safety standards.
                   </p>
                 </div>
 
@@ -110,4 +110,16 @@ export default function HowItWorksModal({ isOpen, onClose }: Props) {
               <div className="mt-10 text-center">
                  <button 
                     onClick={onClose}
-                    className="px-8 py-3 bg-[#b5a6
+                    className="px-8 py-3 bg-[#b5a642] text-[#1b270e] font-bold text-xs uppercase tracking-widest rounded-lg hover:bg-[#c4b550] transition-colors"
+                 >
+                    Begin Calibration
+                 </button>
+              </div>
+
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  )
+}
