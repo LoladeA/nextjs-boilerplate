@@ -113,16 +113,16 @@ export default async function AssessmentReport() {
                
                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-8 border-t border-[#c9ccbb]/10">
                  <div>
-                   <div className="text-3xl font-bold text-[#c9ccbb]">{totalLoad}<span className="text-base text-[#c9ccbb]/70 font-normal">/120</span></div>
-                   <div className="text-xs text-[#c9ccbb]/70 uppercase tracking-widest mt-1">NeuroLoad Score™</div>
+                   <div className="text-3xl font-bold text-[#c9ccbb]">{totalLoad}<span className="text-base text-[#c9ccbb]/80 font-normal">/120</span></div>
+                   <div className="text-xs text-[#c9ccbb]/80 uppercase tracking-widest mt-1">NeuroLoad Score™</div>
                  </div>
                  <div>
                    <div className="text-3xl font-bold text-[#c9ccbb]">{criticalIssues.length}</div>
-                   <div className="text-xs text-[#c9ccbb]/70 uppercase tracking-widest mt-1">Areas Needing Support</div>
+                   <div className="text-xs text-[#c9ccbb]/80 uppercase tracking-widest mt-1">Areas Needing Support</div>
                  </div>
                  <div>
                    <div className="text-3xl font-bold text-[#c9ccbb]">{domains.find(d=>d.id === 'rci')?.status}</div>
-                   <div className="text-xs text-[#c9ccbb]/70 uppercase tracking-widest mt-1">Recovery Status</div>
+                   <div className="text-xs text-[#c9ccbb]/80 uppercase tracking-widest mt-1">Recovery Status</div>
                  </div>
                </div>
              </div>
@@ -134,7 +134,7 @@ export default async function AssessmentReport() {
           {/* PRIORITY FOCUS AREAS (ACCORDION) */}
           {criticalIssues.length > 0 && (
              <div className="mb-16">
-               <h3 className="text-2xl font-serif text-[#c9ccbb] mb-8">Priority Actions</h3>
+               <h3 className="text-2xl font-serif text-[#c9ccbb] mb-8">Your Priority Actions</h3>
                <PriorityList areas={criticalIssues} />
              </div>
           )}
