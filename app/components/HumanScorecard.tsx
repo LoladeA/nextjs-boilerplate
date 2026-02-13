@@ -68,8 +68,8 @@ export default function HumanScorecard({ scores }: { scores: any }) {
   ]
 
   const getStatus = (score: number) => {
-      if (score < 40) return { text: "Needs Attention", color: "bg-red-400", textCol: "text-red-400", border: "border-red-400/30", bg: "bg-red-400/5" }
-      if (score < 70) return { text: "Moderate", color: "bg-orange-400", textCol: "text-orange-400", border: "border-orange-400/30", bg: "bg-orange-400/5" }
+      if (score < 40) return { text: "Needs Support", color: "bg-[#b5a642]", textCol: "text-[#b5a642]", border: "border-[#b5a642]/30", bg: "bg-[#b5a642]/5" }
+      if (score < 70) return { text: "Moderate", color: "bg-[#b5a642]", textCol: "text-[#b5a642]", border: "border-[#b5a642]/30", bg: "bg-[#b5a642]/5" }
       return { text: "Optimised", color: "bg-emerald-400", textCol: "text-emerald-400", border: "border-emerald-400/30", bg: "bg-emerald-400/5" }
   }
 
