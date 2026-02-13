@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { ArrowRight } from 'lucide-react'
 import { assessmentProtocol } from '../../data/assessment-protocol'
+import { saveGuestAnswer } from '../../utils/guest-storage' // <--- IMPORT GUEST UTILITY
 
 export default function AssessmentStep1() {
   const part = assessmentProtocol.part1
@@ -15,17 +16,26 @@ export default function AssessmentStep1() {
 
   const handleNext = async () => {
     setLoading(true)
+
+    // 1. GUEST MODE: Save to Local Storage immediately
+    Object.entries(responses).forEach(([key, value]) => {
+      saveGuestAnswer(key, value)
+    })
+
+    // 2. HYBRID SYNC: Attempt Supabase save ONLY if logged in
     const { data: { session } } = await supabase.auth.getSession()
-    if (!session) return
+    
+    if (session) {
+      const updates = Object.entries(responses).map(([key, value]) => ({
+        user_id: session.user.id,
+        assessment_step: 1,
+        question_key: key,
+        answer: { response: value }
+      }))
+      await supabase.from('user_responses').upsert(updates)
+    }
 
-    const updates = Object.entries(responses).map(([key, value]) => ({
-      user_id: session.user.id,
-      assessment_step: 1,
-      question_key: key,
-      answer: { response: value }
-    }))
-
-    await supabase.from('user_responses').upsert(updates)
+    // 3. ALWAYS NAVIGATE (Do not block guests)
     router.push('/assessments/step2')
   }
 
