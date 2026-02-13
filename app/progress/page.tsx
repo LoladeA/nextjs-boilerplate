@@ -50,25 +50,25 @@ export default function Progress() {
   // 2. HABIT TAGS DEFINITIONS
   const morningTagOptions = [
     { id: 'ventilation', label: 'Ventilated Home (Air Exchange)', icon: <Wind size={14} /> },
-    { id: 'sunlight', label: 'Captured Morning Light', icon: <Sun size={14} /> },
-    { id: 'noise_buffer', label: 'Buffered Ext. Noise', icon: <Volume2 size={14} /> },
-    { id: 'declutter', label: 'Cleared Visual Path', icon: <CheckCircle size={14} /> },
+    { id: 'sunlight', label: 'Got Early Morning Sunlight', icon: <Sun size={14} /> },
+    { id: 'noise_buffer', label: 'Buffered Against Intrustive Noise', icon: <Volume2 size={14} /> },
+    { id: 'declutter', label: 'Cleared/ Decluttered One Priority Area', icon: <CheckCircle size={14} /> },
   ]
 
   const eveningTagOptions = [
     { 
       id: 'low_horizon', 
-      label: 'Turned Off The Big Lights & Switched To Warm Light', 
+      label: 'Turned Off The Big Lights & Switched To Warm, Low-Level Lighting', 
       icon: <Zap size={14} /> 
     },
     { 
       id: 'entropy_reset', 
-      label: 'Decluttered The First Surfece I See In The Morning', 
+      label: 'Decluttered The First Surface I See In The Morning', 
       icon: <CheckCircle size={14} /> 
     },
     { 
       id: 'acoustic_seal', 
-      label: 'Sound-Softening Barriers (Curtains, Doors & Mechanical Noise)', 
+      label: 'Using Sound-Softening Barriers (Curtains, Doors & Mechanical Noise)', 
       icon: <Volume2 size={14} /> 
     },
     { 
@@ -201,7 +201,7 @@ export default function Progress() {
           
           <div className="mb-12">
             <h1 className="text-4xl font-serif text-[#c9ccbb] mb-2">Progress & Tracking</h1>
-            <p className="text-[#c9ccbb]/70">
+            <p className="text-[#c9ccbb]/80">
               Log your daily state to train the system and reveal long-term patterns.
             </p>
           </div>
@@ -361,7 +361,7 @@ export default function Progress() {
 
           {/* --- CHART SECTION --- */}
           <div className="animate-fade-in-up delay-100">
-              <div className="flex items-center gap-2 mb-6 text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest">
+              <div className="flex items-center gap-2 mb-6 text-[#c9ccbb]/80 text-xs font-bold uppercase tracking-widest">
                 <TrendingUp size={14} /> Nervous System Rhythm (Morning Baseline)
               </div>
               {chartData.length > 0 ? (
