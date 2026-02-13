@@ -46,13 +46,13 @@ export default function AssessmentStep5() {
     await saveProgress()
     
     // CRITICAL CHANGE: 
-    // Redirect to the new "Public" results page instead of the locked report.
-    // This page will check if they are a guest or a user and display accordingly.
+    // Redirect to the new "Public" results page.
     router.push('/assessments/results-preview') 
   }
 
   const handleSaveExit = async () => {
     await saveProgress()
+    // Redirect to Dashboard (Triggers Login if not authenticated)
     router.push('/dashboard')
   }
 
@@ -62,12 +62,12 @@ export default function AssessmentStep5() {
       <div className="mb-10 border-b border-[#c9ccbb]/10 pb-8">
         <div className="flex justify-between items-baseline mb-2">
           <span className="text-[#b5a642] text-xs font-bold uppercase tracking-widest">Part {part.step}</span>
-          <span className="text-[#c9ccbb]/40 text-xs uppercase tracking-widest">{part.subtitle}</span>
+          <span className="text-[#c9ccbb]/70 text-xs uppercase tracking-widest">{part.subtitle}</span>
         </div>
         
         <h1 className="text-3xl font-serif text-[#c9ccbb] mb-4">{part.title}</h1>
         <h2 className="text-xl text-[#c9ccbb] mb-4 font-light leading-snug">{part.main_question}</h2>
-        <p className="text-[#c9ccbb]/60 text-sm leading-relaxed max-w-xl">{part.description}</p>
+        <p className="text-[#c9ccbb]/80 text-sm leading-relaxed max-w-xl">{part.description}</p>
 
         <div className="w-full bg-[#c9ccbb]/10 h-1 rounded-full mt-8">
           <div className="bg-[#b5a642] h-1 rounded-full w-[100%]" />
