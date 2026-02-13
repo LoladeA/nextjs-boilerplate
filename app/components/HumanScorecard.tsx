@@ -20,8 +20,8 @@ export default function HumanScorecard({ scores }: { scores: any }) {
       score: scores.circadian || 30, 
       max: 100,
       question: "Does your home support your sleep/wake cycle?",
-      lowMsg: "Your lighting is confusing your biology.",
-      highMsg: "Perfectly synced with natural rhythms.",
+      lowMsg: "Lighting Misalignment.",
+      highMsg: "In Sync.",
       details: "Your body relies on light signals to know when to release energy (cortisol) and when to rest (melatonin). A low score means your home's lighting is likely too dim in the morning or too bright at night.",
       toolName: "Light Meter",
       toolLink: "/tools/light-meter"
@@ -33,9 +33,9 @@ export default function HumanScorecard({ scores }: { scores: any }) {
       score: scores.autonomic || 45,
       max: 100,
       question: "Can your body truly drop its guard here?",
-      lowMsg: "Your system is stuck on 'High Alert'.",
-      highMsg: "Your space signals deep safety.",
-      details: "This measures 'vigilance'—how much your brain is scanning for threats. Issues like seating with your back to a door, sharp corners, or lack of privacy keep your amygdala activated.",
+      lowMsg: "High Alert.",
+      highMsg: "Calming.",
+      details: "This measures vigilance: how much your brain is scanning for threats. Issues like seating with your back to a door, sharp corners, or lack of privacy keep your amygdala activated.",
       toolName: "Safety Audit",
       toolLink: "/room-audit"
     },
@@ -46,9 +46,9 @@ export default function HumanScorecard({ scores }: { scores: any }) {
       score: scores.legibility || 60,
       max: 100,
       question: "How hard does your brain work to process the room?",
-      lowMsg: "The space feels mentally 'noisy'.",
-      highMsg: "Effortless and intuitive flow.",
-      details: "Your brain burns energy trying to make sense of clutter, disorganized layouts, or undefined spaces. A high 'legibility' score means your home is easy to understand, saving your energy for focus.",
+      lowMsg: "Noisy & Distracting.",
+      highMsg: "Effortless & intuitive.",
+      details: "Your brain burns energy trying to make sense of clutter, disorganised layouts, or undefined spaces. A high legibility score means your home is easy to understand, saving your energy for focus.",
       toolName: "Read Insights",
       toolLink: "/insights"
     },
@@ -59,8 +59,8 @@ export default function HumanScorecard({ scores }: { scores: any }) {
       score: scores.sensory || 80,
       max: 100,
       question: "Is the environment over-stimulating?",
-      lowMsg: "High friction. It's draining your battery.",
-      highMsg: "Calm, restorative sensory input.",
+      lowMsg: "High friction.",
+      highMsg: "Calm & restorative.",
       details: "The cumulative weight of noise (humming fridges, traffic), tactile irritation (scratchy fabrics), and visual chaos. High sensory load forces your nervous system to work overtime to filter it out.",
       toolName: "Noise Meter",
       toolLink: "/tools/noise-meter"
@@ -70,7 +70,7 @@ export default function HumanScorecard({ scores }: { scores: any }) {
   const getStatus = (score: number) => {
       if (score < 40) return { text: "Needs Attention", color: "bg-red-400", textCol: "text-red-400", border: "border-red-400/30", bg: "bg-red-400/5" }
       if (score < 70) return { text: "Moderate", color: "bg-orange-400", textCol: "text-orange-400", border: "border-orange-400/30", bg: "bg-orange-400/5" }
-      return { text: "Optimized", color: "bg-emerald-400", textCol: "text-emerald-400", border: "border-emerald-400/30", bg: "bg-emerald-400/5" }
+      return { text: "Optimised", color: "bg-emerald-400", textCol: "text-emerald-400", border: "border-emerald-400/30", bg: "bg-emerald-400/5" }
   }
 
   return (
@@ -124,11 +124,11 @@ export default function HumanScorecard({ scores }: { scores: any }) {
 
                 {/* Interpretation */}
                 <div className="flex justify-between text-xs">
-                    <span className="text-[#c9ccbb]/40">Dysregulated</span>
+                    <span className="text-[#c9ccbb]/80">Dysregulated</span>
                     <span className={`${status.textCol} font-medium`}>
                         {m.score < 50 ? m.lowMsg : m.highMsg}
                     </span>
-                    <span className="text-[#c9ccbb]/40">Resonant</span>
+                    <span className="text-[#c9ccbb]/80">Resonant</span>
                 </div>
             </div>
 
