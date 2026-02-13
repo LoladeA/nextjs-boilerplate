@@ -215,7 +215,7 @@ export default function Settings() {
           <div className="pt-4 pb-8">
              <button 
                onClick={handleSignOut}
-               className="flex items-center gap-3 text-red-400 hover:text-red-300 transition-colors text-sm font-bold uppercase tracking-widest"
+               className="flex items-center gap-3 text-[#c9ccbb]/80 hover:text-[#b5a642] transition-colors text-sm font-bold uppercase tracking-widest"
              >
                <LogOut size={16} /> Sign Out
              </button>
