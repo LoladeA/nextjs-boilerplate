@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { CheckCircle, Save } from 'lucide-react'
 import { assessmentProtocol } from '../../data/assessment-protocol'
+import { saveGuestAnswer } from '../../utils/guest-storage' // <--- IMPORT GUEST UTILITY
 
 export default function AssessmentStep5() {
   const part = assessmentProtocol.part5
@@ -13,36 +14,51 @@ export default function AssessmentStep5() {
   const [loading, setLoading] = useState(false)
   const [responses, setResponses] = useState<Record<string, number>>({})
 
+  // SHARED SAVE LOGIC
   const saveProgress = async () => {
     setLoading(true)
+    
+    // 1. GUEST MODE: Save to Local Storage
+    Object.entries(responses).forEach(([key, value]) => {
+      saveGuestAnswer(key, value)
+    })
+
+    // 2. HYBRID SYNC: Attempt Supabase save if logged in
     const { data: { session } } = await supabase.auth.getSession()
-    if (!session) return false
+    
+    if (session) {
+      const updates = Object.entries(responses).map(([key, value]) => ({
+        user_id: session.user.id,
+        assessment_step: 5, // Final Step
+        question_key: key,
+        answer: { response: value }
+      }))
 
-    const updates = Object.entries(responses).map(([key, value]) => ({
-      user_id: session.user.id,
-      assessment_step: 5,
-      question_key: key,
-      answer: { response: value }
-    }))
-
-    if (updates.length > 0) {
-      await supabase.from('user_responses').upsert(updates)
+      if (updates.length > 0) {
+        await supabase.from('user_responses').upsert(updates)
+      }
     }
+    
     return true
   }
 
   const handleFinish = async () => {
-    const success = await saveProgress()
-    if (success) router.push('/assessments/report') // GO TO REPORT
+    await saveProgress()
+    
+    // CRITICAL CHANGE: 
+    // Redirect to the new "Public" results page instead of the locked report.
+    // This page will check if they are a guest or a user and display accordingly.
+    router.push('/assessments/results-preview') 
   }
 
   const handleSaveExit = async () => {
-    const success = await saveProgress()
-    if (success) router.push('/dashboard')
+    await saveProgress()
+    router.push('/dashboard')
   }
 
   return (
     <div className="min-h-screen p-6 md:p-12 flex flex-col max-w-2xl mx-auto">
+      {/* HEADER */}
       <div className="mb-10 border-b border-[#c9ccbb]/10 pb-8">
         <div className="flex justify-between items-baseline mb-2">
           <span className="text-[#b5a642] text-xs font-bold uppercase tracking-widest">Part {part.step}</span>
@@ -58,6 +74,7 @@ export default function AssessmentStep5() {
         </div>
       </div>
 
+      {/* QUESTIONS */}
       <div className="flex-grow space-y-12">
         {part.questions.map((q) => (
           <div key={q.id} className="space-y-4">
@@ -85,6 +102,7 @@ export default function AssessmentStep5() {
         ))}
       </div>
 
+      {/* FOOTER ACTIONS */}
       <div className="mt-12 flex justify-between items-center">
         <button 
           onClick={handleSaveExit}
