@@ -23,12 +23,8 @@ export default function Home() {
           >
             <LogIn size={14} /> Sign In
           </Link>
-          <Link 
-            href="/signup" 
-            className="px-6 py-2 bg-[#b5a642] text-[#1b270e] rounded-full hover:bg-[#d4c55e] transition-all text-xs uppercase tracking-widest font-bold"
-          >
-            Get Started
-          </Link>
+          
+          {/* "Get Started" Button Removed Here */}
         </div>
       </nav>
 
