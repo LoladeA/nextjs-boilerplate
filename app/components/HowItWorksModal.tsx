@@ -54,7 +54,7 @@ export default function HowItWorksModal({ isOpen, onClose }: Props) {
                 <div>
                   <h2 className="text-[#c9ccbb] font-serif text-3xl mb-3">Calibration Roadmap</h2>
                   <p className="text-[#c9ccbb]/80 text-base max-w-xl leading-relaxed">
-                    We are slowly calibrating your home environment to become your ultimate nervous system ally. 
+                    We are calibrating your home environment to become your ultimate nervous system ally, with intention. 
                     This is not a to-do list; it is a continuous loop of regulation.
                   </p>
                 </div>
@@ -73,7 +73,7 @@ export default function HowItWorksModal({ isOpen, onClose }: Props) {
                   <div className="w-10 h-10 rounded-full bg-[#b5a642]/10 text-[#b5a642] flex items-center justify-center mb-4">
                     <Activity size={20} />
                   </div>
-                  <div className="text-[10px] text-[#b5a642] font-bold uppercase tracking-widest mb-2">Bi-Weekly</div>
+                  <div className="text-[10px] text-[#b5a642] font-bold uppercase tracking-widest mb-2">Bi-Monthly</div>
                   <h3 className="text-[#c9ccbb] font-bold text-base mb-2">1. Measure</h3>
                   <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
                     Retake the Assessment every 14 days. This updates your <strong>NeuroLoad Score™</strong> and recalibrates the logic engine.
@@ -88,7 +88,7 @@ export default function HowItWorksModal({ isOpen, onClose }: Props) {
                   <div className="text-[10px] text-[#b5a642] font-bold uppercase tracking-widest mb-2">Daily Ritual</div>
                   <h3 className="text-[#c9ccbb] font-bold text-base mb-2">2. Tune</h3>
                   <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
-                    Check your Dashboard 3x a day. The system automatically prescribes the specific <strong>Protocol</strong> needed for that moment.
+                    Check your Dashboard 2x/3x a day. The system automatically prescribes the specific <strong>Alignment Suggestion</strong> needed for that moment.
                   </p>
                 </div>
 
@@ -100,14 +100,14 @@ export default function HowItWorksModal({ isOpen, onClose }: Props) {
                   <div className="text-[10px] text-[#b5a642] font-bold uppercase tracking-widest mb-2">As Needed</div>
                   <h3 className="text-[#c9ccbb] font-bold text-base mb-2">3. Verify</h3>
                   <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
-                    Use the <strong>Toolkit</strong> to audit new spaces. Validate that your lighting and sound levels match biological safety standards.
+                    Use the <strong>Toolkit</strong> to audit new and existing spaces. Ensure that your lighting and sound levels align with your biological safety needs.
                   </p>
                 </div>
               </div>
 
               {/* SECTION 2: DEEPEN YOUR PRACTICE (NEW) */}
               <div className="border-t border-[#b5a642]/20 pt-8 mb-6">
-                 <h3 className="text-[#c9ccbb] font-serif text-xl mb-6 text-center">Deepen Your Practice</h3>
+                 <h3 className="text-[#c9ccbb] font-serif text-xl mb-6 text-center">Deepen Your Understanding</h3>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     
                     {/* INSIGHTS */}
@@ -116,9 +116,9 @@ export default function HowItWorksModal({ isOpen, onClose }: Props) {
                             <BookOpen size={20} />
                         </div>
                         <div>
-                             <h4 className="text-[#c9ccbb] font-bold text-sm uppercase tracking-wide mb-1">Insights Library</h4>
+                             <h4 className="text-[#c9ccbb] font-bold text-sm uppercase tracking-wide mb-1">Insights Library & Somatic Cards</h4>
                              <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
-                                Access 120+ somatic cards decoding the science behind your environment. Understand the <em>why</em> behind every protocol.
+                                Access 120+ somatic cards and dedicated, research based library: decode the neuropsychology influencing the dynamic between you and your home environment. Understand the <em>why</em> behind every suggestion.
                              </p>
                         </div>
                     </div>
@@ -131,7 +131,7 @@ export default function HowItWorksModal({ isOpen, onClose }: Props) {
                         <div>
                              <h4 className="text-[#c9ccbb] font-bold text-sm uppercase tracking-wide mb-1">Coaching Modules</h4>
                              <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
-                                Step-by-step masterclasses and audio guides. Move from quick fixes to deep, structural home calibration.
+                                Self-paced coaching modules and audio guides. Move from quick fixes to deep, intentional home calibration, which will help you to achieve long-term solutions.
                              </p>
                         </div>
                     </div>
