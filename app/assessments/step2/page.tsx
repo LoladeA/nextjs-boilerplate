@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { ArrowRight, Save } from 'lucide-react'
 import { assessmentProtocol } from '../../data/assessment-protocol'
+import { saveGuestAnswer } from '../../utils/guest-storage' // <--- IMPORT GUEST UTILITY
 
 export default function AssessmentStep2() {
   const part = assessmentProtocol.part2
@@ -13,33 +14,44 @@ export default function AssessmentStep2() {
   const [loading, setLoading] = useState(false)
   const [responses, setResponses] = useState<Record<string, number>>({})
 
-  // SHARED SAVE LOGIC
+  // SHARED SAVE LOGIC (GUEST + MEMBER)
   const saveProgress = async () => {
     setLoading(true)
+    
+    // 1. GUEST MODE: Save to Local Storage
+    Object.entries(responses).forEach(([key, value]) => {
+      saveGuestAnswer(key, value)
+    })
+
+    // 2. HYBRID SYNC: Attempt Supabase save if logged in
     const { data: { session } } = await supabase.auth.getSession()
-    if (!session) return false
+    
+    if (session) {
+      const updates = Object.entries(responses).map(([key, value]) => ({
+        user_id: session.user.id,
+        assessment_step: 2, // Current Step
+        question_key: key,
+        answer: { response: value }
+      }))
 
-    const updates = Object.entries(responses).map(([key, value]) => ({
-      user_id: session.user.id,
-      assessment_step: 2, // Current Step
-      question_key: key,
-      answer: { response: value }
-    }))
-
-    if (updates.length > 0) {
-      await supabase.from('user_responses').upsert(updates)
+      if (updates.length > 0) {
+        await supabase.from('user_responses').upsert(updates)
+      }
     }
-    return true
+    
+    return true // Always return true to allow navigation
   }
 
   const handleNext = async () => {
-    const success = await saveProgress()
-    if (success) router.push('/assessments/step3')
+    await saveProgress()
+    // Navigate regardless of login status
+    router.push('/assessments/step3')
   }
 
   const handleSaveExit = async () => {
-    const success = await saveProgress()
-    if (success) router.push('/dashboard')
+    await saveProgress()
+    // For guests, this just takes them to the dashboard (view mode)
+    router.push('/dashboard')
   }
 
   return (
