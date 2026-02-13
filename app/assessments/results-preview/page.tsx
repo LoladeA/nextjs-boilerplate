@@ -112,7 +112,7 @@ export default function ResultsPreview() {
                 </p>
                 
                 <Link href="/signup?redirect=dashboard" className="px-8 py-4 bg-[#b5a642] text-[#1b270e] font-bold rounded-xl hover:bg-[#d4c55e] transition-all flex items-center gap-3 shadow-lg shadow-[#b5a642]/20">
-                    Create Free Account to Save Your Progress <ArrowRight size={18} />
+                    Create A Free Account to Save Your Progress <ArrowRight size={18} />
                 </Link>
                 <p className="text-[10px] text-[#c9ccbb]/80 mt-4 uppercase tracking-widest">It takes 30 seconds • No credit card required</p>
             </div>
