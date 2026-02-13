@@ -86,8 +86,8 @@ export default function PriorityList({ areas }: { areas: any[] }) {
             className={`
               group rounded-2xl border transition-all duration-300 cursor-pointer overflow-hidden
               ${isOpen 
-                ? 'bg-[#1b270e] border-orange-400/40 shadow-lg shadow-orange-900/10' 
-                : 'bg-[#1b270e] border-orange-400/20 hover:border-orange-400/40'
+                ? 'bg-[#1b270e] border-[#b5a642]/40 shadow-lg shadow-[#b5a642]/10' 
+                : 'bg-[#1b270e] border-[#b5a642]/20 hover:border-[#b5a642]/40'
               }
             `}
           >
@@ -96,23 +96,23 @@ export default function PriorityList({ areas }: { areas: any[] }) {
               <div className="flex items-center gap-4">
                 <div className={`
                   w-10 h-10 rounded-full flex items-center justify-center transition-colors
-                  ${isOpen ? 'bg-orange-400 text-[#1b270e]' : 'bg-orange-400/10 text-orange-400'}
+                  ${isOpen ? 'bg-[#b5a642] text-[#1b270e]' : 'bg-[#b5a642]/10 text-[#b5a642]'}
                 `}>
                   {content.icon}
                 </div>
                 <div>
                   <div className="flex items-center gap-3 mb-1">
-                    <h3 className={`font-serif text-lg ${isOpen ? 'text-orange-400' : 'text-[#c9ccbb]'}`}>
+                    <h3 className={`font-serif text-lg ${isOpen ? 'text-[#b5a642]' : 'text-[#c9ccbb]'}`}>
                       {content.title}
                     </h3>
                     {!isOpen && (
-                       <span className="hidden md:inline-flex px-2 py-0.5 rounded bg-orange-400/10 text-orange-400 text-[10px] font-bold uppercase tracking-widest">
+                       <span className="hidden md:inline-flex px-2 py-0.5 rounded bg-[#b5a642]/10 text-[#b5a642] text-[10px] font-bold uppercase tracking-widest">
                          Needs Support
                        </span>
                     )}
                   </div>
                   {!isOpen && (
-                    <p className="text-[#c9ccbb]/70 text-sm line-clamp-1">
+                    <p className="text-[#c9ccbb]/80 text-sm line-clamp-1">
                       {content.concept}
                     </p>
                   )}
@@ -120,7 +120,7 @@ export default function PriorityList({ areas }: { areas: any[] }) {
               </div>
 
               <ChevronDown 
-                className={`text-[#c9ccbb]/70 transition-transform duration-300 ${isOpen ? 'rotate-180 text-orange-400' : ''}`} 
+                className={`text-[#c9ccbb]/80 transition-transform duration-300 ${isOpen ? 'rotate-180 text-[#b5a642]' : ''}`} 
               />
             </div>
 
@@ -134,39 +134,39 @@ export default function PriorityList({ areas }: { areas: any[] }) {
                   className="overflow-hidden"
                 >
                   <div className="px-6 md:px-8 pb-8 pt-0">
-                    <div className="h-px w-full bg-orange-400/10 mb-6" />
+                    <div className="h-px w-full bg-[#b5a642]/10 mb-6" />
                     
                     <div className="grid md:grid-cols-2 gap-8">
                       {/* LEFT: Context */}
                       <div className="space-y-6">
                         <div>
-                          <p className="text-orange-400 text-xs font-bold uppercase tracking-widest mb-2">Think of this as</p>
+                          <p className="text-[#b5a642] text-xs font-bold uppercase tracking-widest mb-2">Think of this as</p>
                           <p className="text-[#c9ccbb] text-lg font-serif italic">"{content.concept}"</p>
                         </div>
                         <div>
-                          <p className="text-orange-400 text-xs font-bold uppercase tracking-widest mb-2">Why you need it</p>
-                          <p className="text-[#c9ccbb]/70 text-sm leading-relaxed">{content.why}</p>
+                          <p className="text-[#b5a642] text-xs font-bold uppercase tracking-widest mb-2">Why you need it</p>
+                          <p className="text-[#c9ccbb]/80 text-sm leading-relaxed">{content.why}</p>
                         </div>
                       </div>
 
                       {/* RIGHT: Action & Feeling */}
                       <div className="space-y-6">
-                        <div className="bg-orange-400/5 rounded-xl p-5 border border-orange-400/10">
-                          <p className="text-orange-400 text-xs font-bold uppercase tracking-widest mb-3 flex items-center gap-2">
+                        <div className="bg-[#b5a642]/5 rounded-xl p-5 border border-[#b5a642]/10">
+                          <p className="text-[#b5a642] text-xs font-bold uppercase tracking-widest mb-3 flex items-center gap-2">
                              How to create it
                           </p>
                           <ul className="space-y-2">
                             {content.how.map((step: string, i: number) => (
                               <li key={i} className="flex gap-3 text-sm text-[#c9ccbb]/80 leading-relaxed">
-                                <span className="text-orange-400/50">•</span> {step}
+                                <span className="text-[#b5a642]/50">•</span> {step}
                               </li>
                             ))}
                           </ul>
                         </div>
                         
                         <div>
-                          <p className="text-orange-400 text-xs font-bold uppercase tracking-widest mb-2">The Feeling</p>
-                          <p className="text-[#c9ccbb]/70 text-sm leading-relaxed">{content.feeling}</p>
+                          <p className="text-[#b5a642] text-xs font-bold uppercase tracking-widest mb-2">The Feeling</p>
+                          <p className="text-[#c9ccbb]/80 text-sm leading-relaxed">{content.feeling}</p>
                         </div>
                       </div>
                     </div>
