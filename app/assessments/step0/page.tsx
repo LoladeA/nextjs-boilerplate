@@ -3,9 +3,9 @@
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { motion } from 'framer-motion'
-import { ArrowRight, Activity } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { assessmentProtocol } from '../../data/assessment-protocol'
+import { saveGuestAnswer } from '../../utils/guest-storage' // <--- IMPORT NEW UTILITY
 
 export default function AssessmentStep0() {
   const supabase = createClientComponentClient()
@@ -13,28 +13,34 @@ export default function AssessmentStep0() {
   const [loading, setLoading] = useState(false)
   const [responses, setResponses] = useState<Record<string, any>>({})
 
-  // Helper to update local state
   const handleSelect = (key: string, value: string | number) => {
     setResponses(prev => ({ ...prev, [key]: value }))
   }
 
   const handleNext = async () => {
     setLoading(true)
+
+    // 1. SAVE TO LOCAL STORAGE (GUEST MODE)
+    // We iterate through all answers and save them to the browser
+    Object.entries(responses).forEach(([key, value]) => {
+      saveGuestAnswer(key, value)
+    })
+
+    // 2. OPTIONAL: ATTEMPT SUPABASE SYNC (IF LOGGED IN)
+    // This ensures that if an existing user takes the quiz, their data is still backed up.
     const { data: { session } } = await supabase.auth.getSession()
-    if (!session) return
-
-    // Prepare data for Supabase
-    const updates = Object.entries(responses).map(([key, value]) => ({
-      user_id: session.user.id,
-      assessment_step: 0,
-      question_key: key,
-      answer: { response: value } // Storing as JSON
-    }))
-
-    // Save to DB
-    await supabase.from('user_responses').upsert(updates)
     
-    // Move to Step 1
+    if (session) {
+      const updates = Object.entries(responses).map(([key, value]) => ({
+        user_id: session.user.id,
+        assessment_step: 0,
+        question_key: key,
+        answer: { response: value }
+      }))
+      await supabase.from('user_responses').upsert(updates)
+    }
+
+    // 3. NAVIGATE (No blocking)
     router.push('/assessments/step1')
   }
 
@@ -55,7 +61,7 @@ export default function AssessmentStep0() {
       {/* QUESTIONS */}
       <div className="flex-grow space-y-12">
         
-        {/* Q1: Current State (Choice) */}
+        {/* Q1: Current State */}
         <div className="space-y-4">
           <label className="text-lg text-[#c9ccbb]">{questions[0].text}</label>
           <div className="flex flex-wrap gap-3">
@@ -75,7 +81,7 @@ export default function AssessmentStep0() {
           </div>
         </div>
 
-        {/* Q2: Energy Tax (Slider) */}
+        {/* Q2: Energy Tax */}
         <div className="space-y-4">
           <label className="text-lg text-[#c9ccbb] flex justify-between">
             {questions[1].text}
@@ -89,7 +95,7 @@ export default function AssessmentStep0() {
           />
         </div>
 
-        {/* Q3: Primary Strain (Choice) */}
+        {/* Q3: Primary Strain */}
         <div className="space-y-4">
           <label className="text-lg text-[#c9ccbb]">{questions[2].text}</label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -109,7 +115,7 @@ export default function AssessmentStep0() {
           </div>
         </div>
 
-        {/* Q4: Neuro Lens (Choice) */}
+        {/* Q4: Neuro Lens */}
         <div className="space-y-4">
           <label className="text-lg text-[#c9ccbb]">{questions[3].text}</label>
           <div className="flex flex-wrap gap-3">
