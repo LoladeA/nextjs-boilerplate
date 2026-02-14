@@ -21,7 +21,7 @@ export default async function Dashboard() {
   // 1. FETCH DATA
   const [responsesRes, logsRes] = await Promise.all([
     supabase.from('user_responses').select('*').eq('user_id', user.id),
-    supabase.from('daily_logs').select('mood_score, date').eq('user_id', user.id).order('date', { ascending: false }).limit(7)
+    supabase.from('daily_logs').select('mood_score, date').eq('user_id', user.id).order('date', { ascending: false }).limit(30)
   ])
 
   const safeResponses = responsesRes.data || []
