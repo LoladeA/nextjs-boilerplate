@@ -20,10 +20,10 @@ export const assessmentProtocol = {
     description: "This section measures whether your lighting, daily rhythms and environmental signals help or hinder your body's regulation of energy, sleep and hormonal cycles.",
     questions: [
       { id: 'q5', text: "I feel alert in the morning without needing to push myself.", type: 'scale' },
-      { id: 'q6', text: "I feel naturally sleepy in the evening and fall asleep easily without forcing it.", type: 'scale' },
-      { id: 'q7', text: "My energy feels rhythmical rather than flat or chaotic.", type: 'scale' },
-      { id: 'q8', text: "Bright lighting in the evening makes it harder to wind down.", type: 'scale' },
-      { id: 'q9', text: "Dim daylight makes me feel low or foggy.", type: 'scale' },
+      { id: 'q6', text: "I feel naturally tired at night and fall asleep without difficulty.", type: 'scale' },
+      { id: 'q7', text: "My energy rises and falls at predictable times throughout the day.", type: 'scale' },
+      { id: 'q8', text: "Bright lighting in the evening makes it harder for me to wind down.", type: 'scale' },
+      { id: 'q9', text: "Low light levels during the day makes me feel sluggish or foggy.", type: 'scale' },
     ]
   },
   part2: {
@@ -33,10 +33,10 @@ export const assessmentProtocol = {
     main_question: "How hard is your nervous system working to stay regulated?",
     description: "This section reveals whether your home allows your body to switch off and recover, or keeps your stress system partially activated, even when you are at rest.",
     questions: [
-      { id: 'q12', text: "Small sensory changes quickly make me irritable or tense.", type: 'scale' },
-      { id: 'q13', text: "I feel “on edge” at home for no obvious reason.", type: 'scale' },
-      { id: 'q14', text: "I struggle to fully relax, even when nothing is wrong.", type: 'scale' },
-      { id: 'q15', text: "My home feels like it requires constant micro-adjustments.", type: 'scale' },
+      { id: 'q12', text: "Small changes in sound, light, or temperature quickly make me tense.", type: 'scale' },
+      { id: 'q13', text: "I feel on edge at home even when nothing is wrong.", type: 'scale' },
+      { id: 'q14', text: "I find it hard to fully relax, even when nothing is wrong.", type: 'scale' },
+      { id: 'q15', text: "I rarely feel settled at home without making constant micro-adjustments.", type: 'scale' },
     ]
   },
   part3: {
@@ -46,25 +46,25 @@ export const assessmentProtocol = {
     main_question: "How easily can your brain read and navigate your surroundings?",
     description: "This section assesses whether your environment is spatially clear and intuitive, or if it requires constant micro-decisions and mental recalibration to make sense of it.",
     questions: [
-      { id: 'q16', text: "I immediately know what each space in my home is for when I enter it.", type: 'scale' },
-      { id: 'q17', text: "I move through my home without hesitation or backtracking.", type: 'scale' },
-      { id: 'q18', text: "There is a clear focal point in most rooms.", type: 'scale' },
-      { id: 'q19', text: "I don’t feel visually pulled in multiple directions.", type: 'scale' },
-      { id: 'q20', text: "My home feels intuitive rather than effortful.", type: 'scale' },
+      { id: 'q16', text: "When I enter a room in my home, I immediately know what it’s for.", type: 'scale' },
+      { id: 'q17', text: "I move through my home easily without bumping into things or backtracking.", type: 'scale' },
+      { id: 'q18', text: "In most rooms, my eyes naturally settle on one main feature.", type: 'scale' },
+      { id: 'q19', text: "My eyes don’t feel pulled in multiple directions.", type: 'scale' },
+      { id: 'q20', text: "Moving through my home feels automatic rather than mentally effortful.", type: 'scale' },
     ]
   },
   part4: {
-    title: "Sensory Threat Load",
+    title: "Sensory Load",
     step: 4,
     subtitle: "Sensory Gating",
     main_question: "How much sensory information is your nervous system filtering out?",
     description: "This captures the cumulative impact of light, sound, texture and visual complexity, as well as how your nervous system experiences them: whether as soothing or overwhelming.",
     questions: [
-      { id: 'q21', text: "Visual clutter disrupts my focus.", type: 'scale' },
-      { id: 'q22', text: "Background noise prevents full relaxation.", type: 'scale' },
-      { id: 'q23', text: "Overhead lighting feels harsh or tiring.", type: 'scale' },
-      { id: 'q24', text: "Certain textures change my mood negatively.", type: 'scale' },
-      { id: 'q25', text: "My body tension changes between rooms.", type: 'scale' },
+      { id: 'q21', text: "Too many visible objects make it hard for me to focus.", type: 'scale' },
+      { id: 'q22', text: "Background noise in my home makes it hard to fully relax.", type: 'scale' },
+      { id: 'q23', text: "Overhead lighting feels harsh or tiring and causes strain.", type: 'scale' },
+      { id: 'q24', text: "I avoid certain materials (the feel of certain fabrics) because of how they feel.", type: 'scale' },
+      { id: 'q25', text: "I feel my body relax in some rooms and tense up in others.", type: 'scale' },
     ]
   },
   part5: {
@@ -74,11 +74,11 @@ export const assessmentProtocol = {
     main_question: "How effectively does your home help you to restore energy?",
     description: "This section indicates whether your space truly enables you to relax, recover and recharge, or leaves you technically off duty, but never fully restored.",
     questions: [
-      { id: 'q26', text: "I avoid rooms that drain me.", type: 'scale' },
-      { id: 'q27', text: "I feel less rested after time at home.", type: 'scale' },
-      { id: 'q28', text: "I struggle to switch off mentally at night.", type: 'scale' },
-      { id: 'q29', text: "My body feels safer outside my home than inside.", type: 'scale' },
-      { id: 'q30', text: "My home helps me recover, not just function.", type: 'scale', reverse: true },
+      { id: 'q26', text: "There are rooms in my home I avoid spending time in.", type: 'scale' },
+      { id: 'q27', text: "Time at home does not always leave me feeling fully restored.", type: 'scale' },
+      { id: 'q28', text: "It takes me a long time to mentally wind down at night.", type: 'scale' },
+      { id: 'q29', text: "I feel more relaxed outside my home than inside.", type: 'scale' },
+      { id: 'q30', text: "My home helps me recover, not just get through the day.", type: 'scale', reverse: true },
     ]
   }
 }
