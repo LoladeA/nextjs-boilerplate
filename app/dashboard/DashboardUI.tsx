@@ -65,7 +65,7 @@ export default function DashboardUI({
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
             <div className="relative w-64 h-16 mb-2">
-              <Image src="/logo.PNG" alt="SentientHome" fill className="object-contain object-left" priority />
+              <Image src="/logo.PNG" alt="TheSentientHome" fill className="object-contain object-left" priority />
             </div>
             <p className="text-[#c9ccbb]/80 font-light capitalize text-lg">
               Welcome back, <span className="text-[#c9ccbb] font-normal">{displayName}</span>.
@@ -74,7 +74,7 @@ export default function DashboardUI({
           <div className="flex gap-4">
             <Link href="/assessments/report" className="flex items-center gap-2 px-6 py-3 glass-panel hover:bg-[#c9ccbb]/10 text-[#c9ccbb] rounded-lg text-sm font-medium transition-all">
               <FileText size={16} className="text-[#b5a642]" />
-              View Report
+              View Detailed Report
             </Link>
           </div>
         </div>
