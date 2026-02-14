@@ -1,14 +1,14 @@
 // app/utils/chromatic-analyzer.ts
 
 export type ChromaticAudit = {
-  arousalScore: number // 0-100% Saturation
-  circadianTag: 'Alerting' | 'Neutral' | 'Sedative'
+  arousalScore: number // 0-100% Saturation (Emotional Intensity)
+  lightScore: number   // 0-100% Luminance (Circadian Signal Strength)
+  circadianTag: 'Alerting (Day)' | 'Neutral' | 'Sedative (Night)'
   dominance: 'Warm (Advancing)' | 'Cool (Receding)'
   insight: string
   prescriptions: string[]
 }
 
-// Helper: RGB to HSV Conversion
 function rgbToHsv(r: number, g: number, b: number) {
   r /= 255; g /= 255; b /= 255;
   const max = Math.max(r, g, b), min = Math.min(r, g, b);
@@ -28,18 +28,28 @@ function rgbToHsv(r: number, g: number, b: number) {
 
 export function interpretChromeData(pixels: Uint8ClampedArray): ChromaticAudit {
   let totalSat = 0;
-  let totalVal = 0;
+  let totalLuminance = 0; // New Metric for Light Level
   let warmCount = 0;
   let coolCount = 0;
-  // Sample every 40th pixel (4 channels * 10) for performance
+  
   const step = 40; 
   const pixelCount = pixels.length / 4;
 
   for (let i = 0; i < pixels.length; i += step) { 
-    const { h, s, v } = rgbToHsv(pixels[i], pixels[i+1], pixels[i+2]);
+    const r = pixels[i];
+    const g = pixels[i+1];
+    const b = pixels[i+2];
+    
+    // 1. Calculate HSV for Saturation/Hue
+    const { h, s } = rgbToHsv(r, g, b);
     totalSat += s;
-    totalVal += v;
-    // Warm (Reds/Yellows) vs Cool (Blues/Greens)
+
+    // 2. Calculate Perceived Luminance (The Eye's "Lux Meter")
+    // Formula: 0.299R + 0.587G + 0.114B (Standard weights for human vision)
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    totalLuminance += luminance;
+
+    // 3. Warm vs Cool
     if (h < 0.17 || h > 0.8) warmCount++;
     else coolCount++;
   }
@@ -47,28 +57,38 @@ export function interpretChromeData(pixels: Uint8ClampedArray): ChromaticAudit {
   // Averages (0-100 scale)
   const samples = pixelCount / (step / 4);
   const avgSat = Math.round((totalSat / samples) * 100);
-  const avgVal = Math.round((totalVal / samples) * 100);
+  const avgLux = Math.round((totalLuminance / samples) * 100); // This is your Light Score
 
-  // Generate Insight Logic
-  let insight = "Your space is chromatically balanced.";
+  // Logic: Circadian Impact based on Light Level (Lux) AND Color
+  // High Lux + Cool Color = Maximum Alertness (Day Protocol)
+  // Low Lux + Warm Color = Maximum Recovery (Night Protocol)
+  
+  let circadianTag: ChromaticAudit['circadianTag'] = 'Neutral';
+  if (avgLux > 60) circadianTag = 'Alerting (Day)';
+  else if (avgLux < 30) circadianTag = 'Sedative (Night)';
+
+  let insight = "Your space is balanced.";
   let prescriptions: string[] = [];
 
-  if (avgSat > 50) {
-    insight = "High Chromatic Load Detected. This room is actively triggering your sympathetic nervous system (Fight/Flight).";
-    prescriptions.push("Desaturate large surface areas (rugs, walls).");
-    prescriptions.push("Move bright colors to focal points only.");
-  } else if (avgSat < 15 && avgVal < 30) {
-    insight = "Hypo-Arousal Signals. The lack of visual contrast may lead to stagnation or low mood.";
-    prescriptions.push("Introduce 'fractal' textures or plants.");
-    prescriptions.push("Add a high-contrast focal point.");
+  // Insight Logic mixing Light + Color
+  if (avgLux > 70 && avgSat > 60) {
+    insight = "High Intensity Detected. Bright light combined with high saturation creates a 'High Energy' zone suitable for movement, but likely too stimulating for deep focus or rest.";
+    prescriptions.push("Use dimmers to lower light intensity in the evening.");
+  } else if (avgLux < 20) {
+    insight = "Low Light Signal. This level triggers melatonin production. Excellent for sleep hygiene, but will inhibit cognitive performance if this is a workspace.";
+    prescriptions.push("Increase ambient light if alertness is required.");
+  } else if (avgSat > 50) {
+    insight = "High Chromatic Load. The light levels are moderate, but the color saturation is high, triggering emotional arousal.";
+    prescriptions.push("Desaturate large surfaces.");
   } else {
-    insight = "Restorative Chromatic Profile. This balance supports 'Soft Fascination' and recovery.";
-    prescriptions.push("Maintain current light levels.");
+    insight = "Restorative Profile. Moderate light and balanced colors support the 'Soft Fascination' state.";
+    prescriptions.push("Maintain this balance for recovery zones.");
   }
 
   return {
     arousalScore: avgSat,
-    circadianTag: avgVal > 60 ? 'Alerting' : 'Sedative',
+    lightScore: avgLux, // 🟢 NEW: The Virtual Lux Score
+    circadianTag,
     dominance: warmCount > coolCount ? 'Warm (Advancing)' : 'Cool (Receding)',
     insight,
     prescriptions
