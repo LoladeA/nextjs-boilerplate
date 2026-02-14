@@ -65,7 +65,7 @@ export default function ResultsPreview() {
         <div className="max-w-4xl mx-auto flex justify-between items-center">
             <div className="flex items-center gap-3">
                <div className="w-8 h-8 bg-[#b5a642] rounded-full" /> 
-               <span className="font-serif text-xl tracking-wide">SentientHome</span>
+               <span className="font-serif text-xl tracking-wide">TheSentientHome</span>
             </div>
             <Link href="/login" className="text-xs uppercase tracking-widest text-[#c9ccbb]/40 hover:text-[#b5a642]">
                 Member Login
