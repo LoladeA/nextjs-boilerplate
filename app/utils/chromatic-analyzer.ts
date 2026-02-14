@@ -31,9 +31,11 @@ export function interpretChromeData(pixels: Uint8ClampedArray): ChromaticAudit {
   let totalVal = 0;
   let warmCount = 0;
   let coolCount = 0;
+  // Sample every 40th pixel (4 channels * 10) for performance
+  const step = 40; 
   const pixelCount = pixels.length / 4;
 
-  for (let i = 0; i < pixels.length; i += 40) { // Sample every 10th pixel for speed (4 channels * 10)
+  for (let i = 0; i < pixels.length; i += step) { 
     const { h, s, v } = rgbToHsv(pixels[i], pixels[i+1], pixels[i+2]);
     totalSat += s;
     totalVal += v;
@@ -43,18 +45,19 @@ export function interpretChromeData(pixels: Uint8ClampedArray): ChromaticAudit {
   }
 
   // Averages (0-100 scale)
-  const avgSat = Math.round((totalSat / (pixelCount / 10)) * 100);
-  const avgVal = Math.round((totalVal / (pixelCount / 10)) * 100);
+  const samples = pixelCount / (step / 4);
+  const avgSat = Math.round((totalSat / samples) * 100);
+  const avgVal = Math.round((totalVal / samples) * 100);
 
   // Generate Insight Logic
   let insight = "Your space is chromatically balanced.";
-  let prescriptions = [];
+  let prescriptions: string[] = [];
 
-  if (avgSat > 60) {
+  if (avgSat > 50) {
     insight = "High Chromatic Load Detected. This room is actively triggering your sympathetic nervous system (Fight/Flight).";
     prescriptions.push("Desaturate large surface areas (rugs, walls).");
     prescriptions.push("Move bright colors to focal points only.");
-  } else if (avgSat < 20 && avgVal < 30) {
+  } else if (avgSat < 15 && avgVal < 30) {
     insight = "Hypo-Arousal Signals. The lack of visual contrast may lead to stagnation or low mood.";
     prescriptions.push("Introduce 'fractal' textures or plants.");
     prescriptions.push("Add a high-contrast focal point.");
