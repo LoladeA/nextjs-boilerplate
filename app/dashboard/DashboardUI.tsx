@@ -142,7 +142,7 @@ export default function DashboardUI({
                 <div className="relative z-10 flex justify-between items-start mb-4">
                     <div>
                         <h3 className="text-[#c9ccbb] font-serif text-xl">Nervous System Rhythm</h3>
-                        <p className="text-[#c9ccbb]/80 text-xs uppercase tracking-widest mt-1">Last 7 Days Trend</p>
+                        <p className="text-[#c9ccbb]/80 text-xs uppercase tracking-widest mt-1">Last 14 Days Trend</p>
                     </div>
                     {recentLogs && recentLogs.length > 0 && (
                          <div className="text-right">
