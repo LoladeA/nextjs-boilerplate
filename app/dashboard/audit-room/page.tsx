@@ -2,73 +2,109 @@
 
 import Sidebar from '../../components/Sidebar'
 import { useState, useRef, useEffect } from 'react'
-import { Camera, Brain, Loader2, ScanEye, CheckCircle, Lock, Lightbulb, Zap, Activity, Sun } from 'lucide-react' // Added Sun icon
+import { Camera, Brain, Loader2, ScanEye, CheckCircle, Lock, Lightbulb, Zap, Activity, Sun } from 'lucide-react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import Link from 'next/link'
 import { interpretChromeData } from '../../utils/chromatic-analyzer'
 
 export default function AuditRoom() {
-  // ... (Keep all your existing state and setup logic exactly the same) ...
   const supabase = createClientComponentClient()
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // STATE
   const [loading, setLoading] = useState(true)
   const [isSubscribed, setIsSubscribed] = useState(false)
+  
   const [selectedRoom, setSelectedRoom] = useState('Living Room')
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [file, setFile] = useState<File | null>(null)
   const [status, setStatus] = useState<'idle' | 'analyzing' | 'success'>('idle')
+  
+  // Analysis Results State
   const [result, setResult] = useState<any>(null)
+
   const rooms = ['Living Room', 'Bedroom', 'Home Office', 'Kitchen', 'Entryway']
 
-  useEffect(() => { checkSubscription() }, [])
+  // CHECK SUBSCRIPTION
+  useEffect(() => {
+    checkSubscription()
+  }, [])
+
   const checkSubscription = async () => {
     const { data: { user } } = await supabase.auth.getUser()
-    if (user) setIsSubscribed(true)
+    if (user) {
+      // Logic placeholder for subscription check - assuming active for now
+      setIsSubscribed(true) 
+    }
     setLoading(false)
   }
+
+  // HANDLE FILE SELECT
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0]
       setFile(selectedFile)
       setPreviewUrl(URL.createObjectURL(selectedFile))
-      setResult(null); setStatus('idle')
+      setResult(null)
+      setStatus('idle')
     }
   }
 
-  // ... (Keep handleAnalyze logic mostly the same, ensuring it maps the new fields) ...
+  // RUN CLIENT-SIDE ANALYSIS
   const handleAnalyze = async () => {
     if (!file || !previewUrl) return
     setStatus('analyzing')
+
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error("Not logged in")
-      
-      // Upload & Analyze Logic (Keep existing)
-      const fileName = `${user.id}/${Date.now()}_${selectedRoom.replace(' ', '_')}.jpg`
-      await supabase.storage.from('room-photos').upload(fileName, file)
 
+      // 1. Upload Image (Keep history)
+      const fileName = `${user.id}/${Date.now()}_${selectedRoom.replace(' ', '_')}.jpg`
+      const { error: uploadError } = await supabase.storage.from('room-photos').upload(fileName, file)
+      if (uploadError) console.error("Upload warning:", uploadError)
+
+      // 2. CLIENT-SIDE ANALYSIS
       const img = new Image()
       img.src = previewUrl
       img.crossOrigin = "Anonymous"
+
       img.onload = async () => {
         const canvas = document.createElement('canvas')
         const ctx = canvas.getContext('2d')
         if (!ctx) return
+
         const scale = 500 / img.width
         canvas.width = 500
         canvas.height = img.height * scale
+
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
         
         // The Brain (Now returns lightScore too)
         const analysis = interpretChromeData(imageData.data)
         
-        // Save to DB (Update to include light_score if you added it to DB, otherwise skipping for now is fine for UI)
-        /* await supabase.from('room_audits').insert({ ... }) */
+        // 3. Save to DB
+        const { error: dbError } = await supabase.from('room_audits').insert({
+            user_id: user.id,
+            room_name: selectedRoom,
+            image_url: fileName, // Saving path reference
+            
+            // 🟢 MAPPING ALL METRICS
+            arousal_score: analysis.arousalScore,
+            light_score: analysis.lightScore,       // <-- Added
+            circadian_tag: analysis.circadianTag,
+            dominance: analysis.dominance,
+            insight: analysis.insight,
+            prescriptions: analysis.prescriptions   // <-- Added
+        })
+
+        if (dbError) console.error("DB Save Error:", dbError)
         
         setResult(analysis)
         setStatus('success')
       }
+
     } catch (error: any) {
       console.error('Analysis failed:', error)
       setStatus('idle')
@@ -80,15 +116,20 @@ export default function AuditRoom() {
   return (
     <div className="min-h-screen bg-[#1b270e] font-sans selection:bg-[#b5a642] selection:text-[#1b270e]">
       <Sidebar onOpenGuide={() => {}} /> 
+      
       <div className="md:ml-64 min-h-screen p-6 md:p-12">
         <div className="max-w-4xl mx-auto">
+          
           <div className="mb-12 text-center">
             <h1 className="text-4xl font-serif text-[#c9ccbb] mb-4">Audit Room</h1>
-            <p className="text-[#c9ccbb]/60 max-w-lg mx-auto">NeuroDesign Analysis Engine</p>
+            <p className="text-[#c9ccbb]/60 max-w-lg mx-auto">
+              NeuroDesign Analysis Engine
+            </p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* UPLOAD AREA (Same as before) */}
+            
+            {/* UPLOAD AREA */}
             <div className="glass-panel p-8 rounded-3xl border border-[#c9ccbb]/10 bg-[#000]/20 relative overflow-hidden h-fit">
                {!isSubscribed && (
                   <div className="absolute inset-0 z-50 backdrop-blur-md bg-[#1b270e]/80 flex flex-col items-center justify-center text-center p-8">
@@ -97,6 +138,7 @@ export default function AuditRoom() {
                     <Link href="/upgrade" className="px-6 py-3 bg-[#b5a642] text-[#1b270e] rounded-lg font-bold text-xs uppercase tracking-widest hover:bg-[#d4c55e]">Unlock Access</Link>
                   </div>
                )}
+
                <div className="flex justify-center mb-6">
                  <div className="inline-flex bg-[#000]/40 rounded-full p-1 border border-[#c9ccbb]/10">
                    {rooms.map(room => (
@@ -107,10 +149,13 @@ export default function AuditRoom() {
                    ))}
                  </div>
                </div>
+
                <div onClick={() => isSubscribed && fileInputRef.current?.click()}
                  className={`w-full aspect-square rounded-2xl border-2 border-dashed flex flex-col items-center justify-center relative overflow-hidden cursor-pointer transition-all
                  ${previewUrl ? 'border-[#b5a642] bg-black' : 'border-[#c9ccbb]/20 hover:border-[#b5a642]/50'}`}>
+                 
                  <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept="image/*" className="hidden" disabled={!isSubscribed} />
+                 
                  {previewUrl ? (
                    <img src={previewUrl} alt="Preview" className="absolute inset-0 w-full h-full object-cover opacity-60" />
                  ) : (
@@ -120,6 +165,7 @@ export default function AuditRoom() {
                    </div>
                  )}
                </div>
+
                <div className="mt-6 flex justify-center">
                  <button onClick={handleAnalyze} disabled={!file || status === 'analyzing' || !isSubscribed}
                    className={`px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-widest flex items-center gap-2 transition-all
@@ -143,7 +189,7 @@ export default function AuditRoom() {
                             </div>
                         </div>
 
-                        {/* 🟢 UPDATED METRICS GRID (Now with Light Meter) */}
+                        {/* 🟢 METRICS GRID (Visual + Light) */}
                         <div className="grid grid-cols-2 gap-4 mb-8">
                             {/* Card 1: Visual Arousal */}
                             <div className="p-4 bg-[#000]/30 rounded-xl border border-[#c9ccbb]/10">
@@ -151,7 +197,7 @@ export default function AuditRoom() {
                                 <span className="text-2xl font-serif text-[#c9ccbb]">{result.arousalScore}% <span className="text-sm opacity-50 block text-[10px] font-sans font-normal uppercase mt-1">Saturation Load</span></span>
                             </div>
                             
-                            {/* Card 2: Light Meter (NEW) */}
+                            {/* Card 2: Light Meter */}
                             <div className="p-4 bg-[#000]/30 rounded-xl border border-[#c9ccbb]/10">
                                 <div className="flex justify-between items-start mb-1">
                                     <span className="text-[#c9ccbb]/40 text-[10px] font-bold uppercase tracking-widest block">Light Level</span>
