@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { FileText, RefreshCw } from 'lucide-react' // <--- CHANGED ICON to Refresh (Update)
+import { FileText, RefreshCw, Brain, Activity, AlertTriangle, ArrowRight } from 'lucide-react'
 
 import SensoryTools from '../components/SensoryTools'
 import SensoryRadar from '../components/SensoryRadar'
@@ -21,7 +21,8 @@ export default function DashboardUI({
   totalLoad, 
   systemState, 
   radarData, 
-  circadianLoad 
+  circadianLoad,
+  indices // We need indices for the top row scores
 }: any) {
   
   // MODAL STATE
@@ -36,10 +37,23 @@ export default function DashboardUI({
     }
   }, [])
 
+  // --- TOP ROW SCORE CALCULATIONS (Based on logic from results-preview) ---
+  // Recovery Capacity (RCI)
+  let recoveryScore = 100 - indices.rci; // Invert: lower load = higher capacity
+  let recoveryLabel = 'Optimal';
+  if (recoveryScore < 50) recoveryLabel = 'Low';
+  else if (recoveryScore < 75) recoveryLabel = 'Moderate';
+
+  // Sensory Load (STL)
+  let sensoryLabel = 'Low';
+  if (indices.stl > 50) sensoryLabel = 'High';
+  else if (indices.stl > 25) sensoryLabel = 'Moderate';
+
+
   return (
     <div className="min-h-screen bg-[#1b270e] font-sans selection:bg-[#b5a642] selection:text-[#1b270e]">
       
-      {/* SIDEBAR: NOW HAS A BUTTON TO OPEN GUIDE */}
+      {/* SIDEBAR */}
       <Sidebar onOpenGuide={() => setIsGuideOpen(true)} />
 
       {/* THE MODAL */}
@@ -54,26 +68,80 @@ export default function DashboardUI({
               <Image src="/logo.PNG" alt="TheSentientHome" fill className="object-contain object-left" priority />
             </div>
             <p className="text-[#c9ccbb]/80 font-light capitalize text-lg">
-              Welcome back, <span className="text-[#c9ccbb] font-normal">{displayName}</span>.
+              Welcome back, <span className="text-[#c9ccbb] font-normal">{displayName}</span>. Nervous System Status: <span className="text-[#b5a642] font-normal">{systemState}</span>
             </p>
           </div>
           <div className="flex gap-4">
-            {/* 🟢 UPDATED: "Recalibrate" / Update Logic */}
-            <Link href="/assessments/step0" className="flex items-center gap-2 px-6 py-3 glass-panel hover:bg-[#c9ccbb]/10 text-[#c9ccbb] rounded-lg text-sm font-medium transition-all">
-              <RefreshCw size={16} className="text-[#b5a642]" />
-              Retake Assessment
-            </Link>
-
+            {/* View Report Button */}
             <Link href="/assessments/report" className="flex items-center gap-2 px-6 py-3 glass-panel hover:bg-[#c9ccbb]/10 text-[#c9ccbb] rounded-lg text-sm font-medium transition-all">
               <FileText size={16} className="text-[#b5a642]" />
-              View Report
+              View Detailed Report
             </Link>
           </div>
         </div>
 
-        {/* --- ROW 1: STATS --- */}
+        {/* --- ROW 1: CORE METRICS (4 Cards) --- */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {/* CARD 1: Nervous System State (NeuroLoad) */}
+            <div className="glass-panel p-6 rounded-3xl border border-[#c9ccbb]/10 flex flex-col justify-between min-h-[180px] relative overflow-hidden">
+                <div className="flex justify-between items-start z-10 relative">
+                    <h3 className="text-[#c9ccbb] font-serif text-xl">Nervous System State</h3>
+                    <Brain className="text-[#b5a642]" size={24} />
+                </div>
+                <div className="z-10 relative">
+                    <div className="text-5xl font-serif text-[#c9ccbb] mb-1">{totalLoad}</div>
+                    <div className="text-xs text-[#c9ccbb]/60 uppercase tracking-widest">Cumulative Strain (Low is Good)</div>
+                </div>
+                <div className="absolute bottom-0 right-0 w-32 h-32 bg-[#b5a642]/10 rounded-full blur-2xl pointer-events-none" />
+            </div>
+
+            {/* CARD 2: Recovery Capacity */}
+            <div className="glass-panel p-6 rounded-3xl border border-[#c9ccbb]/10 flex flex-col justify-between min-h-[180px] relative overflow-hidden">
+                <div className="flex justify-between items-start z-10 relative">
+                    <h3 className="text-[#c9ccbb] font-serif text-xl">Recovery Capacity</h3>
+                    <Activity className="text-[#b5a642]" size={24} />
+                </div>
+                <div className="z-10 relative">
+                    <div className="text-5xl font-serif text-[#c9ccbb] mb-1">{recoveryScore}%</div>
+                    <div className="text-xs text-[#c9ccbb]/60 uppercase tracking-widest">{recoveryLabel} Restoration Potential</div>
+                </div>
+                <div className="absolute bottom-0 right-0 w-32 h-32 bg-[#b5a642]/10 rounded-full blur-2xl pointer-events-none" />
+            </div>
+
+            {/* CARD 3: Sensory Load */}
+            <div className="glass-panel p-6 rounded-3xl border border-[#c9ccbb]/10 flex flex-col justify-between min-h-[180px] relative overflow-hidden">
+                <div className="flex justify-between items-start z-10 relative">
+                    <h3 className="text-[#c9ccbb] font-serif text-xl">Sensory Load</h3>
+                    <AlertTriangle className="text-[#b5a642]" size={24} />
+                </div>
+                <div className="z-10 relative">
+                    <div className="text-5xl font-serif text-[#c9ccbb] mb-1 capitalize">{sensoryLabel}</div>
+                    <div className="text-xs text-[#c9ccbb]/60 uppercase tracking-widest">Current Stress Load</div>
+                </div>
+                <div className="absolute bottom-0 right-0 w-32 h-32 bg-[#b5a642]/10 rounded-full blur-2xl pointer-events-none" />
+            </div>
+
+            {/* CARD 4: Retake Assessment */}
+            <Link href="/assessments/step0" className="group glass-panel p-6 rounded-3xl border border-[#c9ccbb]/10 hover:bg-[#c9ccbb]/5 transition-all flex flex-col justify-between min-h-[180px] relative overflow-hidden">
+                <div className="flex justify-between items-start z-10 relative">
+                    <h3 className="text-[#c9ccbb] font-serif text-xl">Retake Assessment</h3>
+                    <RefreshCw className="text-[#b5a642] group-hover:rotate-180 transition-transform duration-500" size={24} />
+                </div>
+                <div className="z-10 relative">
+                    <div className="flex items-center gap-2 text-[#b5a642] font-bold">
+                        Track Your Progress <ArrowRight size={18} />
+                    </div>
+                    <div className="text-xs text-[#c9ccbb]/60 uppercase tracking-widest mt-1">Update Your Baseline</div>
+                </div>
+                <div className="absolute bottom-0 right-0 w-32 h-32 bg-[#b5a642]/10 rounded-full blur-2xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
+            </Link>
+        </div>
+
+
+        {/* --- ROW 2: RHYTHM & BASELINE --- */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="md:col-span-2 glass-panel p-6 rounded-3xl relative overflow-hidden flex flex-col justify-between min-h-[220px] border border-[#c9ccbb]/10">
+            {/* Nervous System Rhythm (Line Graph) */}
+            <div className="md:col-span-2 glass-panel p-6 rounded-3xl relative overflow-hidden flex flex-col justify-between min-h-[250px] border border-[#c9ccbb]/10">
                 <div className="relative z-10 flex justify-between items-start mb-4">
                     <div>
                         <h3 className="text-[#c9ccbb] font-serif text-xl">Nervous System Rhythm</h3>
@@ -86,37 +154,43 @@ export default function DashboardUI({
                          </div>
                     )}
                 </div>
-                <div className="absolute bottom-0 left-0 right-0 h-40 opacity-80 pointer-events-none">
+                <div className="absolute bottom-0 left-0 right-0 h-48 opacity-80 pointer-events-none">
                     <DashboardPulse logs={recentLogs} />
                 </div>
             </div>
 
-            <div className="glass-panel p-6 rounded-3xl flex flex-col justify-center items-center text-center relative overflow-hidden border-l-4 border-[#b5a642]">
+            {/* Current Baseline (Large Score Card) */}
+            <div className="glass-panel p-6 rounded-3xl flex flex-col justify-center items-center text-center relative overflow-hidden border-l-4 border-[#b5a642] min-h-[250px]">
                 <div className="relative z-10">
                     <div className="text-[10px] text-[#b5a642] font-bold uppercase tracking-widest mb-2">Current Baseline</div>
-                    <div className="text-5xl font-serif text-[#c9ccbb] mb-2">{totalLoad}</div>
-                    <div className="text-sm text-[#c9ccbb]/80 mb-4">{systemState}</div>
-                    <div className="text-[10px] text-[#c9ccbb]/80 uppercase tracking-widest">NeuroLoad Score™</div>
+                    <div className="text-6xl font-serif text-[#c9ccbb] mb-2">{totalLoad}</div>
+                    <div className="text-lg text-[#c9ccbb]/80 mb-4">{systemState}</div>
+                    <div className="text-[10px] text-[#c9ccbb]/80 uppercase tracking-widest">NeuroLoad Score</div>
                 </div>
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-[#b5a642]/10 rounded-full blur-2xl" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-[#b5a642]/10 rounded-full blur-3xl" />
             </div>
         </div>
 
-        {/* --- ROW 2: INTELLIGENCE --- */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-          <div className="lg:col-span-2 glass-panel p-8 rounded-3xl relative overflow-hidden border border-[#c9ccbb]/10">
+        {/* --- ROW 3: INTELLIGENCE (Radar & Insight) --- */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          {/* Sensory Profile (Radar Chart) */}
+          <div className="lg:col-span-2 glass-panel p-8 rounded-3xl relative overflow-hidden border border-[#c9ccbb]/10 min-h-[400px]">
             <div className="flex justify-between items-start mb-6">
               <div>
                 <h3 className="font-serif text-[#c9ccbb] text-xl mb-1">Your Sensory Profile</h3>
                 <p className="text-sm text-[#c9ccbb]/80">Circadian • Autonomic • Predictive • Sensory • Recovery</p>
               </div>
+              <Link href="/assessments/report" className="text-xs text-[#b5a642] uppercase tracking-widest hover:underline">
+                 Analyse Details →
+              </Link>
             </div>
             <div className="h-[300px] w-full">
               <SensoryRadar data={radarData} />
             </div>
           </div>
 
-          <div className="h-full">
+          {/* Somatic Insight (Flashcard) */}
+          <div className="h-full min-h-[400px]">
             <NeuroFlashcard 
               isPremium={false} 
               scores={{
@@ -128,13 +202,13 @@ export default function DashboardUI({
           </div>
         </div>
 
-        {/* --- ROW 3: RITUALS --- */}
+        {/* --- ROW 4: PROTOCOL RECOMMENDATION --- */}
         <div className="mb-8">
              <RitualsInterface neuroLoadScore={totalLoad} />
         </div>
 
-        {/* --- ROW 4: TOOLKIT --- */}
-        <div className="mb-4">
+        {/* --- ROW 5: TOOLKIT --- */}
+        <div className="mb-8">
             <h3 className="text-[#c9ccbb]/80 text-xs font-bold uppercase tracking-widest mb-6">Toolkit</h3>
             <SensoryTools />
         </div>
