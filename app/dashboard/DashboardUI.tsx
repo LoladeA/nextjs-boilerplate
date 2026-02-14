@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { FileText } from 'lucide-react'
+import { FileText, RefreshCw } from 'lucide-react' // <--- CHANGED ICON to Refresh (Update)
 
 import SensoryTools from '../components/SensoryTools'
 import SensoryRadar from '../components/SensoryRadar'
@@ -51,13 +51,19 @@ export default function DashboardUI({
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
             <div className="relative w-64 h-16 mb-2">
-              <Image src="/logo.PNG" alt="SentientHome" fill className="object-contain object-left" priority />
+              <Image src="/logo.PNG" alt="TheSentientHome" fill className="object-contain object-left" priority />
             </div>
             <p className="text-[#c9ccbb]/80 font-light capitalize text-lg">
               Welcome back, <span className="text-[#c9ccbb] font-normal">{displayName}</span>.
             </p>
           </div>
           <div className="flex gap-4">
+            {/* 🟢 UPDATED: "Recalibrate" / Update Logic */}
+            <Link href="/assessments/step0" className="flex items-center gap-2 px-6 py-3 glass-panel hover:bg-[#c9ccbb]/10 text-[#c9ccbb] rounded-lg text-sm font-medium transition-all">
+              <RefreshCw size={16} className="text-[#b5a642]" />
+              Retake Assessment
+            </Link>
+
             <Link href="/assessments/report" className="flex items-center gap-2 px-6 py-3 glass-panel hover:bg-[#c9ccbb]/10 text-[#c9ccbb] rounded-lg text-sm font-medium transition-all">
               <FileText size={16} className="text-[#b5a642]" />
               View Report
