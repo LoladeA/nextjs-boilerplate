@@ -96,7 +96,10 @@ export default function ResultsPreview() {
                    <div className="text-xs text-[#c9ccbb]/60 uppercase tracking-widest mt-1">Areas Needing Support</div>
                  </div>
                  <div>
-                    <div className="text-4xl font-bold text-[#c9ccbb]">{indices.rci <= 15 ? 'Active' : 'Blocked'}</div>
+                    {/* 🟢 UPDATED LOGIC HERE: Responsive text size + Softer wording */}
+                    <div className="text-3xl md:text-4xl font-bold text-[#c9ccbb]">
+                        {indices.rci <= 15 ? 'Supported' : 'Needs Support'}
+                    </div>
                     <div className="text-xs text-[#c9ccbb]/60 uppercase tracking-widest mt-1">Recovery Status</div>
                  </div>
                </div>
