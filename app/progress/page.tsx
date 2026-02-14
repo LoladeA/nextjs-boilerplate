@@ -5,7 +5,8 @@ import { useState, useEffect } from 'react'
 import { Heart, Wind, Sun, Volume2, CheckCircle, TrendingUp, Activity, AlertCircle, Zap, ShieldAlert, Loader2, Moon, Sunrise } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+// 🟢 IMPORT THE NEW SHARED CHART COMPONENT
+import DashboardPulse from '../components/DashboardPulse'
 
 export default function Progress() {
   const supabase = createClientComponentClient()
@@ -14,14 +15,12 @@ export default function Progress() {
   const [activeTab, setActiveTab] = useState<'morning' | 'evening'>('morning')
 
   // LOGGING STATE
-  // Morning Data
   const [morningMood, setMorningMood] = useState<number | null>(null)
   const [morningTags, setMorningTags] = useState<string[]>([])
   const [morningNote, setMorningNote] = useState('')
   const [luxScore, setLuxScore] = useState<string>('') 
   const [dbScore, setDbScore] = useState<string>('')
 
-  // Evening Data
   const [eveningMood, setEveningMood] = useState<number | null>(null)
   const [eveningTags, setEveningTags] = useState<string[]>([])
   const [eveningNote, setEveningNote] = useState('')
@@ -30,15 +29,15 @@ export default function Progress() {
   const [errorMessage, setErrorMessage] = useState('')
   
   // CHART STATE
-  const [chartData, setChartData] = useState<any[]>([])
+  const [chartLogs, setChartLogs] = useState<any[]>([])
 
   // AUTOMATICALLY SET TAB BASED ON TIME OF DAY
   useEffect(() => {
     const hour = new Date().getHours()
-    if (hour >= 17) setActiveTab('evening') // If after 5 PM, default to Evening
+    if (hour >= 17) setActiveTab('evening')
   }, [])
 
-  // 1. MOOD SCALES (Reused for both, but could differ if needed)
+  // 1. MOOD SCALES
   const moods = [
     { val: 1, label: 'Dysregulated', desc: 'Overwhelmed', color: 'bg-red-500/20 border-red-500/50 text-red-400' },
     { val: 2, label: 'High Alert', desc: 'Vigilant', color: 'bg-orange-500/20 border-orange-500/50 text-orange-400' },
@@ -56,26 +55,10 @@ export default function Progress() {
   ]
 
   const eveningTagOptions = [
-    { 
-      id: 'low_horizon', 
-      label: 'Turned Off The Big Lights & Switched To Warm, Low-Level Lighting', 
-      icon: <Zap size={14} /> 
-    },
-    { 
-      id: 'entropy_reset', 
-      label: 'Decluttered The First Surface I See In The Morning', 
-      icon: <CheckCircle size={14} /> 
-    },
-    { 
-      id: 'acoustic_seal', 
-      label: 'Using Sound-Softening Barriers (Curtains, Doors & Mechanical Noise)', 
-      icon: <Volume2 size={14} /> 
-    },
-    { 
-      id: 'tactile_enclosure', 
-      label: 'Using Gentle Weight & Soft Textures for Sleep', 
-      icon: <Heart size={14} /> 
-    },
+    { id: 'low_horizon', label: 'Turned Off The Big Lights & Switched To Warm, Low-Level Lighting', icon: <Zap size={14} /> },
+    { id: 'entropy_reset', label: 'Decluttered The First Surface I See In The Morning', icon: <CheckCircle size={14} /> },
+    { id: 'acoustic_seal', label: 'Using Sound-Softening Barriers (Curtains, Doors & Mechanical Noise)', icon: <Volume2 size={14} /> },
+    { id: 'tactile_enclosure', label: 'Using Gentle Weight & Soft Textures for Sleep', icon: <Heart size={14} /> },
   ]
 
   // --- INITIAL DATA FETCH ---
@@ -88,7 +71,7 @@ export default function Progress() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    const today = new Date().toISOString().split('T')[0]
+    const today = new Date().toLocaleDateString('en-CA') // Local Time Fix
     
     const { data } = await supabase
       .from('daily_logs')
@@ -98,14 +81,12 @@ export default function Progress() {
       .single()
 
     if (data) {
-      // Load Morning Data
       setMorningMood(data.mood_score)
       setMorningTags(data.tags || [])
       setMorningNote(data.note || '')
       if (data.lux_score) setLuxScore(data.lux_score.toString())
       if (data.db_score) setDbScore(data.db_score.toString())
 
-      // Load Evening Data
       setEveningMood(data.evening_mood_score)
       setEveningTags(data.evening_tags || [])
       setEveningNote(data.evening_note || '')
@@ -116,19 +97,16 @@ export default function Progress() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
+    // 🟢 UPDATED: Fetch more history (30 days) to support the 14-day rolling window
     const { data } = await supabase
       .from('daily_logs')
-      .select('date, mood_score')
+      .select('created_at, mood_score') // DashboardPulse expects 'created_at' and 'mood_score'
       .eq('user_id', user.id)
-      .order('date', { ascending: true })
-      .limit(7)
+      .order('created_at', { ascending: true })
+      .limit(30) 
 
     if (data) {
-        const formatted = data.map(d => ({
-            day: new Date(d.date).toLocaleDateString('en-US', { weekday: 'short' }),
-            score: d.mood_score
-        }))
-        setChartData(formatted)
+        setChartLogs(data)
     }
   }
 
@@ -149,9 +127,8 @@ export default function Progress() {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) throw new Error("No user logged in")
 
-        const today = new Date().toISOString().split('T')[0]
+        const today = new Date().toLocaleDateString('en-CA') // Local Time Fix
 
-        // Prepare the payload (Merge existing state)
         const payload = {
             user_id: user.id,
             date: today,
@@ -184,7 +161,7 @@ export default function Progress() {
     }
   }
 
-  // Helper vars for current view
+  // Helper vars
   const currentMood = activeTab === 'morning' ? morningMood : eveningMood
   const setCurrentMood = activeTab === 'morning' ? setMorningMood : setEveningMood
   const currentTags = activeTab === 'morning' ? morningTags : eveningTags
@@ -297,7 +274,7 @@ export default function Progress() {
                 </div>
             )}
 
-            {/* 3. HABIT TAGS (DYNAMIC) */}
+            {/* 3. HABIT TAGS */}
             <div className="flex flex-wrap gap-2 mb-8 animate-fade-in">
               {currentOptions.map((tag) => (
                 <button
@@ -359,36 +336,15 @@ export default function Progress() {
             </div>
           </div>
 
-          {/* --- CHART SECTION --- */}
-          <div className="animate-fade-in-up delay-100">
+          {/* --- 🟢 UPDATED CHART SECTION (Using DashboardPulse) --- */}
+          <div className="animate-fade-in-up delay-100 mb-12">
               <div className="flex items-center gap-2 mb-6 text-[#c9ccbb]/80 text-xs font-bold uppercase tracking-widest">
-                <TrendingUp size={14} /> Nervous System Rhythm (Morning Baseline)
+                <TrendingUp size={14} /> 14-Day Rhythm (Morning Baseline)
               </div>
-              {chartData.length > 0 ? (
-                <div className="glass-panel p-8 rounded-3xl border border-[#c9ccbb]/10">
-                   <div className="h-[250px] w-full">
-                     <ResponsiveContainer width="100%" height="100%">
-                       <AreaChart data={chartData}>
-                         <defs>
-                           <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
-                             <stop offset="5%" stopColor="#b5a642" stopOpacity={0.3}/>
-                             <stop offset="95%" stopColor="#b5a642" stopOpacity={0}/>
-                           </linearGradient>
-                         </defs>
-                         <XAxis dataKey="day" stroke="#c9ccbb" opacity={0.3} tick={{fontSize: 10}} axisLine={false} tickLine={false} />
-                         <YAxis hide={true} domain={[0, 6]} />
-                         <Tooltip contentStyle={{ backgroundColor: '#1b270e', borderColor: '#c9ccbb33', color: '#c9ccbb' }} itemStyle={{ color: '#b5a642' }} cursor={{ stroke: '#c9ccbb', strokeWidth: 1, strokeDasharray: '3 3' }} />
-                         <Area type="monotone" dataKey="score" stroke="#b5a642" strokeWidth={3} fillOpacity={1} fill="url(#colorScore)" />
-                       </AreaChart>
-                     </ResponsiveContainer>
-                   </div>
-                </div>
-              ) : (
-                <div className="glass-panel p-12 rounded-3xl border border-dashed border-[#c9ccbb]/10 flex flex-col items-center text-center">
-                   <Activity size={32} className="text-[#b5a642] mb-4 opacity-70" />
-                   <p className="text-[#c9ccbb]/70 text-sm">Log your first check-in to see your trend.</p>
-                </div>
-              )}
+              <div className="glass-panel p-8 rounded-3xl border border-[#c9ccbb]/10 h-[300px] relative overflow-hidden">
+                   {/* This component handles the 14-day rolling window logic automatically */}
+                   <DashboardPulse logs={chartLogs} />
+              </div>
           </div>
 
         </div>
