@@ -8,7 +8,7 @@ export const assessmentProtocol = {
     questions: [
       { id: 'q_state', text: "How does your body feel in your home environment right now?", type: 'choice', options: ['Alert', 'Calm', 'Wired', 'Flat', 'Tense'] },
       { id: 'energy_tax', text: "What percentage of your energy goes toward managing your environment vs. living in it?", type: 'slider' },
-      { id: 'primary_strain', text: "Which feels most true right now?", type: 'choice', options: ['Mental overload', 'Physical tension', 'Emotional volatility', 'Sleep disruption'] },
+      { id: 'primary_strain', text: "Which feels most true right now?", type: 'choice', options: ['Mental overload', 'Physical tension', 'Emotional volatility', 'Sleep disruption', 'None of the above'] },
       { id: 'neuro_lens', text: "My sensory processing is influenced by:", type: 'choice', options: ['HSP', 'ADHD', 'Autism', 'Dyslexia', 'SPD', 'None'] },
     ]
   },
