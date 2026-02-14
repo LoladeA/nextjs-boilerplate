@@ -12,20 +12,21 @@ import {
   LogOut, 
   Menu, 
   X,
-  Map // New Icon
+  Map,
+  ScanEye // 🟢 ADDED: Icon for Audit Room
 } from 'lucide-react'
 import { useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
 interface SidebarProps {
-  onOpenGuide?: () => void; // The new prop for the Modal
+  onOpenGuide?: () => void;
 }
 
 export default function Sidebar({ onOpenGuide }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClientComponentClient()
-  const [isOpen, setIsOpen] = useState(false) // Preserving Mobile toggle
+  const [isOpen, setIsOpen] = useState(false)
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -36,17 +37,19 @@ export default function Sidebar({ onOpenGuide }: SidebarProps) {
   const navItems = [
     { name: 'Dashboard', href: '/dashboard', icon: <LayoutDashboard size={20} /> },
     { name: 'Assessment', href: '/assessments/report', icon: <FileText size={20} /> },
+    // 🟢 ADDED: Audit Room (Linked to its own page)
+    { name: 'Audit Room', href: '/dashboard/audit-room', icon: <ScanEye size={20} /> }, 
     { name: 'Coaching', href: '/coaching', icon: <Sparkles size={20} /> },
     { name: 'Insights', href: '/insights', icon: <BookOpen size={20} /> },
     { name: 'Progress', href: '/progress', icon: <BarChart2 size={20} /> },
     { name: 'Settings', href: '/settings', icon: <Settings size={20} /> },
   ]
 
-  const isActive = (path: string) => pathname === path
+  const isActive = (path: string) => pathname === path || pathname.startsWith(`${path}/`)
 
   return (
     <>
-      {/* MOBILE HAMBURGER BUTTON (Preserved) */}
+      {/* MOBILE HAMBURGER BUTTON */}
       <button 
         onClick={() => setIsOpen(!isOpen)}
         className="md:hidden fixed top-4 right-4 z-50 p-2 bg-[#1b270e] border border-[#b5a642]/30 text-[#b5a642] rounded-lg shadow-lg"
@@ -61,7 +64,7 @@ export default function Sidebar({ onOpenGuide }: SidebarProps) {
       `}>
         <div className="flex flex-col h-full p-6">
           
-          {/* LOGO AREA (Preserved) */}
+          {/* LOGO AREA */}
           <div className="mb-10 pl-2">
             <span className="text-xl font-serif text-[#c9ccbb]">Sentient<span className="text-[#b5a642]">Home</span></span>
           </div>
@@ -72,7 +75,7 @@ export default function Sidebar({ onOpenGuide }: SidebarProps) {
                 <Link 
                   key={item.name}
                   href={item.href}
-                  onClick={() => setIsOpen(false)} // Close sidebar on click (mobile)
+                  onClick={() => setIsOpen(false)}
                   className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                     isActive(item.href) 
                       ? 'bg-[#b5a642] text-[#1b270e] font-bold shadow-[0_0_15px_rgba(181,166,66,0.2)]' 
@@ -84,14 +87,14 @@ export default function Sidebar({ onOpenGuide }: SidebarProps) {
                 </Link>
             ))}
 
-            {/* --- NEW FEATURE: CALIBRATION MAP --- */}
+            {/* CALIBRATION MAP */}
             {onOpenGuide && (
               <>
                 <div className="h-px bg-[#c9ccbb]/10 my-4 mx-2"></div>
                 <button 
                   onClick={() => {
                     onOpenGuide()
-                    setIsOpen(false) // Close sidebar on click (mobile)
+                    setIsOpen(false)
                   }}
                   className="flex items-center gap-3 px-4 py-3 text-[#c9ccbb]/80 hover:text-[#b5a642] hover:bg-[#b5a642]/5 rounded-xl transition-all w-full text-left"
                 >
@@ -102,7 +105,7 @@ export default function Sidebar({ onOpenGuide }: SidebarProps) {
             )}
           </nav>
 
-          {/* USER / LOGOUT (Preserved) */}
+          {/* USER / LOGOUT */}
           <div className="pt-6 border-t border-[#c9ccbb]/10">
             <button 
               onClick={handleLogout}
