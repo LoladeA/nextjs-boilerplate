@@ -32,12 +32,12 @@ export default async function Dashboard() {
   const safeResponses = responsesRes.data || []
   const recentLogs = logsRes.data || []
 
-  // 2. UX INTERCEPTION: If no data, show "Calibrating"
+  // 2. UX INTERCEPTION
   if (safeResponses.length === 0) {
     return (
-      <>
+      <div className="min-h-screen bg-[#1b270e]"> {/* 🟢 ADDED WRAPPER */}
         <GuestSync /> 
-        <div className="min-h-screen flex flex-col items-center justify-center bg-[#1b270e] text-[#b5a642]">
+        <div className="min-h-screen flex flex-col items-center justify-center text-[#b5a642]">
             <div className="animate-pulse flex flex-col items-center gap-4">
                <Activity size={48} />
                <h2 className="text-2xl font-serif">Calibrating your profile...</h2>
@@ -49,7 +49,7 @@ export default async function Dashboard() {
                </a>
             </div>
         </div>
-      </>
+      </div>
     )
   }
 
@@ -69,19 +69,19 @@ export default async function Dashboard() {
     { subject: 'Recovery', A: Math.round(percentIndices.rci), fullMark: 100 }
   ]
 
-  // 5. RENDER DASHBOARD
+ // 5. RENDER DASHBOARD
   return (
-    <>
+    <div className="min-h-screen bg-[#1b270e]"> {/* 🟢 ADDED WRAPPER */}
       <GuestSync /> 
       <DashboardUI 
         user={user}
         displayName={displayName}
         recentLogs={recentLogs}
-        totalLoad={finalNeuroLoad} // 🟢 UPDATED: Passed the new weighted score
+        totalLoad={finalNeuroLoad}
         systemState={systemState}
-        radarData={radarData}      // 🟢 UPDATED: Passed the new mapped array
-        circadianLoad={rawIndices?.cii || 0} // 🟢 UPDATED: Passed raw score for flashcard logic
+        radarData={radarData}     
+        circadianLoad={rawIndices?.cii || 0}
       />
-    </>
+    </div>
   )
 }
