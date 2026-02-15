@@ -19,7 +19,7 @@ export default function DashboardUI({
   recentLogs, 
   totalLoad, 
   systemState, 
-  radarData = [], // Default to empty array if missing
+  radarData = [], 
   circadianLoad
 }: any) {
   
@@ -33,25 +33,24 @@ export default function DashboardUI({
     }
   }, [])
 
-  // --- CRASH FIX: SAFE CALCULATION LOGIC ---
-  // We extract scores directly from radarData to avoid "undefined" errors
+  // --- UPDATED V2.0 CALCULATION LOGIC ---
   
-  // 1. Get Raw Scores (Default to 50 if data is missing to prevent crash)
+  // 1. Extract percentages directly from radarData
   const recoveryRaw = radarData?.find((d: any) => d.subject === 'Recovery')?.A || 50
   const sensoryRaw = radarData?.find((d: any) => d.subject === 'Sensory')?.A || 50
   const autonomicRaw = radarData?.find((d: any) => d.subject === 'Autonomic')?.A || 50
 
-  // 2. Calculate Display Values
-  const recoveryCapacity = 100 - recoveryRaw; // Invert: Lower load = Higher capacity
+  // 2. Invert Load into Capacity/Health for UI display
+  const recoveryCapacity = 100 - recoveryRaw; 
   
-  // 3. Generate Labels
+  // 3. Generate Smart Labels based on v2.0 Thresholds (40% / 70%)
   let recoveryLabel = 'Moderate';
-  if (recoveryCapacity > 75) recoveryLabel = 'Optimal';
-  else if (recoveryCapacity < 50) recoveryLabel = 'Low';
+  if (recoveryCapacity > 60) recoveryLabel = 'High';    
+  else if (recoveryCapacity < 30) recoveryLabel = 'Low'; 
 
   let sensoryLabel = 'Moderate';
   if (sensoryRaw > 60) sensoryLabel = 'High';
-  else if (sensoryRaw < 30) sensoryLabel = 'Low';
+  else if (sensoryRaw < 40) sensoryLabel = 'Low';
 
   return (
     <div className="min-h-screen bg-[#1b270e] font-sans selection:bg-[#b5a642] selection:text-[#1b270e]">
@@ -82,7 +81,7 @@ export default function DashboardUI({
         {/* --- ROW 1: CORE METRICS --- */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             
-            {/* 1. Nervous System State */}
+            {/* 1. NeuroLoad */}
             <div className="glass-panel p-6 rounded-3xl border border-[#c9ccbb]/10 flex flex-col justify-between min-h-[180px] relative overflow-hidden">
                 <div className="flex justify-between items-start z-10 relative">
                     <h3 className="text-[#c9ccbb] font-serif text-xl">NeuroLoad</h3>
@@ -185,9 +184,9 @@ export default function DashboardUI({
             <NeuroFlashcard 
               isPremium={false} 
               scores={{
-                light: circadianLoad > 15 ? 40 : 80,
-                visual: sensoryRaw, 
-                acoustic: autonomicRaw
+                light: circadianLoad > 15 ? 40 : 80, 
+                visual: 100 - sensoryRaw, 
+                acoustic: 100 - autonomicRaw 
               }}
             />
           </div>
