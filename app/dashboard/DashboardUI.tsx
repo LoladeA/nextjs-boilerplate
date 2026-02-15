@@ -33,17 +33,16 @@ export default function DashboardUI({
     }
   }, [])
 
-  // --- UPDATED V2.0 CALCULATION LOGIC ---
-  
-  // 1. Extract percentages directly from radarData
+  // --- 1. DATA EXTRACTION (0-100%) ---
   const recoveryRaw = radarData?.find((d: any) => d.subject === 'Recovery')?.A || 50
   const sensoryRaw = radarData?.find((d: any) => d.subject === 'Sensory')?.A || 50
   const autonomicRaw = radarData?.find((d: any) => d.subject === 'Autonomic')?.A || 50
 
-  // 2. Invert Load into Capacity/Health for UI display
+  // --- 2. LOGIC CALIBRATION ---
+  // Invert Load to Capacity: Lower raw load = Higher capacity
   const recoveryCapacity = 100 - recoveryRaw; 
   
-  // 3. Generate Smart Labels based on v2.0 Thresholds (40% / 70%)
+  // Standardized Labels for v2.0 Architecture
   let recoveryLabel = 'Moderate';
   if (recoveryCapacity > 60) recoveryLabel = 'High';    
   else if (recoveryCapacity < 30) recoveryLabel = 'Low'; 
@@ -85,7 +84,7 @@ export default function DashboardUI({
             <div className="glass-panel p-6 rounded-3xl border border-[#c9ccbb]/10 flex flex-col justify-between min-h-[180px] relative overflow-hidden">
                 <div className="flex justify-between items-start z-10 relative">
                     <h3 className="text-[#c9ccbb] font-serif text-xl">NeuroLoad</h3>
-                    <Brain className="text-[#b5a642]" size={24} />
+                    <Brain className="text-[#b5a642]" size={20} />
                 </div>
                 <div className="z-10 relative">
                     <div className="text-5xl font-serif text-[#c9ccbb] mb-1">{totalLoad}</div>
@@ -98,7 +97,7 @@ export default function DashboardUI({
             <div className="glass-panel p-6 rounded-3xl border border-[#c9ccbb]/10 flex flex-col justify-between min-h-[180px] relative overflow-hidden">
                 <div className="flex justify-between items-start z-10 relative">
                     <h3 className="text-[#c9ccbb] font-serif text-xl">Recovery Capacity</h3>
-                    <Activity className="text-[#b5a642]" size={24} />
+                    <Activity className="text-[#b5a642]" size={20} />
                 </div>
                 <div className="z-10 relative">
                     <div className="text-5xl font-serif text-[#c9ccbb] mb-1">{recoveryCapacity}%</div>
@@ -111,7 +110,7 @@ export default function DashboardUI({
             <div className="glass-panel p-6 rounded-3xl border border-[#c9ccbb]/10 flex flex-col justify-between min-h-[180px] relative overflow-hidden">
                 <div className="flex justify-between items-start z-10 relative">
                     <h3 className="text-[#c9ccbb] font-serif text-xl">Sensory Load</h3>
-                    <AlertTriangle className="text-[#b5a642]" size={24} />
+                    <AlertTriangle className="text-[#b5a642]" size={20} />
                 </div>
                 <div className="z-10 relative">
                     <div className="text-5xl font-serif text-[#c9ccbb] mb-1 capitalize">{sensoryLabel}</div>
