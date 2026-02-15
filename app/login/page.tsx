@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
 export default function LoginPage() {
@@ -12,15 +12,21 @@ export default function LoginPage() {
   const [message, setMessage] = useState('')
   const [origin, setOrigin] = useState('')
   
+  // 🟢 NEW: State to toggle between Login and Signup view
+  const [view, setView] = useState<'signin' | 'signup'>('signin')
+  const searchParams = useSearchParams()
+  
   const router = useRouter()
   const supabase = createClientComponentClient()
 
-  // Dynamic URL Detection (Works for Localhost & Production)
   useEffect(() => {
     setOrigin(window.location.origin)
-  }, [])
+    // 🟢 CHECK URL: If coming from Guest Dashboard (?view=signup), switch mode automatically
+    if (searchParams.get('view') === 'signup') {
+      setView('signup')
+    }
+  }, [searchParams])
 
-  // GITHUB SIGN IN (Redirects to Dashboard)
   const handleOAuth = async (provider: 'github' | 'google') => {
     setLoading(true)
     const { error } = await supabase.auth.signInWithOAuth({
@@ -33,21 +39,37 @@ export default function LoginPage() {
     setLoading(false)
   }
 
-  // EMAIL SIGN IN (Redirects to Dashboard)
-  const handleSignIn = async (e: React.FormEvent) => {
+  // 🟢 COMBINED HANDLER: Handles both Sign In and Sign Up based on 'view'
+  const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-    if (error) {
-      setMessage(error.message)
-      setLoading(false)
+    setMessage('')
+
+    if (view === 'signup') {
+        // --- SIGN UP LOGIC ---
+        const { error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+                emailRedirectTo: `${origin}/auth/callback`,
+            },
+        })
+        if (error) setMessage(error.message)
+        else setMessage('Check your email for the confirmation link.')
     } else {
-      router.push('/dashboard')
-      router.refresh()
+        // --- SIGN IN LOGIC ---
+        const { error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+        })
+        if (error) {
+            setMessage(error.message)
+        } else {
+            router.push('/dashboard')
+            router.refresh()
+        }
     }
+    setLoading(false)
   }
 
   return (
@@ -61,16 +83,21 @@ export default function LoginPage() {
       {/* THE BEIGE CARD */}
       <div className="w-full max-w-md bg-[#c9ccbb] rounded-[2rem] p-10 md:p-14 shadow-2xl shadow-black/20 text-[#1b270e]">
         
-        <h2 className="text-3xl font-serif mb-2 font-medium">Begin Your Shift</h2>
-        <p className="opacity-60 mb-8 font-light italic">Access your Sensory Intelligence dashboard.</p>
+        {/* Dynamic Title based on View */}
+        <h2 className="text-3xl font-serif mb-2 font-medium">
+            {view === 'signin' ? 'Welcome Back' : 'Begin Your Shift'}
+        </h2>
+        <p className="opacity-60 mb-8 font-light italic">
+            {view === 'signin' ? 'Access your dashboard.' : 'Create your Sensory Intelligence account.'}
+        </p>
         
-        {/* GitHub Button */}
+        {/* GitHub Button (Available for both) */}
         <div className="space-y-3 mb-8">
           <button
             onClick={() => handleOAuth('github')}
             className="w-full py-4 bg-[#24292e] text-white rounded-full font-medium hover:bg-[#2f363d] transition-all flex items-center justify-center gap-3"
           >
-             Continue with GitHub
+              Continue with GitHub
           </button>
         </div>
 
@@ -81,8 +108,8 @@ export default function LoginPage() {
           <div className="h-px bg-[#1b270e] flex-1"></div>
         </div>
 
-        {/* Email Form */}
-        <form onSubmit={handleSignIn} className="space-y-4">
+        {/* Auth Form */}
+        <form onSubmit={handleAuth} className="space-y-4">
           <input 
             type="email" 
             className="w-full bg-transparent border-b border-[#1b270e]/20 py-3 px-1 text-[#1b270e] focus:outline-none focus:border-[#1b270e] placeholder-[#1b270e]/30 transition-colors"
@@ -98,25 +125,28 @@ export default function LoginPage() {
             placeholder="Password"
           />
 
-          {message && <p className="text-sm text-red-600 font-medium bg-red-50 p-3 rounded-lg text-center">{message}</p>}
+          {message && <p className={`text-sm font-medium p-3 rounded-lg text-center ${message.includes('Check') ? 'bg-green-100 text-green-800' : 'bg-red-50 text-red-600'}`}>{message}</p>}
 
           <div className="flex flex-col gap-3 pt-4">
-            {/* Sign In Button */}
             <button 
               type="submit" 
               disabled={loading}
               className="w-full py-4 bg-[#1b270e] text-[#c9ccbb] rounded-full font-bold hover:bg-[#1b270e]/90 transition-all active:scale-[0.98]"
             >
-              {loading ? 'Processing...' : 'Sign In'}
+              {loading ? 'Processing...' : (view === 'signin' ? 'Sign In' : 'Create Account')}
             </button>
             
-            {/* Sign Up Link - Points to your separate Signup page */}
-            <Link 
-              href="/signup"
+            {/* 🟢 TOGGLE LINK: Switches view instead of navigating to /signup */}
+            <button 
+              type="button"
+              onClick={() => {
+                  setView(view === 'signin' ? 'signup' : 'signin')
+                  setMessage('')
+              }}
               className="w-full py-3 text-xs uppercase tracking-widest text-center text-[#1b270e]/60 hover:text-[#1b270e] transition-colors font-bold"
             >
-              No account? Create one
-            </Link>
+              {view === 'signin' ? 'No account? Create one' : 'Already have an account? Sign In'}
+            </button>
           </div>
         </form>
       </div>
