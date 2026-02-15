@@ -1,11 +1,11 @@
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import Link from 'next/link'
-import { ArrowLeft, Activity, Brain, ShieldAlert, Zap, Download, CheckCircle, Moon } from 'lucide-react'
+import { ArrowLeft, Activity, Brain, ShieldAlert, Zap, Download, CheckCircle } from 'lucide-react'
 import { calculateNeuroLoad } from '@/app/utils/scoring-engine'
 import Sidebar from '../../components/Sidebar'
 import PriorityList from './PriorityList'
-import HumanScorecard from '../../components/HumanScorecard' // <--- 1. NEW IMPORT ADDED
+import HumanScorecard from '../../components/HumanScorecard'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,64 +21,70 @@ export default async function AssessmentReport() {
 
   const safeResponses = responses || []
 
-  // --- SAFETY CHECK: PREVENTS CRASHES ---
-  const engineResult = calculateNeuroLoad(safeResponses)
+  // --- 1. CALCULATE SCORES (Using v2 Engine) ---
+  // We cast to 'any' strictly for the migration to avoid TS shouting about the old keys missing
+  const engineResult: any = calculateNeuroLoad(safeResponses)
   
-  // If indices are missing, use 0 as fallback
-  const indices = engineResult.indices || { cii: 0, ali: 0, pli: 0, stl: 0, rci: 0 }
-  const totalLoad = engineResult.totalLoad || 0
+  // --- 2. ADAPT NEW DATA TO UI ---
+  // The new engine returns 'rawIndices' (for specific scores) and 'percentIndices' (for graphs)
+  const rawIndices = engineResult.rawIndices || { cii: 0, ali: 0, pli: 0, stl: 0, rci: 0 }
+  const percentIndices = engineResult.percentIndices || { cii: 0, ali: 0, pli: 0, stl: 0, rci: 0 }
+  
+  // Map 'finalNeuroLoad' (0-100) to the UI variable
+  const totalLoad = engineResult.finalNeuroLoad || 0
   const systemState = engineResult.systemState || "Resonant System"
 
+  // We use rawIndices here because your status logic (<= 10, etc.) is calibrated to the raw 0-25 scale
   const domains = [
     {
       id: 'cii',
       name: 'Circadian Rhythm',
-      score: indices.cii,
+      score: rawIndices.cii,
       max: 25,
       description: 'Alignment with biological day/night rhythm.',
-      status: indices.cii <= 10 ? 'Regulated' : indices.cii <= 15 ? 'Misaligned' : indices.cii <= 20 ? 'Dysregulated' : 'Circadian Shift',
-      priority: indices.cii > 15 ? 'High' : indices.cii > 10 ? 'Medium' : 'Low',
-      icon: <Zap size={24} className={indices.cii > 15 ? "text-red-400" : "text-[#b5a642]"} />
+      status: rawIndices.cii <= 10 ? 'Regulated' : rawIndices.cii <= 15 ? 'Misaligned' : rawIndices.cii <= 20 ? 'Dysregulated' : 'Circadian Shift',
+      priority: rawIndices.cii > 15 ? 'High' : rawIndices.cii > 10 ? 'Medium' : 'Low',
+      icon: <Zap size={24} className={rawIndices.cii > 15 ? "text-red-400" : "text-[#b5a642]"} />
     },
     {
       id: 'ali',
       name: 'Autonomic Load',
-      score: indices.ali,
+      score: rawIndices.ali,
       max: 20,
       description: 'Nervous system vigilance and stress axis activation.',
-      status: indices.ali <= 7 ? 'Stable' : indices.ali <= 11 ? 'Activated' : indices.ali <= 16 ? 'Overloaded' : 'High Vigilance',
-      priority: indices.ali > 11 ? 'High' : indices.ali > 7 ? 'Medium' : 'Low',
-      icon: <Activity size={24} className={indices.ali > 11 ? "text-red-400" : "text-[#b5a642]"} />
+      status: rawIndices.ali <= 7 ? 'Stable' : rawIndices.ali <= 11 ? 'Activated' : rawIndices.ali <= 16 ? 'Overloaded' : 'High Vigilance',
+      priority: rawIndices.ali > 11 ? 'High' : rawIndices.ali > 7 ? 'Medium' : 'Low',
+      icon: <Activity size={24} className={rawIndices.ali > 11 ? "text-red-400" : "text-[#b5a642]"} />
     },
     {
       id: 'pli',
       name: 'Predictive Legibility',
-      score: indices.pli,
+      score: rawIndices.pli,
       max: 25,
       description: 'Spatial clarity and cognitive effort.',
-      status: indices.pli <= 10 ? 'Legible' : indices.pli <= 15 ? 'Frictional' : indices.pli <= 20 ? 'Fragmented' : 'Cognitive Overload',
-      priority: indices.pli > 15 ? 'High' : indices.pli > 10 ? 'Medium' : 'Low',
-      icon: <Brain size={24} className={indices.pli > 15 ? "text-red-400" : "text-[#b5a642]"} />
+      status: rawIndices.pli <= 10 ? 'Legible' : rawIndices.pli <= 15 ? 'Frictional' : rawIndices.pli <= 20 ? 'Fragmented' : 'Cognitive Overload',
+      priority: rawIndices.pli > 15 ? 'High' : rawIndices.pli > 10 ? 'Medium' : 'Low',
+      icon: <Brain size={24} className={rawIndices.pli > 15 ? "text-red-400" : "text-[#b5a642]"} />
     },
     {
       id: 'stl',
       name: 'Sensory Load',
-      score: indices.stl,
+      score: rawIndices.stl,
       max: 25,
       description: 'Cumulative impact of noise, clutter, and texture.',
-      status: indices.stl <= 10 ? 'Low Load' : indices.stl <= 15 ? 'Moderate' : indices.stl <= 20 ? 'High Load' : 'Sensory Overload',
-      priority: indices.stl > 15 ? 'High' : indices.stl > 10 ? 'Medium' : 'Low',
-      icon: <ShieldAlert size={24} className={indices.stl > 15 ? "text-red-400" : "text-[#b5a642]"} />
+      status: rawIndices.stl <= 10 ? 'Low Load' : rawIndices.stl <= 15 ? 'Moderate' : rawIndices.stl <= 20 ? 'High Load' : 'Sensory Overload',
+      priority: rawIndices.stl > 15 ? 'High' : rawIndices.stl > 10 ? 'Medium' : 'Low',
+      icon: <ShieldAlert size={24} className={rawIndices.stl > 15 ? "text-red-400" : "text-[#b5a642]"} />
     },
     {
       id: 'rci',
       name: 'Recovery Support',
-      score: indices.rci,
+      score: rawIndices.rci,
       max: 25,
       description: 'Ability of the home to support parasympathetic restoration.',
-      status: indices.rci <= 10 ? 'Restorative' : indices.rci <= 15 ? 'Recovery Supported' : indices.rci <= 20 ? 'Recovery Limited' : 'Recovery Not Yet Available',
-      priority: indices.rci > 15 ? 'High' : indices.rci > 10 ? 'Medium' : 'Low',
-      icon: <CheckCircle size={24} className={indices.rci > 15 ? "text-red-400" : "text-[#b5a642]"} />
+      status: rawIndices.rci <= 10 ? 'Restorative' : rawIndices.rci <= 15 ? 'Recovery Supported' : rawIndices.rci <= 20 ? 'Recovery Limited' : 'Recovery Not Yet Available',
+      priority: rawIndices.rci > 15 ? 'High' : rawIndices.rci > 10 ? 'Medium' : 'Low',
+      icon: <CheckCircle size={24} className={rawIndices.rci > 15 ? "text-red-400" : "text-[#b5a642]"} />
     }
   ]
 
@@ -113,7 +119,8 @@ export default async function AssessmentReport() {
                
                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-8 border-t border-[#c9ccbb]/10">
                  <div>
-                   <div className="text-3xl font-bold text-[#c9ccbb]">{totalLoad}<span className="text-base text-[#c9ccbb]/80 font-normal">/120</span></div>
+                   {/* 🟢 UPDATED: Scale is now /100 */}
+                   <div className="text-3xl font-bold text-[#c9ccbb]">{totalLoad}<span className="text-base text-[#c9ccbb]/80 font-normal">/100</span></div>
                    <div className="text-xs text-[#c9ccbb]/80 uppercase tracking-widest mt-1">NeuroLoad Score™</div>
                  </div>
                  <div>
@@ -135,18 +142,20 @@ export default async function AssessmentReport() {
           {criticalIssues.length > 0 && (
              <div className="mb-16">
                <h3 className="text-2xl font-serif text-[#c9ccbb] mb-8">Your Priority Actions</h3>
+               {/* Use criticalIssues directly as they match the structure */}
                <PriorityList areas={criticalIssues} />
              </div>
           )}
 
-          {/* 2. HUMAN SCORECARD (REPLACED OLD LOOP) */}
+          {/* 2. HUMAN SCORECARD (USING PERCENTAGES) */}
           <div className="mb-16">
              <h3 className="text-2xl font-serif text-[#c9ccbb] mb-8">Detailed Analysis</h3>
+             {/* 🟢 UPDATED: Passing percentages directly from the engine */}
              <HumanScorecard scores={{
-                circadian: (indices.cii / 25) * 100,
-                autonomic: (indices.ali / 20) * 100,
-                legibility: (indices.pli / 25) * 100,
-                sensory: (indices.stl / 25) * 100
+                circadian: percentIndices.cii,
+                autonomic: percentIndices.ali,
+                legibility: percentIndices.pli,
+                sensory: percentIndices.stl
              }} />
           </div>
 
