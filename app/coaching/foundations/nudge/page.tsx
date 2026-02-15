@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import Link from 'next/link'
-import { ShieldCheck, ArrowRight, Lightbulb, LayoutGrid } from 'lucide-react'
+// 🟢 FIXED: Added CheckCircle to the import list
+import { ShieldCheck, ArrowRight, Lightbulb, LayoutGrid, CheckCircle } from 'lucide-react'
 import Sidebar from '@/app/components/Sidebar'
 
 export default function FoundationsNudge() {
@@ -74,7 +75,6 @@ export default function FoundationsNudge() {
             </div>
           </div>
 
-          {/* Completion Navigation */}
           <div className="flex flex-col items-center border-t border-[#c9ccbb]/10 pt-16">
             <h4 className="text-[#c9ccbb] font-serif text-2xl mb-6">Ready for the next shift?</h4>
             <Link 
@@ -83,11 +83,7 @@ export default function FoundationsNudge() {
             >
               Unlock Module 1: Sensory & Lighting <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
             </Link>
-            <p className="mt-6 text-xs text-[#c9ccbb]/40 uppercase tracking-widest font-bold">
-              Progress: 1 of 4 Modules Complete
-            </p>
           </div>
-
         </div>
       </main>
     </div>
