@@ -18,35 +18,31 @@ export default async function Dashboard() {
 
   const displayName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Member'
   
-  // 1. FETCH DATA
+  // 1. FETCH DATA (30 days for the 14-day rhythm chart)
   const [responsesRes, logsRes] = await Promise.all([
     supabase.from('user_responses').select('*').eq('user_id', user.id),
-    // 🟢 CORRECTION: Select '*' to ensure 'created_at' is available for the chart
     supabase
       .from('daily_logs')
       .select('*') 
       .eq('user_id', user.id)
-      .order('created_at', { ascending: false }) // Order by creation time for accuracy
-      .limit(30) // 🟢 CONFIRMED: 30 items for the 14-day window
+      .order('created_at', { ascending: false }) 
+      .limit(30) 
   ])
 
   const safeResponses = responsesRes.data || []
   const recentLogs = logsRes.data || []
 
-  // 2. UX INTERCEPTION: If no data, show "Calibrating" while GuestSync works
+  // 2. UX INTERCEPTION: If no data, show "Calibrating"
   if (safeResponses.length === 0) {
     return (
       <>
         <GuestSync /> 
-        
-        {/* VISUAL LOADING STATE */}
         <div className="min-h-screen flex flex-col items-center justify-center bg-[#1b270e] text-[#b5a642]">
             <div className="animate-pulse flex flex-col items-center gap-4">
                <Activity size={48} />
                <h2 className="text-2xl font-serif">Calibrating your profile...</h2>
                <p className="text-[#c9ccbb]/80 text-sm uppercase tracking-widest">Syncing bio-data</p>
             </div>
-            
             <div className="mt-8 opacity-0 animate-in fade-in delay-[3000ms] fill-mode-forwards duration-1000">
                <a href="/assessments/step0" className="text-xs text-[#c9ccbb]/70 hover:text-[#b5a642] underline">
                  Stuck? Retake Assessment
@@ -57,13 +53,23 @@ export default async function Dashboard() {
     )
   }
 
-  // 3. CALCULATE ENGINES
-  const { totalLoad, systemState, radarData } = calculateNeuroLoad(safeResponses)
+  // 3. CALCULATE ENGINES (Using the NEW v2.0 Logic)
+  // We use 'any' here temporarily to prevent TS errors during the migration swap
+  const engineResult: any = calculateNeuroLoad(safeResponses)
   
-  const getVal = (id: string) => safeResponses.find(r => r.question_key === id)?.answer?.response || 0
-  const circadianLoad = Number(getVal('q5')) + Number(getVal('q6')) + Number(getVal('q7')) + Number(getVal('q8')) + Number(getVal('q9'))
+  // 4. MAP NEW ENGINE DATA TO OLD UI PROPS
+  const { finalNeuroLoad, systemState, percentIndices, rawIndices } = engineResult
 
-  // 4. RENDER DASHBOARD
+  // Map the new 'percentIndices' to the structure the Radar Chart expects
+  const radarData = [
+    { subject: 'Circadian', A: Math.round(percentIndices.cii), fullMark: 100 },
+    { subject: 'Autonomic', A: Math.round(percentIndices.ali), fullMark: 100 },
+    { subject: 'Predictive', A: Math.round(percentIndices.pli), fullMark: 100 },
+    { subject: 'Sensory', A: Math.round(percentIndices.stl), fullMark: 100 },
+    { subject: 'Recovery', A: Math.round(percentIndices.rci), fullMark: 100 }
+  ]
+
+  // 5. RENDER DASHBOARD
   return (
     <>
       <GuestSync /> 
@@ -71,10 +77,10 @@ export default async function Dashboard() {
         user={user}
         displayName={displayName}
         recentLogs={recentLogs}
-        totalLoad={totalLoad}
+        totalLoad={finalNeuroLoad} // 🟢 UPDATED: Passed the new weighted score
         systemState={systemState}
-        radarData={radarData}
-        circadianLoad={circadianLoad}
+        radarData={radarData}      // 🟢 UPDATED: Passed the new mapped array
+        circadianLoad={rawIndices?.cii || 0} // 🟢 UPDATED: Passed raw score for flashcard logic
       />
     </>
   )
