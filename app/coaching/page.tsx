@@ -11,32 +11,34 @@ export default function Coaching() {
   const [completedSlugs, setCompletedSlugs] = useState<string[]>([])
 
   // 🟢 FIXED: Variable declared only once with your exact word-for-word content
-  const modules = [
-    { 
-      week: "Module 1", 
-      slug: "foundations",
-      title: "Foundations of Neuropsychology in Interior Design", 
-      subtitle: "The Home as a Second Skin for the Nervous System.",
-      items: ["Neuro Load Scoring", "ACC & Theta Activity", "Hormonal Health"],
-      isLocked: false,
-      link: "/coaching/foundations"
-    },
-    { 
-      week: "Module 2", 
-      slug: "sensory-lighting-dynamics", 
-      title: "Sensory and Lighting Dynamics", 
-      subtitle: "Understanding Sensory Load: Beyond the Obvious.",
-      items: [
-        "Week 1: Visual Density", 
-        "Week 2: Circadian Stability & Sensory Filtering", 
-        "Week 3: Designing for Regulation (Not Aesthetics)", 
-        "Week 4: The Evening Reset & Deep Night Setting"
-      ],
-      isLocked: true, 
-      isPremium: true,
-      link: "/upgrade" 
-    }
-  ]
+  // Inside the modules array in app/coaching/page.tsx
+
+const modules = [
+  { 
+    week: "Module 1", 
+    slug: "foundations",
+    title: "Foundations of Neuropsychology in Interior Design", 
+    subtitle: "The Home as a Second Skin for the Nervous System.",
+    items: ["Neuro Load Scoring", "ACC & Theta Activity", "Hormonal Health"],
+    isLocked: false,
+    link: "/coaching/foundations" // 🟢 Points to your physical folder
+  },
+  { 
+    week: "Module 2", 
+    slug: "sensory-lighting-dynamics", 
+    title: "Sensory and Lighting Dynamics", 
+    subtitle: "Understanding Sensory Load: Beyond the Obvious.",
+    items: [
+      "Week 1: Understanding Sensory Load: Beyond the Obvious", 
+      "Week 2: Circadian Stability & Sensory Filtering", 
+      "Week 3: Designing for Regulation (Not Aesthetics)", 
+      "Week 4: The Evening Reset & Deep Night Setting"
+    ],
+    isLocked: true, 
+    isPremium: true,
+    link: "/upgrade" 
+  }
+]
 
   // FETCH PROGRESS
   useEffect(() => {
