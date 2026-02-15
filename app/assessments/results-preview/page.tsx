@@ -56,7 +56,7 @@ export default function ResultsPreview() {
   const priorityIDs = priorityDomains.map((d: any) => ({ id: d.id }))
 
   // Helper to determine status text based on RAW scores (maintaining your calibration)
-  const getStatus = (score: number) => score <= 15 ? 'Supported' : 'Needs Support'
+  const getStatus = (score: number) => score <= 15 ? 'High Potential' : 'Low Potential'
 
   return (
     <div className="min-h-screen bg-[#1b270e] font-sans text-[#c9ccbb] pb-32">
