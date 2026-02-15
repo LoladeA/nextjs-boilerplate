@@ -41,8 +41,12 @@ export default function ResultsPreview() {
   const { finalNeuroLoad, systemState, rawIndices, percentIndices, priorityDomains } = data
   const priorityIDs = priorityDomains.map((d: any) => ({ id: d.id }))
 
-  // 🟢 UPDATED: "High Potential" vs "Low Potential"
-  const getStatus = (score: number) => score <= 15 ? 'High Potential' : 'Low Potential'
+  // 🟢 STANDARDIZED: Three-tier Recovery Status logic
+  const getStatus = (score: number) => {
+    if (score < 10) return 'High Potential'
+    if (score <= 15) return 'Moderate Potential'
+    return 'Low Potential'
+  }
 
   return (
     <div className="min-h-screen bg-[#1b270e] font-sans text-[#c9ccbb] pb-32">
@@ -83,7 +87,7 @@ export default function ResultsPreview() {
                    <div className="text-xs text-[#c9ccbb]/60 uppercase tracking-widest mt-1">Areas Needing Support</div>
                  </div>
                  <div>
-                   <div className="text-3xl md:text-4xl font-bold text-[#c9ccbb]">
+                   <div className="text-2xl md:text-3xl font-bold text-[#c9ccbb]">
                        {getStatus(rawIndices.rci)}
                    </div>
                    <div className="text-xs text-[#c9ccbb]/60 uppercase tracking-widest mt-1">Recovery Status</div>
