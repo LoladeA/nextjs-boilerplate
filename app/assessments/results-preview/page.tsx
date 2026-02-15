@@ -15,20 +15,17 @@ export default function ResultsPreview() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // 1. Load Data
     const guestData = getGuestData()
     if (!guestData || Object.keys(guestData.answers).length === 0) {
       router.push('/assessments/step0')
       return
     }
 
-    // 2. Format & Calculate (Using v2 Engine)
     const formattedResponses = Object.entries(guestData.answers).map(([key, value]) => ({
       question_key: key,
       answer: { response: value }
     }))
     
-    // The engine now returns the new structure (finalNeuroLoad, priorityDomains, etc.)
     const result = calculateNeuroLoad(formattedResponses)
     setData(result)
     setLoading(false)
@@ -41,21 +38,10 @@ export default function ResultsPreview() {
     </div>
   )
 
-  // 3. DESTRUCTURE NEW V2 DATA
-  // We map the new engine keys to the variables this page expects
-  const { 
-    finalNeuroLoad, // Was 'totalLoad'
-    systemState, 
-    rawIndices,     // Was 'indices' (used for Raw logic)
-    percentIndices, // Used for Scorecards
-    priorityDomains // Engine now calculates this automatically!
-  } = data
-
-  // 4. MAP FOR UI
-  // The engine gives us sorted priorities, we just need to format them for the UI component
+  const { finalNeuroLoad, systemState, rawIndices, percentIndices, priorityDomains } = data
   const priorityIDs = priorityDomains.map((d: any) => ({ id: d.id }))
 
-  // Helper to determine status text based on RAW scores (maintaining your calibration)
+  // 🟢 UPDATED: "High Potential" vs "Low Potential"
   const getStatus = (score: number) => score <= 15 ? 'High Potential' : 'Low Potential'
 
   return (
@@ -81,7 +67,7 @@ export default function ResultsPreview() {
              <p className="text-[#c9ccbb]/60">How your home environment is currently interacting with your nervous system.</p>
         </div>
 
-        {/* --- SCORE CARD (Unlocked) --- */}
+        {/* --- SCORE CARD --- */}
         <div className="glass-panel p-8 md:p-12 rounded-3xl mb-12 border-l-8 border-[#b5a642] relative overflow-hidden">
              <div className="relative z-10">
                <span className="text-[#b5a642] text-xs font-bold uppercase tracking-widest mb-2 block">Current Nervous System State</span>
@@ -89,7 +75,6 @@ export default function ResultsPreview() {
                
                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-8 border-t border-[#c9ccbb]/10">
                  <div>
-                   {/* 🟢 UPDATED: Scale is now /100 */}
                    <div className="text-4xl font-bold text-[#c9ccbb]">{finalNeuroLoad}<span className="text-base text-[#c9ccbb]/60 font-normal">/100</span></div>
                    <div className="text-xs text-[#c9ccbb]/60 uppercase tracking-widest mt-1">NeuroLoad Score™</div>
                  </div>
@@ -98,7 +83,6 @@ export default function ResultsPreview() {
                    <div className="text-xs text-[#c9ccbb]/60 uppercase tracking-widest mt-1">Areas Needing Support</div>
                  </div>
                  <div>
-                   {/* 🟢 UPDATED: Checking rawIndices.rci for status */}
                    <div className="text-3xl md:text-4xl font-bold text-[#c9ccbb]">
                        {getStatus(rawIndices.rci)}
                    </div>
@@ -109,10 +93,9 @@ export default function ResultsPreview() {
              <div className="absolute right-0 top-0 w-64 h-64 bg-[#b5a642] rounded-full filter blur-[100px] opacity-10 pointer-events-none" />
         </div>
 
-        {/* --- PRIORITY ACTIONS (Unlocked) --- */}
+        {/* --- PRIORITY ACTIONS --- */}
         <div className="mb-16">
             <h3 className="text-2xl font-serif text-[#c9ccbb] mb-8">Your Priority Actions</h3>
-            {/* 🟢 UPDATED: Using the engine's calculated priorities */}
             <PriorityList areas={priorityIDs.length > 0 ? priorityIDs : [{id: 'ali'}]} /> 
         </div>
 
@@ -126,7 +109,6 @@ export default function ResultsPreview() {
             </div>
 
             <div className="relative rounded-3xl overflow-hidden">
-                {/* 🟢 UPDATED: Using percentIndices for visual accuracy in the blurred card */}
                 <div className="filter blur-md opacity-40 pointer-events-none select-none">
                     <HumanScorecard scores={{
                         circadian: percentIndices.cii,
