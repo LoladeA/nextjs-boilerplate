@@ -1,7 +1,7 @@
 'use client'
 
 import Sidebar from '../components/Sidebar'
-import { PlayCircle, Lock, ArrowRight, CheckCircle, BookOpen, Sparkles } from 'lucide-react'
+import { Lock, ArrowRight, CheckCircle, BookOpen, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useEffect, useState } from 'react'
@@ -10,45 +10,44 @@ export default function Coaching() {
   const supabase = createClientComponentClient()
   const [completedSlugs, setCompletedSlugs] = useState<string[]>([])
 
-  // DATA: The "Nervous System Gym" Curriculum
-  // Inside app/coaching/page.tsx
+  // 🟢 FIXED: Variable declared only once with your exact word-for-word content
+  const modules = [
+    { 
+      week: "Module 1", 
+      slug: "foundations",
+      title: "Foundations of Neuropsychology in Interior Design", 
+      subtitle: "The Home as a Second Skin for the Nervous System.",
+      items: ["Neuro Load Scoring", "ACC & Theta Activity", "Hormonal Health"],
+      isLocked: false,
+      link: "/coaching/foundations"
+    },
+    { 
+      week: "Module 2", 
+      slug: "sensory-lighting-dynamics", 
+      title: "Sensory and Lighting Dynamics", 
+      subtitle: "Understanding Sensory Load: Beyond the Obvious.",
+      items: [
+        "Week 1: Visual Density", 
+        "Week 2: Circadian Stability & Sensory Filtering", 
+        "Week 3: Designing for Regulation (Not Aesthetics)", 
+        "Week 4: The Evening Reset & Deep Night Setting"
+      ],
+      isLocked: true, 
+      isPremium: true,
+      link: "/upgrade" 
+    }
+  ]
 
-const modules = [
-  // Inside app/coaching/page.tsx
-
-const modules = [
-  { 
-    // 🟢 MODULE 1: The Single Document "Intro"
-    week: "Module 1", 
-    slug: "foundations",
-    title: "Foundations of Neuropsychology in Interior Design", 
-    subtitle: "The Home as a Second Skin for the Nervous System.",
-    items: ["Neuro Load Scoring", "ACC & Theta Activity", "Hormonal Health"],
-    isLocked: false,
-    link: "/coaching/foundations"
-  },
-  { 
-    // 🟢 MODULE 2: The 4-Week "Coaching" Sequence
-    week: "Module 2", 
-    slug: "sensory-lighting-dynamics", 
-    title: "Sensory and Lighting Dynamics", 
-    subtitle: "Understanding Sensory Load: Beyond the Obvious.",
-    items: ["Week 1: Visual Density", "Week 2: Circadian Stability & Sensory Filtering", "Week 3: Designing for Regulation (Not Aesthetics)", "Week 4: The Evening Reset & Deep Night Setting"],
-    isLocked: true, 
-    isPremium: true, // Highlights the expanded value of this module
-    link: "/upgrade" 
-  }
-]
   // FETCH PROGRESS
   useEffect(() => {
     async function getProgress() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-      const { data } = await supabase.from('module_progress').select('module_slug').eq('user_id', user.id)
+      const { data } = await supabase.from('quiz_submissions').select('module_slug').eq('user_id', user.id)
       if (data) setCompletedSlugs(data.map(row => row.module_slug))
     }
     getProgress()
-  }, [])
+  }, [supabase])
 
   return (
     <div className="min-h-screen bg-[#1b270e] font-sans selection:bg-[#b5a642] selection:text-[#1b270e]">
@@ -61,7 +60,7 @@ const modules = [
             ← Back to Dashboard
           </Link>
 
-          {/* --- UPDATED HEADER SECTION --- */}
+          {/* --- HEADER SECTION --- */}
           <div className="mb-12">
             <h1 className="text-4xl font-serif text-[#c9ccbb] mb-6">Your Sensory Coaching Journey</h1>
             <div className="text-[#c9ccbb]/70 max-w-3xl leading-relaxed space-y-4">
@@ -86,13 +85,12 @@ const modules = [
                   key={i}
                   className={`group relative flex flex-col justify-between p-8 rounded-3xl border transition-all duration-500 overflow-hidden min-h-[400px]
                     ${item.isPremium 
-                      ? 'bg-gradient-to-br from-[#b5a642]/20 to-[#b5a642]/5 border-[#b5a642]/30' // GOLD CARD
-                      : 'bg-[#1b270e] border-[#c9ccbb]/50 hover:border-[#b5a642]/50' // STANDARD CARD
+                      ? 'bg-gradient-to-br from-[#b5a642]/20 to-[#b5a642]/5 border-[#b5a642]/30' 
+                      : 'bg-[#1b270e] border-[#c9ccbb]/50 hover:border-[#b5a642]/50' 
                     }
                   `}
                 >
                   <div>
-                      {/* WEEK BADGE */}
                       <div className="flex justify-between items-start mb-6">
                           <span className={`px-3 py-1 rounded border text-[10px] font-bold uppercase tracking-widest 
                             ${item.isPremium ? 'border-[#1b270e]/20 text-[#1b270e]' : 'border-[#c9ccbb]/20 text-[#c9ccbb]/60'}`}>
@@ -101,13 +99,11 @@ const modules = [
                           {item.isLocked && <Lock size={16} className="text-[#c9ccbb]/40" />}
                       </div>
 
-                      {/* TITLE */}
-                      <h3 className={`text-2xl font-serif mb-2 ${item.isPremium ? 'text-[#c9ccbb]' : 'text-[#c9ccbb]'}`}>
+                      <h3 className="text-2xl font-serif mb-2 text-[#c9ccbb]">
                           {item.title}
                       </h3>
                       <p className="text-[#c9ccbb]/70 text-sm mb-8">{item.subtitle}</p>
                       
-                      {/* LIST ITEMS */}
                       <div className="space-y-3 mb-8">
                         {item.items.map((subItem, idx) => (
                             <div key={idx} className="flex items-center gap-3 text-sm text-[#c9ccbb]/80">
@@ -118,7 +114,6 @@ const modules = [
                       </div>
                   </div>
 
-                  {/* ACTION FOOTER */}
                   <div className={`pt-6 border-t ${item.isPremium ? 'border-[#1b270e]/10' : 'border-[#c9ccbb]/10'} flex justify-between items-center`}>
                       {item.isLocked ? (
                           <span className="text-xs font-bold uppercase tracking-widest text-[#b5a642] flex items-center gap-2">
