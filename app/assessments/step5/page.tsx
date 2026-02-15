@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { CheckCircle, Save } from 'lucide-react'
 import { assessmentProtocol } from '../../data/assessment-protocol'
-import { saveGuestAnswer } from '../../utils/guest-storage' // <--- IMPORT GUEST UTILITY
+import { saveGuestAnswer } from '../../utils/guest-storage'
 
 export default function AssessmentStep5() {
   const part = assessmentProtocol.part5
@@ -14,22 +14,24 @@ export default function AssessmentStep5() {
   const [loading, setLoading] = useState(false)
   const [responses, setResponses] = useState<Record<string, number>>({})
 
-  // SHARED SAVE LOGIC
-  const saveProgress = async () => {
+  // 🟢 SMART FINISH LOGIC (Replaces generic saveProgress)
+  const handleFinish = async () => {
     setLoading(true)
-    
-    // 1. GUEST MODE: Save to Local Storage
+
+    // 1. ALWAYS SAVE LOCALLY FIRST (Ensures data safety + Guest support)
     Object.entries(responses).forEach(([key, value]) => {
       saveGuestAnswer(key, value)
     })
 
-    // 2. HYBRID SYNC: Attempt Supabase save if logged in
+    // 2. CHECK AUTH STATUS
     const { data: { session } } = await supabase.auth.getSession()
-    
+
     if (session) {
+      // --- LOGGED IN USER PATH ---
+      // Save directly to database
       const updates = Object.entries(responses).map(([key, value]) => ({
         user_id: session.user.id,
-        assessment_step: 5, // Final Step
+        assessment_step: 5,
         question_key: key,
         answer: { response: value }
       }))
@@ -37,22 +39,35 @@ export default function AssessmentStep5() {
       if (updates.length > 0) {
         await supabase.from('user_responses').upsert(updates)
       }
+
+      // REDIRECT TO DASHBOARD (Baseline Updated)
+      router.push('/dashboard')
+    } else {
+      // --- GUEST PATH ---
+      // REDIRECT TO PREVIEW (Teaser Page)
+      router.push('/assessments/results-preview') 
     }
-    
-    return true
   }
 
-  const handleFinish = async () => {
-    await saveProgress()
-    
-    // CRITICAL CHANGE: 
-    // Redirect to the new "Public" results page.
-    router.push('/assessments/results-preview') 
-  }
-
+  // 🟢 SAVE & EXIT LOGIC (Updates Dashboard if possible)
   const handleSaveExit = async () => {
-    await saveProgress()
-    // Redirect to Dashboard (Triggers Login if not authenticated)
+    // Basic save for later
+    Object.entries(responses).forEach(([key, value]) => {
+        saveGuestAnswer(key, value)
+    })
+    
+    // Attempt database save if possible, but don't block navigation on it
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+        const updates = Object.entries(responses).map(([key, value]) => ({
+            user_id: session.user.id,
+            assessment_step: 5,
+            question_key: key,
+            answer: { response: value }
+        }))
+        await supabase.from('user_responses').upsert(updates)
+    }
+
     router.push('/dashboard')
   }
 
