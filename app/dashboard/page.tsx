@@ -1,7 +1,7 @@
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { Activity } from 'lucide-react' // Import Icon for loader
+import { Activity } from 'lucide-react' 
 import DashboardUI from './DashboardUI'
 import GuestSync from '../components/GuestSync'
 import { calculateNeuroLoad } from '../utils/scoring-engine' 
@@ -21,7 +21,13 @@ export default async function Dashboard() {
   // 1. FETCH DATA
   const [responsesRes, logsRes] = await Promise.all([
     supabase.from('user_responses').select('*').eq('user_id', user.id),
-    supabase.from('daily_logs').select('mood_score, date').eq('user_id', user.id).order('date', { ascending: false }).limit(30)
+    // 🟢 CORRECTION: Select '*' to ensure 'created_at' is available for the chart
+    supabase
+      .from('daily_logs')
+      .select('*') 
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false }) // Order by creation time for accuracy
+      .limit(30) // 🟢 CONFIRMED: 30 items for the 14-day window
   ])
 
   const safeResponses = responsesRes.data || []
@@ -31,7 +37,7 @@ export default async function Dashboard() {
   if (safeResponses.length === 0) {
     return (
       <>
-        <GuestSync /> {/* This works invisibly to upload the data */}
+        <GuestSync /> 
         
         {/* VISUAL LOADING STATE */}
         <div className="min-h-screen flex flex-col items-center justify-center bg-[#1b270e] text-[#b5a642]">
@@ -41,10 +47,9 @@ export default async function Dashboard() {
                <p className="text-[#c9ccbb]/80 text-sm uppercase tracking-widest">Syncing bio-data</p>
             </div>
             
-            {/* Fallback: In case they genuinely haven't taken the test */}
             <div className="mt-8 opacity-0 animate-in fade-in delay-[3000ms] fill-mode-forwards duration-1000">
                <a href="/assessments/step0" className="text-xs text-[#c9ccbb]/70 hover:text-[#b5a642] underline">
-                  Stuck? Retake Assessment
+                 Stuck? Retake Assessment
                </a>
             </div>
         </div>
@@ -52,7 +57,7 @@ export default async function Dashboard() {
     )
   }
 
-  // 3. CALCULATE ENGINES (Only happens if we have data)
+  // 3. CALCULATE ENGINES
   const { totalLoad, systemState, radarData } = calculateNeuroLoad(safeResponses)
   
   const getVal = (id: string) => safeResponses.find(r => r.question_key === id)?.answer?.response || 0
@@ -61,7 +66,7 @@ export default async function Dashboard() {
   // 4. RENDER DASHBOARD
   return (
     <>
-      <GuestSync /> {/* Keep this here just in case of late syncs */}
+      <GuestSync /> 
       <DashboardUI 
         user={user}
         displayName={displayName}
