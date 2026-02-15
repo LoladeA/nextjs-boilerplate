@@ -51,7 +51,7 @@ export default function LoginPage() {
             email,
             password,
             options: {
-                emailRedirectTo: `${origin}/auth/callback`,
+                emailRedirectTo: `${origin}/auth/callback?next=/dashboard`,
             },
         })
         if (error) setMessage(error.message)
