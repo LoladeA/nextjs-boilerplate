@@ -3,8 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import Link from 'next/link'
-// 🟢 FIXED: Added CheckCircle to the import list
-import { ShieldCheck, ArrowRight, Lightbulb, LayoutGrid, CheckCircle } from 'lucide-react'
+import { ShieldCheck, ArrowRight, LayoutGrid, CheckCircle } from 'lucide-react'
 import Sidebar from '@/app/components/Sidebar'
 
 export default function FoundationsNudge() {
@@ -32,56 +31,62 @@ export default function FoundationsNudge() {
       <main className="md:ml-64 min-h-screen p-6 md:p-12 lg:p-20">
         <div className="max-w-4xl mx-auto">
           
-          <header className="mb-12">
-            <h1 className="text-4xl font-serif text-[#c9ccbb] mb-4">Your Integration Strategy</h1>
-            <p className="text-[#c9ccbb]/60 text-lg">
+          <header className="mb-20">
+            <h1 className="text-4xl md:text-5xl font-serif text-[#c9ccbb] mb-6">Your Integration Strategy</h1>
+            <p className="text-[#c9ccbb]/60 text-xl italic">
               Translating foundations into a regulated environment.
             </p>
           </header>
 
-          <div className="grid gap-8 mb-16">
+          <div className="grid gap-12 mb-20">
             {/* Action 1: Edge Density Audit */}
-            <div className="glass-panel p-8 rounded-3xl border border-[#b5a642]/20 bg-[#b5a642]/5">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-12 h-12 bg-[#b5a642] text-[#1b270e] rounded-full flex items-center justify-center">
-                  <LayoutGrid size={24} />
+            <div className="glass-panel p-10 rounded-[2rem] border border-[#b5a642]/20 bg-[#b5a642]/5 shadow-xl">
+              <div className="flex items-center gap-6 mb-8">
+                <div className="w-14 h-14 bg-[#b5a642] text-[#1b270e] rounded-full flex items-center justify-center">
+                  <LayoutGrid size={28} />
                 </div>
-                <h3 className="text-xl font-serif text-[#c9ccbb]">The Edge Density Audit</h3>
+                <h3 className="text-2xl font-serif text-[#c9ccbb]">The Edge Density Audit</h3>
               </div>
-              <p className="text-[#c9ccbb]/80 mb-6 leading-relaxed">
+              <p className="text-[#c9ccbb]/80 mb-8 leading-[1.8] text-lg">
                 As identified in the module, high edge density increases theta band activity in the ACC. Identify the room where you spend the most cognitive energy. Look for sharp, fragmented visual patterns or excessive angular furniture.
               </p>
-              <div className="bg-[#1b270e]/40 p-6 rounded-xl border border-[#c9ccbb]/10">
-                <span className="text-[#b5a642] text-xs font-bold uppercase tracking-widest block mb-2">Immediate Shift</span>
-                <p className="text-sm text-[#c9ccbb]/70 italic">Softening just one visual "collision point" (e.g., adding a textile over a sharp-edged desk or clearing a fragmented shelf) can reduce baseline vigilance.</p>
+              <div className="bg-[#1b270e]/40 p-8 rounded-2xl border border-[#c9ccbb]/10">
+                <span className="text-[#b5a642] text-xs font-bold uppercase tracking-widest block mb-4">Immediate Shift</span>
+                <p className="text-lg text-[#c9ccbb]/70 italic leading-relaxed">Softening just one visual collision point (e.g., adding a textile over a sharp-edged desk or clearing a fragmented shelf) can reduce baseline vigilance.</p>
               </div>
             </div>
 
             {/* Action 2: Hormonal Support */}
-            <div className="glass-panel p-8 rounded-3xl border border-[#b5a642]/20 bg-[#b5a642]/5">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-12 h-12 bg-[#b5a642] text-[#1b270e] rounded-full flex items-center justify-center">
-                  <ShieldCheck size={24} />
+            <div className="glass-panel p-10 rounded-[2rem] border border-[#b5a642]/20 bg-[#b5a642]/5 shadow-xl">
+              <div className="flex items-center gap-6 mb-8">
+                <div className="w-14 h-14 bg-[#b5a642] text-[#1b270e] rounded-full flex items-center justify-center">
+                  <ShieldCheck size={28} />
                 </div>
-                <h3 className="text-xl font-serif text-[#c9ccbb]">Cortisol Mitigation</h3>
+                <h3 className="text-2xl font-serif text-[#c9ccbb]">Cortisol Mitigation</h3>
               </div>
-              <p className="text-[#c9ccbb]/80 mb-6 leading-relaxed">
+              <p className="text-[#c9ccbb]/80 mb-8 leading-[1.8] text-lg">
                 Nervous system regulation requires predictability. When sensory load is high, the HPA axis remains on low-grade alert.
               </p>
-              <ul className="space-y-3 text-sm text-[#c9ccbb]/70">
-                <li className="flex gap-3"><CheckCircle size={16} className="text-[#b5a642] shrink-0" /> Audit for "ghost" inputs: Whirring electronics or subtle light leaks.</li>
-                <li className="flex gap-3"><CheckCircle size={16} className="text-[#b5a642] shrink-0" /> Group small objects into a single visual hierarchy.</li>
+              <ul className="space-y-6">
+                <li className="flex gap-4 items-start text-lg text-[#c9ccbb]/80">
+                  <CheckCircle size={24} className="text-[#b5a642] shrink-0 mt-1" /> 
+                  <span>Audit for ghost inputs: Whirring electronics or subtle light leaks.</span>
+                </li>
+                <li className="flex gap-4 items-start text-lg text-[#c9ccbb]/80">
+                  <CheckCircle size={24} className="text-[#b5a642] shrink-0 mt-1" /> 
+                  <span>Group small objects into a single visual hierarchy.</span>
+                </li>
               </ul>
             </div>
           </div>
 
-          <div className="flex flex-col items-center border-t border-[#c9ccbb]/10 pt-16">
-            <h4 className="text-[#c9ccbb] font-serif text-2xl mb-6">Ready for the next shift?</h4>
+          <div className="flex flex-col items-center border-t border-[#c9ccbb]/10 pt-20">
+            <h4 className="text-[#c9ccbb] font-serif text-3xl mb-10">Ready for the next shift?</h4>
             <Link 
-              href="/coaching/sensory-lighting" 
-              className="group flex items-center gap-3 px-12 py-5 bg-[#c9ccbb] text-[#1b270e] font-bold rounded-full hover:bg-[#b5a642] transition-all"
+              href="/upgrade" 
+              className="group flex items-center gap-4 px-14 py-6 bg-[#c9ccbb] text-[#1b270e] font-bold rounded-full hover:bg-[#b5a642] transition-all shadow-2xl shadow-[#b5a642]/20"
             >
-              Unlock Module 1: Sensory & Lighting <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+              Unlock Module 2: Sensory & Lighting <ArrowRight size={24} className="group-hover:translate-x-2 transition-transform" />
             </Link>
           </div>
         </div>
