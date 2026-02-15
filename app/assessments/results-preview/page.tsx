@@ -22,11 +22,13 @@ export default function ResultsPreview() {
       return
     }
 
-    // 2. Format & Calculate
+    // 2. Format & Calculate (Using v2 Engine)
     const formattedResponses = Object.entries(guestData.answers).map(([key, value]) => ({
       question_key: key,
       answer: { response: value }
     }))
+    
+    // The engine now returns the new structure (finalNeuroLoad, priorityDomains, etc.)
     const result = calculateNeuroLoad(formattedResponses)
     setData(result)
     setLoading(false)
@@ -39,19 +41,22 @@ export default function ResultsPreview() {
     </div>
   )
 
-  const { totalLoad, systemState, indices, criticalIssues } = data
+  // 3. DESTRUCTURE NEW V2 DATA
+  // We map the new engine keys to the variables this page expects
+  const { 
+    finalNeuroLoad, // Was 'totalLoad'
+    systemState, 
+    rawIndices,     // Was 'indices' (used for Raw logic)
+    percentIndices, // Used for Scorecards
+    priorityDomains // Engine now calculates this automatically!
+  } = data
 
-  const priorityIDs = [
-    { id: 'cii', score: indices.cii, threshold: 15 }, // Circadian
-    { id: 'ali', score: indices.ali, threshold: 15 }, // Autonomic
-    { id: 'pli', score: indices.pli, threshold: 15 }, // Predictive
-    { id: 'stl', score: indices.stl, threshold: 15 }, // Sensory
-    { id: 'rci', score: indices.rci, threshold: 15 }  // Recovery
-  ]
-  .filter(item => item.score > item.threshold) 
-  .sort((a, b) => b.score - a.score) 
-  .slice(0, 3) 
-  .map(item => ({ id: item.id })) 
+  // 4. MAP FOR UI
+  // The engine gives us sorted priorities, we just need to format them for the UI component
+  const priorityIDs = priorityDomains.map((d: any) => ({ id: d.id }))
+
+  // Helper to determine status text based on RAW scores (maintaining your calibration)
+  const getStatus = (score: number) => score <= 15 ? 'Supported' : 'Needs Support'
 
   return (
     <div className="min-h-screen bg-[#1b270e] font-sans text-[#c9ccbb] pb-32">
@@ -63,7 +68,6 @@ export default function ResultsPreview() {
                <div className="w-8 h-8 bg-[#b5a642] rounded-full" /> 
                <span className="font-serif text-xl tracking-wide">TheSentientHome</span>
             </div>
-            {/* 🟢 UPDATED: Login Link */}
             <Link href="/login" className="text-xs uppercase tracking-widest text-[#c9ccbb]/40 hover:text-[#b5a642]">
                 Member Login
             </Link>
@@ -85,7 +89,8 @@ export default function ResultsPreview() {
                
                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-8 border-t border-[#c9ccbb]/10">
                  <div>
-                   <div className="text-4xl font-bold text-[#c9ccbb]">{totalLoad}<span className="text-base text-[#c9ccbb]/60 font-normal">/120</span></div>
+                   {/* 🟢 UPDATED: Scale is now /100 */}
+                   <div className="text-4xl font-bold text-[#c9ccbb]">{finalNeuroLoad}<span className="text-base text-[#c9ccbb]/60 font-normal">/100</span></div>
                    <div className="text-xs text-[#c9ccbb]/60 uppercase tracking-widest mt-1">NeuroLoad Score™</div>
                  </div>
                  <div>
@@ -93,8 +98,9 @@ export default function ResultsPreview() {
                    <div className="text-xs text-[#c9ccbb]/60 uppercase tracking-widest mt-1">Areas Needing Support</div>
                  </div>
                  <div>
+                   {/* 🟢 UPDATED: Checking rawIndices.rci for status */}
                    <div className="text-3xl md:text-4xl font-bold text-[#c9ccbb]">
-                       {indices.rci <= 15 ? 'Supported' : 'Needs Support'}
+                       {getStatus(rawIndices.rci)}
                    </div>
                    <div className="text-xs text-[#c9ccbb]/60 uppercase tracking-widest mt-1">Recovery Status</div>
                  </div>
@@ -106,6 +112,7 @@ export default function ResultsPreview() {
         {/* --- PRIORITY ACTIONS (Unlocked) --- */}
         <div className="mb-16">
             <h3 className="text-2xl font-serif text-[#c9ccbb] mb-8">Your Priority Actions</h3>
+            {/* 🟢 UPDATED: Using the engine's calculated priorities */}
             <PriorityList areas={priorityIDs.length > 0 ? priorityIDs : [{id: 'ali'}]} /> 
         </div>
 
@@ -119,12 +126,13 @@ export default function ResultsPreview() {
             </div>
 
             <div className="relative rounded-3xl overflow-hidden">
+                {/* 🟢 UPDATED: Using percentIndices for visual accuracy in the blurred card */}
                 <div className="filter blur-md opacity-40 pointer-events-none select-none">
                     <HumanScorecard scores={{
-                        circadian: 45,
-                        autonomic: 30,
-                        legibility: 60,
-                        sensory: 75
+                        circadian: percentIndices.cii,
+                        autonomic: percentIndices.ali,
+                        legibility: percentIndices.pli,
+                        sensory: percentIndices.stl
                     }} />
                 </div>
 
@@ -139,7 +147,6 @@ export default function ResultsPreview() {
                             Create a free account to unlock your detailed sensory breakdown and save your progress.
                         </p>
 
-                        {/* 🟢 UPDATED LINK: Points to Login Page in 'Signup' mode */}
                         <Link 
                             href="/login?view=signup" 
                             className="flex items-center justify-center gap-3 w-full py-4 bg-[#b5a642] text-[#1b270e] font-bold rounded-xl hover:bg-[#d4c55e] transition-all shadow-lg shadow-[#b5a642]/20"
@@ -159,7 +166,6 @@ export default function ResultsPreview() {
 
       {/* STICKY FOOTER */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#1b270e] border-t border-[#b5a642]/20 p-4 z-50">
-          {/* 🟢 UPDATED LINK: Points to Login Page in 'Signup' mode */}
           <Link href="/login?view=signup" className="w-full py-3 bg-[#b5a642] text-[#1b270e] font-bold rounded-lg hover:bg-[#d4c55e] transition-all text-center flex items-center justify-center gap-2">
               Save Results & Unlock
           </Link>
