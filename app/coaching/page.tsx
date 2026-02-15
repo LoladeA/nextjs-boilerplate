@@ -11,37 +11,34 @@ export default function Coaching() {
   const [completedSlugs, setCompletedSlugs] = useState<string[]>([])
 
   // DATA: The "Nervous System Gym" Curriculum
-  const modules = [
-    { 
-      week: "Week 0",
-      slug: "sensory-orientation",
-      title: "Sensory Orientation", 
-      subtitle: "Understanding your biological baseline.",
-      items: ["A Map, Not a Diagnosis", "Embodied Cognition"],
-      isLocked: false,
-      link: "/coaching/sensory-orientation"
-    },
-    { 
-      week: "Week 1",
-      slug: "silent-conversation",
-      title: "The Silent Conversation", 
-      subtitle: "Cognitive load & environmental vigilance.",
-      items: ["The Always-On Monitor", "Practice: The Sigh Test"],
-      isLocked: true, // LOCKED
-      link: "/upgrade" // Points to upgrade page
-    },
-    { 
-      week: "Week 2",
-      slug: "light-as-signal",
-      title: "Light as Signal", 
-      subtitle: "Circadian rhythms and cortisol control.",
-      items: ["Light Tells Time", "The Glare Tax"],
-      isLocked: true, // LOCKED
-      isPremium: true, // Adds the Gold Gradient
-      link: "/upgrade"
-    }
-  ]
+  // Inside app/coaching/page.tsx
 
+const modules = [
+  // Inside app/coaching/page.tsx
+
+const modules = [
+  { 
+    // 🟢 MODULE 1: The Single Document "Intro"
+    week: "Module 1", 
+    slug: "foundations",
+    title: "Foundations of Neuropsychology in Interior Design", 
+    subtitle: "The Home as a Second Skin for the Nervous System.",
+    items: ["Neuro Load Scoring", "ACC & Theta Activity", "Hormonal Health"],
+    isLocked: false,
+    link: "/coaching/foundations"
+  },
+  { 
+    // 🟢 MODULE 2: The 4-Week "Coaching" Sequence
+    week: "Module 2", 
+    slug: "sensory-lighting-dynamics", 
+    title: "Sensory and Lighting Dynamics", 
+    subtitle: "Understanding Sensory Load: Beyond the Obvious.",
+    items: ["Week 1: Visual Density", "Week 2: Circadian Stability & Sensory Filtering", "Week 3: Designing for Regulation (Not Aesthetics)", "Week 4: The Evening Reset & Deep Night Setting"],
+    isLocked: true, 
+    isPremium: true, // Highlights the expanded value of this module
+    link: "/upgrade" 
+  }
+]
   // FETCH PROGRESS
   useEffect(() => {
     async function getProgress() {
