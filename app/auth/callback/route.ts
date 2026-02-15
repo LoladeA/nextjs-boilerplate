@@ -6,22 +6,24 @@ export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
   
-  // SENIOR UPGRADE: Security Validation
-  // 1. Get the param
+  // 1. Extract the 'next' parameter with a fallback
   let next = requestUrl.searchParams.get('next') ?? '/dashboard'
 
   // 2. Security Check: Prevent Open Redirects
-  // Ensure the path starts with '/' and DOES NOT start with '//' (protocol relative)
+  // Ensure the path is internal (starts with '/') and not protocol-relative ('//')
   if (!next.startsWith('/') || next.startsWith('//')) {
-    next = '/dashboard' // Fallback to safe default if malicious
+    next = '/dashboard' 
   }
 
   if (code) {
     const cookieStore = cookies()
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+    
+    // Exchange the temporary code for a permanent session
     await supabase.auth.exchangeCodeForSession(code)
   }
 
-  // 3. Dynamic Origin: Uses the request's own origin, so it works on Localhost AND Vercel automatically
+  // 3. Dynamic Origin: Automatically maps to 'sentienthome.lolade-ajai.com' 
+  // or localhost based on the incoming request URL.
   return NextResponse.redirect(`${requestUrl.origin}${next}`)
 }
