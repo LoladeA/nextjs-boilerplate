@@ -82,7 +82,7 @@ export default async function AssessmentReport() {
       score: rawIndices.rci,
       max: 25,
       description: 'Ability of the home to support parasympathetic restoration.',
-      status: rawIndices.rci <= 10 ? 'Restorative' : rawIndices.rci <= 15 ? 'Recovery Supported' : rawIndices.rci <= 20 ? 'Recovery Limited' : 'Recovery Not Yet Available',
+      status: rawIndices.rci <= 10 ? 'Optimal Capacity' : rawIndices.rci <= 15 ? 'High Potential' : rawIndices.rci <= 20 ? 'Low Potential' : 'No Capacity',
       priority: rawIndices.rci > 15 ? 'High' : rawIndices.rci > 10 ? 'Medium' : 'Low',
       icon: <CheckCircle size={24} className={rawIndices.rci > 15 ? "text-red-400" : "text-[#b5a642]"} />
     }
