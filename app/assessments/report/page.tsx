@@ -20,21 +20,13 @@ export default async function AssessmentReport() {
     .eq('user_id', session?.user.id)
 
   const safeResponses = responses || []
-
-  // --- 1. CALCULATE SCORES (Using v2 Engine) ---
-  // We cast to 'any' strictly for the migration to avoid TS shouting about the old keys missing
   const engineResult: any = calculateNeuroLoad(safeResponses)
   
-  // --- 2. ADAPT NEW DATA TO UI ---
-  // The new engine returns 'rawIndices' (for specific scores) and 'percentIndices' (for graphs)
   const rawIndices = engineResult.rawIndices || { cii: 0, ali: 0, pli: 0, stl: 0, rci: 0 }
   const percentIndices = engineResult.percentIndices || { cii: 0, ali: 0, pli: 0, stl: 0, rci: 0 }
-  
-  // Map 'finalNeuroLoad' (0-100) to the UI variable
   const totalLoad = engineResult.finalNeuroLoad || 0
   const systemState = engineResult.systemState || "Resonant System"
 
-  // We use rawIndices here because your status logic (<= 10, etc.) is calibrated to the raw 0-25 scale
   const domains = [
     {
       id: 'cii',
@@ -78,10 +70,11 @@ export default async function AssessmentReport() {
     },
     {
       id: 'rci',
-      name: 'Recovery Support',
+      name: 'Recovery Potential', // 🟢 UPDATED NAME
       score: rawIndices.rci,
       max: 25,
-      description: 'Ability of the home to support parasympathetic restoration.',
+      description: 'Capacity of the home to support parasympathetic restoration.',
+      // 🟢 UPDATED STATUS LABELS: Clearer distinction
       status: rawIndices.rci <= 10 ? 'Optimal Capacity' : rawIndices.rci <= 15 ? 'High Potential' : rawIndices.rci <= 20 ? 'Low Potential' : 'No Capacity',
       priority: rawIndices.rci > 15 ? 'High' : rawIndices.rci > 10 ? 'Medium' : 'Low',
       icon: <CheckCircle size={24} className={rawIndices.rci > 15 ? "text-red-400" : "text-[#b5a642]"} />
@@ -119,7 +112,6 @@ export default async function AssessmentReport() {
                
                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-8 border-t border-[#c9ccbb]/10">
                  <div>
-                   {/* 🟢 UPDATED: Scale is now /100 */}
                    <div className="text-3xl font-bold text-[#c9ccbb]">{totalLoad}<span className="text-base text-[#c9ccbb]/80 font-normal">/100</span></div>
                    <div className="text-xs text-[#c9ccbb]/80 uppercase tracking-widest mt-1">NeuroLoad Score™</div>
                  </div>
@@ -133,24 +125,20 @@ export default async function AssessmentReport() {
                  </div>
                </div>
              </div>
-             
-             {/* Background glow */}
              <div className="absolute right-0 top-0 w-64 h-64 bg-[#b5a642] rounded-full filter blur-[100px] opacity-10 pointer-events-none" />
           </div>
 
-          {/* PRIORITY FOCUS AREAS (ACCORDION) */}
+          {/* PRIORITY FOCUS AREAS */}
           {criticalIssues.length > 0 && (
              <div className="mb-16">
                <h3 className="text-2xl font-serif text-[#c9ccbb] mb-8">Your Priority Actions</h3>
-               {/* Use criticalIssues directly as they match the structure */}
                <PriorityList areas={criticalIssues} />
              </div>
           )}
 
-          {/* 2. HUMAN SCORECARD (USING PERCENTAGES) */}
+          {/* DETAILED ANALYSIS */}
           <div className="mb-16">
              <h3 className="text-2xl font-serif text-[#c9ccbb] mb-8">Detailed Analysis</h3>
-             {/* 🟢 UPDATED: Passing percentages directly from the engine */}
              <HumanScorecard scores={{
                 circadian: percentIndices.cii,
                 autonomic: percentIndices.ali,
