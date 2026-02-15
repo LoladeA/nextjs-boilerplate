@@ -70,12 +70,12 @@ export default async function AssessmentReport() {
     },
     {
       id: 'rci',
-      name: 'Recovery Potential', // 🟢 UPDATED NAME
+      name: 'Recovery Potential',
       score: rawIndices.rci,
       max: 25,
       description: 'Capacity of the home to support parasympathetic restoration.',
-      // 🟢 UPDATED STATUS LABELS: Clearer distinction
-      status: rawIndices.rci <= 10 ? 'Optimal Capacity' : rawIndices.rci <= 15 ? 'High Potential' : rawIndices.rci <= 20 ? 'Low Potential' : 'No Capacity',
+      // 🟢 Unified Precision Logic
+      status: rawIndices.rci < 10 ? 'High Potential' : rawIndices.rci <= 15 ? 'Moderate Potential' : 'Low Potential',
       priority: rawIndices.rci > 15 ? 'High' : rawIndices.rci > 10 ? 'Medium' : 'Low',
       icon: <CheckCircle size={24} className={rawIndices.rci > 15 ? "text-red-400" : "text-[#b5a642]"} />
     }
