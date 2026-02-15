@@ -7,7 +7,6 @@ import { Lock, ArrowRight, Zap } from 'lucide-react'
 import { getGuestData } from '../../utils/guest-storage'
 import { calculateNeuroLoad } from '../../utils/scoring-engine'
 import HumanScorecard from '../../components/HumanScorecard'
-// 👇 CORRECTED IMPORT PATH: Points to your existing file
 import PriorityList from '../report/PriorityList' 
 
 export default function ResultsPreview() {
@@ -42,9 +41,6 @@ export default function ResultsPreview() {
 
   const { totalLoad, systemState, indices, criticalIssues } = data
 
-  // 👇 ADAPTER LOGIC: 
-  // We convert the scores into the ID format your PriorityList component expects (ali, cii, etc)
-  // We prioritize the highest loads.
   const priorityIDs = [
     { id: 'cii', score: indices.cii, threshold: 15 }, // Circadian
     { id: 'ali', score: indices.ali, threshold: 15 }, // Autonomic
@@ -52,10 +48,10 @@ export default function ResultsPreview() {
     { id: 'stl', score: indices.stl, threshold: 15 }, // Sensory
     { id: 'rci', score: indices.rci, threshold: 15 }  // Recovery
   ]
-  .filter(item => item.score > item.threshold) // Only high loads
-  .sort((a, b) => b.score - a.score) // Highest first
-  .slice(0, 3) // Take top 3
-  .map(item => ({ id: item.id })) // Format for component: [{id: 'cii'}, {id: 'ali'}]
+  .filter(item => item.score > item.threshold) 
+  .sort((a, b) => b.score - a.score) 
+  .slice(0, 3) 
+  .map(item => ({ id: item.id })) 
 
   return (
     <div className="min-h-screen bg-[#1b270e] font-sans text-[#c9ccbb] pb-32">
@@ -67,6 +63,7 @@ export default function ResultsPreview() {
                <div className="w-8 h-8 bg-[#b5a642] rounded-full" /> 
                <span className="font-serif text-xl tracking-wide">TheSentientHome</span>
             </div>
+            {/* 🟢 UPDATED: Login Link */}
             <Link href="/login" className="text-xs uppercase tracking-widest text-[#c9ccbb]/40 hover:text-[#b5a642]">
                 Member Login
             </Link>
@@ -96,11 +93,10 @@ export default function ResultsPreview() {
                    <div className="text-xs text-[#c9ccbb]/60 uppercase tracking-widest mt-1">Areas Needing Support</div>
                  </div>
                  <div>
-                    {/* 🟢 UPDATED LOGIC HERE: Responsive text size + Softer wording */}
-                    <div className="text-3xl md:text-4xl font-bold text-[#c9ccbb]">
-                        {indices.rci <= 15 ? 'Supported' : 'Needs Support'}
-                    </div>
-                    <div className="text-xs text-[#c9ccbb]/60 uppercase tracking-widest mt-1">Recovery Status</div>
+                   <div className="text-3xl md:text-4xl font-bold text-[#c9ccbb]">
+                       {indices.rci <= 15 ? 'Supported' : 'Needs Support'}
+                   </div>
+                   <div className="text-xs text-[#c9ccbb]/60 uppercase tracking-widest mt-1">Recovery Status</div>
                  </div>
                </div>
              </div>
@@ -110,7 +106,6 @@ export default function ResultsPreview() {
         {/* --- PRIORITY ACTIONS (Unlocked) --- */}
         <div className="mb-16">
             <h3 className="text-2xl font-serif text-[#c9ccbb] mb-8">Your Priority Actions</h3>
-            {/* Using your existing PriorityList with the adapted ID list */}
             <PriorityList areas={priorityIDs.length > 0 ? priorityIDs : [{id: 'ali'}]} /> 
         </div>
 
@@ -144,12 +139,14 @@ export default function ResultsPreview() {
                             Create a free account to unlock your detailed sensory breakdown and save your progress.
                         </p>
 
+                        {/* 🟢 UPDATED LINK: Points to Login Page in 'Signup' mode */}
                         <Link 
-                            href="/signup?redirect=dashboard" 
+                            href="/login?view=signup" 
                             className="flex items-center justify-center gap-3 w-full py-4 bg-[#b5a642] text-[#1b270e] font-bold rounded-xl hover:bg-[#d4c55e] transition-all shadow-lg shadow-[#b5a642]/20"
                         >
                             Create Free Account <ArrowRight size={18} />
                         </Link>
+                        
                         <p className="text-[10px] text-[#c9ccbb]/40 mt-4 uppercase tracking-widest">
                             Already have an account? <Link href="/login" className="text-[#b5a642] hover:underline">Log In</Link>
                         </p>
@@ -162,8 +159,9 @@ export default function ResultsPreview() {
 
       {/* STICKY FOOTER */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#1b270e] border-t border-[#b5a642]/20 p-4 z-50">
-          <Link href="/signup?redirect=dashboard" className="w-full py-3 bg-[#b5a642] text-[#1b270e] font-bold rounded-lg hover:bg-[#d4c55e] transition-all text-center flex items-center justify-center gap-2">
-             Save Results & Unlock
+          {/* 🟢 UPDATED LINK: Points to Login Page in 'Signup' mode */}
+          <Link href="/login?view=signup" className="w-full py-3 bg-[#b5a642] text-[#1b270e] font-bold rounded-lg hover:bg-[#d4c55e] transition-all text-center flex items-center justify-center gap-2">
+              Save Results & Unlock
           </Link>
       </div>
 
