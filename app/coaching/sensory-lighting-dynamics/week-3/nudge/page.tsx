@@ -27,7 +27,7 @@ export default function Week3Nudge() {
                 <h3 className="text-2xl font-serif">Visual Load Reduction</h3>
               </div>
               <p className="text-lg leading-relaxed opacity-80 mb-6">
-                <strong>High Visual Load:</strong> Implement a matte-only desk zone recommendation to reduce reflective stress and pupil adjustment fatigue.
+                <strong>High Visual Load:</strong> Focus on matte surfaces only in your workspace. Research shows that this reduces micro-saccades, easing cortical strain and allowing you to focus more sharply.
               </p>
             </div>
 
@@ -39,10 +39,10 @@ export default function Week3Nudge() {
                 <h3 className="text-2xl font-serif">Vigilance Mitigation</h3>
               </div>
               <p className="text-lg leading-relaxed opacity-80 mb-6">
-                <strong>High Amygdala Reactivity:</strong> Utilize indirect light and wall-wash suggestions to distribute visual load.
+                <strong>High Amygdala Reactivity:</strong> Prioritise indirect lighting and wall-wash techniques in sensitive areas, as evidence links these to amygdala modulation and reduced stress reactivity.
               </p>
               <p className="text-lg leading-relaxed opacity-80">
-                <strong>Low Predictive Legibility:</strong> Focal point clarification prompt—ensure the room has one focal point to allow for automatic movement prediction.
+                <strong>Low Predictive Legibility:</strong> Use hierarchical accents to clarify focal points (e.g. a sculptural centrepiece). Neuroscience confirms that this enhances predictive coding and minimises cognitive friction.
               </p>
             </div>
           </div>
@@ -52,7 +52,7 @@ export default function Week3Nudge() {
             <Sparkles className="absolute top-4 right-4 text-[#b5a642]/40" size={32} />
             <h3 className="text-[#b5a642] font-serif text-2xl mb-4">Precision Spectral Evaluation</h3>
             <p className="text-[#c9ccbb]/80 text-lg leading-relaxed mb-8 italic">
-              "If you require precise lux measurement, spectral evaluation, and spatial light mapping, a tailored Lighting Audit is available."
+              "For deeper personalisation, book a one-on-one virtual session to refine these applications to your unique layout."
             </p>
             <p className="text-sm uppercase tracking-widest font-bold text-[#b5a642]">Precision is optional but valuable.</p>
           </div>
