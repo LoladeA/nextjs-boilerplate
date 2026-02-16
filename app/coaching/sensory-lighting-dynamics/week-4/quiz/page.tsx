@@ -56,17 +56,27 @@ export default function Week4Quiz() {
   const router = useRouter()
   const supabase = createClientComponentClient()
 
-  const handleAnswer = async (i: number) => {
-    const isCorrect = i === questions[current].correct
+  const handleAnswer = async (index: number) => {
+    const isCorrect = index === questions[current].correct
     const newScore = isCorrect ? score + 1 : score
+    
     if (current < questions.length - 1) {
-      setScore(newScore); setCurrent(current + 1)
+      setScore(newScore)
+      setCurrent(current + 1)
     } else {
-      setScore(newScore); setComplete(true)
-      await supabase.from('quiz_submissions').insert({ 
-        module_slug: 'sensory-lighting-dynamics-week-4', 
-        score: newScore, total: questions.length 
+      setScore(newScore)
+      setComplete(true)
+      
+      // 🟢 DATABASE FIX: Matches your actual Supabase columns
+      const { error } = await supabase.from('quiz_submissions').insert({ 
+        module_id: 'foundations',      // changed from 'module_slug'
+        score: newScore, 
+        total_questions: questions.length // changed from 'total'
       })
+
+      if (error) {
+        console.error('Error saving quiz:', error)
+      }
     }
   }
 
