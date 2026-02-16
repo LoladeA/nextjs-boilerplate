@@ -67,14 +67,19 @@ export default function Week2Quiz() {
       setScore(newScore)
       setComplete(true)
       
-      await supabase.from('quiz_submissions').insert({ 
-        module_slug: 'sensory-lighting-dynamics-week-2',
+      // 🟢 DATABASE FIX: Matches your actual Supabase columns
+      const { error } = await supabase.from('quiz_submissions').insert({ 
+        module_id: 'foundations',      // changed from 'module_slug'
         score: newScore, 
-        total: questions.length 
+        total_questions: questions.length // changed from 'total'
       })
+
+      if (error) {
+        console.error('Error saving quiz:', error)
+      }
     }
   }
-
+  
   if (complete) return (
     <div className="min-h-screen bg-[#1b270e] flex items-center justify-center p-6 text-[#c9ccbb]">
       <div className="max-w-md w-full glass-panel p-12 rounded-[2rem] text-center border border-[#b5a642]/30 bg-[#b5a642]/5">
