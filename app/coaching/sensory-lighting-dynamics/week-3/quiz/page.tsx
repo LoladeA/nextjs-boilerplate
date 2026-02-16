@@ -67,11 +67,16 @@ export default function Week3Quiz() {
       setScore(newScore)
       setComplete(true)
       
-      await supabase.from('quiz_submissions').insert({ 
-        module_slug: 'sensory-lighting-dynamics-week-3',
+      // 🟢 DATABASE FIX: Matches your actual Supabase columns
+      const { error } = await supabase.from('quiz_submissions').insert({ 
+        module_id: 'foundations',      // changed from 'module_slug'
         score: newScore, 
-        total: questions.length 
+        total_questions: questions.length // changed from 'total'
       })
+
+      if (error) {
+        console.error('Error saving quiz:', error)
+      }
     }
   }
 
