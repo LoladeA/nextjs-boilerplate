@@ -30,7 +30,7 @@ export default function Week4Nudge() {
           </div>
 
           <div className="flex flex-col items-center border-t border-[#c9ccbb]/10 pt-20">
-            <h4 className="text-[#c9ccbb] font-serif text-3xl mb-10">Sensory Dynamics Complete.</h4>
+            <h4 className="text-[#c9ccbb] font-serif text-3xl mb-10">Sensory Dynamics Complete!</h4>
             <Link href="/coaching" className="group flex items-center gap-4 px-14 py-6 bg-[#b5a642] text-[#1b270e] font-bold rounded-full hover:bg-[#d4c55e] transition-all">Return to Dashboard <ArrowRight size={24} /></Link>
           </div>
         </div>
