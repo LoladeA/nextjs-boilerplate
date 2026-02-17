@@ -20,7 +20,7 @@ const BASE_WEIGHTS = {
   rci: 1.5
 }
 
-const INTERACTION_THRESHOLD = 60 // Percent
+const INTERACTION_THRESHOLD = 60
 const MAX_INTERACTION_AMPLIFIER = 0.12
 
 // ==============================
@@ -47,10 +47,10 @@ export interface NeuroLoadResult {
   rawIndices: DomainScores
   percentIndices: DomainScores
   weightedIndices: DomainScores
-  finalNeuroLoad: number // 0-100
+  finalNeuroLoad: number
   systemState: string
   interactionFlags: InteractionFlags
-  priorityDomains: { id: string; score: number }[]
+  priorityDomains: { id: keyof DomainScores; score: number }[]
   recoveryModifier: 'protective' | 'compounding' | 'neutral'
 }
 
@@ -58,7 +58,6 @@ export interface NeuroLoadResult {
 // 3. QUESTION MAPPING
 // ==============================
 
-// NOTE: Ensure these keys (q5, q12, etc.) match your Step 1-5 files exactly.
 const DOMAIN_QUESTIONS: Record<keyof DomainScores, string[]> = {
   cii: ['q5', 'q6', 'q7', 'q8', 'q9'],
   ali: ['q12', 'q13', 'q14', 'q15'],
@@ -67,16 +66,14 @@ const DOMAIN_QUESTIONS: Record<keyof DomainScores, string[]> = {
   rci: ['q26', 'q27', 'q28', 'q29', 'q30']
 }
 
-// Reverse-scored questions (Higher score = Better, so we flip to represent Load)
+// Reverse-scored questions
 const REVERSE_SCORED = new Set(['q30'])
 
 // ==============================
 // 4. HELPERS
 // ==============================
 
-// Flip 1->5, 5->1
 const reverseScore = (val: number) => 6 - val
-
 const clamp = (num: number, min = 0, max = 100) =>
   Math.min(Math.max(num, min), max)
 
@@ -89,37 +86,42 @@ export const calculateNeuroLoad = (
   neuroLens: NeuroLens = 'neurotypical'
 ): NeuroLoadResult => {
 
-  // ---- DATA PREP ----
-  // Create a map for O(1) lookups. 
-  // If a question is missing, we currently default to 0 to prevent crashes,
-  // but in a strict mode you might want to throw an error.
+  // ---- VALIDATION ----
+  if (!responses || responses.length === 0) {
+    throw new Error('No assessment responses provided.')
+  }
+
   const responseMap = new Map(
-    responses?.map(r => [r.question_key, r.answer.response]) || []
+    responses.map(r => [r.question_key, r.answer.response])
   )
 
-  const getValue = (key: string): number => {
-    // Default to 1 (Lowest Load) if missing, to be safe.
-    const val = responseMap.get(key) || 1 
-    
-    // Handle Reverse Scoring
-    if (REVERSE_SCORED.has(key)) {
-        return reverseScore(val)
+  const getValidatedValue = (key: string): number => {
+    if (!responseMap.has(key)) {
+      throw new Error(`Missing response for required question: ${key}`)
     }
-    return val
+
+    const raw = responseMap.get(key)!
+
+    if (raw < 1 || raw > 5) {
+      throw new Error(`Invalid response value for ${key}`)
+    }
+
+    return REVERSE_SCORED.has(key) ? reverseScore(raw) : raw
   }
 
   // ==============================
   // STEP 1 — RAW DOMAIN SCORES
   // ==============================
 
-  // We manually map them to ensure type safety for DomainScores keys
-  const rawIndices: DomainScores = {
-    cii: DOMAIN_QUESTIONS.cii.reduce((sum, q) => sum + getValue(q), 0),
-    ali: DOMAIN_QUESTIONS.ali.reduce((sum, q) => sum + getValue(q), 0),
-    pli: DOMAIN_QUESTIONS.pli.reduce((sum, q) => sum + getValue(q), 0),
-    stl: DOMAIN_QUESTIONS.stl.reduce((sum, q) => sum + getValue(q), 0),
-    rci: DOMAIN_QUESTIONS.rci.reduce((sum, q) => sum + getValue(q), 0),
-  }
+  const rawIndices = Object.keys(DOMAIN_QUESTIONS).reduce(
+    (acc, domain) => {
+      const questions = DOMAIN_QUESTIONS[domain as keyof DomainScores]
+      acc[domain as keyof DomainScores] =
+        questions.reduce((sum, q) => sum + getValidatedValue(q), 0)
+      return acc
+    },
+    {} as DomainScores
+  )
 
   // ==============================
   // STEP 2 — NORMALISE (0–100%)
@@ -139,13 +141,14 @@ export const calculateNeuroLoad = (
 
   const weights = { ...BASE_WEIGHTS }
 
-  // NeuroLens Adjustments
   if (neuroLens === 'adhd') {
-    weights.pli *= 1.10 // +10%
+    weights.pli *= 1.10
   }
+
   if (neuroLens === 'autism') {
-    weights.stl *= 1.15 // +15%
+    weights.stl *= 1.15
   }
+
   if (neuroLens === 'hsp') {
     weights.stl *= 1.10
     weights.rci *= 1.05
@@ -178,14 +181,15 @@ export const calculateNeuroLoad = (
   }
 
   let interactionAmplifier = 0
+
   if (flags.restorativeDeficit) interactionAmplifier += 0.05
   if (flags.sensoryHypervigilance) interactionAmplifier += 0.07
   if (flags.cognitiveStrain) interactionAmplifier += 0.05
 
-  // Cap at 12%
-  if (interactionAmplifier > MAX_INTERACTION_AMPLIFIER) {
-      interactionAmplifier = MAX_INTERACTION_AMPLIFIER
-  }
+  interactionAmplifier = Math.min(
+    interactionAmplifier,
+    MAX_INTERACTION_AMPLIFIER
+  )
 
   // ==============================
   // STEP 5 — RECOVERY MODERATION
@@ -194,77 +198,84 @@ export const calculateNeuroLoad = (
   let recoveryModifier: 'protective' | 'compounding' | 'neutral' = 'neutral'
   let recoveryAdjustment = 0
 
-  // 40% and 70% thresholds for Recovery (RCI)
   if (percentIndices.rci < 40) {
     recoveryModifier = 'protective'
-    recoveryAdjustment = -0.05 // -5% Load
+    recoveryAdjustment = -0.05
   } else if (percentIndices.rci > 70) {
     recoveryModifier = 'compounding'
-    recoveryAdjustment = 0.05 // +5% Load
+    recoveryAdjustment = 0.05
   }
 
   // ==============================
   // STEP 6 — FINAL COMPOSITE
   // ==============================
 
-  const totalWeightedScore =
+  const totalWeighted =
     weightedIndices.cii +
     weightedIndices.ali +
     weightedIndices.pli +
     weightedIndices.stl +
     weightedIndices.rci
 
-  // Calculate theoretical max based on current weights
-  const maxPossibleWeighted =
+  const maxWeighted =
     100 * weights.cii +
     100 * weights.ali +
     100 * weights.pli +
     100 * weights.stl +
     100 * weights.rci
 
-  // Base %
-  const baseComposite = (totalWeightedScore / maxPossibleWeighted) * 100
+  let baseComposite = (totalWeighted / maxWeighted) * 100
 
-  // Apply Modifiers
-  let finalLoad = baseComposite * (1 + interactionAmplifier + recoveryAdjustment)
+  let finalLoad =
+    baseComposite * (1 + interactionAmplifier + recoveryAdjustment)
 
-  // Clamp 0-100
   finalLoad = clamp(Math.round(finalLoad))
 
   // ==============================
   // STEP 7 — SYSTEM STATE
   // ==============================
 
-  let systemState = 'Structural Friction' // Default worst case
-  if (finalLoad <= 25) systemState = 'Resonant System'
-  else if (finalLoad <= 40) systemState = 'Adaptive Strain'
-  else if (finalLoad <= 60) systemState = 'Regulated but Taxed'
-  else if (finalLoad <= 75) systemState = 'Dysregulated Pattern'
+  let systemState: string
+
+  if (finalLoad <= 25) {
+    systemState = 'Resonant System'
+  } else if (finalLoad <= 40) {
+    systemState = 'Adaptive Strain'
+  } else if (finalLoad <= 60) {
+    systemState = 'Regulated but Taxed'
+  } else if (finalLoad <= 75) {
+    systemState = 'Dysregulated Pattern'
+  } else {
+    systemState = 'Structural Friction'
+  }
 
   // ==============================
   // STEP 8 — PRIORITY RANKING
+  // Interaction-aware sorting
   // ==============================
 
-  // We rank based on the WEIGHTED score + Bonus for active interactions
-  const rankedDomains = Object.entries(weightedIndices).map(([id, score]) => {
-    let interactionBonus = 0
-    // If a domain is part of an active toxic pair, bump its priority
-    if (id === 'cii' && flags.restorativeDeficit) interactionBonus += 50
-    if (id === 'rci' && flags.restorativeDeficit) interactionBonus += 50
-    if (id === 'ali' && flags.sensoryHypervigilance) interactionBonus += 50
-    if (id === 'stl' && flags.sensoryHypervigilance) interactionBonus += 50
-    
-    return {
-        id: id,
+  const domainImpact = Object.entries(weightedIndices).map(
+    ([id, score]) => {
+      let interactionBonus = 0
+
+      if (
+        (flags.restorativeDeficit && (id === 'cii' || id === 'rci')) ||
+        (flags.sensoryHypervigilance && (id === 'ali' || id === 'stl')) ||
+        (flags.cognitiveStrain && (id === 'pli' || id === 'ali'))
+      ) {
+        interactionBonus = 5
+      }
+
+      return {
+        id: id as keyof DomainScores,
         score: score + interactionBonus
+      }
     }
-  })
+  )
 
-  // Sort descending
-  rankedDomains.sort((a, b) => b.score - a.score)
-
-  // Return Top 2
-  const priorityDomains = rankedDomains.slice(0, 2)
+  const priorityDomains = domainImpact
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 2)
 
   return {
     rawIndices,
