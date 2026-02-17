@@ -5,7 +5,7 @@ import { Activity } from 'lucide-react'
 import DashboardUI from './DashboardUI'
 import GuestSync from '../components/GuestSync'
 import { calculateNeuroLoad } from '../utils/scoring-engine' 
-import { getPrecisionProfile } from '@/app/lib/neuro-mapper' // 🟢 IMPORT THE MAPPER
+import { getPrecisionProfile } from '@/app/lib/neuro-mapper' 
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -19,9 +19,13 @@ export default async function Dashboard() {
 
   const displayName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Member'
   
-  // 1. FETCH DATA (30 days for the 14-day rhythm chart)
+  // 1. ROOT FIX: Fetch from the 'current_user_responses' VIEW
+  // This guarantees we only get the single latest answer for each question.
   const [responsesRes, logsRes] = await Promise.all([
-    supabase.from('user_responses').select('*').eq('user_id', user.id),
+    supabase
+      .from('current_user_responses') // 🟢 TARGET THE VIEW
+      .select('*')
+      .eq('user_id', user.id),
     supabase
       .from('daily_logs')
       .select('*') 
@@ -36,7 +40,7 @@ export default async function Dashboard() {
   // 2. UX INTERCEPTION
   if (safeResponses.length === 0) {
     return (
-      <div className="min-h-screen bg-[#1b270e]"> {/* 🟢 ADDED WRAPPER */}
+      <div className="min-h-screen bg-[#1b270e]"> 
         <GuestSync /> 
         <div className="min-h-screen flex flex-col items-center justify-center text-[#b5a642]">
             <div className="animate-pulse flex flex-col items-center gap-4">
@@ -54,14 +58,13 @@ export default async function Dashboard() {
     )
   }
 
-  // 3. 🟢 CALCULATE ENGINE RESULTS (Missing in your snippet)
-  // This must happen BEFORE you try to use 'engineResult'
+  // 3. CALCULATE ENGINE RESULTS
   const engineResult = calculateNeuroLoad(safeResponses)
 
-  // 4. 🟢 DETERMINE SENSORY PROFILE
-  // Find the specific answers that define the user's hardware
-  const neuroLensAnswer = safeResponses.find((r: any) => r.question_id === 'neuro_lens')?.answer_value
-  const sensoryDirAnswer = safeResponses.find((r: any) => r.question_id === 'sensory_direction')?.answer_value
+  // 4. DETERMINE SENSORY PROFILE
+  // 🟢 CRITICAL FIX: Use 'question_key' to match your database schema
+  const neuroLensAnswer = safeResponses.find((r: any) => r.question_key === 'neuro_lens')?.answer_value
+  const sensoryDirAnswer = safeResponses.find((r: any) => r.question_key === 'sensory_direction')?.answer_value
   
   // Run the logic: HSP -> Sensor
   const userProfile = getPrecisionProfile(neuroLensAnswer, sensoryDirAnswer)
@@ -69,7 +72,6 @@ export default async function Dashboard() {
   // 5. MAP ENGINE DATA TO UI PROPS
   const { finalNeuroLoad, systemState, percentIndices, rawIndices } = engineResult
 
-  // Map the new 'percentIndices' to the structure the Radar Chart expects
   const radarData = [
     { subject: 'Circadian', A: Math.round(percentIndices.cii), fullMark: 100 },
     { subject: 'Autonomic', A: Math.round(percentIndices.ali), fullMark: 100 },
@@ -90,7 +92,7 @@ export default async function Dashboard() {
        systemState={systemState}
        radarData={radarData}      
        circadianLoad={rawIndices?.cii || 0}
-       profile={userProfile} // 🟢 CRITICAL FIX: Passing the profile to the UI
+       profile={userProfile} 
      />
    </div>
  )
