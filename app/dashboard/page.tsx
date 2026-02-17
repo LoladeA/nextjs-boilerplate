@@ -5,6 +5,7 @@ import { Activity } from 'lucide-react'
 import DashboardUI from './DashboardUI'
 import GuestSync from '../components/GuestSync'
 import { calculateNeuroLoad } from '../utils/scoring-engine' 
+import { getPrecisionProfile } from '@/app/lib/neuro-mapper' // 🟢 IMPORT THE MAPPER
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -53,11 +54,19 @@ export default async function Dashboard() {
     )
   }
 
-  // 3. CALCULATE ENGINES (Using the NEW v2.0 Logic)
-  // We use 'any' here temporarily to prevent TS errors during the migration swap
-  const engineResult: any = calculateNeuroLoad(safeResponses)
+  // 3. 🟢 CALCULATE ENGINE RESULTS (Missing in your snippet)
+  // This must happen BEFORE you try to use 'engineResult'
+  const engineResult = calculateNeuroLoad(safeResponses)
+
+  // 4. 🟢 DETERMINE SENSORY PROFILE
+  // Find the specific answers that define the user's hardware
+  const neuroLensAnswer = safeResponses.find((r: any) => r.question_id === 'neuro_lens')?.answer_value
+  const sensoryDirAnswer = safeResponses.find((r: any) => r.question_id === 'sensory_direction')?.answer_value
   
-  // 4. MAP NEW ENGINE DATA TO OLD UI PROPS
+  // Run the logic: HSP -> Sensor
+  const userProfile = getPrecisionProfile(neuroLensAnswer, sensoryDirAnswer)
+  
+  // 5. MAP ENGINE DATA TO UI PROPS
   const { finalNeuroLoad, systemState, percentIndices, rawIndices } = engineResult
 
   // Map the new 'percentIndices' to the structure the Radar Chart expects
@@ -69,19 +78,20 @@ export default async function Dashboard() {
     { subject: 'Recovery', A: Math.round(percentIndices.rci), fullMark: 100 }
   ]
 
- // 5. RENDER DASHBOARD
-  return (
-    <div className="min-h-screen bg-[#1b270e]"> {/* 🟢 ADDED WRAPPER */}
-      <GuestSync /> 
-      <DashboardUI 
-        user={user}
-        displayName={displayName}
-        recentLogs={recentLogs}
-        totalLoad={finalNeuroLoad}
-        systemState={systemState}
-        radarData={radarData}     
-        circadianLoad={rawIndices?.cii || 0}
-      />
-    </div>
-  )
+ // 6. RENDER DASHBOARD
+ return (
+   <div className="min-h-screen bg-[#1b270e]"> 
+     <GuestSync /> 
+     <DashboardUI 
+       user={user}
+       displayName={displayName}
+       recentLogs={recentLogs}
+       totalLoad={finalNeuroLoad}
+       systemState={systemState}
+       radarData={radarData}      
+       circadianLoad={rawIndices?.cii || 0}
+       profile={userProfile} // 🟢 CRITICAL FIX: Passing the profile to the UI
+     />
+   </div>
+ )
 }
