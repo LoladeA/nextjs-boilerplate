@@ -68,7 +68,7 @@ export const RITUALS: Record<string, Ritual> = {
       seeker: {
         tagline: 'Dopamine Ignition: Engaging the Executive Brain.',
         description: "Your nervous system does not 'drift' into wakefulness; it needs a spark. Without sufficient intensity, the ADHD brain remains in a state of low-arousal fog. We stack high-lux light with vestibular input (movement) to jumpstart the frontal cortex, turning 'intention' into 'action' without the friction of boredom.",
-        spotifyLink: 'https://open.spotify.com/playlist/2TwygCUmV9hogNFqZZ4to2?si=0e20cd0bc7684d86', ', // 🟢 FIXED: Added missing closing quote here
+        spotifyLink: 'https://open.spotify.com/playlist/2TwygCUmV9hogNFqZZ4to2?si=0e20cd0bc7684d86',
         steps: [
           { 
             type: 'light', 
@@ -167,7 +167,7 @@ export const RITUALS: Record<string, Ritual> = {
         ]
       },
       sensor: {
-        tagline: 'The Shielded Focus: Reducing Sensory Friction.',
+        tagline: 'The Shielded Focus: reducing Sensory Friction.',
         description: "Your distraction is likely caused by sensory fatigue: the exhaust fumes of processing too much data. We don't add stimulation; we subtract it. By reducing the 'signal-to-noise' ratio of your room, we liberate processing power for deep thought.",
         spotifyLink: 'https://insig.ht/UVO8dS7QP0b',
         steps: [
@@ -197,6 +197,8 @@ export const RITUALS: Record<string, Ritual> = {
     name: 'The Descent',
     triggerCondition: 'Evening + Sleep Prep',
     variants: {
+      
+      // 🟢 STANDARD PROFILE
       standard: {
         tagline: 'Engineer Your Restoration: The Biological Sunset.',
         description: "As the day concludes, your nervous system craves a deliberate transition. We are moving beyond 'hoping' for sleep to designing your recovery. By mimicking the setting sun, we signal to the pineal gland that vigilance is no longer required.",
@@ -219,6 +221,8 @@ export const RITUALS: Record<string, Ritual> = {
           }
         ]
       },
+
+      // 🟠 SEEKER PROFILE (ADHD / Needs Engagement to Rest)
       seeker: {
         tagline: 'The Dopamine Detox: Landing the Plane.',
         description: "Your brain fights sleep because it feels 'boring' compared to the high-dopamine stimulation of the day. We need to transition you from High-Dopamine (screens) to Low-Dopamine (rest) using complex, engaging tools like Tibetan Gongs or Body Scans that keep the ADHD brain occupied while the body shuts down.",
@@ -244,6 +248,8 @@ export const RITUALS: Record<string, Ritual> = {
           }
         ]
       },
+
+      // 🔵 SENSOR PROFILE (HSP / Needs Emptying)
       sensor: {
         tagline: 'Sensory Decompression: Emptying the Bucket.',
         description: "The modern world is loud and bright. By evening, your sensory bucket is full. This protocol is not just about sleep; it is about 'emptying the bucket' so you don't carry today's overstimulation into tomorrow.",
