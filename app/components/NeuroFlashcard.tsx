@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Sparkles, RefreshCw, Lock, Zap, Brain, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
-import { neuroInsights } from '../data/neuro-insights'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs' // 🟢 Added for Auth Check
+import { neuroInsights } from '../data/neuro-insights' // Keeping your working path
 
 interface Props {
   isPremium?: boolean 
@@ -16,10 +17,24 @@ interface Props {
 }
 
 export default function NeuroFlashcard({ isPremium = false, scores }: Props) {
+  const supabase = createClientComponentClient()
   const [currentCard, setCurrentCard] = useState(neuroInsights[0])
   const [isFlipped, setIsFlipped] = useState(false)
+  const [godMode, setGodMode] = useState(false) // 🟢 New State for Golden Ticket
 
-  // INTELLIGENT SELECTION LOGIC
+  // 1. GOLDEN TICKET CHECK
+  useEffect(() => {
+    async function checkGodMode() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user?.email === 'christchilde@gmail.com') {
+        console.log("👑 Flashcard God Mode: Active")
+        setGodMode(true)
+      }
+    }
+    checkGodMode()
+  }, [supabase])
+
+  // 2. INTELLIGENT SELECTION LOGIC
   useEffect(() => {
     if (scores && scores.light < 50) {
       const alertCard = neuroInsights.find(c => c.id === 3)
@@ -41,6 +56,9 @@ export default function NeuroFlashcard({ isPremium = false, scores }: Props) {
     }, 300)
   }
 
+  // 🟢 DETERMINE FINAL ACCESS (Prop OR God Mode)
+  const hasAccess = isPremium || godMode
+
   return (
     <div className="h-full flex flex-col">
       {/* HEADER */}
@@ -48,7 +66,7 @@ export default function NeuroFlashcard({ isPremium = false, scores }: Props) {
         <div className="flex items-center gap-2">
            <Brain className="text-[#b5a642]" size={20} />
            <h3 className="text-[#c9ccbb] font-serif text-lg">
-             {isPremium ? "NeuroDesign Spec" : "Somatic Insight"}
+             {hasAccess ? "NeuroDesign Spec" : "Somatic Insight"}
            </h3>
         </div>
         <button 
@@ -121,15 +139,15 @@ export default function NeuroFlashcard({ isPremium = false, scores }: Props) {
               exit={{ opacity: 0, rotateY: -90 }}
               transition={{ duration: 0.3 }}
               className={`glass-panel p-6 rounded-2xl h-full flex flex-col text-left relative overflow-hidden ${
-                isPremium 
+                hasAccess 
                   ? "bg-[#b5a642]/5 border-[#b5a642]/30" 
                   : "bg-[#000]/20 border border-[#c9ccbb]/10"
               }`}
             >
               <div className="overflow-y-auto pr-2 custom-scrollbar h-full">
                 
-                {isPremium ? (
-                  // --- PAID USER SEES FULL PROTOCOL ---
+                {hasAccess ? (
+                  // --- PAID USER (OR GOD MODE) SEES FULL PROTOCOL ---
                   <div className="space-y-6">
                     {/* Header */}
                     <div className="flex items-center gap-2 border-b border-[#b5a642]/20 pb-4">
