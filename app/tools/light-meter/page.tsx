@@ -5,20 +5,57 @@ import { useState, useEffect, useRef } from 'react'
 import { Sun, CheckCircle, ArrowDown, ArrowUp, Info, Camera, X, Zap } from 'lucide-react'
 import Link from 'next/link'
 
-// --- INTERNAL COMPONENT: CAMERA MODAL ---
+// --- INTERNAL COMPONENT: CAMERA MODAL WITH CALIBRATION ---
 function LightSensorModal({ onClose, onSave }: { onClose: () => void, onSave: (lux: number) => void }) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [lux, setLux] = useState<number>(0)
+  const [rawReading, setRawReading] = useState<number>(0)
+  const [calibration, setCalibration] = useState<number>(1) // Default multiplier
+  const [isCalibrating, setIsCalibrating] = useState(false)
   const [error, setError] = useState('')
+  const [source, setSource] = useState<'camera' | 'sensor'>('camera')
 
-  // 1. START CAMERA
+  // 1. LOAD SAVED CALIBRATION
   useEffect(() => {
+    const saved = localStorage.getItem('lux_calibration')
+    if (saved) setCalibration(parseFloat(saved))
+  }, [])
+
+  // 2. TRY NATIVE SENSOR (Android/Chrome)
+  useEffect(() => {
+    if ('AmbientLightSensor' in window) {
+      try {
+        // @ts-ignore - TS often doesn't know about this experimental API yet
+        const sensor = new AmbientLightSensor()
+        sensor.onreading = () => {
+          setSource('sensor')
+          setLux(sensor.illuminance)
+        }
+        sensor.onerror = (event: any) => {
+          console.log(event.error.name, event.error.message)
+        }
+        sensor.start()
+        return () => sensor.stop()
+      } catch (err) {
+        // Fallback to camera if sensor fails or permissions denied
+      }
+    }
+  }, [])
+
+  // 3. START CAMERA (Fallback)
+  useEffect(() => {
+    if (source === 'sensor') return // Don't use camera if we have a real sensor
+
     let stream: MediaStream | null = null
     const startCamera = async () => {
       try {
         stream = await navigator.mediaDevices.getUserMedia({ 
-          video: { facingMode: 'environment' } 
+          video: { 
+            facingMode: 'environment',
+            // @ts-ignore
+            advanced: [{ exposureMode: 'continuous' }] 
+          } 
         })
         if (videoRef.current) videoRef.current.srcObject = stream
       } catch (err) {
@@ -27,54 +64,118 @@ function LightSensorModal({ onClose, onSave }: { onClose: () => void, onSave: (l
     }
     startCamera()
     return () => { if (stream) stream.getTracks().forEach(t => t.stop()) }
-  }, [])
+  }, [source])
 
-  // 2. ANALYZE LOOP
+  // 4. ANALYZE LOOP (Camera Only)
   useEffect(() => {
-    if (error) return
+    if (error || source === 'sensor') return
     const interval = setInterval(() => {
       if (videoRef.current && canvasRef.current) {
-        const ctx = canvasRef.current.getContext('2d')
+        const ctx = canvasRef.current.getContext('2d', { willReadFrequently: true })
         if (ctx && videoRef.current.readyState === 4) {
           ctx.drawImage(videoRef.current, 0, 0, 100, 100)
           const frame = ctx.getImageData(0, 0, 100, 100)
           let total = 0
           for (let i = 0; i < frame.data.length; i += 4) {
+            // Perceived brightness formula (Rec. 709)
             total += 0.2126 * frame.data[i] + 0.7152 * frame.data[i + 1] + 0.0722 * frame.data[i + 2]
           }
-          // Simple Logarithmic Lux approximation
-          const est = Math.round(Math.pow((total / (frame.data.length / 4)) / 255, 2.2) * 1000)
-          setLux(Math.max(10, est))
+          
+          // Calculate average brightness (0-255)
+          const avgBrightness = total / (frame.data.length / 4)
+          
+          // Logarithmic mapping to approximate Lux response
+          // We assume "avg 128" (middle grey) is roughly 300-500 lux in a lit room
+          const estimatedRaw = Math.pow(avgBrightness / 100, 3) * 150
+          
+          setRawReading(estimatedRaw)
+          setLux(Math.round(estimatedRaw * calibration))
         }
       }
     }, 500)
     return () => clearInterval(interval)
-  }, [error])
+  }, [error, source, calibration])
+
+  const handleCalibrate = (realValue: number) => {
+    if (rawReading > 0) {
+      const newFactor = realValue / rawReading
+      setCalibration(newFactor)
+      localStorage.setItem('lux_calibration', newFactor.toString())
+      setIsCalibrating(false)
+    }
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1b270e]/95 backdrop-blur-sm p-6 animate-fade-in">
       <div className="w-full max-w-md bg-[#1b270e] border border-[#c9ccbb]/20 rounded-3xl p-8 relative shadow-2xl">
         <button onClick={onClose} className="absolute top-4 right-4 p-2 bg-[#000]/20 rounded-full text-[#c9ccbb] hover:text-[#b5a642]"><X size={20} /></button>
         
-        <h2 className="text-2xl font-serif text-[#c9ccbb] mb-2 flex items-center gap-2"><Zap size={24} className="text-[#b5a642]" /> Light Estimator</h2>
-        <p className="text-[#c9ccbb]/70 text-xs mb-8">Scan your room.</p>
+        <h2 className="text-2xl font-serif text-[#c9ccbb] mb-2 flex items-center gap-2">
+          {source === 'sensor' ? <Zap size={24} className="text-[#b5a642]" /> : <Camera size={24} className="text-[#b5a642]" />}
+          {source === 'sensor' ? 'Hardware Sensor' : 'Light Estimator'}
+        </h2>
+        <p className="text-[#c9ccbb]/70 text-xs mb-8">
+          {source === 'sensor' ? 'Using device hardware.' : 'Analysing environment brightness.'}
+        </p>
 
+        {/* VISUALIZER */}
         <div className="relative w-48 h-48 bg-[#000] rounded-full mx-auto mb-8 border-4 border-[#c9ccbb]/10 overflow-hidden flex items-center justify-center">
-            <video ref={videoRef} autoPlay playsInline muted className="absolute inset-0 w-full h-full object-cover opacity-30" />
-            <canvas ref={canvasRef} width="100" height="100" className="hidden" />
+            {source === 'camera' && (
+              <>
+                <video ref={videoRef} autoPlay playsInline muted className="absolute inset-0 w-full h-full object-cover opacity-30" />
+                <canvas ref={canvasRef} width="100" height="100" className="hidden" />
+              </>
+            )}
+            
             <div className="relative z-10 text-center">
                 {error ? <span className="text-red-400 text-xs">{error}</span> : (
                     <>
                         <div className="text-5xl font-serif text-[#c9ccbb] tabular-nums">{lux}</div>
-                        <div className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mt-1">Lux (Est.)</div>
+                        <div className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mt-1">Lux</div>
                     </>
                 )}
             </div>
-            <div className="absolute inset-0 rounded-full border-[6px] border-[#b5a642] transition-opacity duration-500" style={{ opacity: Math.min(lux / 500, 1) }} />
+            {/* Dynamic Ring */}
+            <div className="absolute inset-0 rounded-full border-[6px] border-[#b5a642] transition-opacity duration-500" style={{ opacity: Math.min(lux / 1000, 1) }} />
         </div>
 
+        {/* CALIBRATION UI (Only needed for Camera mode) */}
+        {source === 'camera' && !error && (
+          <div className="mb-6">
+            {!isCalibrating ? (
+              <button onClick={() => setIsCalibrating(true)} className="text-xs text-[#c9ccbb]/50 underline hover:text-[#b5a642] w-full text-center">
+                Reading looks wrong? Calibrate
+              </button>
+            ) : (
+              <div className="bg-[#c9ccbb]/5 p-4 rounded-xl animate-fade-in-up">
+                <p className="text-xs text-[#c9ccbb]/80 mb-2">Fine-tune with an external reference meter:</p>
+                <div className="flex gap-2">
+                  <input 
+                    type="number" 
+                    placeholder="e.g. 500"
+                    className="w-full bg-[#000]/30 border border-[#c9ccbb]/20 rounded-lg px-3 text-[#c9ccbb] text-sm"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleCalibrate(parseInt(e.currentTarget.value))
+                    }}
+                  />
+                  <button 
+                    onClick={(e) => {
+                      // @ts-ignore
+                      handleCalibrate(parseInt(e.currentTarget.previousSibling.value))
+                    }}
+                    className="px-4 py-2 bg-[#b5a642] text-[#1b270e] font-bold text-xs rounded-lg uppercase tracking-wider"
+                  >
+                    Set
+                  </button>
+                </div>
+                <button onClick={() => setIsCalibrating(false)} className="text-[10px] text-red-400 mt-2 hover:underline">Cancel</button>
+              </div>
+            )}
+          </div>
+        )}
+
         <button onClick={() => onSave(lux)} disabled={!!error} className="w-full py-4 bg-[#b5a642] text-[#1b270e] font-bold uppercase tracking-widest rounded-xl hover:bg-[#c4b54e] flex items-center justify-center gap-2">
-            <Camera size={18} /> Save Measurement
+            <CheckCircle size={18} /> Save Measurement
         </button>
       </div>
     </div>
