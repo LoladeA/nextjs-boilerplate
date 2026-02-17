@@ -15,7 +15,8 @@ export default function Week1Nudge() {
       const { data } = await supabase
         .from('quiz_submissions')
         .select('score')
-        .eq('module_slug', 'sensory-lighting-dynamics-week-1')
+        // 🟢 FIXED: Changed 'module_slug' to 'module_id' to match the Quiz submission
+        .eq('module_id', 'sensory-lighting-dynamics-week-1') 
         .order('completed_at', { ascending: false })
         .limit(1)
         .single()
