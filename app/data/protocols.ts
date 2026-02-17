@@ -1,6 +1,9 @@
 export type TimeOfDay = 'morning' | 'afternoon' | 'evening'
 export type StressLevel = 'low' | 'medium' | 'high'
 
+// The 3 Neuro-Sensory Profiles
+export type SensoryProfile = 'standard' | 'seeker' | 'sensor'
+
 export type SensoryAction = {
   type: 'light' | 'sound' | 'space' | 'somatic'
   label: string
@@ -9,185 +12,266 @@ export type SensoryAction = {
   toolLink?: string 
 }
 
+// Each profile gets its own rich narrative
+export type RitualVariant = {
+  tagline: string
+  description: string
+  spotifyLink?: string
+  steps: SensoryAction[]
+}
+
 export type Ritual = {
   id: string
   name: string
-  tagline: string
-  description: string
   triggerCondition: string 
-  spotifyLink?: string // Added Audio Link
-  steps: SensoryAction[]
+  variants: {
+    standard: RitualVariant // Balanced / Neuro-Normative
+    seeker: RitualVariant   // ADHD / Hypo-Aroused / High-Threshold
+    sensor: RitualVariant   // HSP / Autism / Hyper-Aroused / Low-Threshold
+  }
 }
 
 export const RITUALS: Record<string, Ritual> = {
   
-  // --- MORNING RHYTHMS (Morning Jazz) ---
+  // --- MORNING RHYTHMS ---
   'morning-activation': {
     id: 'morning-activation',
-    name: 'First Light Rhythm', // Replaced 'Photon Anchor'
-    tagline: 'Master Your Morning: Activate Your Neuro-Hormonal Advantage.',
-    description: "Your internal clock, the Suprachiasmatic Nucleus (SCN), is the CEO of your day. To unlock peak cognitive clarity and sustained energy, we must strategically signal the Cortisol Awakening Response (CAR): a natural neuro-hormonal surge that prepares your system for the demands ahead. You are designing your physiological launch sequence for optimal performance and resilience.",
-    triggerCondition: 'Morning + Low Energy / Suboptimal Focus',
-    spotifyLink: 'https://open.spotify.com/playlist/37i9dQZF1DX71VcjjnyaBQ?si=e12650b962364f16', // Morning Jazz
-    steps: [
-      { 
-        type: 'light', 
-        label: 'Sky View: The First Signal', 
-        instruction: "Within 10 minutes of waking, seek 10-15 minutes of direct, early morning sunlight. Step outside, onto a balcony, or open a window fully. This deliberate action sets your circadian rhythm, priming your brain for focus and metabolic activity. Think of it as calibrating your internal compass for the day's journey.", 
-        duration: '10-15 min' 
+    name: 'First Light Rhythm',
+    triggerCondition: 'Morning + Low Energy',
+    variants: {
+      // 🟢 STANDARD PROFILE (The "Classic" Protocol)
+      standard: {
+        tagline: 'Master Your Morning: Activate Your Neuro-Hormonal Advantage.',
+        description: "Your internal clock, the Suprachiasmatic Nucleus (SCN), is the CEO of your day. To unlock peak cognitive clarity, we must strategically signal the Cortisol Awakening Response (CAR). This is not just 'waking up'; it is designing your physiological launch sequence for resilience.",
+        spotifyLink: 'https://open.spotify.com/playlist/37i9dQZF1DX71VcjjnyaBQ?si=ed214b46173540d7',
+        steps: [
+          { 
+            type: 'light', 
+            label: 'Sky View: The First Signal', 
+            instruction: "Within 10 minutes of waking, early morning, low angle sunlight. Step outside, open a window fully or go for a walk. You are calibrating your internal compass for the day's journey.", 
+            duration: '15 min' 
+          },
+          { 
+            type: 'somatic', 
+            label: 'Cold Signal: The Ignition', 
+            instruction: "A brief splash of cold water triggers a micro-dose of noradrenaline. It enhances alertness without the dysregulation of a startle response." 
+          },
+          { 
+            type: 'space', 
+            label: 'Open Boundaries', 
+            instruction: "Open all curtains and blinds. Maximising 'Visual Expansion' signals to your nervous system that the environment is adapting to you, not confining you." 
+          }
+        ]
       },
-      { 
-        type: 'space', 
-        label: 'Open Boundaries: Expand Your Cognitive Horizon', 
-        instruction: "Open all curtains and blinds, and if possible, windows. This action maximises Visual Expansion, which reduces perceived confinement and cognitive load. By physically opening your space, you're signaling to your nervous system that the environment is adapting to you, fostering a sense of agency and clarity. You are creating an expansive mental and physical landscape for your day." 
+
+      // 🟠 SEEKER PROFILE (ADHD / Needs Stimulation)
+      seeker: {
+        tagline: 'Dopamine Ignition: Engaging the Executive Brain.',
+        description: "Your nervous system does not 'drift' into wakefulness; it needs a spark. Without sufficient intensity, the ADHD brain remains in a state of low-arousal fog. We stack high-lux light with vestibular input (movement) to jumpstart the frontal cortex, turning 'intention' into 'action' without the friction of boredom.",
+        spotifyLink: 'https://open.spotify.com/playlist/2TwygCUmV9hogNFqZZ4to2?si=0e20cd0bc7684d86', 
+        steps: [
+          { 
+            type: 'light', 
+            label: 'High-Lux Launch', 
+            instruction: "Direct sunlight is non-negotiable. If unavailable, use a 10,000 Lux SAD lamp at close range as soon as you get out of bed. Your brain needs this photon density to synthesise the dopamine required for focus.", 
+            duration: '15 min' 
+          },
+          { 
+            type: 'somatic', 
+            label: 'Vestibular Wake-Up', 
+            instruction: "Do not sit. Drink your water or tea while standing, pacing, or stretching. Your brain requires vestibular input (movement through space) to feel fully 'online'." 
+          },
+          { 
+            type: 'sound', 
+            label: 'Sonic Drive', 
+            instruction: "Play complex, fast-tempo music (140+ BPM). Silence allows the mind to wander; structured, high-energy sound anchors you to the present moment." 
+          }
+        ]
       },
-      { 
-        type: 'somatic', 
-        label: 'Cold Signal: The Noradrenaline Ignition', 
-        instruction: "A brief splash of cold water to the face, or a quick cold rinse, serves as a potent, non-stressful trigger for noradrenaline release. This enhances alertness, sharpens focus, and improves mood without the dysregulation of a startle response. It's a micro-dose of physiological activation, signaling readiness and elevating your baseline state for immediate engagement." 
+
+      // 🔵 SENSOR PROFILE (HSP / Needs Safety)
+      sensor: {
+        tagline: 'The Gentle Ascent: Waking Without Overwhelm.',
+        description: "For the highly sensitive system, the standard 'alarm and blast' morning routine is assaultive, triggering an immediate cortisol spike that feels like anxiety. Your protocol prioritises a 'Soft Start': waking up and titrating sensory input slowly to allow your nervous system to come online without tripping the threat-detection wires.",
+        spotifyLink: 'https://open.spotify.com/playlist/37i9dQZF1DZ06evO1A8iR2?si=fefd25a5476e4952',
+        steps: [
+          { 
+            type: 'light', 
+            label: 'Indirect Illumination', 
+            instruction: "Do not blast open the curtains immediately. Sit near a window, but out of direct glare. Let the light hit your eyes indirectly first, allowing your pupils to adjust without strain.", 
+            duration: '20 min' 
+          },
+          { 
+            type: 'somatic', 
+            label: 'Thermal Comfort', 
+            instruction: "Drink warm water. Keep a robe or blanket on. Thermal shock (cold) drains your battery rapidly. Safety signals come from warmth and containment." 
+          },
+          { 
+            type: 'space', 
+            label: 'The Low-Demand Zone', 
+            instruction: "Stay in your 'quiet corner' for the first 15 minutes to take in the morning or meditate. Avoid the high-traffic kitchen hub until you feel physiologically grounded." 
+          }
+        ]
       }
-    ]
-  },
-  'morning-calm': {
-    id: 'morning-calm',
-    name: 'First Light Rhythm', // Replaced 'Optical Expansion'
-    tagline: 'Strategic Calm.',
-    description: "When morning stress or anxiety takes hold, your amygdala—the brain's alarm system—can become overactive, narrowing your focus and creating a sense of threat. 'Optical Expansion' is your de-escalation protocol, leveraging the neuroscience of panoramic vision to signal safety to your nervous system. By consciously broadening your visual field and curating your sensory environment, you reclaim agency, down-regulate the amygdala, and transition from reactive anxiety to proactive calm.",
-    triggerCondition: 'Morning + High Stress / Amygdala Over-activation',
-    spotifyLink: 'https://open.spotify.com/playlist/37i9dQZF1DX71VcjjnyaBQ?si=e12650b962364f16', // Morning Jazz
-    steps: [
-      { 
-        type: 'space', 
-        label: 'Horizon Gaze: The Panoramic Reset', 
-        instruction: "**Reclaim Your Perspective:** For 2 minutes, find the furthest point you can see—whether through a window or across a room. Soften your gaze, allowing your peripheral vision to expand. This deliberate act of 'Optical Expansion' signals safety to your brain, directly inhibiting the amygdala and shifting your nervous system from a threat-response to a state of calm. It's a powerful, immediate reframe that asserts your agency over your environment, rather than adapting to its perceived pressures.", 
-        duration: '2 min' 
-      },
-      { 
-        type: 'light', 
-        label: 'Ambient Illumination: Soften the Sensory Load', 
-        instruction: "**Curate Your Visual Field:** Avoid harsh, direct overhead lighting. Instead, opt for diffuse, indirect, or side-lighting. Bright, direct light can be perceived as an alerting signal, inadvertently contributing to cognitive overload and a heightened sense of urgency. By softening your illumination, you reduce unnecessary sensory input, fostering an environment that supports regulation over overstimulation, and allowing your nervous system to find its natural rhythm." 
-      },
-      { 
-        type: 'sound', 
-        label: 'Sonic Sanctuary: Reclaim Your Auditory Landscape', 
-        instruction: "**Silence the Noise, Amplify Clarity:** Keep artificial audio—news, podcasts, aggressive music—off. Allow natural ambient sounds to permeate your space. The absence of jarring or information-dense auditory input reduces cognitive load and allows your nervous system to process information more efficiently. This isn't about emptiness; it's about creating a 'sonic sanctuary' that supports deep regulation, preventing the subtle erosion of your mental and emotional resources." 
-      }
-    ]
+    }
   },
 
-  // --- AFTERNOON RHYTHMS (Meditation / Focus) ---
-  'afternoon-reset': {
-    id: 'afternoon-reset',
-    name: 'The Second Wind', // Replaced 'The NSDR Reset'
-    tagline: 'Non-Sleep Deep Rest: Reboot Your Nervous System.',
-    description: "The afternoon slump is a biological reality—a dip in circadian alertness. Pushing through with caffeine increases cortisol. Instead, we use Non-Sleep Deep Rest (NSDR) to simulate a sleep cycle in 10 minutes, clearing adenosine and restoring dopamine levels for a second wind of cognitive output.",
-    triggerCondition: 'Afternoon + High Stress / Fatigue',
-    spotifyLink: 'https://insig.ht/sfhwepBFH0b', // Peaceful Meditation
-    steps: [
-      { 
-        type: 'somatic', 
-        label: 'Horizontal Grounding', 
-        instruction: "Lie down on your back (floor or sofa) with legs slightly elevated. This posture signals immediate safety to the brainstem and aids venous return, reducing physical fatigue.", 
-        duration: '10 min' 
-      },
-      { 
-        type: 'sound', 
-        label: 'Audio Guide: NSDR Protocol', 
-        instruction: "Listen to a specific NSDR, Vipassana or Yoga Nidra track. This guides your brainwaves from Beta (active) to Alpha/Theta (dreamlike), allowing for rapid neuroplasticity and recovery without the grogginess of a nap.", 
-        toolLink: 'https://insig.ht/J3T6sFJFH0b' 
-      },
-      { 
-        type: 'light', 
-        label: 'Visual Break', 
-        instruction: "Cover your eyes or dim the room significantly. Removing visual data processing frees up roughly 30% of your brain's energy for restoration." 
-      }
-    ]
-  },
+  // --- AFTERNOON FOCUS ---
   'afternoon-focus': {
     id: 'afternoon-focus',
-    name: 'The Second Wind', // Replaced 'Ultradian Sprint'
-    tagline: 'Capture Your Second Peak.',
-    description: "Your brain operates in 90-minute ultradian cycles. To trigger a second peak of focus in the afternoon, we need to heighten alertness slightly without spiking anxiety. We use sound and breath to sharpen the prefrontal cortex.",
-    triggerCondition: 'Afternoon + Low Stress / Focus Block',
-    spotifyLink: 'https://open.spotify.com/playlist/14KtkIpsvzDSCXR24EqHCL?si=c83b5de7305f4aea', // Deep Focus
-    steps: [
-      { 
-        type: 'sound', 
-        label: 'Binaural Beats: 40Hz Gamma', 
-        instruction: "Use headphones to listen to 40Hz Gamma waves. This frequency is associated with high-level cognitive synthesis and problem-solving, acting as an 'audio caffeine' without the jitters.", 
-        toolLink: 'https://insig.ht/l0UVsTfHH0b' 
+    name: 'The Second Wind',
+    triggerCondition: 'Afternoon + Focus Block',
+    variants: {
+      standard: {
+        tagline: 'Capture Your Second Peak: The Ultradian Reset.',
+        description: "Your brain operates in 90-minute ultradian cycles. To trigger a second peak of focus in the afternoon, we must heighten alertness slightly without spiking anxiety. We use sound frequencies and breathwork to mechanically sharpen the prefrontal cortex.",
+        spotifyLink: 'https://insig.ht/TcOSceRQP0b',
+        steps: [
+          { 
+            type: 'sound', 
+            label: '40Hz Gamma Protocol', 
+            instruction: "Use headphones to listen to 40Hz Gamma waves. This frequency is associated with high-level cognitive synthesis, acting as 'audio caffeine' without the jitters." 
+          },
+          { 
+            type: 'somatic', 
+            label: 'The Physiological Sigh', 
+            instruction: "Perform 5 rounds of the double-inhale, long-exhale pattern. This mechanically pops open the alveoli, offloading CO2 and sharpening alertness instantly." 
+          },
+          { 
+            type: 'space', 
+            label: 'The ISO-Stand', 
+            instruction: "Switch to a standing position. Novel proprioceptive input wakes up the Reticular Activating System (RAS), preventing static lethargy." 
+          }
+        ]
       },
-      { 
-        type: 'somatic', 
-        label: 'Physiological Sigh', 
-        instruction: "Perform 5 rounds of the double-inhale, long-exhale breathing pattern. This mechanically pops open the alveoli in the lungs, offloading CO2 and sharpening alertness instantly.", 
-        duration: '1 min' 
+      seeker: {
+        tagline: 'The Spotlight Protocol: Forcing the Flow State.',
+        description: "You don't lack focus; you lack stimulation. When the task is boring, your brain scans the room for dopamine. We artificially narrow your world using 'The Vignette Effect,' creating a high-contrast environment that forces your attention into the work.",
+        spotifyLink: 'https://insig.ht/skmY1CZQP0b',
+        steps: [
+          { 
+            type: 'light', 
+            label: 'The Vignette Effect', 
+            instruction: "Turn OFF overhead lights. Turn ON a bright task lamp directly on your workspace. This high-contrast 'pool of light' creates a theatrical spotlight, anchoring your gaze." 
+          },
+          { 
+            type: 'sound', 
+            label: 'Brown Noise Wall', 
+            instruction: "Play Brown Noise (rougher and deeper than white noise). It occupies the 'distraction' part of your auditory cortex so the rest of your brain can work." 
+          },
+          { 
+            type: 'somatic', 
+            label: 'Active Sitting', 
+            instruction: "Sit on one leg, use a wobble stool, or chew gum. Give your body a 'fidget job' so your mind is free to stay engaged." 
+          }
+        ]
       },
-      { 
-        type: 'space', 
-        label: 'The ISO-Stand', 
-        instruction: "Switch to a standing position or change your seating location. Novel proprioceptive input wakes up the reticular activating system (RAS), preventing the lethargy of static posture." 
+      sensor: {
+        tagline: 'The Shielded Focus: reducing Sensory Friction.',
+        description: "Your distraction is likely caused by sensory fatigue: the exhaust fumes of processing too much data. We don't add stimulation; we subtract it. By reducing the 'signal-to-noise' ratio of your room, we liberate processing power for deep thought.",
+        spotifyLink: 'https://insig.ht/UVO8dS7QP0b',
+        steps: [
+          { 
+            type: 'light', 
+            label: 'Glare Reduction', 
+            instruction: "Dim the room significantly. You will feel it when you reach the level you need. Ensure no light sources are visible in your peripheral vision. Lower your screen brightness to match the ambient light." 
+          },
+          { 
+            type: 'space', 
+            label: 'The Protected Back', 
+            instruction: "Ensure your back is to a solid wall or a hich backed chair. You cannot focus deeply if your nervous system is subconsciously scanning the open space behind you." 
+          },
+          { 
+            type: 'somatic', 
+            label: 'Deep Pressure', 
+            instruction: "Place a heavy pillow, blanket or weighted lap pad on your thighs. This proprioceptive input grounds you and reduces the feeling of 'sensory flutter'." 
+          }
+        ]
       }
-    ]
+    }
   },
-  
-  // --- EVENING RHYTHMS (Evening Jazz) ---
+
+  // --- EVENING RESET ---
   'evening-taper': {
     id: 'evening-taper',
-    name: 'The Descent', // Replaced 'Sunset Taper'
-    tagline: 'Engineer Your Evening for Deep Restoration.',
-    description: "As the day concludes, your nervous system craves a deliberate transition, not a chaotic crash. You are actively engineering your internal environment for sleep onset, depth, and quality. We're moving beyond hoping for rest to designing your recovery, ensuring your body and mind are primed for optimal restoration and resilience.",
-    triggerCondition: 'Evening + Normal / Proactive Sleep Preparation',
-    spotifyLink: 'https://open.spotify.com/playlist/37i9dQZF1DXa1rZf8gLhyz?si=1ca7ede5762c4362', // Late Night Jazz
-    steps: [
-      { 
-        type: 'light', 
-        label: 'Kelvin Drop: The Melatonin Signal', 
-        instruction: "90-120 minutes before your target sleep time, switch off all overhead lights and use warm-spectrum (<2700K) lighting. Dim them significantly (<50 lux). Avoid direct, blue-rich light from screens. Your environment is now actively facilitating your physiological transition to sleep.", 
-        toolLink: '/tools/light-meter'
+    name: 'The Descent',
+    triggerCondition: 'Evening + Sleep Prep',
+    variants: {
+      
+      // 🟢 STANDARD PROFILE
+      standard: {
+        tagline: 'Engineer Your Restoration: The Biological Sunset.',
+        description: "As the day concludes, your nervous system craves a deliberate transition. We are moving beyond 'hoping' for sleep to designing your recovery. By mimicking the setting sun, we signal to the pineal gland that vigilance is no longer required.",
+        spotifyLink: 'https://open.spotify.com/playlist/37i9dQZF1DWXSyfX6gqDNp?si=4e071e2e23394ff5',
+        steps: [
+          { 
+            type: 'light', 
+            label: 'Kelvin Drop', 
+            instruction: "Switch to warm-spectrum (<2700K) lamps. Ensure all light sources are below eye level to mimic the angle of the setting sun." 
+          },
+          { 
+            type: 'space', 
+            label: 'Visual Closure', 
+            instruction: "Close blinds and doors. This creates a containment vessel, signaling safety to the amygdala and preparing the body for vulnerability." 
+          },
+          { 
+            type: 'sound', 
+            label: 'Acoustic Softening', 
+            instruction: "Transition to instrumental audio only. Lyrics require language processing; instrumental sound allows the verbal centers of the brain to deactivate." 
+          }
+        ]
       },
-      { 
-        type: 'sound', 
-        label: 'Acoustic Softening: The Sonic Sanctuary', 
-        instruction: "Transition from information-dense or lyrical music to instrumental, ambient, or lo-fi soundscapes. The goal is to reduce cognitive load and prevent auditory startle responses that can spike cortisol. This creates an environment where your nervous system can down-regulate without interruption, allowing your brain to shift from active processing to restorative states." 
+
+      // 🟠 SEEKER PROFILE (ADHD / Needs Engagement to Rest)
+      seeker: {
+        tagline: 'The Dopamine Detox: Landing the Plane.',
+        description: "Your brain fights sleep because it feels 'boring' compared to the high-dopamine stimulation of the day. We need to transition you from High-Dopamine (screens) to Low-Dopamine (rest) using complex, engaging tools like Tibetan Gongs or Body Scans that keep the ADHD brain occupied while the body shuts down.",
+        spotifyLink: 'https://insig.ht/j0QXp1mRP0b', 
+        steps: [
+          { 
+            type: 'somatic', 
+            label: 'Vipassana Body Scan', 
+            instruction: "The ADHD brain struggles to 'let go'. Do not try to empty your mind. Instead, do a Vipassana body scan. Move your attention from toes to head. This gives your 'monkey mind' a specific job to do, preventing it from spiraling into tomorrow's to-do list.",
+            toolLink: 'https://insig.ht/47MXPahRP0b'
+          },
+          { 
+            type: 'sound', 
+            label: 'Tibetan Gong Bath', 
+            instruction: "Play complex soundscapes like Tibetan Gongs. Unlike white noise (which is static), gongs have complex harmonics that satisfy the ADHD brain's need for novelty while dragging brainwaves down into Theta (dream) states.",
+            toolLink: 'https://insig.ht/Uk4k9dwRP0b'
+          },
+          { 
+            type: 'somatic', 
+            label: 'NSDR / Yoga Nidra', 
+            instruction: "If you cannot sleep, switch to Non-Sleep Deep Rest (Yoga Nidra). This protocol systematically shuts down the nervous system even if the mind is awake. 20 minutes of NSDR equals 3-4 hours of restorative recovery.",
+            toolLink: 'https://insig.ht/TRHQ0iERP0b'
+          }
+        ]
       },
-      { 
-        type: 'space', 
-        label: 'Visual Closure: The Cocoon for Restoration', 
-        instruction: "Close curtains, blinds, and if possible, bedroom doors. This action reduces external stimuli and creates a sense of enclosure and safety. It signals to your amygdala that the environment is secure, allowing your nervous system to release its vigilance and prepare for the vulnerability of sleep." 
+
+      // 🔵 SENSOR PROFILE (HSP / Needs Emptying)
+      sensor: {
+        tagline: 'Sensory Decompression: Emptying the Bucket.',
+        description: "The modern world is loud and bright. By evening, your sensory bucket is full. This protocol is not just about sleep; it is about 'emptying the bucket' so you don't carry today's overstimulation into tomorrow.",
+        spotifyLink: 'https://app.declutterthemind.com/?meditation=1677352314447x311753051750268900',
+        steps: [
+          { 
+            type: 'space', 
+            label: 'The Compression Cocoon', 
+            instruction: "Get into bed early. Use heavy blankets. Create a small, enclosed space. You need physical containment to feel safe enough to let your guard down." 
+          },
+          { 
+            type: 'light', 
+            label: 'Zero Lux Protocol', 
+            instruction: "A blackout mask is essential. Even the standby light on a TV is a photon signal that your vigilant nervous system will track." 
+          },
+          { 
+            type: 'sound', 
+            label: 'Noise Masking', 
+            instruction: "Silence can be 'loud' if you hear every house creak. Use this nature sound to smooth out the auditory edges of the room.",
+            toolLink: 'https://insig.ht/oiIEJeSRP0b' 
+          }
+        ]
       }
-    ]
-  },
-  'evening-shelter': {
-    id: 'evening-shelter',
-    name: 'The Descent', // Replaced 'Shelter Protocol'
-    tagline: 'Emergency Reset: Reclaim Calm from Overwhelm.',
-    description: "When the day's demands leave your nervous system wired and stressed and your amygdala is stuck in overdrive, the natural descent into restorative sleep feels impossible. You are leveraging environmental and somatic signals to de-escalate acute stress, reclaim your internal agency, and initiate profound recovery when you need it most.",
-    triggerCondition: 'Evening + High Stress / Amygdala Over-activation',
-    spotifyLink: 'https://app.declutterthemind.com/?meditation=1667765819764x345910268725559300', // Late Night Jazz
-    steps: [
-      { 
-        type: 'light', 
-        label: 'Blackout Mode: Absolute Darkness Mode', 
-        instruction: "Turn off ALL artificial lights. Use only true blackout curtains. If any light is necessary, use candlelight in heat-safe containers or a dedicated amber-only nightlight. You are creating absolute darkness to maximise melatonin release and signal to your brain that it is time to cease vigilance and initiate deep physiological repair. Every photon is a signal; in this mode, the signal is 'safe to rest'.", 
-      },
-      { 
-        type: 'sound', 
-        label: 'Brown Noise: The Auditory Anchor', 
-        instruction: "Play Brown Noise at a consistent, low volume. Unlike silence, which can make internal sounds (like heartbeats) more prominent and trigger anxiety, Brown Noise provides a deep, continuous, and non-threatening auditory anchor. It effectively masks sudden, jarring sounds that could trigger a startle response, allowing your amygdala to stand down and your nervous system to find a state of sustained calm.", 
-        toolLink: 'https://insig.ht/ZPJaIBnHH0b'
-      },
-      { 
-        type: 'somatic', 
-        label: 'Deep Pressure: The Vagal Nerve Embrace', 
-        instruction: "Apply deep, consistent pressure using a weighted blanket or a heavy throw across your legs and torso for at least 20 minutes. This is a direct somatic input that stimulates the vagal nerve, activating the parasympathetic nervous system, reducing heart rate, lowering cortisol, and promoting the release of oxytocin.", 
-        duration: '20 min' 
-      },
-      { 
-        type: 'space', 
-        label: 'The Dorsal Corner: Primal Safety Zone', 
-        instruction: "Position yourself in a corner of the room, ideally with your back to a solid wall and facing the entrance. This leverages a primal, evolutionary safety mechanism that eliminates the possibility of a perceived threat from behind, reducing the brain’s need for constant vigilance. This allows your nervous system to fully disengage from its defensive posture and enter a state of deep calm." 
-      }
-    ]
+    }
   }
-}
