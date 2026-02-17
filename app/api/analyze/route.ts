@@ -18,14 +18,14 @@ export async function POST(req: Request) {
     if (roomName === 'Bedroom') {
       insight = "This space currently signals 'vigilance' rather than 'rest' due to high visual complexity near the sleep horizon.";
       prescriptions = [
-        "Reduce visual texture on bedside surfaces.",
+        "Reduce visual complexity (clutter) on bedside surfaces.",
         "Cover reflective screens to reduce 'gaze pull'."
       ];
       
       // LIGHTING OVERRIDE: Bedrooms need darkness
       if (measuredLux !== null) {
           if (measuredLux > 50) {
-              prescriptions.push(`Current lighting (${measuredLux} lx) is suppressing melatonin. Switch to amber lamps (<20 lx).`);
+              prescriptions.push(`Current lighting (${measuredLux} lx) is suppressing melatonin release. Switch to amber lamps or candlelight in a heat safe container (<20 lx).`);
               insight += " Detected light levels are biologically antagonistic to sleep onset.";
           } else {
               prescriptions.push("Light levels are optimal for evening wind-down.");
@@ -50,7 +50,7 @@ export async function POST(req: Request) {
               prescriptions.push("Light levels are sufficient for sustained focus.");
           }
       } else {
-           prescriptions.push("Align monitor to reduce glare contrast.");
+           prescriptions.push("Align monitor or reposition to reduce glare contrast.");
       }
 
     } else {
@@ -65,7 +65,7 @@ export async function POST(req: Request) {
       if (measuredLux !== null && measuredLux > 100) {
            prescriptions.push("Ensure overheads can be dimmed to <50 lx for evening social connection.");
       } else {
-           prescriptions.push("Lower the lighting horizon (floor lamps only).");
+           prescriptions.push("Lower the lighting horizon (table and floor lamps only).");
       }
     }
 
