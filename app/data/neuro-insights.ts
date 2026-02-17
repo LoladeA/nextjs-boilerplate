@@ -589,7 +589,7 @@ export const neuroInsights: NeuroInsight[] = [
     }
   },
 
- // --- CARD 28: LIGHTING & CIRCADIAN ---
+  // --- CARD 28: LIGHTING & CIRCADIAN ---
   {
     id: 28,
     category: "Hormonal Regulation",
@@ -774,7 +774,7 @@ export const neuroInsights: NeuroInsight[] = [
         "Step outside for 2 minutes to get direct, unfiltered sky-light."
       ],
       whyitWorks: "High-intensity light (>1,000 lux) provides the hard reset for the circadian clock, firing the starting gun for your metabolic day.",
-      integrationcue: "ou notice morning grogginess disappearing within 15 minutes of waking and a sharper start to your first work block."
+      integrationcue: "You notice morning grogginess disappearing within 15 minutes of waking and a sharper start to your first work block."
     }
   },
 
@@ -834,7 +834,7 @@ export const neuroInsights: NeuroInsight[] = [
       primaryadjustment: "Isolate noisy appliances behind closed doors or use vibration-dampening pads under them.",
       refinement: [
         "Move servers or loud computer towers to a different room or inside a ventilated cabinet.",
-        "dentify phantom hums (like old chargers or LED drivers) and replace them with silent alternatives."
+        "Identify phantom hums (like old chargers or LED drivers) and replace them with silent alternatives."
       ],
       whyitWorks: "Removing low-frequency drones lowers your silence baseline, allowing your nervous system to fully rest.",
       integrationcue: "You experience a deeper sense of settling when you enter your home and a higher  silence baseline score in your journal."
@@ -878,7 +878,7 @@ export const neuroInsights: NeuroInsight[] = [
         "Use heavy, multi-layered acoustic curtains to block street noise.",
         "Spend at least 20 minutes a day in this silence sanctuary to allow your nervous system to down-regulate."
       ],
-      whyitWorks: "True silence allows the brain's Default Mode Network (DMN) to activate, which is essential for creativity,self reflection and emotional processing.",
+      whyitWorks: "True silence allows the brain's Default Mode Network (DMN) to activate, which is essential for creativity, self reflection and emotional processing.",
       integrationcue: "You notice a reduction in sensory overwhelm and a clearer sense of internal direction and calm."
     }
   }
