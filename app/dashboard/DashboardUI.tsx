@@ -21,7 +21,7 @@ export default function DashboardUI({
   systemState, 
   radarData = [], 
   circadianLoad,
-  profile = 'standard' // Default prevents crash
+  profile = 'anchor' // Default prevents crash
 }: any) {
   
   const [isGuideOpen, setIsGuideOpen] = useState(false)
