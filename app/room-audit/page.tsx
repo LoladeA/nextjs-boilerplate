@@ -38,14 +38,21 @@ export default function RoomAudit() {
       
       // 1. If no user, they are definitely not subscribed -> LOCKED
       if (!user) {
-        console.log("🔒 Audit Locked: No User Logged In")
         setIsSubscribed(false)
         setLoading(false)
         return
       }
 
-      // 2. Check Database for Active Status
-      // We use maybeSingle() to avoid errors if duplicate rows exist
+      // 🎫 GOLDEN TICKET: Instant Access for You
+      // This bypasses the database check entirely for your email
+      if (user.email === 'christchilde@gmail.com') {
+          console.log("👑 Golden Ticket Accepted: God Mode Active")
+          setIsSubscribed(true)
+          setLoading(false)
+          return 
+      }
+
+      // 2. Check Database for Active Status (For everyone else)
       const { data: subscription, error } = await supabase
         .from('subscriptions')
         .select('status')
@@ -57,15 +64,13 @@ export default function RoomAudit() {
 
       // 3. The Final Verdict
       if (subscription) {
-        console.log("🔓 Audit Unlocked: Active Subscription Found")
         setIsSubscribed(true)
       } else {
-        console.log("🔒 Audit Locked: User exists but no active subscription")
         setIsSubscribed(false)
       }
     } catch (err) {
       console.error("Auth Error", err)
-      setIsSubscribed(false) // Default to locked on error
+      setIsSubscribed(false) 
     } finally {
       setLoading(false)
     }
