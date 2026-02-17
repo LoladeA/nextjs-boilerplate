@@ -21,6 +21,6 @@ export function getPrecisionProfile(lens: NeuroLens, direction: string): Sensory
   // ADHD is typically a Seeker (needs stimulation to focus)
   if (safeLens.includes('adhd')) return 'seeker';
   
-  // Default to Standard (Neuro-Normative)
-  return 'standard';
+ // 3. THE ANCHOR: The grounded, flexible nervous system (formerly "Standard")
+  return 'anchor';
 }
