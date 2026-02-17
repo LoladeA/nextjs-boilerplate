@@ -11,7 +11,7 @@ import Link from 'next/link'
 interface Props {
   neuroLoadScore: number
   // 🟢 NEW: Accept the profile so we show the right content
-  profile?: 'standard' | 'seeker' | 'sensor'
+  profile?: 'anchor' | 'seeker' | 'sensor'
 }
 
 export default function RitualsInterface({ neuroLoadScore, profile = 'standard' }: Props) {
@@ -41,7 +41,7 @@ export default function RitualsInterface({ neuroLoadScore, profile = 'standard' 
   
   // 🟢 BRANCHING LOGIC: Select the correct variant
   // This is the "Heart Transplant" - picking the right data for the user
-  const activeVariant = parentRitual.variants[profile] || parentRitual.variants['standard']
+  const activeVariant = parentRitual.variants[profile] || parentRitual.variants['anchor']
 
   // Create the composite object your UI expects (Merging Parent Name + Variant Details)
   const activeProtocol = {
@@ -74,7 +74,7 @@ export default function RitualsInterface({ neuroLoadScore, profile = 'standard' 
              <div className="h-px bg-[#c9ccbb]/10 flex-grow"></div>
              <div className="text-[#c9ccbb]/40 text-xs font-bold uppercase tracking-widest flex items-center gap-2">
                 <Zap size={12} className="text-[#b5a642]" /> 
-                {/* 🟢 VISUAL CUE: Show which profile is active */}
+                {/* 🟢 DISPLAY: Capitalize 'anchor' to 'Anchor' */}
                 {profile.charAt(0).toUpperCase() + profile.slice(1)} Protocol
              </div>
              <div className="h-px bg-[#c9ccbb]/10 flex-grow"></div>
