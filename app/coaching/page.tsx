@@ -9,46 +9,64 @@ import { useEffect, useState } from 'react'
 export default function Coaching() {
   const supabase = createClientComponentClient()
   const [completedSlugs, setCompletedSlugs] = useState<string[]>([])
+  const [hasAccess, setHasAccess] = useState(false) // 🟢 Tracks Premium/God Mode status
 
-  // 🟢 FIXED: Variable declared only once with your exact word-for-word content
-  // Inside the modules array in app/coaching/page.tsx
+  const modules = [
+    { 
+      week: "Module 1", 
+      slug: "foundations",
+      title: "Foundations of Neuropsychology in Interior Design", 
+      subtitle: "The Home as a Second Skin for the Nervous System.",
+      items: ["Neuro Load Scoring", "ACC & Theta Activity", "Hormonal Health"],
+      isPremium: false,
+      link: "/coaching/foundations"
+    },
+    { 
+      week: "Module 2", 
+      slug: "sensory-lighting-dynamics", 
+      title: "Sensory and Lighting Dynamics", 
+      subtitle: "Understanding Sensory Load: Beyond the Obvious.",
+      items: [
+        "Week 1: Understanding Sensory Load: Beyond the Obvious", 
+        "Week 2: Circadian Stability & Sensory Filtering", 
+        "Week 3: Designing for Regulation (Not Aesthetics)", 
+        "Week 4: The Evening Reset & Deep Night Setting"
+      ],
+      isPremium: true,
+      // Default link is upgrade, but we will override this if hasAccess is true
+      link: "/upgrade" 
+    }
+  ]
 
-const modules = [
-  { 
-    week: "Module 1", 
-    slug: "foundations",
-    title: "Foundations of Neuropsychology in Interior Design", 
-    subtitle: "The Home as a Second Skin for the Nervous System.",
-    items: ["Neuro Load Scoring", "ACC & Theta Activity", "Hormonal Health"],
-    isLocked: false,
-    link: "/coaching/foundations" // 🟢 Points to your physical folder
-  },
-  { 
-    week: "Module 2", 
-    slug: "sensory-lighting-dynamics", 
-    title: "Sensory and Lighting Dynamics", 
-    subtitle: "Understanding Sensory Load: Beyond the Obvious.",
-    items: [
-      "Week 1: Understanding Sensory Load: Beyond the Obvious", 
-      "Week 2: Circadian Stability & Sensory Filtering", 
-      "Week 3: Designing for Regulation (Not Aesthetics)", 
-      "Week 4: The Evening Reset & Deep Night Setting"
-    ],
-    isLocked: true, 
-    isPremium: true,
-    link: "/upgrade" 
-  }
-]
-
-  // FETCH PROGRESS
+  // FETCH PROGRESS & CHECK SUBSCRIPTION
   useEffect(() => {
-    async function getProgress() {
+    async function checkStatus() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-      const { data } = await supabase.from('quiz_submissions').select('module_slug').eq('user_id', user.id)
-      if (data) setCompletedSlugs(data.map(row => row.module_slug))
+
+      // 1. GET QUIZ PROGRESS
+      const { data: progress } = await supabase.from('quiz_submissions').select('module_slug').eq('user_id', user.id)
+      if (progress) setCompletedSlugs(progress.map(row => row.module_slug))
+
+      // 2. CHECK ACCESS (Golden Ticket + Subscription)
+      // 👑 GOD MODE: Instant Unlock for You
+      if (user.email === 'christchilde@gmail.com') {
+          console.log("👑 Golden Ticket: Modules Unlocked")
+          setHasAccess(true)
+          return
+      }
+
+      // Normal Subscription Check
+      const { data: subscription } = await supabase
+        .from('subscriptions')
+        .select('status')
+        .eq('user_id', user.id)
+        .in('status', ['active', 'trialing'])
+        .maybeSingle()
+
+      if (subscription) setHasAccess(true)
     }
-    getProgress()
+    checkStatus()
   }, [supabase])
 
   return (
@@ -79,11 +97,25 @@ const modules = [
           {/* GRID SECTION */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {modules.map((item, i) => {
-              const isDone = completedSlugs.includes(item.slug)
+              // DYNAMIC LOGIC:
+              // 1. Is it locked? Only if it's premium AND user has no access
+              const isLocked = item.isPremium && !hasAccess
+              
+              // 2. Where does it link? 
+              // If locked -> Upgrade Page. 
+              // If unlocked Module 2 -> Week 1 Start Page.
+              // If Module 1 -> Regular Link.
+              const destination = isLocked 
+                  ? '/upgrade' 
+                  : (item.slug === 'sensory-lighting-dynamics' ? '/coaching/sensory-lighting-dynamics/week-1' : item.link)
+
+              // 3. Is it done? (Check if the main slug or the final week slug exists)
+              // For Module 2, we check if they finished Week 4 to mark the whole card complete
+              const isDone = completedSlugs.includes(item.slug) || completedSlugs.includes('sensory-lighting-dynamics-week-4')
 
               return (
                 <Link 
-                  href={item.link} 
+                  href={destination} 
                   key={i}
                   className={`group relative flex flex-col justify-between p-8 rounded-3xl border transition-all duration-500 overflow-hidden min-h-[400px]
                     ${item.isPremium 
@@ -98,7 +130,7 @@ const modules = [
                             ${item.isPremium ? 'border-[#1b270e]/20 text-[#1b270e]' : 'border-[#c9ccbb]/20 text-[#c9ccbb]/60'}`}>
                               {item.week}
                           </span>
-                          {item.isLocked && <Lock size={16} className="text-[#c9ccbb]/40" />}
+                          {isLocked && <Lock size={16} className="text-[#c9ccbb]/40" />}
                       </div>
 
                       <h3 className="text-2xl font-serif mb-2 text-[#c9ccbb]">
@@ -117,7 +149,7 @@ const modules = [
                   </div>
 
                   <div className={`pt-6 border-t ${item.isPremium ? 'border-[#1b270e]/10' : 'border-[#c9ccbb]/10'} flex justify-between items-center`}>
-                      {item.isLocked ? (
+                      {isLocked ? (
                           <span className="text-xs font-bold uppercase tracking-widest text-[#b5a642] flex items-center gap-2">
                               Upgrade to Unlock <Lock size={12} />
                           </span>
