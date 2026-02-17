@@ -34,6 +34,17 @@ export default function DashboardUI({
     }
   }, [])
 
+  // 🟢 NEW: Identity Translation Map
+  // Internal Code -> Brand Identity
+  const profileLabels: Record<string, string> = {
+    standard: 'Anchor', // Replaces "Standard" with "Anchor"
+    seeker: 'Seeker',
+    sensor: 'Sensor'
+  }
+
+  // Get the display label (Safe fallback to 'Anchor')
+  const identityLabel = profileLabels[profile] || 'Anchor'
+  
   // --- 1. DATA EXTRACTION ---
   const recoveryRaw = radarData?.find((d: any) => d.subject === 'Recovery')?.A || 50
   const sensoryRaw = radarData?.find((d: any) => d.subject === 'Sensory')?.A || 50
