@@ -68,7 +68,7 @@ export const RITUALS: Record<string, Ritual> = {
       seeker: {
         tagline: 'Dopamine Ignition: Engaging the Executive Brain.',
         description: "Your nervous system does not 'drift' into wakefulness; it needs a spark. Without sufficient intensity, the ADHD brain remains in a state of low-arousal fog. We stack high-lux light with vestibular input (movement) to jumpstart the frontal cortex, turning 'intention' into 'action' without the friction of boredom.",
-        spotifyLink: 'https://open.spotify.com/playlist/2TwygCUmV9hogNFqZZ4to2?si=0e20cd0bc7684d86', 
+        spotifyLink: 'https://open.spotify.com/playlist/2TwygCUmV9hogNFqZZ4to2?si=0e20cd0bc7684d86', ',
         steps: [
           { 
             type: 'light', 
@@ -275,3 +275,4 @@ export const RITUALS: Record<string, Ritual> = {
       }
     }
   }
+}
