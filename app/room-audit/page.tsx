@@ -2,7 +2,7 @@
 
 import Sidebar from '../components/Sidebar'
 import { useState, useRef, useEffect } from 'react'
-import { Camera, Upload, ArrowRight, Loader2, ScanEye, CheckCircle, AlertTriangle, Lock, Sparkles, Brain, Lightbulb } from 'lucide-react'
+import { Camera, Upload, ArrowRight, Loader2, ScanEye, CheckCircle, AlertTriangle, Lock, Sparkles, Brain, Lightbulb, Zap } from 'lucide-react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import Link from 'next/link'
 
@@ -13,13 +13,16 @@ export default function RoomAudit() {
   // STATE
   const [loading, setLoading] = useState(true)
   const [isSubscribed, setIsSubscribed] = useState(false)
-  
+   
   const [selectedRoom, setSelectedRoom] = useState('Living Room')
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [file, setFile] = useState<File | null>(null)
   const [status, setStatus] = useState<'idle' | 'analyzing' | 'success'>('idle')
   
-  // NEW: Analysis Results State
+  // NEW: Manual Lux Input to bridge the Light Meter tool
+  const [manualLux, setManualLux] = useState<string>('') 
+   
+  // Analysis Results State
   const [result, setResult] = useState<any>(null)
 
   const rooms = ['Living Room', 'Bedroom', 'Home Office', 'Kitchen', 'Entryway']
@@ -77,7 +80,9 @@ export default function RoomAudit() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
             roomName: selectedRoom,
-            imageUrl: publicUrl 
+            imageUrl: publicUrl,
+            // 🟢 PASS THE LUX DATA TO THE AI
+            measuredLux: manualLux ? parseInt(manualLux) : null
         })
       })
       const analysis = await response.json()
@@ -88,7 +93,8 @@ export default function RoomAudit() {
           room_name: selectedRoom,
           image_url: publicUrl,
           entropy_score: parseFloat(analysis.data.entropy_score),
-          lighting_kelvin: analysis.data.lighting_kelvin
+          lighting_kelvin: analysis.data.lighting_kelvin,
+          lux_reading: manualLux ? parseInt(manualLux) : null // Save this context
       })
 
       // D. Show Results
@@ -109,7 +115,7 @@ export default function RoomAudit() {
       <Sidebar />
       <div className="md:ml-64 min-h-screen p-6 md:p-12">
         <div className="max-w-4xl mx-auto">
-          
+           
           <div className="mb-12 text-center">
             <h1 className="text-4xl font-serif text-[#c9ccbb] mb-4">Environmental Audit</h1>
             <p className="text-[#c9ccbb]/60 max-w-lg mx-auto">
@@ -155,6 +161,23 @@ export default function RoomAudit() {
                      <span className="text-xs font-bold uppercase tracking-widest">Tap to Capture</span>
                    </div>
                  )}
+               </div>
+
+               {/* 🟢 NEW: OPTIONAL LUX INPUT */}
+               <div className="mt-6">
+                 <label className="flex items-center gap-2 text-[#c9ccbb]/60 text-[10px] font-bold uppercase tracking-widest mb-2">
+                    <Zap size={12} className="text-[#b5a642]" /> Add Light Meter Reading (Optional)
+                 </label>
+                 <div className="relative">
+                    <input 
+                        type="number" 
+                        value={manualLux}
+                        onChange={(e) => setManualLux(e.target.value)}
+                        placeholder="e.g. 350"
+                        className="w-full bg-[#1b270e] border border-[#c9ccbb]/20 rounded-xl px-4 py-3 text-[#c9ccbb] text-sm focus:outline-none focus:border-[#b5a642] placeholder:text-[#c9ccbb]/20"
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#c9ccbb]/30 text-[10px] font-bold">LUX</span>
+                 </div>
                </div>
 
                <div className="mt-6 flex justify-center">
