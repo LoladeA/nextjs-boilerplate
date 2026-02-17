@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { FileText, RefreshCw, Brain, Activity, AlertTriangle, ArrowRight } from 'lucide-react'
+import { FileText, RefreshCw, Brain, Activity, AlertTriangle, Fingerprint } from 'lucide-react'
 
 import SensoryTools from '../components/SensoryTools'
 import SensoryRadar from '../components/SensoryRadar'
@@ -20,7 +20,8 @@ export default function DashboardUI({
   totalLoad, 
   systemState, 
   radarData = [], 
-  circadianLoad
+  circadianLoad,
+  profile = 'standard' // Default prevents crash
 }: any) {
   
   const [isGuideOpen, setIsGuideOpen] = useState(false)
@@ -33,16 +34,14 @@ export default function DashboardUI({
     }
   }, [])
 
-  // --- 1. DATA EXTRACTION (0-100%) ---
+  // --- 1. DATA EXTRACTION ---
   const recoveryRaw = radarData?.find((d: any) => d.subject === 'Recovery')?.A || 50
   const sensoryRaw = radarData?.find((d: any) => d.subject === 'Sensory')?.A || 50
   const autonomicRaw = radarData?.find((d: any) => d.subject === 'Autonomic')?.A || 50
 
   // --- 2. LOGIC CALIBRATION ---
-  // Invert Load to Capacity: Lower raw load = Higher capacity
   const recoveryCapacity = 100 - recoveryRaw; 
   
-  // Standardized Labels for v2.0 Architecture
   let recoveryLabel = 'Moderate';
   if (recoveryCapacity > 60) recoveryLabel = 'High';    
   else if (recoveryCapacity < 30) recoveryLabel = 'Low'; 
@@ -62,8 +61,14 @@ export default function DashboardUI({
         {/* HEADER */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
-            <div className="relative w-64 h-16 mb-2">
-              <Image src="/logo.PNG" alt="TheSentientHome" fill className="object-contain object-left" priority />
+            {/* 🟢 FIXED: Brand Name Logo */}
+            <div className="flex items-center gap-3 mb-2">
+                <div className="relative w-12 h-12">
+                   <Image src="/logo.PNG" alt="Logo" fill className="object-contain" priority />
+                </div>
+                <h1 className="font-serif text-2xl text-[#c9ccbb] tracking-wide">
+                  The Sentient <span className="text-[#b5a642]">Home</span>
+                </h1>
             </div>
             <p className="text-[#c9ccbb]/80 font-light capitalize text-lg">
               Welcome back, <span className="text-[#c9ccbb] font-normal">{displayName}</span>.
@@ -77,11 +82,12 @@ export default function DashboardUI({
           </div>
         </div>
 
-        {/* --- ROW 1: CORE METRICS --- */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {/* --- ROW 1: CORE METRICS (Mobile Scroll / Desktop Grid) --- */}
+        {/* 🟢 FIXED: 'flex overflow-x-auto' creates the swipeable row on mobile */}
+        <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 -mx-6 px-6 md:grid md:grid-cols-2 lg:grid-cols-4 md:overflow-visible md:pb-0 md:mx-0 md:px-0 mb-8 scrollbar-hide">
             
             {/* 1. NeuroLoad */}
-            <div className="glass-panel p-6 rounded-3xl border border-[#c9ccbb]/10 flex flex-col justify-between min-h-[180px] relative overflow-hidden">
+            <div className="snap-center shrink-0 w-[85vw] md:w-auto glass-panel p-6 rounded-3xl border border-[#c9ccbb]/10 flex flex-col justify-between min-h-[180px] relative overflow-hidden">
                 <div className="flex justify-between items-start z-10 relative">
                     <h3 className="text-[#c9ccbb] font-serif text-xl">NeuroLoad</h3>
                     <Brain className="text-[#b5a642]" size={20} />
@@ -94,7 +100,7 @@ export default function DashboardUI({
             </div>
 
             {/* 2. Recovery Capacity */}
-            <div className="glass-panel p-6 rounded-3xl border border-[#c9ccbb]/10 flex flex-col justify-between min-h-[180px] relative overflow-hidden">
+            <div className="snap-center shrink-0 w-[85vw] md:w-auto glass-panel p-6 rounded-3xl border border-[#c9ccbb]/10 flex flex-col justify-between min-h-[180px] relative overflow-hidden">
                 <div className="flex justify-between items-start z-10 relative">
                     <h3 className="text-[#c9ccbb] font-serif text-xl">Recovery Capacity</h3>
                     <Activity className="text-[#b5a642]" size={20} />
@@ -107,7 +113,7 @@ export default function DashboardUI({
             </div>
 
             {/* 3. Sensory Load */}
-            <div className="glass-panel p-6 rounded-3xl border border-[#c9ccbb]/10 flex flex-col justify-between min-h-[180px] relative overflow-hidden">
+            <div className="snap-center shrink-0 w-[85vw] md:w-auto glass-panel p-6 rounded-3xl border border-[#c9ccbb]/10 flex flex-col justify-between min-h-[180px] relative overflow-hidden">
                 <div className="flex justify-between items-start z-10 relative">
                     <h3 className="text-[#c9ccbb] font-serif text-xl">Sensory Load</h3>
                     <AlertTriangle className="text-[#b5a642]" size={20} />
@@ -119,19 +125,24 @@ export default function DashboardUI({
                 <div className="absolute bottom-0 right-0 w-32 h-32 bg-[#b5a642]/10 rounded-full blur-2xl pointer-events-none" />
             </div>
 
-            {/* 4. Retake Assessment */}
-            <Link href="/assessments/step0" className="group glass-panel p-6 rounded-3xl border border-[#c9ccbb]/10 hover:bg-[#c9ccbb]/5 transition-all flex flex-col justify-between min-h-[180px] relative overflow-hidden">
+            {/* 4. 🟢 NEURO-IDENTITY CARD (Replaces Retake Link) */}
+            <div className="snap-center shrink-0 w-[85vw] md:w-auto glass-panel p-6 rounded-3xl border border-[#c9ccbb]/10 flex flex-col justify-between min-h-[180px] relative overflow-hidden group">
                 <div className="flex justify-between items-start z-10 relative">
-                    <h3 className="text-[#c9ccbb] font-serif text-xl">Retake Assessment</h3>
-                    <RefreshCw className="text-[#b5a642] group-hover:rotate-180 transition-transform duration-500" size={24} />
+                    <h3 className="text-[#c9ccbb] font-serif text-xl">Sensory Profile</h3>
+                    <Fingerprint className="text-[#b5a642]" size={20} />
                 </div>
                 <div className="z-10 relative">
-                    <div className="flex items-center gap-2 text-[#b5a642] font-bold">
-                        Track Your Progress <ArrowRight size={18} />
+                    {/* Display the Profile Name */}
+                    <div className="text-4xl font-serif text-[#c9ccbb] mb-2 capitalize">
+                        The {profile}
                     </div>
-                    <div className="text-xs text-[#c9ccbb]/60 uppercase tracking-widest mt-1">Update Your Baseline</div>
+                    {/* Retake Link Tucked Here */}
+                    <Link href="/assessments/step0" className="inline-flex items-center gap-2 text-[10px] text-[#b5a642] uppercase tracking-widest hover:text-[#b5a642]/80 transition-colors border border-[#b5a642]/20 px-3 py-1.5 rounded-full hover:bg-[#b5a642]/10">
+                       <RefreshCw size={10} /> Update Baseline
+                    </Link>
                 </div>
-            </Link>
+                <div className="absolute bottom-0 right-0 w-32 h-32 bg-[#b5a642]/10 rounded-full blur-2xl pointer-events-none" />
+            </div>
         </div>
 
         {/* --- ROW 2: RHYTHM & BASELINE --- */}
@@ -193,7 +204,7 @@ export default function DashboardUI({
 
         {/* --- ROW 4: PROTOCOLS --- */}
         <div className="mb-8">
-             <RitualsInterface neuroLoadScore={totalLoad} />
+             <RitualsInterface neuroLoadScore={totalLoad} profile={profile} />
         </div>
 
         {/* --- ROW 5: TOOLKIT --- */}
