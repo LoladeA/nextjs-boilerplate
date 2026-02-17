@@ -97,11 +97,11 @@ export default function Week1Quiz() {
       setScore(newScore)
       setComplete(true)
       
-      // 🟢 DATABASE FIX: Matches your actual Supabase columns
+      // 🟢 DATABASE FIX: Updated module_id to match Week 1
       const { error } = await supabase.from('quiz_submissions').insert({ 
-        module_id: 'foundations',      // changed from 'module_slug'
+        module_id: 'sensory-lighting-dynamics-week-1', // CHANGED THIS LINE
         score: newScore, 
-        total_questions: questions.length // changed from 'total'
+        total_questions: questions.length 
       })
 
       if (error) {
