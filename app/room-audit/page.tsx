@@ -12,7 +12,7 @@ export default function RoomAudit() {
 
   // STATE
   const [loading, setLoading] = useState(true)
-  const [isSubscribed, setIsSubscribed] = useState(false)
+  const [isSubscribed, setIsSubscribed] = useState(false) // Default to LOCKED
    
   const [selectedRoom, setSelectedRoom] = useState('Living Room')
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
@@ -27,24 +27,48 @@ export default function RoomAudit() {
 
   const rooms = ['Living Room', 'Bedroom', 'Home Office', 'Kitchen', 'Entryway']
 
-  // 0. CHECK SUBSCRIPTION
+  // 0. IRON-CLAD SUBSCRIPTION CHECK
   useEffect(() => {
     checkSubscription()
   }, [])
 
   const checkSubscription = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (user) {
-      const { data: subscription } = await supabase
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      // 1. If no user, they are definitely not subscribed -> LOCKED
+      if (!user) {
+        console.log("🔒 Audit Locked: No User Logged In")
+        setIsSubscribed(false)
+        setLoading(false)
+        return
+      }
+
+      // 2. Check Database for Active Status
+      // We use maybeSingle() to avoid errors if duplicate rows exist
+      const { data: subscription, error } = await supabase
         .from('subscriptions')
         .select('status')
         .eq('user_id', user.id)
         .in('status', ['active', 'trialing'])
-        .single()
+        .maybeSingle() 
 
-      if (subscription) setIsSubscribed(true)
+      if (error) console.error("Subscription Check Error:", error)
+
+      // 3. The Final Verdict
+      if (subscription) {
+        console.log("🔓 Audit Unlocked: Active Subscription Found")
+        setIsSubscribed(true)
+      } else {
+        console.log("🔒 Audit Locked: User exists but no active subscription")
+        setIsSubscribed(false)
+      }
+    } catch (err) {
+      console.error("Auth Error", err)
+      setIsSubscribed(false) // Default to locked on error
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   // 1. HANDLE FILE
@@ -127,12 +151,21 @@ export default function RoomAudit() {
             
             {/* LEFT: UPLOAD AREA */}
             <div className="glass-panel p-8 rounded-3xl border border-[#c9ccbb]/10 bg-[#000]/20 relative overflow-hidden h-fit">
+               
                {/* LOCKED OVERLAY */}
                {!isSubscribed && (
-                  <div className="absolute inset-0 z-50 backdrop-blur-md bg-[#1b270e]/80 flex flex-col items-center justify-center text-center p-8">
+                  <div className="absolute inset-0 z-50 backdrop-blur-md bg-[#1b270e]/95 flex flex-col items-center justify-center text-center p-8">
                     <Lock size={32} className="text-[#b5a642] mb-4" />
                     <h3 className="text-xl font-serif text-[#c9ccbb] mb-4">Foundation Access Required</h3>
-                    <Link href="/upgrade" className="px-6 py-3 bg-[#b5a642] text-[#1b270e] rounded-lg font-bold text-xs uppercase tracking-widest hover:bg-[#d4c55e]">Unlock Access</Link>
+                    <p className="text-[#c9ccbb]/60 text-xs mb-6 max-w-xs leading-relaxed">
+                      The NeuroDesign Analysis Engine is reserved for members of the Sentient protocol.
+                    </p>
+                    <Link 
+                      href="/upgrade" 
+                      className="px-8 py-3 bg-[#b5a642] text-[#1b270e] rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-[#d4c55e] transition-all shadow-xl shadow-[#b5a642]/10"
+                    >
+                      Unlock Access
+                    </Link>
                   </div>
                )}
 
@@ -174,7 +207,8 @@ export default function RoomAudit() {
                         value={manualLux}
                         onChange={(e) => setManualLux(e.target.value)}
                         placeholder="e.g. 350"
-                        className="w-full bg-[#1b270e] border border-[#c9ccbb]/20 rounded-xl px-4 py-3 text-[#c9ccbb] text-sm focus:outline-none focus:border-[#b5a642] placeholder:text-[#c9ccbb]/20"
+                        disabled={!isSubscribed}
+                        className="w-full bg-[#1b270e] border border-[#c9ccbb]/20 rounded-xl px-4 py-3 text-[#c9ccbb] text-sm focus:outline-none focus:border-[#b5a642] placeholder:text-[#c9ccbb]/20 disabled:opacity-50"
                     />
                     <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#c9ccbb]/30 text-[10px] font-bold">LUX</span>
                  </div>
