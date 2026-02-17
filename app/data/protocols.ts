@@ -2,7 +2,7 @@ export type TimeOfDay = 'morning' | 'afternoon' | 'evening'
 export type StressLevel = 'low' | 'medium' | 'high'
 
 // The 3 Neuro-Sensory Profiles
-export type SensoryProfile = 'standard' | 'seeker' | 'sensor'
+export type SensoryProfile = 'anchor' | 'seeker' | 'sensor'
 
 export type SensoryAction = {
   type: 'light' | 'sound' | 'space' | 'somatic'
@@ -25,7 +25,7 @@ export type Ritual = {
   name: string
   triggerCondition: string 
   variants: {
-    standard: RitualVariant // Balanced / Neuro-Normative
+    anchor: RitualVariant // Balanced / Neuro-Normative
     seeker: RitualVariant   // ADHD / Hypo-Aroused / High-Threshold
     sensor: RitualVariant   // HSP / Autism / Hyper-Aroused / Low-Threshold
   }
@@ -40,7 +40,7 @@ export const RITUALS: Record<string, Ritual> = {
     triggerCondition: 'Morning + Low Energy',
     variants: {
       // 🟢 STANDARD PROFILE (The "Classic" Protocol)
-      standard: {
+      anchor: {
         tagline: 'Master Your Morning: Activate Your Neuro-Hormonal Advantage.',
         description: "Your internal clock, the Suprachiasmatic Nucleus (SCN), is the CEO of your day. To unlock peak cognitive clarity, we must strategically signal the Cortisol Awakening Response (CAR). This is not just 'waking up'; it is designing your physiological launch sequence for resilience.",
         spotifyLink: 'https://open.spotify.com/playlist/37i9dQZF1DX71VcjjnyaBQ?si=ed214b46173540d7',
@@ -122,7 +122,7 @@ export const RITUALS: Record<string, Ritual> = {
     name: 'The Second Wind',
     triggerCondition: 'Afternoon + Focus Block',
     variants: {
-      standard: {
+      anchor: {
         tagline: 'Capture Your Second Peak: The Ultradian Reset.',
         description: "Your brain operates in 90-minute ultradian cycles. To trigger a second peak of focus in the afternoon, we must heighten alertness slightly without spiking anxiety. We use sound frequencies and breathwork to mechanically sharpen the prefrontal cortex.",
         spotifyLink: 'https://insig.ht/TcOSceRQP0b',
@@ -199,7 +199,7 @@ export const RITUALS: Record<string, Ritual> = {
     variants: {
       
       // 🟢 STANDARD PROFILE
-      standard: {
+      anchor: {
         tagline: 'Engineer Your Restoration: The Biological Sunset.',
         description: "As the day concludes, your nervous system craves a deliberate transition. We are moving beyond 'hoping' for sleep to designing your recovery. By mimicking the setting sun, we signal to the pineal gland that vigilance is no longer required.",
         spotifyLink: 'https://open.spotify.com/playlist/37i9dQZF1DWXSyfX6gqDNp?si=4e071e2e23394ff5',
