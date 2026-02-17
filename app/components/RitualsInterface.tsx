@@ -2,29 +2,55 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { determineProtocol, mapScoreToStress, getCurrentTimeOfDay } from '../lib/sensory-logic'
-import { Clock, ExternalLink, ChevronDown, ChevronUp, Zap, Check, CheckCircle2 } from 'lucide-react'
+// 🟢 UPDATE: Removed old logic imports that would break
+import { getCurrentTimeOfDay } from '../lib/sensory-logic' 
+import { RITUALS } from '../data/protocols' 
+import { Clock, ExternalLink, ChevronDown, ChevronUp, Zap, Check } from 'lucide-react'
 import Link from 'next/link'
 
 interface Props {
   neuroLoadScore: number
+  // 🟢 NEW: Accept the profile so we show the right content
+  profile?: 'standard' | 'seeker' | 'sensor'
 }
 
-export default function RitualsInterface({ neuroLoadScore }: Props) {
+export default function RitualsInterface({ neuroLoadScore, profile = 'standard' }: Props) {
   // 1. State
   const [timeOfDay, setTimeOfDay] = useState<'morning'|'afternoon'|'evening'>('morning')
   const [mounted, setMounted] = useState(false)
   const [isOpen, setIsOpen] = useState(false) 
-  const [completedSteps, setCompletedSteps] = useState<number[]>([]) // Tracks checked items
+  const [completedSteps, setCompletedSteps] = useState<number[]>([]) 
 
   useEffect(() => {
     setMounted(true)
-    setTimeOfDay(getCurrentTimeOfDay())
+    // Safe fallback if getCurrentTimeOfDay isn't perfectly synced
+    setTimeOfDay(getCurrentTimeOfDay() || 'morning')
   }, [])
 
-  // 2. Logic Connection
-  const stressLevel = mapScoreToStress(neuroLoadScore)
-  const activeProtocol = determineProtocol(timeOfDay, stressLevel)
+  // 2. Logic Connection (The "Bridge")
+  // ---------------------------------------------------------
+  // Map time of day to the specific ID in your new protocols.ts file
+  const ritualIdMap: Record<string, string> = {
+    'morning': 'morning-activation',
+    'afternoon': 'afternoon-focus',
+    'evening': 'evening-taper'
+  }
+
+  const activeRitualId = ritualIdMap[timeOfDay]
+  const parentRitual = RITUALS[activeRitualId] || RITUALS['morning-activation']
+  
+  // 🟢 BRANCHING LOGIC: Select the correct variant
+  // This is the "Heart Transplant" - picking the right data for the user
+  const activeVariant = parentRitual.variants[profile] || parentRitual.variants['standard']
+
+  // Create the composite object your UI expects (Merging Parent Name + Variant Details)
+  const activeProtocol = {
+    name: parentRitual.name,          // From Parent
+    tagline: activeVariant.tagline,   // From Variant
+    description: activeVariant.description, // From Variant
+    steps: activeVariant.steps        // From Variant
+  }
+  // ---------------------------------------------------------
 
   // 3. Interaction Handler
   const toggleStep = (index: number) => {
@@ -46,9 +72,11 @@ export default function RitualsInterface({ neuroLoadScore }: Props) {
         {/* SECTION HEADER */}
         <div className="flex items-center gap-3 mb-4">
              <div className="h-px bg-[#c9ccbb]/10 flex-grow"></div>
-             <h3 className="text-[#c9ccbb]/40 text-xs font-bold uppercase tracking-widest flex items-center gap-2">
-                <Zap size={12} className="text-[#b5a642]" /> Protocol Recommendation
-             </h3>
+             <div className="text-[#c9ccbb]/40 text-xs font-bold uppercase tracking-widest flex items-center gap-2">
+                <Zap size={12} className="text-[#b5a642]" /> 
+                {/* 🟢 VISUAL CUE: Show which profile is active */}
+                {profile.charAt(0).toUpperCase() + profile.slice(1)} Protocol
+             </div>
              <div className="h-px bg-[#c9ccbb]/10 flex-grow"></div>
         </div>
 
@@ -68,11 +96,11 @@ export default function RitualsInterface({ neuroLoadScore }: Props) {
                 
                 {/* Left: Identity */}
                 <div className="flex items-center gap-6">
-                    {/* Icon Circle (Changes to Check when 100% complete) */}
+                    {/* Icon Circle */}
                     <div className={`
                         shrink-0 w-12 h-12 rounded-full flex items-center justify-center border transition-all duration-500
                         ${isComplete && !isOpen
-                            ? 'bg-[#b5a642] text-[#1b270e] border-[#b5a642] scale-110' // Celebration State
+                            ? 'bg-[#b5a642] text-[#1b270e] border-[#b5a642] scale-110' 
                             : isOpen 
                                 ? 'bg-[#b5a642] text-[#1b270e] border-[#b5a642]' 
                                 : 'bg-[#b5a642]/10 text-[#b5a642] border-[#b5a642]/20 group-hover:border-[#b5a642]'
@@ -87,13 +115,13 @@ export default function RitualsInterface({ neuroLoadScore }: Props) {
                                 isOpen ? 'text-[#b5a642] border-[#b5a642]/30 bg-[#b5a642]/5' : 'text-[#c9ccbb]/60 border-[#c9ccbb]/20'
                              }`}>
                                 {timeOfDay} Ritual
-                            </span>
-                            {/* Progress Indicator (Visible when closed) */}
-                            {!isOpen && completedSteps.length > 0 && (
+                             </span>
+                             {/* Progress Indicator */}
+                             {!isOpen && completedSteps.length > 0 && (
                                 <span className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest">
                                     {progress}% Complete
                                 </span>
-                            )}
+                             )}
                         </div>
                         <h2 className={`font-serif text-2xl md:text-3xl transition-colors ${
                             isOpen ? 'text-[#c9ccbb]' : 'text-[#c9ccbb]/80 group-hover:text-[#c9ccbb]'
@@ -105,13 +133,13 @@ export default function RitualsInterface({ neuroLoadScore }: Props) {
 
                 {/* Right: Tagline or Chevron */}
                 <div className="flex items-center gap-4 pl-16 md:pl-0">
-                     <p className="text-[#b5a642] text-xs font-bold uppercase tracking-widest hidden md:block text-right transition-all">
-                        {isComplete ? "Protocol Complete" : isOpen ? "Active Protocol" : "Tap to Expand"}
-                     </p>
-                     <ChevronDown 
+                      <p className="text-[#b5a642] text-xs font-bold uppercase tracking-widest hidden md:block text-right transition-all">
+                         {isComplete ? "Protocol Complete" : isOpen ? "Active Protocol" : "Tap to Expand"}
+                      </p>
+                      <ChevronDown 
                         size={20} 
                         className={`text-[#c9ccbb]/40 transition-transform duration-500 ${isOpen ? 'rotate-180 opacity-0' : 'rotate-0 opacity-100'}`} 
-                     />
+                      />
                 </div>
             </div>
 
