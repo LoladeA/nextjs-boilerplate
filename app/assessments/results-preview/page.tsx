@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Lock, ArrowRight, Zap } from 'lucide-react'
 import { getGuestData } from '../../utils/guest-storage'
 import { calculateNeuroLoad } from '../../utils/scoring-engine'
+import { mapEngineToDashboard } from '@/app/lib/neuro-mapper' // 🟢 ADDED THIS
 import HumanScorecard from '../../components/HumanScorecard'
 import PriorityList from '../report/PriorityList' 
 
@@ -13,6 +14,8 @@ export default function ResultsPreview() {
   const router = useRouter()
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  // 🟢 ADDED: State to hold the identity (Anchor/Seeker/Sensor)
+  const [profile, setProfile] = useState<string>('anchor')
 
   useEffect(() => {
     const guestData = getGuestData()
@@ -26,7 +29,16 @@ export default function ResultsPreview() {
       answer: { response: value }
     }))
     
-    const result = calculateNeuroLoad(formattedResponses)
+    // 🟢 1. GET THE LENS (ADHD/HSP/Etc)
+    const neuroLens = guestData.answers['neuro_lens'] || 'None'
+
+    // 🟢 2. CALCULATE (Passing the Lens)
+    const result = calculateNeuroLoad(formattedResponses, neuroLens)
+    
+    // 🟢 3. MAP IDENTITY
+    const dashboardProfile = mapEngineToDashboard(result.sensoryProfile)
+    
+    setProfile(dashboardProfile)
     setData(result)
     setLoading(false)
   }, [router])
@@ -41,7 +53,6 @@ export default function ResultsPreview() {
   const { finalNeuroLoad, systemState, rawIndices, percentIndices, priorityDomains } = data
   const priorityIDs = priorityDomains.map((d: any) => ({ id: d.id }))
 
-  // 🟢 STANDARDIZED: Three-tier Recovery Status logic
   const getStatus = (score: number) => {
     if (score < 10) return 'High Potential'
     if (score <= 15) return 'Moderate Potential'
@@ -58,6 +69,7 @@ export default function ResultsPreview() {
                <div className="w-8 h-8 bg-[#b5a642] rounded-full" /> 
                <span className="font-serif text-xl tracking-wide">TheSentientHome</span>
             </div>
+            {/* 🟢 ROUTING CHECK: Intact */}
             <Link href="/login" className="text-xs uppercase tracking-widest text-[#c9ccbb]/40 hover:text-[#b5a642]">
                 Member Login
             </Link>
@@ -100,7 +112,11 @@ export default function ResultsPreview() {
         {/* --- PRIORITY ACTIONS --- */}
         <div className="mb-16">
             <h3 className="text-2xl font-serif text-[#c9ccbb] mb-8">Your Priority Actions</h3>
-            <PriorityList areas={priorityIDs.length > 0 ? priorityIDs : [{id: 'ali'}]} /> 
+            {/* 🟢 UPDATED: Passing the calculated profile */}
+            <PriorityList 
+                areas={priorityIDs.length > 0 ? priorityIDs : [{id: 'ali'}]} 
+                profile={profile} 
+            /> 
         </div>
 
         {/* --- DETAILED ANALYSIS (LOCKED) --- */}
@@ -114,12 +130,17 @@ export default function ResultsPreview() {
 
             <div className="relative rounded-3xl overflow-hidden">
                 <div className="filter blur-md opacity-40 pointer-events-none select-none">
-                    <HumanScorecard scores={{
-                        circadian: percentIndices.cii,
-                        autonomic: percentIndices.ali,
-                        legibility: percentIndices.pli,
-                        sensory: percentIndices.stl
-                    }} />
+                    {/* 🟢 UPDATED: Passing the calculated profile */}
+                    <HumanScorecard 
+                        scores={{
+                            circadian: percentIndices.cii,
+                            autonomic: percentIndices.ali,
+                            legibility: percentIndices.pli,
+                            sensory: percentIndices.stl,
+                            recovery: percentIndices.rci
+                        }} 
+                        profile={profile}
+                    />
                 </div>
 
                 <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-6 text-center bg-gradient-to-t from-[#1b270e] via-[#1b270e]/80 to-transparent">
@@ -133,6 +154,7 @@ export default function ResultsPreview() {
                             Create a free account to unlock your detailed sensory breakdown and save your progress.
                         </p>
 
+                        {/* 🟢 ROUTING CHECK: Intact */}
                         <Link 
                             href="/login?view=signup" 
                             className="flex items-center justify-center gap-3 w-full py-4 bg-[#b5a642] text-[#1b270e] font-bold rounded-xl hover:bg-[#d4c55e] transition-all shadow-lg shadow-[#b5a642]/20"
@@ -152,6 +174,7 @@ export default function ResultsPreview() {
 
       {/* STICKY FOOTER */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#1b270e] border-t border-[#b5a642]/20 p-4 z-50">
+          {/* 🟢 ROUTING CHECK: Intact */}
           <Link href="/login?view=signup" className="w-full py-3 bg-[#b5a642] text-[#1b270e] font-bold rounded-lg hover:bg-[#d4c55e] transition-all text-center flex items-center justify-center gap-2">
               Save Results & Unlock
           </Link>
