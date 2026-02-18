@@ -1,13 +1,16 @@
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import Link from 'next/link'
-import { ArrowLeft, Activity, Brain, ShieldAlert, Zap, Download, Fingerprint, CheckCircle } from 'lucide-react'
+import { ArrowLeft, Activity, Brain, ShieldAlert, Zap, Fingerprint, CheckCircle } from 'lucide-react'
 
 // 🟢 ENGINE TYPES
 import { calculateNeuroLoad, NeuroLens } from '@/app/utils/scoring-engine'
 
 // 🟢 MAPPING LOGIC
 import { mapEngineToDashboard } from '@/app/lib/neuro-mapper'
+
+// 🟢 PDF BUTTON IMPORT
+import DownloadButton from './DownloadButton'
 
 import Sidebar from '../../components/Sidebar'
 import PriorityList from './PriorityList'
@@ -56,7 +59,7 @@ export default async function AssessmentReport() {
     systemState, 
     priorityDomains, 
     recoveryModifier, 
-    sensoryProfile // 🟢 The Engine now gives us the clinical profile
+    sensoryProfile 
   } = engineResult
 
   // 🟢 4. MAP TO DASHBOARD IDENTITY (Anchor/Seeker/Sensor)
@@ -152,7 +155,7 @@ export default async function AssessmentReport() {
   ]
 
   // =========================================================
-  // 6. CRITICAL ISSUES (ENGINE PRIORITY SORT)
+  // 6. CRITICAL ISSUES
   // =========================================================
 
   const criticalIssues = priorityDomains
@@ -176,29 +179,47 @@ export default async function AssessmentReport() {
 
           {/* HEADER */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
+            
+            {/* LEFT: TITLE */}
             <div>
               <h1 className="text-4xl font-serif text-[#c9ccbb] mb-2">
                 Your NeuroLoad Overview
               </h1>
               <p className="text-[#c9ccbb]/70">
-                How your home interacts with your <strong>{neuroLensAnswer}</strong> profile.
+                How your home interacts with your <strong>{neuroLensAnswer}</strong> sensory profile.
               </p>
             </div>
             
-            {/* Identity Badge */}
-            <div className="flex items-center gap-3 px-5 py-2 bg-[#b5a642]/10 rounded-full border border-[#b5a642]/20">
-              <Fingerprint size={18} className="text-[#b5a642]" />
-              <div className="flex flex-col">
-                <span className="text-[10px] uppercase tracking-widest text-[#b5a642] font-bold">
-                  Sensory Profile
-                </span>
-                <span className="text-[#c9ccbb] text-sm capitalize">
-                  The {profile}
-                </span>
-                <span className="text-[#c9ccbb]/60 text-xs capitalize">
-                  {sensoryProfile.pattern.replace('_',' ')}
-                </span>
-              </div>
+            {/* RIGHT: BADGE & PDF BUTTON */}
+            <div className="flex flex-col gap-4 md:items-end">
+                
+                {/* Identity Badge */}
+                <div className="flex items-center gap-3 px-5 py-2 bg-[#b5a642]/10 rounded-full border border-[#b5a642]/20 w-fit">
+                  <Fingerprint size={18} className="text-[#b5a642]" />
+                  <div className="flex flex-col">
+                    <span className="text-[10px] uppercase tracking-widest text-[#b5a642] font-bold">
+                      Sensory Profile
+                    </span>
+                    <span className="text-[#c9ccbb] text-sm capitalize">
+                      The {profile}
+                    </span>
+                    <span className="text-[#c9ccbb]/60 text-xs capitalize">
+                      {sensoryProfile.pattern.replace('_',' ')}
+                    </span>
+                  </div>
+                </div>
+
+                {/* 🟢 PDF DOWNLOAD BUTTON */}
+                <DownloadButton 
+                  data={{
+                    displayName: session?.user.user_metadata?.full_name || 'Resident',
+                    score: finalNeuroLoad,
+                    systemState: systemState,
+                    profile: profile,
+                    domains: domains
+                  }}
+                />
+
             </div>
           </div>
 
@@ -257,13 +278,16 @@ export default async function AssessmentReport() {
              <h3 className="text-2xl font-serif text-[#c9ccbb] mb-8">
                Detailed Analysis
              </h3>
-             <HumanScorecard scores={{
-               circadian: percentIndices.cii,
-               autonomic: percentIndices.ali,
-               legibility: percentIndices.pli,
-               sensory: percentIndices.stl,
-               recovery: percentIndices.rci
-             }} />
+             <HumanScorecard 
+               scores={{
+                 circadian: percentIndices.cii,
+                 autonomic: percentIndices.ali,
+                 legibility: percentIndices.pli,
+                 sensory: percentIndices.stl,
+                 recovery: percentIndices.rci
+               }} 
+               profile={profile} 
+             />
           </div>
 
         </div>
