@@ -2,11 +2,12 @@
 
 import Sidebar from '../components/Sidebar'
 import { useState, useEffect } from 'react'
-import { Heart, Wind, Sun, Volume2, CheckCircle, TrendingUp, Activity, AlertCircle, Zap, ShieldAlert, Loader2, Moon, Sunrise } from 'lucide-react'
+import { Heart, Wind, Sun, Volume2, CheckCircle, TrendingUp, Activity, AlertCircle, Zap, ShieldAlert, Loader2, Moon, Sunrise, Brain } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-// 🟢 IMPORT THE NEW SHARED CHART COMPONENT
-import DashboardPulse from '../components/DashboardPulse'
+
+// 🟢 THE UPGRADE: We import CorrelationGraph instead of DashboardPulse for this page only
+import CorrelationGraph from './CorrelationGraph'
 
 export default function Progress() {
   const supabase = createClientComponentClient()
@@ -14,12 +15,17 @@ export default function Progress() {
   // TABS: MORNING vs EVENING
   const [activeTab, setActiveTab] = useState<'morning' | 'evening'>('morning')
 
-  // LOGGING STATE
+  // --- LOGGING STATE ---
   const [morningMood, setMorningMood] = useState<number | null>(null)
   const [morningTags, setMorningTags] = useState<string[]>([])
   const [morningNote, setMorningNote] = useState('')
   const [luxScore, setLuxScore] = useState<string>('') 
   const [dbScore, setDbScore] = useState<string>('')
+
+  // 🟢 NEW BIO-METRICS (Default to 0 so they don't crash if empty)
+  const [focusScore, setFocusScore] = useState<number>(0)
+  const [tensionScore, setTensionScore] = useState<number>(0)
+  const [wakeScore, setWakeScore] = useState<number>(0)
 
   const [eveningMood, setEveningMood] = useState<number | null>(null)
   const [eveningTags, setEveningTags] = useState<string[]>([])
@@ -46,7 +52,7 @@ export default function Progress() {
     { val: 5, label: 'Resonant', desc: 'Restorative', color: 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400' }
   ]
 
-  // 2. HABIT TAGS DEFINITIONS
+  // 2. HABIT TAGS
   const morningTagOptions = [
     { id: 'ventilation', label: 'Ventilated Home (Air Exchange)', icon: <Wind size={14} /> },
     { id: 'sunlight', label: 'Got Early Morning Sunlight', icon: <Sun size={14} /> },
@@ -71,7 +77,7 @@ export default function Progress() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    const today = new Date().toLocaleDateString('en-CA') // Local Time Fix
+    const today = new Date().toLocaleDateString('en-CA') // Local Time Fix 
     
     const { data } = await supabase
       .from('daily_logs')
@@ -81,11 +87,18 @@ export default function Progress() {
       .single()
 
     if (data) {
+      // Restore existing data
       setMorningMood(data.mood_score)
       setMorningTags(data.tags || [])
       setMorningNote(data.note || '')
       if (data.lux_score) setLuxScore(data.lux_score.toString())
       if (data.db_score) setDbScore(data.db_score.toString())
+
+      // 🟢 RESTORE NEW METRICS
+      // We check if they exist, otherwise default to 0
+      if (data.focus_hours) setFocusScore(data.focus_hours)
+      if (data.morning_tension) setTensionScore(data.morning_tension)
+      if (data.sleep_wakes) setWakeScore(data.sleep_wakes)
 
       setEveningMood(data.evening_mood_score)
       setEveningTags(data.evening_tags || [])
@@ -97,16 +110,25 @@ export default function Progress() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    // 🟢 UPDATED: Fetch more history (30 days) to support the 14-day rolling window
+    // 🟢 FETCH NEW FIELDS FOR GRAPH
+    // We explicitly ask for the new columns here
     const { data } = await supabase
       .from('daily_logs')
-      .select('created_at, mood_score') // DashboardPulse expects 'created_at' and 'mood_score'
+      .select('date, mood_score, focus_hours, morning_tension, sleep_wakes') 
       .eq('user_id', user.id)
-      .order('created_at', { ascending: true })
-      .limit(30) 
+      .order('date', { ascending: true }) 
+      .limit(14) 
 
     if (data) {
-        setChartLogs(data)
+        // Format for CorrelationGraph
+        // 🟢 FIX: We must use standard keys (tension, focus) so the Graph Component can read them.
+        const formatted = data.map((log: any) => ({
+            date: new Date(log.date).toLocaleDateString('en-US', { weekday: 'short' }),
+            tension: log.morning_tension || 0,
+            focus: log.focus_hours || 0,
+            wakes: log.sleep_wakes || 0
+        }))
+        setChartLogs(formatted)
     }
   }
 
@@ -127,7 +149,7 @@ export default function Progress() {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) throw new Error("No user logged in")
 
-        const today = new Date().toLocaleDateString('en-CA') // Local Time Fix
+        const today = new Date().toLocaleDateString('en-CA') 
 
         const payload = {
             user_id: user.id,
@@ -138,6 +160,12 @@ export default function Progress() {
             note: morningNote,
             lux_score: luxScore ? parseInt(luxScore) : null,
             db_score: dbScore ? parseInt(dbScore) : null,
+            
+            // 🟢 NEW BIO FIELDS (The sliders)
+            focus_hours: focusScore,
+            morning_tension: tensionScore,
+            sleep_wakes: wakeScore,
+            
             // Evening Fields
             evening_mood_score: eveningMood,
             evening_tags: eveningTags,
@@ -179,7 +207,7 @@ export default function Progress() {
           <div className="mb-12">
             <h1 className="text-4xl font-serif text-[#c9ccbb] mb-2">Progress & Tracking</h1>
             <p className="text-[#c9ccbb]/80">
-              Log your daily state to train the system and reveal long-term patterns.
+              Log your daily state to train the nervous system and reveal long-term patterns.
             </p>
           </div>
 
@@ -239,16 +267,76 @@ export default function Progress() {
               ))}
             </div>
 
-            {/* 2. SENSORY DATA (MORNING ONLY) */}
+            {/* 🟢 2. NEW BIO-SPATIAL INPUTS (MORNING ONLY) */}
             {activeTab === 'morning' && (
-                <div className="mb-8 p-6 bg-[#000]/20 rounded-2xl border border-[#c9ccbb]/5 animate-fade-in">
+                <div className="mb-8 p-6 bg-[#b5a642]/5 rounded-2xl border border-[#b5a642]/10 animate-fade-in">
+                    <label className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-6 block flex items-center gap-2">
+                        <Activity size={12} /> Biological Integrators
+                    </label>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        
+                        {/* WAKES */}
+                        <div>
+                            <div className="flex justify-between mb-2">
+                                <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb]">
+                                   <Brain size={14} className="text-[#b5a642]" /> Deep Work (Hrs)
+                                </label>
+                                <span className="text-[#b5a642] font-mono text-xs">{focusScore}h</span>
+                            </div>
+                            <p className="text-[#c9ccbb]/40 text-[10px] mb-3">Hours of uninterrupted flow.</p>
+                            <input 
+                                type="range" min="0" max="12" step="0.5"
+                                value={focusScore}
+                                onChange={(e) => setFocusScore(parseFloat(e.target.value))}
+                                className="w-full accent-[#b5a642] h-1 bg-[#000]/50 rounded-lg appearance-none cursor-pointer"
+                            />
+                        </div>
+
+                        {/* TENSION */}
+                        <div>
+                            <div className="flex justify-between mb-2">
+                                <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb]">
+                                   <Activity size={14} className="text-[#b5a642]" /> Jaw/Body Tension
+                                </label>
+                                <span className="text-[#b5a642] font-mono text-xs">{tensionScore}/10</span>
+                            </div>
+                            <p className="text-[#c9ccbb]/40 text-[10px] mb-3">Jaw/Shoulder tightness upon waking.</p>
+                            <input 
+                                type="range" min="0" max="10" step="1"
+                                value={tensionScore}
+                                onChange={(e) => setTensionScore(parseInt(e.target.value))}
+                                className="w-full accent-[#b5a642] h-1 bg-[#000]/50 rounded-lg appearance-none cursor-pointer"
+                            />
+                        </div>
+
+                        {/* WAKES */}
+                        <div>
+                            <div className="flex justify-between mb-2">
+                                <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb]">
+                                   <Moon size={14} className="text-[#b5a642]" /> Sleep Interruptions
+                                </label>
+                                <div className="flex gap-3">
+                                    <button onClick={() => setWakeScore(Math.max(0, wakeScore - 1))} className="text-[#c9ccbb] hover:text-[#b5a642]">-</button>
+                                    <span className="text-[#b5a642] font-mono text-xs">{wakeScore}</span>
+                                    <button onClick={() => setWakeScore(wakeScore + 1)} className="text-[#c9ccbb] hover:text-[#b5a642]">+</button>
+                                </div>
+                            </div>
+                            <p className="text-[#c9ccbb]/40 text-[10px] mb-3">Unexplained sleep interruptions.</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* 3. OBJECTIVE DATA (MORNING ONLY) */}
+            {activeTab === 'morning' && (
+                <div className="mb-8 p-6 bg-[#000]/20 rounded-2xl border border-[#c9ccbb]/5">
                     <label className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-4 block flex items-center gap-2">
-                        <Activity size={12} /> Objective Metrics (Optional)
+                        <Activity size={12} /> Objective Metrics
                     </label>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <div className="flex items-center gap-2 mb-2 text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest">
-                                <Zap size={14} className="text-orange-400" /> Morning Light (Lux)
+                                <Zap size={14} className="text-orange-400" /> Light (Lux)
                             </div>
                             <input 
                                 type="number" 
@@ -260,7 +348,7 @@ export default function Progress() {
                         </div>
                         <div>
                             <div className="flex items-center gap-2 mb-2 text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest">
-                                <ShieldAlert size={14} className="text-blue-400" /> Avg Noise (dB)
+                                <ShieldAlert size={14} className="text-blue-400" /> Noise (dB)
                             </div>
                             <input 
                                 type="number" 
@@ -274,7 +362,7 @@ export default function Progress() {
                 </div>
             )}
 
-            {/* 3. HABIT TAGS */}
+            {/* 4. HABIT TAGS */}
             <div className="flex flex-wrap gap-2 mb-8 animate-fade-in">
               {currentOptions.map((tag) => (
                 <button
@@ -292,22 +380,15 @@ export default function Progress() {
               ))}
             </div>
 
-            {/* 4. NOTES */}
+            {/* 5. NOTES & SAVE */}
             <div className="mb-8">
               <textarea 
                 value={currentNote}
                 onChange={(e) => setCurrentNote(e.target.value)}
-                placeholder={activeTab === 'morning' ? "Morning Observations? (e.g. 'Woke up feeling rested')" : "Evening Observations? (e.g. 'Felt calmer after dimming lights')"}
+                placeholder={activeTab === 'morning' ? "Morning Observations?" : "Evening Observations?"}
                 className="w-full h-24 bg-[#000]/20 border border-[#c9ccbb]/10 rounded-xl p-4 text-[#c9ccbb] text-sm placeholder:text-[#c9ccbb]/50 focus:outline-none focus:border-[#b5a642]/50 resize-none font-sans"
               />
             </div>
-
-            {status === 'error' && (
-                <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl flex items-center gap-3 text-red-400 text-xs font-bold uppercase tracking-widest">
-                    <AlertCircle size={16} />
-                    <span>Error: {errorMessage}</span>
-                </div>
-            )}
 
             <div className="flex justify-end items-center gap-4 pt-6 border-t border-[#c9ccbb]/10">
                <AnimatePresence>
@@ -336,14 +417,20 @@ export default function Progress() {
             </div>
           </div>
 
-          {/* --- 🟢 UPDATED CHART SECTION (Using DashboardPulse) --- */}
+          {/* --- 🟢 UPGRADED CHART SECTION (The Swap) --- */}
           <div className="animate-fade-in-up delay-100 mb-12">
-              <div className="flex items-center gap-2 mb-6 text-[#c9ccbb]/80 text-xs font-bold uppercase tracking-widest">
-                <TrendingUp size={14} /> 14-Day Rhythm (Morning Baseline)
+              <div className="flex justify-between items-end mb-6">
+                <div>
+                   <div className="flex items-center gap-2 text-[#c9ccbb]/80 text-xs font-bold uppercase tracking-widest mb-1">
+                     <TrendingUp size={14} /> Bio-Spatial Correlation
+                   </div>
+                   <h3 className="text-xl font-serif text-[#c9ccbb]">Tension vs. Focus</h3>
+                </div>
               </div>
+              
               <div className="glass-panel p-8 rounded-3xl border border-[#c9ccbb]/10 h-[300px] relative overflow-hidden">
-                   {/* This component handles the 14-day rolling window logic automatically */}
-                   <DashboardPulse logs={chartLogs} />
+                   {/* 🟢 Replaced DashboardPulse with CorrelationGraph */}
+                   <CorrelationGraph data={chartLogs} />
               </div>
           </div>
 
