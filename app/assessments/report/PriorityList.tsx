@@ -5,23 +5,24 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, Zap, Activity, Brain, Eye, Moon } from 'lucide-react'
 
 // --- THE ADAPTIVE WISDOM DICTIONARY ---
-// Now supports: Standard (Balanced), Seeker (ADHD/Stimulation), Sensor (HSP/Shielding)
+// 🟢 UPDATED: Now supports 'anchor' (formerly standard), 'seeker', and 'sensor'
 const insightContent: any = {
   // === AUTONOMIC LOAD (Safety & Vigilance) ===
   ali: {
-    standard: {
+    // 🟢 RENAMED: 'standard' -> 'anchor'
+    anchor: {
       title: "The Dorsal Seat: Your Protected Back",
       concept: "Think of it as your nervous system's 'off' switch.",
       why: "Evolutionarily, an exposed back demands constant, low-level vigilance. When you sit with your back to an open room or a door, part of your brain stays on alert, watching what it can't see behind you. This drains your energy without you realising it.",
       how: ["Position your primary chair against a solid wall or a visual barrier like a bookshelf if you live in an open plan space.", "Orient yourself to face the room so you can easily see the entrance without turning your head."],
-      feeling: "When you sit here, your nervous system gets a silent signal: 'I am safe. I don't need to watch my back.' This allows you to truly exhale and rest.'",
+      feeling: "When you sit here, your nervous system gets a silent signal: 'I am safe. I don't need to watch my back.' This allows you to truly exhale and rest.",
       icon: <Activity size={18} />
     },
     seeker: {
       title: "The Cockpit: Command & Control",
       concept: "Your operational anchor.",
       why: "You crave immersion, but floating in the center of a room leaves you unmoored and prone to distraction. You need a 'Cockpit': a tight, defined zone that signals to your brain: 'We are piloting the ship now.'",
-      how: ["Anchor your desk firmly to a wall or a corner.", "Make sure there is a clear line of sight to the door (so you’re not startled and feel in full control of the space)'"],
+      how: ["Anchor your desk firmly to a wall or a corner.", "Make sure there is a clear line of sight to the door (so you’re not startled and feel in full control of the space)."],
       feeling: "This makes you feel grounded, empowered, and locked in.",
       icon: <Activity size={18} />
     },
@@ -37,7 +38,7 @@ const insightContent: any = {
 
   // === CIRCADIAN RHYTHM (Energy & Timing) ===
   cii: {
-    standard: {
+    anchor: {
       title: "The Morning Anchor",
       concept: "Think of this as your body's 'Start Button'.",
       why: "Light is the primary signal that tells your body what time it is. Without a clear morning signal, your biological clock drifts, leaving you tired in the day but 'wired' at night.",
@@ -65,7 +66,7 @@ const insightContent: any = {
 
   // === PREDICTIVE LEGIBILITY (Focus & Clarity) ===
   pli: {
-    standard: {
+    anchor: {
       title: "The Visual Quiet Zone",
       concept: "Think of this as a 'landing pad' for your eyes.",
       why: "Clutter and undefined spaces force your brain to micro-process thousands of tiny details constantly. It is like having too many browser tabs open in your mind.",
@@ -93,7 +94,7 @@ const insightContent: any = {
 
   // === SENSORY LOAD (Texture & Sound) ===
   stl: {
-    standard: {
+    anchor: {
       title: "The Soft Layer",
       concept: "Think of this as the room's mute button.",
       why: "Hard surfaces create a 'noise mirror,' reflecting energy back at you. Softness absorbs the sharp frequencies that keep your nervous system on edge.",
@@ -121,10 +122,10 @@ const insightContent: any = {
 
   // === RECOVERY (Rest & Sleep) ===
   rci: {
-    standard: {
+    anchor: {
       title: "The Thermal Signal",
       concept: "Think of this as your 'hibernation mode'.",
-      why: "o enter deep restorative sleep, your core body temperature must drop to an ideal temperature for sleep. A room that is too warm or too cold keeps your biological engine running too fast.",
+      why: "To enter deep restorative sleep, your core body temperature must drop to an ideal temperature for sleep. A room that is too warm or too cold keeps your biological engine running too fast.",
       how: ["Drop the thermostat to 18°C (65°F) one hour before bed.", "Open a window or use a fan if needed to circulate fresh air."],
       feeling: "Heavy eyelids and a deeper, unbroken sleep cycle.",
       icon: <Moon size={18} />
@@ -132,7 +133,7 @@ const insightContent: any = {
     seeker: {
       title: "The Compression Reset",
       concept: "Think of it as easing the system down.",
-      why: "Your brain doesn't have an 'off' switch; it has a dimmer that gets stuck. You need strong somatic input ( weight and temperature ) to physically ease the nervous system to disengage.",
+      why: "Your brain doesn't have an 'off' switch; it has a dimmer that gets stuck. You need strong somatic input (weight and temperature) to physically ease the nervous system to disengage.",
       how: ["Use a heavy weighted blanket.", "Take a hot shower to trigger a rapid cooling effect afterwards."],
       feeling: "Finally heavy. Finally quiet.",
       icon: <Moon size={18} />
@@ -148,18 +149,23 @@ const insightContent: any = {
   }
 }
 
-// 🟢 COMPONENT LOGIC REMAINS UNTOUCHED
-export default function PriorityList({ areas, profile = 'standard' }: { areas: any[], profile?: string }) {
+export default function PriorityList({ areas, profile = 'anchor' }: { areas: any[], profile?: string }) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
   const toggle = (id: string) => {
     setExpandedId(expandedId === id ? null : id)
   }
 
+  // 🟢 HELPER: Safe access with fallback to 'anchor'
   const getContent = (id: string) => {
-    const safeProfile = profile.toLowerCase() as 'standard' | 'seeker' | 'sensor'
+    // Ensure profile matches new keys (lowercase)
+    const safeProfile = (profile || 'anchor').toLowerCase() as 'anchor' | 'seeker' | 'sensor'
+    
+    // Get the domain content (fallback to 'ali' if ID is missing)
     const domainData = insightContent[id] || insightContent['ali']
-    return domainData[safeProfile] || domainData['standard']
+    
+    // Get the profile content (fallback to 'anchor' if profile is missing)
+    return domainData[safeProfile] || domainData['anchor']
   }
 
   return (
@@ -195,9 +201,9 @@ export default function PriorityList({ areas, profile = 'standard' }: { areas: a
                       {content.title}
                     </h3>
                     {!isOpen && (
-                       <span className="hidden md:inline-flex px-2 py-0.5 rounded bg-[#b5a642]/10 text-[#b5a642] text-[10px] font-bold uppercase tracking-widest">
-                          {profile === 'standard' ? 'Needs Support' : `For The ${profile}`}
-                       </span>
+                        <span className="hidden md:inline-flex px-2 py-0.5 rounded bg-[#b5a642]/10 text-[#b5a642] text-[10px] font-bold uppercase tracking-widest">
+                           {profile === 'anchor' ? 'Core Support' : `For The ${profile}`}
+                        </span>
                     )}
                   </div>
                   {!isOpen && (
