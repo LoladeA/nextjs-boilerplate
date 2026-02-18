@@ -15,7 +15,7 @@ const articles: Record<string, any> = {
     readTime: "6 min read",
     date: "Feb 06, 2026",
     content: `
-      <p class="text-xl text-[#c9ccbb] leading-relaxed mb-8">
+      <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
         Spatial design is not neutral. The human nervous system is always looking for danger or safety in its environment. Even when we believe we are relaxed, our biology may respond differently.
         The hormone cortisol plays a central role in this process. It is released when the brain detects uncertainty, unpredictability or exposure. While short bursts of cortisol are necessary and beneficial, chronically elevated baseline levels can lead to fatigue, impaired concentration, poor sleep and mood instability.
         The structure of our homes — openness, enclosure, edges and lighting transitions — influences whether the brain relaxes or remains subtly vigilant.
