@@ -1,17 +1,17 @@
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import Link from 'next/link'
-import { ArrowLeft, Activity, Brain, ShieldAlert, Zap, Fingerprint, CheckCircle } from 'lucide-react'
+import { ArrowLeft, Activity, Brain, ShieldAlert, Zap, CheckCircle } from 'lucide-react'
 
 // 🟢 ENGINE TYPES
-import { calculateNeuroLoad, NeuroLens } from '@/app/utils/scoring-engine'
+import { calculateNeuroLoad } from '@/app/utils/scoring-engine'
 
 // 🟢 MAPPING LOGIC
 import { mapEngineToDashboard } from '@/app/lib/neuro-mapper'
 
-// 🟢 PDF BUTTON IMPORT
+// 🟢 COMPONENT IMPORTS
 import DownloadButton from './DownloadButton'
-
+import OrbitalBadge from '../../components/OrbitalBadge'
 import Sidebar from '../../components/Sidebar'
 import PriorityList from './PriorityList'
 import HumanScorecard from '../../components/HumanScorecard'
@@ -24,7 +24,7 @@ export default async function AssessmentReport() {
   
   const { data: { session } } = await supabase.auth.getSession()
   
-  // 🟢 1. FETCH FROM SECURE VIEW (Consistent with Dashboard)
+  // 🟢 1. FETCH FROM SECURE VIEW
   const { data: responses } = await supabase
     .from('current_user_responses')
     .select('*')
@@ -41,10 +41,9 @@ export default async function AssessmentReport() {
     'None'
 
   // =========================================================
-  // 3. RUN CALCULATION (Using New Engine)
+  // 3. RUN CALCULATION
   // =========================================================
 
-  // Transform DB response to Engine format
   const engineInput = safeResponses.map((r: any) => ({
     question_key: r.question_key,
     answer: { response: r.answer_value }
@@ -62,7 +61,7 @@ export default async function AssessmentReport() {
     sensoryProfile 
   } = engineResult
 
-  // 🟢 4. MAP TO DASHBOARD IDENTITY (Anchor/Seeker/Sensor)
+  // 🟢 4. MAP TO DASHBOARD IDENTITY
   const profile = mapEngineToDashboard(sensoryProfile)
 
   // =========================================================
@@ -78,12 +77,7 @@ export default async function AssessmentReport() {
       description: profile === 'seeker' 
         ? 'Capacity to maintain wakefulness without caffeine spikes.' 
         : 'Alignment with biological day/night rhythm.',
-      status:
-        percentIndices.cii <= 40
-          ? 'Regulated'
-          : percentIndices.cii <= 65
-          ? 'Drifting'
-          : 'Dysregulated',
+      status: percentIndices.cii <= 40 ? 'Regulated' : percentIndices.cii <= 65 ? 'Drifting' : 'Dysregulated',
       icon: <Zap size={24} className={percentIndices.cii > 65 ? "text-red-400" : "text-[#b5a642]"} />
     },
     {
@@ -94,12 +88,7 @@ export default async function AssessmentReport() {
       description: profile === 'sensor'
         ? 'Background vigilance caused by sensory friction.' 
         : 'Nervous system activation and stress axis load.',
-      status:
-        percentIndices.ali <= 40
-          ? 'Stable'
-          : percentIndices.ali <= 65
-          ? 'Activated'
-          : 'High Vigilance',
+      status: percentIndices.ali <= 40 ? 'Stable' : percentIndices.ali <= 65 ? 'Activated' : 'High Vigilance',
       icon: <Activity size={24} className={percentIndices.ali > 65 ? "text-red-400" : "text-[#b5a642]"} />
     },
     {
@@ -110,12 +99,7 @@ export default async function AssessmentReport() {
       description: profile === 'seeker'
         ? 'Are your visual cues working or disappearing?' 
         : 'Spatial clarity and cognitive friction.',
-      status:
-        percentIndices.pli <= 40
-          ? 'Legible'
-          : percentIndices.pli <= 65
-          ? 'Frictional'
-          : 'Fragmented',
+      status: percentIndices.pli <= 40 ? 'Legible' : percentIndices.pli <= 65 ? 'Frictional' : 'Fragmented',
       icon: <Brain size={24} className={percentIndices.pli > 65 ? "text-red-400" : "text-[#b5a642]"} />
     },
     {
@@ -128,12 +112,7 @@ export default async function AssessmentReport() {
         : profile === 'seeker' 
           ? 'Under-stimulation vs. Distraction balance.' 
           : 'Cumulative impact of noise, clutter, and texture.',
-      status:
-        percentIndices.stl <= 40
-          ? 'Optimized'
-          : percentIndices.stl <= 65
-          ? 'Moderate'
-          : 'Overload',
+      status: percentIndices.stl <= 40 ? 'Optimized' : percentIndices.stl <= 65 ? 'Moderate' : 'Overload',
       icon: <ShieldAlert size={24} className={percentIndices.stl > 65 ? "text-red-400" : "text-[#b5a642]"} />
     },
     {
@@ -144,12 +123,7 @@ export default async function AssessmentReport() {
       description: profile === 'seeker'
         ? 'Ability of the home to provide active regulation (movement).' 
         : 'Capacity of the home to support parasympathetic restoration (calm).',
-      status:
-        percentIndices.rci <= 40
-          ? 'Strong'
-          : percentIndices.rci <= 65
-          ? 'Moderate'
-          : 'Compromised',
+      status: percentIndices.rci <= 40 ? 'Strong' : percentIndices.rci <= 65 ? 'Moderate' : 'Compromised',
       icon: <CheckCircle size={24} className={percentIndices.rci > 65 ? "text-red-400" : "text-[#b5a642]"} />
     }
   ]
@@ -177,7 +151,7 @@ export default async function AssessmentReport() {
 
         <div className="max-w-4xl mx-auto">
 
-          {/* HEADER */}
+          {/* HEADER SECTION */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
             
             {/* LEFT: TITLE */}
@@ -190,26 +164,14 @@ export default async function AssessmentReport() {
               </p>
             </div>
             
-            {/* RIGHT: BADGE & PDF BUTTON */}
-            <div className="flex flex-col gap-4 md:items-end">
+            {/* RIGHT: BADGE & BUTTON (SIDE BY SIDE) */}
+            {/* 🟢 LAYOUT FIX: 'flex-row' makes them sit next to each other */}
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
                 
-                {/* Identity Badge */}
-                <div className="flex items-center gap-3 px-5 py-2 bg-[#b5a642]/10 rounded-full border border-[#b5a642]/20 w-fit">
-                  <Fingerprint size={18} className="text-[#b5a642]" />
-                  <div className="flex flex-col">
-                    <span className="text-[10px] uppercase tracking-widest text-[#b5a642] font-bold">
-                      Sensory Profile
-                    </span>
-                    <span className="text-[#c9ccbb] text-sm capitalize">
-                      The {profile}
-                    </span>
-                    <span className="text-[#c9ccbb]/60 text-xs capitalize">
-                      {sensoryProfile.pattern.replace('_',' ')}
-                    </span>
-                  </div>
-                </div>
+                {/* 1. ORBITAL BADGE (The Glowing Trigger) */}
+                <OrbitalBadge profile={profile} />
 
-                {/* 🟢 PDF DOWNLOAD BUTTON */}
+                {/* 2. PDF DOWNLOAD BUTTON */}
                 <DownloadButton 
                   data={{
                     displayName: session?.user.user_metadata?.full_name || 'Resident',
