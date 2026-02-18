@@ -25,9 +25,9 @@ export type Ritual = {
   name: string
   triggerCondition: string 
   variants: {
-    anchor: RitualVariant // Balanced / Neuro-Normative
-    seeker: RitualVariant   // ADHD / Hypo-Aroused / High-Threshold
-    sensor: RitualVariant   // HSP / Autism / Hyper-Aroused / Low-Threshold
+    anchor: RitualVariant // 🟢 RENAMED from 'standard'
+    seeker: RitualVariant   
+    sensor: RitualVariant   
   }
 }
 
@@ -39,7 +39,7 @@ export const RITUALS: Record<string, Ritual> = {
     name: 'First Light Rhythm',
     triggerCondition: 'Morning + Low Energy',
     variants: {
-      // 🟢 STANDARD PROFILE (The "Classic" Protocol)
+      // 🟢 THE ANCHOR PROFILE (Balanced / Grounded)
       anchor: {
         tagline: 'Master Your Morning: Activate Your Neuro-Hormonal Advantage.',
         description: "Your internal clock, the Suprachiasmatic Nucleus (SCN), is the CEO of your day. To unlock peak cognitive clarity, we must strategically signal the Cortisol Awakening Response (CAR). This is not just 'waking up'; it is designing your physiological launch sequence for resilience.",
@@ -198,7 +198,7 @@ export const RITUALS: Record<string, Ritual> = {
     triggerCondition: 'Evening + Sleep Prep',
     variants: {
       
-      // 🟢 STANDARD PROFILE
+      // 🟢 ANCHOR PROFILE
       anchor: {
         tagline: 'Engineer Your Restoration: The Biological Sunset.',
         description: "As the day concludes, your nervous system craves a deliberate transition. We are moving beyond 'hoping' for sleep to designing your recovery. By mimicking the setting sun, we signal to the pineal gland that vigilance is no longer required.",
