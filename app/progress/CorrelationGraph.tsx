@@ -7,6 +7,8 @@ import {
   PointElement,
   LineElement,
   BarElement,
+  BarController,  // 🟢 ADDED: Logic for Bar Charts
+  LineController, // 🟢 ADDED: Logic for Line Charts
   Title,
   Tooltip,
   Legend,
@@ -14,13 +16,15 @@ import {
 } from 'chart.js'
 import { Chart } from 'react-chartjs-2'
 
-// Register the components we need
+// Register the components AND the controllers
 ChartJS.register(
   CategoryScale,
   LinearScale,
   PointElement,
   LineElement,
   BarElement,
+  BarController,  // 🟢 Registering the Controller
+  LineController, // 🟢 Registering the Controller
   Title,
   Tooltip,
   Legend,
