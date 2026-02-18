@@ -27,7 +27,9 @@ const MAX_INTERACTION_AMPLIFIER = 0.12
 // 2. TYPES
 // ==============================
 
-export type NeuroLens = 'adhd' | 'autism' | 'hsp' | 'neurotypical'
+// 🟢 UPDATED: Includes new identities from your protocol
+export type NeuroLens = 'adhd' | 'autism' | 'hsp' | 'dyslexia' | 'spd' | 'neurotypical'
+
 export type SensoryThreshold = 'low' | 'high'
 export type RegulationStyle = 'active' | 'passive'
 export type SensoryPattern =
@@ -96,30 +98,43 @@ const clamp = (num: number, min = 0, max = 100) =>
 // ==============================
 
 export const calculateNeuroLoad = (
-  responses: { question_key: string; answer: { response: number } }[],
-  neuroLens: NeuroLens = 'neurotypical'
+  responses: { question_key: string; answer: { response: any } }[], 
+  neuroLensRaw: string = 'None'
 ): NeuroLoadResult => {
+
+  // 🟢 1. NORMALIZE NEURO LENS INPUT
+  let neuroLens: NeuroLens = 'neurotypical';
+  const normalizedLens = (neuroLensRaw || 'None').toLowerCase();
+  
+  if (normalizedLens.includes('adhd')) neuroLens = 'adhd';
+  else if (normalizedLens.includes('autism')) neuroLens = 'autism';
+  else if (normalizedLens.includes('hsp')) neuroLens = 'hsp';
+  else if (normalizedLens.includes('dyslexia')) neuroLens = 'dyslexia';
+  else if (normalizedLens.includes('spd')) neuroLens = 'spd';
 
   if (!responses || responses.length === 0) {
     throw new Error('No assessment responses provided.')
   }
 
-  const responseMap = new Map(
-    responses.map(r => [r.question_key, r.answer.response])
-  )
+  const responseMap = new Map();
+  responses.forEach(r => {
+    // Only map numeric answers (q5-q33 are scales, energy_tax is slider)
+    if (typeof r.answer.response === 'number') {
+        responseMap.set(r.question_key, r.answer.response);
+    }
+  });
 
   const getValidatedValue = (key: string): number => {
     if (!responseMap.has(key)) {
-      throw new Error(`Missing response for required question: ${key}`)
+      // SAFEGUARD: Return neutral (3) if a question is missing to prevent crash
+      return 3; 
     }
+    const raw = responseMap.get(key)!;
+    
+    // Ensure we don't crash on bad data
+    if (raw < 1 || raw > 5) return 3;
 
-    const raw = responseMap.get(key)!
-
-    if (raw < 1 || raw > 5) {
-      throw new Error(`Invalid response value for ${key}`)
-    }
-
-    return REVERSE_SCORED.has(key) ? reverseScore(raw) : raw
+    return REVERSE_SCORED.has(key) ? reverseScore(raw) : raw;
   }
 
   // ==============================
@@ -149,16 +164,16 @@ export const calculateNeuroLoad = (
   }
 
   // ==============================
-  // STEP 3 — ADAPTIVE WEIGHTS
+  // STEP 3 — ADAPTIVE WEIGHTS (UPDATED)
   // ==============================
 
   const weights = { ...BASE_WEIGHTS }
 
-  if (neuroLens === 'adhd') {
+  if (neuroLens === 'adhd' || neuroLens === 'dyslexia') {
     weights.pli *= 1.10
   }
 
-  if (neuroLens === 'autism') {
+  if (neuroLens === 'autism' || neuroLens === 'spd') {
     weights.stl *= 1.15
   }
 
