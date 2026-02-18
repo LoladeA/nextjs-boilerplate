@@ -7,8 +7,8 @@ import {
   PointElement,
   LineElement,
   BarElement,
-  BarController,  // 🟢 ADDED: Logic for Bar Charts
-  LineController, // 🟢 ADDED: Logic for Line Charts
+  BarController,
+  LineController,
   Title,
   Tooltip,
   Legend,
@@ -16,54 +16,65 @@ import {
 } from 'chart.js'
 import { Chart } from 'react-chartjs-2'
 
-// Register the components AND the controllers
 ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  BarController,  // 🟢 Registering the Controller
-  LineController, // 🟢 Registering the Controller
-  Title,
-  Tooltip,
-  Legend,
-  Filler
+  CategoryScale, LinearScale, PointElement, LineElement, BarElement,
+  BarController, LineController, Title, Tooltip, Legend, Filler
 )
 
 export default function CorrelationGraph({ data }: { data: any[] }) {
-  // If no data, show placeholder
   if (!data || data.length === 0) {
     return <div className="h-full flex items-center justify-center text-[#c9ccbb]/30 text-sm">Awaiting Data...</div>
   }
 
   const chartData = {
-    labels: data.map(d => d.date), // ["Mon", "Tue", etc.]
+    labels: data.map(d => d.date),
     datasets: [
-      {
-        type: 'bar' as const,
-        label: 'Focus Hours',
-        data: data.map(d => d.focus),
-        backgroundColor: 'rgba(181, 166, 66, 0.4)', // Gold transparent
-        borderColor: '#b5a642',
-        borderWidth: 1,
-        borderRadius: 4,
-        yAxisID: 'y1', // Binds to Right Axis
-        order: 2
-      },
+      // 1. THE MOOD WAVE (Restored Original Look)
       {
         type: 'line' as const,
-        label: 'Tension Level',
-        data: data.map(d => d.tension),
-        borderColor: '#ffffff', // White line
-        borderWidth: 2,
-        backgroundColor: '#1b270e',
-        pointBackgroundColor: '#1b270e',
-        pointBorderColor: '#ffffff',
-        pointRadius: 4,
+        label: 'Neuro-State', // The Mood Score
+        data: data.map(d => d.mood),
+        borderColor: '#b5a642', // Gold Border
+        backgroundColor: (context: any) => {
+           const ctx = context.chart.ctx
+           const gradient = ctx.createLinearGradient(0, 0, 0, 300)
+           gradient.addColorStop(0, 'rgba(181, 166, 66, 0.5)') // Gold Top
+           gradient.addColorStop(1, 'rgba(181, 166, 66, 0.0)') // Fade to clear
+           return gradient
+        },
+        fill: true,
         tension: 0.4, // Smooth curve
-        yAxisID: 'y', // Binds to Left Axis
-        order: 1
+        pointRadius: 3,
+        pointBackgroundColor: '#1b270e',
+        pointBorderColor: '#b5a642',
+        order: 3, // Render at the back
+        yAxisID: 'y_mood', // Separate Axis to keep the wave nice and big
+      },
+      // 2. FOCUS BARS (The New Metric)
+      {
+        type: 'bar' as const,
+        label: 'Deep Work',
+        data: data.map(d => d.focus),
+        backgroundColor: 'rgba(255, 255, 255, 0.1)', // Subtle White Bars
+        borderColor: 'rgba(255, 255, 255, 0.2)',
+        borderWidth: 1,
+        borderRadius: 4,
+        barThickness: 8,
+        yAxisID: 'y_focus',
+        order: 2
+      },
+      // 3. TENSION LINE (The New Metric)
+      {
+        type: 'line' as const,
+        label: 'Tension',
+        data: data.map(d => d.tension),
+        borderColor: '#ffffff', // Stark White Line
+        borderWidth: 2,
+        borderDash: [5, 5], // Dashed line to distinguish from Mood
+        pointRadius: 0, // No dots to keep it clean
+        tension: 0.4,
+        yAxisID: 'y_tension',
+        order: 1 // Render at the front
       }
     ]
   }
@@ -78,12 +89,7 @@ export default function CorrelationGraph({ data }: { data: any[] }) {
     plugins: {
       legend: {
         position: 'bottom' as const,
-        labels: {
-          color: '#c9ccbb',
-          font: { size: 10, family: 'serif' },
-          usePointStyle: true,
-          boxWidth: 6
-        }
+        labels: { color: '#c9ccbb', font: { size: 10, family: 'serif' }, boxWidth: 8, usePointStyle: true }
       },
       tooltip: {
         backgroundColor: '#1b270e',
@@ -93,17 +99,13 @@ export default function CorrelationGraph({ data }: { data: any[] }) {
         borderWidth: 1,
         padding: 10,
         callbacks: {
-            // Custom label to add units
             label: function(context: any) {
                 let label = context.dataset.label || '';
-                if (label) {
-                    label += ': ';
-                }
-                if (context.dataset.yAxisID === 'y1') {
-                    label += context.parsed.y + ' hrs';
-                } else {
-                    label += context.parsed.y + '/10';
-                }
+                if (label) label += ': ';
+                // Add units based on the metric
+                if (label.includes('Deep Work')) label += context.parsed.y + ' hrs';
+                else if (label.includes('Tension')) label += context.parsed.y + '/10';
+                else label += context.parsed.y + '/5'; // Mood
                 return label;
             }
         }
@@ -111,38 +113,41 @@ export default function CorrelationGraph({ data }: { data: any[] }) {
     },
     scales: {
       x: {
-        grid: {
-          display: false,
-          drawBorder: false
-        },
-        ticks: {
-          color: 'rgba(201, 204, 187, 0.5)',
-          font: { size: 10 }
-        }
+        grid: { display: false },
+        ticks: { color: 'rgba(201, 204, 187, 0.5)', font: { size: 10 } }
       },
-      y: { // Left Axis (Tension)
+      // AXIS 1: MOOD (Hidden, scaled 1-5)
+      y_mood: {
         type: 'linear' as const,
-        display: false, // Hide the numbers to keep it clean
+        display: false,
+        position: 'left' as const,
+        min: 1,
+        max: 6, // Keep slightly higher so wave doesn't hit top
+      },
+      // AXIS 2: TENSION (Hidden, scaled 0-10)
+      y_tension: {
+        type: 'linear' as const,
+        display: false,
         position: 'left' as const,
         min: 0,
-        max: 10,
+        max: 12,
+        grid: { drawOnChartArea: false },
       },
-      y1: { // Right Axis (Focus)
+      // AXIS 3: FOCUS (Hidden, scaled 0-12)
+      y_focus: {
         type: 'linear' as const,
-        display: false, // Hide the numbers
+        display: false,
         position: 'right' as const,
         min: 0,
-        max: 12, // Max 12 hours focus
-        grid: {
-          drawOnChartArea: false, // Prevents grid lines from overlapping
-        },
+        max: 14,
+        grid: { drawOnChartArea: false },
       },
     },
   }
 
   return (
-    <div className="w-full h-64 mt-4">
-      {/* @ts-ignore - Chart.js types can be finicky with mixed types, but this works */}
+    <div className="w-full h-full mt-4">
+      {/* @ts-ignore */}
       <Chart type='bar' data={chartData} options={options} />
     </div>
   )
