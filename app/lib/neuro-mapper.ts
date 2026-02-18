@@ -1,26 +1,32 @@
-import { SensoryProfile } from '@/app/data/protocols';
+import { SensoryProfile as EngineProfile } from '@/app/utils/scoring-engine';
 
-// The input types from your questionnaire
-type NeuroLens = 'HSP' | 'ADHD' | 'Autism' | 'Dyslexia' | 'SPD' | 'None' | string;
+// The Brand Archetypes used in the Dashboard
+export type DashboardProfile = 'anchor' | 'seeker' | 'sensor';
 
-export function getPrecisionProfile(lens: NeuroLens, direction: string): SensoryProfile {
-  // Normalize inputs to lowercase for safe comparison
-  const safeLens = (lens || 'None').toLowerCase();
-  const safeDir = (direction || 'Neutral').toLowerCase();
+export function mapEngineToDashboard(engineProfile: EngineProfile): DashboardProfile {
+  const { threshold, regulation, pattern } = engineProfile;
 
-  // 1. MECHANISM CHECK: Trust what they say they NEED over who they are.
-  // If an ADHD person says they need "shielding", trust that (they are likely in burnout).
-  if (safeDir.includes('shielding')) return 'sensor';
-  if (safeDir.includes('stimulation')) return 'seeker';
-  
-  // 2. IDENTITY CHECK: Fallback to the default biology of their profile.
-  if (safeLens.includes('hsp')) return 'sensor';
-  if (safeLens.includes('autism')) return 'sensor';
-  if (safeLens.includes('spd')) return 'sensor';
-  
-  // ADHD is typically a Seeker (needs stimulation to focus)
-  if (safeLens.includes('adhd')) return 'seeker';
-  
- // 3. THE ANCHOR: The grounded, flexible nervous system (formerly "Standard")
+  // 1. THE SENSOR (Hypersensitive)
+  // Low Threshold = Notice things quickly.
+  // Includes 'Sensitive' (Passive) and 'Avoider' (Active).
+  if (threshold === 'low') {
+    return 'sensor';
+  }
+
+  // 2. THE SEEKER (Hyposensitive)
+  // High Threshold + Active Regulation = Craves input.
+  if (pattern === 'seeker') {
+    return 'seeker';
+  }
+
+  // 3. THE ANCHOR (Bystander / Stable)
+  // High Threshold + Passive Regulation = Low Registration.
+  // This profile tolerates a lot of chaos without getting overwhelmed.
+  // In your brand context, this stability acts as an "Anchor".
+  if (pattern === 'low_registration') {
+    return 'anchor';
+  }
+
+  // Fallback
   return 'anchor';
 }
