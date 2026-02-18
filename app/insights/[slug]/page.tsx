@@ -9,47 +9,53 @@ import { useState } from 'react'
 // --- 1. THE CONTENT DATABASE ---
 const articles: Record<string, any> = {
   
-  "cortisol-space-connection": {
+ "cortisol-space-connection": {
     title: "The Cortisol-Space Connection",
     category: "Neuroscience",
     readTime: "6 min read",
     date: "Feb 06, 2026",
     content: `
       <p class="text-xl text-[#c9ccbb] leading-relaxed mb-8">
-        This explores how spatial openness, enclosure and sensory predictability influence cortisol levels and the nervous system's sense of safety.
+        Spatial design is not neutral. The human nervous system is always looking for danger or safety in its environment. Even when we believe we are relaxed, our biology may respond differently.
+        The hormone cortisol plays a central role in this process. It is released when the brain detects uncertainty, unpredictability or exposure. While short bursts of cortisol are necessary and beneficial, chronically elevated baseline levels can lead to fatigue, impaired concentration, poor sleep and mood instability.
+        The structure of our homes — openness, enclosure, edges and lighting transitions — influences whether the brain relaxes or remains subtly vigilant.
+        This article explores how spatial openness, enclosure and sensory predictability affect cortisol regulation, and how these insights can be applied in your own environment.
       </p>
 
       <h3 class="text-2xl font-serif text-[#b5a642] mb-4">The Biology of Enclosure</h3>
       <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
-        Cortisol is the body’s primary stress hormone, which is released when the brain detects uncertainty or potential threat. In environments that lack protective boundaries, such as large open-plan spaces with few visual edges, the amygdala remains mildly activated, continuously scanning the environment. This low-grade vigilance is an evolutionary survival response, but when sustained, it can elevate baseline cortisol levels.
+        Cortisol is released through the activation of the hypothalamic–pituitary–adrenal (HPA) axis. When the amygdala detects a potential threat, it signals the hypothalamus to trigger a hormonal response. Notably, the amygdala responds not only to danger, but also to uncertainty and a lack of control.
       </p>
 
       <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
-        Research in environmental psychology shows that humans instinctively seek both prospect (the ability to see outwards) and refuge (a sense of protection). When refuge is absent, the nervous system interprets the space as exposed, even if no conscious stress is reported.
+        Large, open-plan environments with minimal visual boundaries can increase background environmental scanning. Without clear edges or protection behind the body, the brain will subconsciously monitor movement, entry points and unexpected stimuli. From an evolutionary perspective, open exposure increased the risk of predation. Humans survived by identifying locations that offered the following: visibility (prospect), physical backing (refuge), predictable entry points and stable visual fields. When these conditions are absent, the nervous system may remain in a state of low-grade vigilance, even in a modern home.
       </p>
 
       <h3 class="text-2xl font-serif text-[#b5a642] mb-4">Safety Signals Across Design Traditions</h3>
       <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
-         Even before the advent of modern neuroscience, design systems such as Ayurveda and Feng Shui recognised the importance of enclosure, grounding and spatial predictability for human well-being. When viewed through a neurobiological lens, these principles align with environments that reduce sensory uncertainty and support cortisol regulation.
+         Long before neuroscience mapped the amygdala, traditional design systems understood spatial containment intuitively.
       </p>
 
       <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
-        <strong>What the nervous system detects:</strong> Clear edges, protected positioning and stable visual fields.<br />
-        <strong>Associated response:</strong> Reduced amygdala scanning and lower tonic cortisol release.<br />
-        <strong>Why it matters:</strong> As vigilance decreases, cognitive and emotional resources become available for focus, creativity and recovery.
+        <strong>Ayurveda</strong> Ayurvedic architectural principles emphasise grounding, stability, and orientation. Rooms are designed to feel anchored and proportionate.<br />
+        <strong>Feng Shui</strong> Feng Shui places a strong emphasis on having a solid wall behind seating or beds, and on controlling the flow of entry. From a neurobiological perspective, these traditions are based on the same principles. Clear edges reduce ambiguity; defined boundaries reduce scanning; and protected positioning lowers vigilance.<br />
+        <strong>Why it matters:</strong> When vigilance drops, the brain reallocates energy toward creativity, memory consolidation, and emotional regulation.
       </p>
 
       <h3 class="text-2xl font-serif text-[#b5a642] mb-4">Psychological Enclosure and Stress Regulation</h3>
       <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
-         Psychological enclosure does not require fully closed rooms. Partial boundaries, such as changes in height, texture or lighting, can signal containment to the nervous system. These cues reduce the need for constant environmental monitoring, supporting a shift out of low-level fight-or-flight responses.
+         Enclosure does not require rooms to be fully closed. The brain responds to implied boundaries. Examples of psychological enclosure include a rug defining a seating area, a bookshelf creating a semi-permeable boundary, and a pendant light that lowers the visual field. The nervous system quickly processes spatial hierarchy. When a zone feels distinct and anchored, environmental scanning decreases. This supports a shift from low-level fight-or-flight to relaxed parasympathetic engagement.
       </p>
 
       <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
-        <strong>The Design Strategy:</strong> Create signals of refuge and predictability by establishing defined zones, using layered lighting and arranging the space so that you can see outside from protected positions.
+        <strong>The Design Strategy:</strong><br />
+        <strong>Protect the Back:</strong> Never place primary seating with open circulation directly behind it. Add a console table, low shelf, or wall backing.<br />
+        <strong>Define Zones:</strong> Use rugs, lighting clusters, ceiling features and furniture groupings. Clear zones reduce ambiguity.<br />
+        <strong>Create Prospect + Refuge:</strong> From a protected position, you should be able to see the entrance, main windows and monitor primary movement paths without turning your head repeatedly.
       </p>
 
       <p class="text-[#c9ccbb]/80 leading-relaxed">
-         Even subtle changes in enclosure and spatial definition can influence cortisol dynamics, making environments feel calmer, safer and more supportive for the brain.
+        Cortisol dynamics respond to small environmental shifts. A single bookshelf placed behind a sofa can reduce background vigilance. A defined lighting gradient can create depth that signals containment. Over time, reduced tonic stress allows for improved focus, better sleep, enhanced emotional stability and increased creative capacity.
       </p>
     `
   },
