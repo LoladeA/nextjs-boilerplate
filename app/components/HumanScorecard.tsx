@@ -1,14 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { Activity, Moon, Zap, Eye, ChevronDown, ChevronUp, ArrowRight, CheckCircle, Brain } from 'lucide-react'
+import { Activity, Moon, Zap, ChevronDown, ChevronUp, ArrowRight, CheckCircle, Brain } from 'lucide-react'
 import Link from 'next/link'
 
-// 🟢 NEW: Nuanced text based on the user's sensory hardware
+// Nuanced text based on the user's sensory hardware
 const insightDictionary: any = {
   circadian: {
     anchor: "Your body relies on light signals to know when to release energy (cortisol) and when to rest (melatonin).",
-    sensor: "Your nervous system is highly sensitive to blue light. Evening brightness suppresses your melatonin faster than average.",
+    sensor: "Your system is highly sensitive to blue light. Evening brightness suppresses your melatonin faster than average.",
     seeker: "Your nervous system needs high-intensity morning light to jumpstart dopamine production and wakefulness."
   },
   autonomic: {
@@ -22,18 +22,17 @@ const insightDictionary: any = {
     seeker: "You need 'visual hooks' to stay focused. Undefined piles of clutter create distraction rather than cues."
   },
   sensory: {
-    anchor: "This is the cumulative weight of noise, tactile irritation, and visual chaos on your baseline energy.",
+    anchor: "The cumulative weight of noise, tactile irritation, and visual chaos on your baseline energy.",
     sensor: "Your sensory gating is open. You absorb more data (sound, texture, light) than others, leading to quicker overwhelm.",
     seeker: "A paradox: you crave stimulation but get distracted by chaos. You need 'curated intensity' not just background noise."
   },
   recovery: {
     anchor: "Does your home allow you to fully power down, or are you just 'off duty' but still running?",
-    sensor: "Recovery for you requires 'sensory zero': a total absence of sensory input and complete darkness, silence & weight).",
+    sensor: "Recovery for you requires 'sensory zero'—total absence of input (darkness, silence, weight).",
     seeker: "You struggle to switch off. True recovery requires somatic signals (heavy blankets, heat) to force the system down."
   }
 }
 
-// 🟢 UPDATE: Accept 'profile' prop
 export default function HumanScorecard({ scores, profile = 'anchor' }: { scores: any, profile?: string }) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
@@ -67,7 +66,7 @@ export default function HumanScorecard({ scores, profile = 'anchor' }: { scores:
       icon: <Activity size={20} />,
       score: scores.autonomic || 0,
       max: 100,
-      question: "Can your body truly lower its guard here?",
+      question: "Can your body truly drop its guard here?",
       lowMsg: "High Alert",
       highMsg: "Calm",
       details: getText('autonomic'),
@@ -76,11 +75,11 @@ export default function HumanScorecard({ scores, profile = 'anchor' }: { scores:
     },
     {
       id: 'legibility',
-      label: 'Cognitive Flow', // Renamed from Mental Clarity for precision
+      label: 'Cognitive Flow', 
       icon: <Brain size={20} />,
       score: scores.legibility || 0,
       max: 100,
-      question: "How hard does your brain work to navigate through its immediate environment?",
+      question: "How hard does your brain work to navigate?",
       lowMsg: "High Friction",
       highMsg: "Intuitive",
       details: getText('legibility'),
@@ -93,14 +92,13 @@ export default function HumanScorecard({ scores, profile = 'anchor' }: { scores:
       icon: <Zap size={20} />,
       score: scores.sensory || 0,
       max: 100,
-      question: "Is your environment over-stimulating or restorative?",
+      question: "Is the environment over-stimulating?",
       lowMsg: "Overload",
       highMsg: "Restorative",
       details: getText('sensory'),
       toolName: "Noise Meter",
       toolLink: "/tools/noise-meter"
     },
-    // 🟢 NEW: Added Recovery Metric to complete the set
     {
       id: 'recovery',
       label: 'Recovery Potential',
@@ -116,19 +114,19 @@ export default function HumanScorecard({ scores, profile = 'anchor' }: { scores:
     }
   ]
 
+  // All states use the Gold (#b5a642) palette
   const getStatus = (score: number) => {
-      // Inverted logic check: Ensure higher score = better result? 
-      // Assuming your engine outputs 0-100 where 100 is GOOD (High Capacity/Low Load inverted).
-      // If engine outputs RAW LOAD (High = Bad), we need to invert visual logic.
-      // Based on Dashboard, we usually display Capacity. Let's assume High Score = Good.
-      
-      // Define the single brand palette
       const goldPalette = { 
         color: "bg-[#b5a642]", 
         textCol: "text-[#b5a642]", 
         border: "border-[#b5a642]/30", 
         bg: "bg-[#b5a642]/5" 
       }
+
+      if (score < 40) return { text: "Needs Support", ...goldPalette }
+      if (score < 70) return { text: "Moderate", ...goldPalette }
+      return { text: "Optimised", ...goldPalette }
+  }
 
   return (
     <div className="space-y-4">
