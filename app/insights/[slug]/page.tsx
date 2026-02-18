@@ -37,8 +37,8 @@ const articles: Record<string, any> = {
       </p>
 
       <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
-        <strong>Ayurveda</strong> Ayurvedic architectural principles emphasise grounding, stability, and orientation. Rooms are designed to feel anchored and proportionate.<br />
-        <strong>Feng Shui</strong> Feng Shui places a strong emphasis on having a solid wall behind seating or beds, and on controlling the flow of entry. From a neurobiological perspective, these traditions are based on the same principles. Clear edges reduce ambiguity; defined boundaries reduce scanning; and protected positioning lowers vigilance.<br />
+        <strong>Ayurveda:</strong> Ayurvedic architectural principles emphasise grounding, stability, and orientation. Rooms are designed to feel anchored and proportionate.<br />
+        <strong>Feng Shui:</strong> Feng Shui places a strong emphasis on having a solid wall behind seating or beds, and on controlling the flow of entry. From a neurobiological perspective, these traditions are based on the same principles. Clear edges reduce ambiguity; defined boundaries reduce scanning; and protected positioning lowers vigilance.<br />
         <strong>Why it matters:</strong> When vigilance drops, the brain reallocates energy toward creativity, memory consolidation, and emotional regulation.
       </p>
 
