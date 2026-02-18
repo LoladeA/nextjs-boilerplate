@@ -12,7 +12,7 @@ const insightContent: any = {
     // 🟢 RENAMED: 'standard' -> 'anchor'
     anchor: {
       title: "The Dorsal Seat: Your Protected Back",
-      concept: "Think of it as your nervous system's 'off' switch.",
+      concept: "Your nervous system's 'off' switch.",
       why: "Evolutionarily, an exposed back demands constant, low-level vigilance. When you sit with your back to an open room or a door, part of your brain stays on alert, watching what it can't see behind you. This drains your energy without you realising it.",
       how: ["Position your primary chair against a solid wall or a visual barrier like a bookshelf if you live in an open plan space.", "Orient yourself to face the room so you can easily see the entrance without turning your head."],
       feeling: "When you sit here, your nervous system gets a silent signal: 'I am safe. I don't need to watch my back.' This allows you to truly exhale and rest.",
@@ -40,7 +40,7 @@ const insightContent: any = {
   cii: {
     anchor: {
       title: "The Morning Anchor",
-      concept: "Think of this as your body's 'Start Button'.",
+      concept: "Your body's 'Start Button'.",
       why: "Light is the primary signal that tells your body what time it is. Without a clear morning signal, your biological clock drifts, leaving you tired in the day but 'wired' at night.",
       how: ["Within 30 minutes of waking, stand near an open window or step outside. The fewer barriers there are between you and those lovely photons, the better.", "Spend 2–5 minutes viewing the sky (low-angle morning sunlight) to lock in your energy cycle."],
       feeling: "A clear head in the morning and a natural, heavy wave of sleepiness when the sun goes down.",
@@ -48,7 +48,7 @@ const insightContent: any = {
     },
     seeker: {
       title: "Solar Ignition: The Dopamine Spark",
-      concept: "Think of it as you jumpstarting the engine.",
+      concept: "You jumpstarting the engine.",
       why: "Your nervous system doesn't 'drift' awake; it needs a spark. Dim mornings leave you in a state of dopamine deficit. You need high-intensity photons to manufacture the neurochemicals you need to get the day started.",
       how: ["Seek direct, bright sunlight as soon as you get out of bed. In low-light regions and in Winter, use a 10,000 lux lamp for 10-15 minutes.", "Combine light exposure with movement: drink your coffee or tea standing up."],
       feeling: "Your go-engine comes online and you feel ready to engage the day.",
@@ -68,7 +68,7 @@ const insightContent: any = {
   pli: {
     anchor: {
       title: "The Visual Quiet Zone",
-      concept: "Think of this as a 'landing pad' for your eyes.",
+      concept: "A 'landing pad' for your eyes.",
       why: "Clutter and undefined spaces force your brain to micro-process thousands of tiny details constantly. It is like having too many browser tabs open in your mind.",
       how: ["Decorate with your favourite piece of art, lamp...anything you resonate deeply with. This gives you something for your eyes to land on. Keep it sacred.", "Let this be the place your eyes rest when the room feels loud."],
       feeling: "A visual exhale. A sense of space and breath in a busy room",
@@ -76,7 +76,7 @@ const insightContent: any = {
     },
     seeker: {
       title: "Visual Containment: The Museum of Now",
-      concept: "Think of it as framing, not hiding.",
+      concept: "Framing, not hiding.",
       why: "Standard advice says 'hide the clutter,' but for you, 'out of sight' means 'ceased to exist.' You don't need emptiness; you need curation. Frame your chaos so it becomes a collection, not a mess.",
       how: ["Use low-rimmed trays to 'corral' active projects and keep future projects out of sight but in clearly labeled bins for easy retrieval.", "Group items by category so they form a single visual unit."],
       feeling: "I see my tools, but they aren't screaming at me.",
@@ -84,7 +84,7 @@ const insightContent: any = {
     },
     sensor: {
       title: "The Zero-Data Zone",
-      concept: "Think of it as silence for the eyes.",
+      concept: "Silence for the eyes.",
       why: "Every object in your view is a data point your brain must process. To think deeply, you need to lower the 'bandwidth' of the room. You need a space that asks nothing of you.",
       how: ["Clear your primary viewpoint of all text/labels.", "Use opaque bins. Visual silence is your battery charger."],
       feeling: "My brain finally stopped buzzing.",
@@ -96,7 +96,7 @@ const insightContent: any = {
   stl: {
     anchor: {
       title: "The Soft Layer",
-      concept: "Think of this as the room's mute button.",
+      concept: "The room's mute button.",
       why: "Hard surfaces create a 'noise mirror,' reflecting energy back at you. Softness absorbs the sharp frequencies that keep your nervous system on edge.",
       how: ["Add a plush rug to anchor the room.", "Use heavy curtains to dampen the echo."],
       feeling: "Warm, held, and hushed.",
@@ -104,7 +104,7 @@ const insightContent: any = {
     },
     seeker: {
       title: "The Tactile Anchor",
-      concept: "Think of it as your 'fidgeting as regulation' activity.",
+      concept: "Your 'fidgeting as regulation' activity.",
       why: "Your brain craves input. If the environment is too sterile, you become restless. You need rich, complex textures that give your hands something to do so your mind can stay put.",
       how: ["Introduce complex textures (corduroy, sheepskin, raw wood).", "Keep a 'fidget object' (stone, metal) nearby and within easy reach."],
       feeling: "Physically engaged, mentally steady.",
@@ -112,7 +112,7 @@ const insightContent: any = {
     },
     sensor: {
       title: "The Acoustic Shield",
-      concept: "Think of this as your buffer against the world.",
+      concept: "Your buffer against the world.",
       why: "It isn't just noise; it's the unpredictability of noise. You need to smooth out the sonic edges of your environment to prevent the constant micro-startles that drain your energy.",
       how: ["Use your preferred ambient sound to mask sudden noises.", "Create a soft corner with pillows to absorb vibration."],
       feeling: "Safe inside the bubble.",
@@ -124,7 +124,7 @@ const insightContent: any = {
   rci: {
     anchor: {
       title: "The Thermal Signal",
-      concept: "Think of this as your 'hibernation mode'.",
+      concept: "Your 'hibernation mode'.",
       why: "To enter deep restorative sleep, your core body temperature must drop to an ideal temperature for sleep. A room that is too warm or too cold keeps your biological engine running too fast.",
       how: ["Drop the thermostat to 18°C (65°F) one hour before bed.", "Open a window or use a fan if needed to circulate fresh air."],
       feeling: "Heavy eyelids and a deeper, unbroken sleep cycle.",
@@ -132,7 +132,7 @@ const insightContent: any = {
     },
     seeker: {
       title: "The Compression Reset",
-      concept: "Think of it as easing the system down.",
+      concept: "Easing the system down.",
       why: "Your brain doesn't have an 'off' switch; it has a dimmer that gets stuck. You need strong somatic input (weight and temperature) to physically ease the nervous system to disengage.",
       how: ["Use a heavy weighted blanket.", "Take a hot shower to trigger a rapid cooling effect afterwards."],
       feeling: "Finally heavy. Finally quiet.",
@@ -140,7 +140,7 @@ const insightContent: any = {
     },
     sensor: {
       title: "The Blackout Cocoon",
-      concept: "Think of it as your sensory zero.",
+      concept: "Your sensory zero.",
       why: "Even a single standby light is a photon signal your vigilant brain will track. To truly recover, you need to exist in a void where there is no input to process.",
       how: ["Absolute darkness is non-negotiable.", "In shared bedrooms, use an eye mask and ear plugs to zone out."],
       feeling: "Disappearing into the twilight of rest.",
