@@ -1,15 +1,50 @@
 'use client'
 
 import { useState } from 'react'
-import { Activity, Moon, Zap, Eye, ChevronDown, ChevronUp, ArrowRight } from 'lucide-react'
+import { Activity, Moon, Zap, Eye, ChevronDown, ChevronUp, ArrowRight, CheckCircle, Brain } from 'lucide-react'
 import Link from 'next/link'
 
-export default function HumanScorecard({ scores }: { scores: any }) {
-  // Track which item is expanded (null = none)
+// 🟢 NEW: Nuanced text based on the user's sensory hardware
+const insightDictionary: any = {
+  circadian: {
+    anchor: "Your body relies on light signals to know when to release energy (cortisol) and when to rest (melatonin).",
+    sensor: "Your nervous system is highly sensitive to blue light. Evening brightness suppresses your melatonin faster than average.",
+    seeker: "Your nervous system needs high-intensity morning light to jumpstart dopamine production and wakefulness."
+  },
+  autonomic: {
+    anchor: "This measures vigilance: how much your brain is scanning for threats (sharp corners, open doors).",
+    sensor: "Your 'threat detection' wires are set to high sensitivity. Unpredictable sounds or open spaces trigger low-level anxiety.",
+    seeker: "Internal restlessness often projects outward. If the room feels 'boring' or restricting, your stress axis activates."
+  },
+  legibility: {
+    anchor: "Your brain burns energy trying to make sense of clutter, disorganised layouts, or undefined spaces.",
+    sensor: "Visual chaos acts like static noise for your brain, draining your cognitive battery rapidly.",
+    seeker: "You need 'visual hooks' to stay focused. Undefined piles of clutter create distraction rather than cues."
+  },
+  sensory: {
+    anchor: "This is the cumulative weight of noise, tactile irritation, and visual chaos on your baseline energy.",
+    sensor: "Your sensory gating is open. You absorb more data (sound, texture, light) than others, leading to quicker overwhelm.",
+    seeker: "A paradox: you crave stimulation but get distracted by chaos. You need 'curated intensity' not just background noise."
+  },
+  recovery: {
+    anchor: "Does your home allow you to fully power down, or are you just 'off duty' but still running?",
+    sensor: "Recovery for you requires 'sensory zero': a total absence of sensory input and complete darkness, silence & weight).",
+    seeker: "You struggle to switch off. True recovery requires somatic signals (heavy blankets, heat) to force the system down."
+  }
+}
+
+// 🟢 UPDATE: Accept 'profile' prop
+export default function HumanScorecard({ scores, profile = 'anchor' }: { scores: any, profile?: string }) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
   const toggleExpand = (id: string) => {
     setExpandedId(expandedId === id ? null : id)
+  }
+
+  // Helper to safely get text
+  const getText = (category: string) => {
+    const safeProfile = (profile || 'anchor').toLowerCase()
+    return insightDictionary[category][safeProfile] || insightDictionary[category]['anchor']
   }
 
   const metrics = [
@@ -17,12 +52,12 @@ export default function HumanScorecard({ scores }: { scores: any }) {
       id: 'circadian',
       label: 'Body Clock Alignment',
       icon: <Moon size={20} />,
-      score: scores.circadian || 30, 
+      score: scores.circadian || 0, 
       max: 100,
       question: "Does your home support your sleep/wake cycle?",
-      lowMsg: "Lighting Misalignment.",
-      highMsg: "In Sync.",
-      details: "Your body relies on light signals to know when to release energy (cortisol) and when to rest (melatonin). A low score means your home's lighting is likely too dim in the morning or too bright at night.",
+      lowMsg: "Misaligned",
+      highMsg: "In Sync",
+      details: getText('circadian'),
       toolName: "Light Meter",
       toolLink: "/tools/light-meter"
     },
@@ -30,48 +65,70 @@ export default function HumanScorecard({ scores }: { scores: any }) {
       id: 'autonomic',
       label: 'Nervous System Safety',
       icon: <Activity size={20} />,
-      score: scores.autonomic || 45,
+      score: scores.autonomic || 0,
       max: 100,
-      question: "Can your body truly drop its guard here?",
-      lowMsg: "High Alert.",
-      highMsg: "Calming.",
-      details: "This measures vigilance: how much your brain is scanning for threats. Issues like seating with your back to a door, sharp corners, or lack of privacy keep your amygdala activated.",
+      question: "Can your body truly lower its guard here?",
+      lowMsg: "High Alert",
+      highMsg: "Calm",
+      details: getText('autonomic'),
       toolName: "Safety Audit",
       toolLink: "/room-audit"
     },
     {
       id: 'legibility',
-      label: 'Mental Clarity',
-      icon: <Eye size={20} />,
-      score: scores.legibility || 60,
+      label: 'Cognitive Flow', // Renamed from Mental Clarity for precision
+      icon: <Brain size={20} />,
+      score: scores.legibility || 0,
       max: 100,
-      question: "How hard does your brain work to process the room?",
-      lowMsg: "Noisy & Distracting.",
-      highMsg: "Effortless & intuitive.",
-      details: "Your brain burns energy trying to make sense of clutter, disorganised layouts, or undefined spaces. A high legibility score means your home is easy to understand, saving your energy for focus.",
-      toolName: "Read Insights",
+      question: "How hard does your brain work to navigate through its immediate environment?",
+      lowMsg: "High Friction",
+      highMsg: "Intuitive",
+      details: getText('legibility'),
+      toolName: "Clarity Scan",
       toolLink: "/insights"
     },
     {
       id: 'sensory',
-      label: 'Sensory Friction',
+      label: 'Sensory Load',
       icon: <Zap size={20} />,
-      score: scores.sensory || 80,
+      score: scores.sensory || 0,
       max: 100,
-      question: "Is the environment over-stimulating?",
-      lowMsg: "High friction.",
-      highMsg: "Calm & restorative.",
-      details: "The cumulative weight of noise (humming fridges, traffic), tactile irritation (scratchy fabrics), and visual chaos. High sensory load forces your nervous system to work overtime to filter it out.",
+      question: "Is your environment over-stimulating or restorative?",
+      lowMsg: "Overload",
+      highMsg: "Restorative",
+      details: getText('sensory'),
       toolName: "Noise Meter",
       toolLink: "/tools/noise-meter"
+    },
+    // 🟢 NEW: Added Recovery Metric to complete the set
+    {
+      id: 'recovery',
+      label: 'Recovery Potential',
+      icon: <CheckCircle size={20} />,
+      score: scores.recovery || 0,
+      max: 100,
+      question: "Does your home recharge your battery?",
+      lowMsg: "Draining",
+      highMsg: "Recharging",
+      details: getText('recovery'),
+      toolName: "Sleep Audit",
+      toolLink: "/tools/sleep-audit"
     }
   ]
 
   const getStatus = (score: number) => {
-      if (score < 40) return { text: "Needs Support", color: "bg-[#b5a642]", textCol: "text-[#b5a642]", border: "border-[#b5a642]/30", bg: "bg-[#b5a642]/5" }
-      if (score < 70) return { text: "Moderate", color: "bg-[#b5a642]", textCol: "text-[#b5a642]", border: "border-[#b5a642]/30", bg: "bg-[#b5a642]/5" }
-      return { text: "Optimised", color: "bg-emerald-400", textCol: "text-emerald-400", border: "border-emerald-400/30", bg: "bg-emerald-400/5" }
-  }
+      // Inverted logic check: Ensure higher score = better result? 
+      // Assuming your engine outputs 0-100 where 100 is GOOD (High Capacity/Low Load inverted).
+      // If engine outputs RAW LOAD (High = Bad), we need to invert visual logic.
+      // Based on Dashboard, we usually display Capacity. Let's assume High Score = Good.
+      
+      // Define the single brand palette
+      const goldPalette = { 
+        color: "bg-[#b5a642]", 
+        textCol: "text-[#b5a642]", 
+        border: "border-[#b5a642]/30", 
+        bg: "bg-[#b5a642]/5" 
+      }
 
   return (
     <div className="space-y-4">
@@ -124,15 +181,15 @@ export default function HumanScorecard({ scores }: { scores: any }) {
 
                 {/* Interpretation */}
                 <div className="flex justify-between text-xs">
-                    <span className="text-[#c9ccbb]/80">Dysregulated</span>
+                    <span className="text-[#c9ccbb]/80">{m.lowMsg}</span>
                     <span className={`${status.textCol} font-medium`}>
-                        {m.score < 50 ? m.lowMsg : m.highMsg}
+                        {m.score}/100
                     </span>
-                    <span className="text-[#c9ccbb]/80">Resonant</span>
+                    <span className="text-[#c9ccbb]/80">{m.highMsg}</span>
                 </div>
             </div>
 
-            {/* EXPANDABLE CONTENT (THE ACCORDION) */}
+            {/* EXPANDABLE CONTENT */}
             <div 
                 className={`
                     border-t border-[#c9ccbb]/5 bg-[#000]/20 transition-all duration-500 ease-in-out
@@ -142,7 +199,7 @@ export default function HumanScorecard({ scores }: { scores: any }) {
                 <div className="p-6 text-sm text-[#c9ccbb]/80 leading-relaxed">
                     <div className="flex flex-col md:flex-row gap-6">
                         <div className="flex-1">
-                            <h4 className="text-[#b5a642] text-xs font-bold uppercase tracking-widest mb-2">Why this matters</h4>
+                            <h4 className="text-[#b5a642] text-xs font-bold uppercase tracking-widest mb-2">Why this matters for {profile === 'anchor' ? 'you' : `a ${profile}`}</h4>
                             <p>{m.details}</p>
                         </div>
                         <div className="w-full md:w-48 shrink-0">
