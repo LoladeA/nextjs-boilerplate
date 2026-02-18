@@ -66,7 +66,7 @@ export default function Sidebar({ onOpenGuide }: SidebarProps) {
           
           {/* LOGO AREA */}
           <div className="mb-10 pl-2">
-            <span className="text-xl font-serif text-[#c9ccbb]">Sentient<span className="text-[#b5a642]">Home</span></span>
+            <span className="text-xl font-serif text-[#c9ccbb]">TheSentient<span className="text-[#b5a642]">Home</span></span>
           </div>
 
           {/* NAV LINKS */}
