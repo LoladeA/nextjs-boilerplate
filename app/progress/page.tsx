@@ -121,9 +121,9 @@ export default function Progress() {
 
     if (data) {
         // Format for CorrelationGraph
-        // 🟢 FIX: We must use standard keys (tension, focus) so the Graph Component can read them.
         const formatted = data.map((log: any) => ({
             date: new Date(log.date).toLocaleDateString('en-US', { weekday: 'short' }),
+            mood: log.mood_score || 0,        // 🟢 RESTORED: This was missing!
             tension: log.morning_tension || 0,
             focus: log.focus_hours || 0,
             wakes: log.sleep_wakes || 0
@@ -275,7 +275,7 @@ export default function Progress() {
                     </label>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         
-                        {/* WAKES */}
+                        {/* DEEP WORK (Focus) */}
                         <div>
                             <div className="flex justify-between mb-2">
                                 <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb]">
