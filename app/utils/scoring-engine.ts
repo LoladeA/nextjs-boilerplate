@@ -5,11 +5,11 @@
 // ==============================
 
 const DOMAIN_MAX = {
-  cii: 25, // q5–q9 (5 questions)
-  ali: 20, // q12–q15 (4 questions)
-  pli: 25, // q16–q20 (5 questions)
-  stl: 25, // q21–q25 (5 questions)
-  rci: 25  // q26–q30 (5 questions)
+  cii: 25,  // q5–q9
+  ali: 25,  // q10–q14
+  pli: 25,  // q15–q19
+  stl: 35,  // q20–q26
+  rci: 35   // q27–q33
 }
 
 const BASE_WEIGHTS = {
@@ -28,6 +28,13 @@ const MAX_INTERACTION_AMPLIFIER = 0.12
 // ==============================
 
 export type NeuroLens = 'adhd' | 'autism' | 'hsp' | 'neurotypical'
+export type SensoryThreshold = 'low' | 'high'
+export type RegulationStyle = 'active' | 'passive'
+export type SensoryPattern =
+  | 'sensitive'
+  | 'avoider'
+  | 'low_registration'
+  | 'seeker'
 
 export interface DomainScores {
   cii: number
@@ -43,6 +50,12 @@ export interface InteractionFlags {
   cognitiveStrain: boolean
 }
 
+export interface SensoryProfile {
+  threshold: SensoryThreshold
+  regulation: RegulationStyle
+  pattern: SensoryPattern
+}
+
 export interface NeuroLoadResult {
   rawIndices: DomainScores
   percentIndices: DomainScores
@@ -52,6 +65,7 @@ export interface NeuroLoadResult {
   interactionFlags: InteractionFlags
   priorityDomains: { id: keyof DomainScores; score: number }[]
   recoveryModifier: 'protective' | 'compounding' | 'neutral'
+  sensoryProfile: SensoryProfile
 }
 
 // ==============================
@@ -59,21 +73,21 @@ export interface NeuroLoadResult {
 // ==============================
 
 const DOMAIN_QUESTIONS: Record<keyof DomainScores, string[]> = {
-  cii: ['q5', 'q6', 'q7', 'q8', 'q9'],
-  ali: ['q12', 'q13', 'q14', 'q15'],
-  pli: ['q16', 'q17', 'q18', 'q19', 'q20'],
-  stl: ['q21', 'q22', 'q23', 'q24', 'q25'],
-  rci: ['q26', 'q27', 'q28', 'q29', 'q30']
+  cii: ['q5','q6','q7','q8','q9'],
+  ali: ['q10','q11','q12','q13','q14'],
+  pli: ['q15','q16','q17','q18','q19'],
+  stl: ['q20','q21','q22','q23','q24','q25','q26'],
+  rci: ['q27','q28','q29','q30','q31','q32','q33']
 }
 
-// Reverse-scored questions
-const REVERSE_SCORED = new Set(['q30'])
+const REVERSE_SCORED = new Set(['q33'])
 
 // ==============================
 // 4. HELPERS
 // ==============================
 
 const reverseScore = (val: number) => 6 - val
+
 const clamp = (num: number, min = 0, max = 100) =>
   Math.min(Math.max(num, min), max)
 
@@ -86,7 +100,6 @@ export const calculateNeuroLoad = (
   neuroLens: NeuroLens = 'neurotypical'
 ): NeuroLoadResult => {
 
-  // ---- VALIDATION ----
   if (!responses || responses.length === 0) {
     throw new Error('No assessment responses provided.')
   }
@@ -124,7 +137,7 @@ export const calculateNeuroLoad = (
   )
 
   // ==============================
-  // STEP 2 — NORMALISE (0–100%)
+  // STEP 2 — NORMALISE
   // ==============================
 
   const percentIndices: DomainScores = {
@@ -163,7 +176,56 @@ export const calculateNeuroLoad = (
   }
 
   // ==============================
-  // STEP 4 — INTERACTION FLAGS
+  // STEP 4 — THRESHOLD INDEX
+  // ==============================
+
+  const q14 = getValidatedValue('q14')
+  const q22 = getValidatedValue('q22')
+  const q23 = getValidatedValue('q23')
+  const q30 = getValidatedValue('q30')
+  const q31 = getValidatedValue('q31')
+
+  const lowThresholdScore =
+    (percentIndices.ali + percentIndices.stl + (q14 * 20)) / 3
+
+  const highThresholdScore =
+    ((q22 * 20) + (q23 * 20) + (100 - percentIndices.stl)) / 3
+
+  const threshold: SensoryThreshold =
+    lowThresholdScore >= highThresholdScore ? 'low' : 'high'
+
+  // ==============================
+  // STEP 5 — REGULATION STYLE
+  // ==============================
+
+  const activeScore = (q30 + q31) / 2
+
+  const regulation: RegulationStyle =
+    activeScore >= 3.5 ? 'active' : 'passive'
+
+  // ==============================
+  // STEP 6 — SENSORY PATTERN
+  // ==============================
+
+  let pattern: SensoryPattern
+
+  if (threshold === 'low' && regulation === 'passive')
+    pattern = 'sensitive'
+  else if (threshold === 'low' && regulation === 'active')
+    pattern = 'avoider'
+  else if (threshold === 'high' && regulation === 'passive')
+    pattern = 'low_registration'
+  else
+    pattern = 'seeker'
+
+  const sensoryProfile: SensoryProfile = {
+    threshold,
+    regulation,
+    pattern
+  }
+
+  // ==============================
+  // STEP 7 — INTERACTION FLAGS
   // ==============================
 
   const flags: InteractionFlags = {
@@ -192,7 +254,7 @@ export const calculateNeuroLoad = (
   )
 
   // ==============================
-  // STEP 5 — RECOVERY MODERATION
+  // STEP 8 — RECOVERY MODERATION
   // ==============================
 
   let recoveryModifier: 'protective' | 'compounding' | 'neutral' = 'neutral'
@@ -207,7 +269,7 @@ export const calculateNeuroLoad = (
   }
 
   // ==============================
-  // STEP 6 — FINAL COMPOSITE
+  // STEP 9 — FINAL COMPOSITE
   // ==============================
 
   const totalWeighted =
@@ -232,7 +294,7 @@ export const calculateNeuroLoad = (
   finalLoad = clamp(Math.round(finalLoad))
 
   // ==============================
-  // STEP 7 — SYSTEM STATE
+  // STEP 10 — SYSTEM STATE
   // ==============================
 
   let systemState: string
@@ -250,8 +312,7 @@ export const calculateNeuroLoad = (
   }
 
   // ==============================
-  // STEP 8 — PRIORITY RANKING
-  // Interaction-aware sorting
+  // STEP 11 — PRIORITY DOMAINS
   // ==============================
 
   const domainImpact = Object.entries(weightedIndices).map(
@@ -285,6 +346,7 @@ export const calculateNeuroLoad = (
     systemState,
     interactionFlags: flags,
     priorityDomains,
-    recoveryModifier
+    recoveryModifier,
+    sensoryProfile
   }
 }
