@@ -6,75 +6,45 @@ import { Camera, Upload, ArrowRight, Loader2, ScanEye, CheckCircle, AlertTriangl
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import Link from 'next/link'
 
-export default function RoomAudit() {
+// 🟢 NEW: Added Props interface to match the Flashcard architecture
+interface Props {
+  isPremium?: boolean 
+}
+
+export default function RoomAudit({ isPremium = false }: Props) {
   const supabase = createClientComponentClient()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // STATE
   const [loading, setLoading] = useState(true)
-  const [isSubscribed, setIsSubscribed] = useState(false) // Default to LOCKED
-   
+  const [godMode, setGodMode] = useState(false) // 🟢 Replaces 'isSubscribed'
+  
   const [selectedRoom, setSelectedRoom] = useState('Living Room')
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [file, setFile] = useState<File | null>(null)
   const [status, setStatus] = useState<'idle' | 'analyzing' | 'success'>('idle')
   
-  // NEW: Manual Lux Input to bridge the Light Meter tool
   const [manualLux, setManualLux] = useState<string>('') 
-   
-  // Analysis Results State
   const [result, setResult] = useState<any>(null)
 
   const rooms = ['Living Room', 'Bedroom', 'Home Office', 'Kitchen', 'Entryway']
 
-  // 0. IRON-CLAD SUBSCRIPTION CHECK
+  // 1. GOLDEN TICKET CHECK ONLY
+  // No more database querying for subscriptions here.
   useEffect(() => {
-    checkSubscription()
-  }, [])
-
-  const checkSubscription = async () => {
-    try {
+    async function checkGodMode() {
       const { data: { user } } = await supabase.auth.getUser()
-      
-      // 1. If no user, they are definitely not subscribed -> LOCKED
-      if (!user) {
-        setIsSubscribed(false)
-        setLoading(false)
-        return
+      if (user?.email === 'christchilde@gmail.com') {
+        console.log("👑 Room Audit God Mode: Active")
+        setGodMode(true)
       }
-
-      // 🎫 GOLDEN TICKET: Instant Access for You
-      // This bypasses the database check entirely for your email
-      if (user.email === 'christchilde@gmail.com') {
-          console.log("👑 Golden Ticket Accepted: God Mode Active")
-          setIsSubscribed(true)
-          setLoading(false)
-          return 
-      }
-
-      // 2. Check Database for Active Status (For everyone else)
-      const { data: subscription, error } = await supabase
-        .from('subscriptions')
-        .select('status')
-        .eq('user_id', user.id)
-        .in('status', ['active', 'trialing'])
-        .maybeSingle() 
-
-      if (error) console.error("Subscription Check Error:", error)
-
-      // 3. The Final Verdict
-      if (subscription) {
-        setIsSubscribed(true)
-      } else {
-        setIsSubscribed(false)
-      }
-    } catch (err) {
-      console.error("Auth Error", err)
-      setIsSubscribed(false) 
-    } finally {
       setLoading(false)
     }
-  }
+    checkGodMode()
+  }, [supabase])
+
+  // 🟢 DETERMINE FINAL ACCESS (Prop OR God Mode)
+  const hasAccess = isPremium || godMode
 
   // 1. HANDLE FILE
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -82,7 +52,7 @@ export default function RoomAudit() {
       const selectedFile = e.target.files[0]
       setFile(selectedFile)
       setPreviewUrl(URL.createObjectURL(selectedFile))
-      setResult(null) // Reset results on new file
+      setResult(null) 
       setStatus('idle')
     }
   }
@@ -103,14 +73,13 @@ export default function RoomAudit() {
 
       const { data: { publicUrl } } = supabase.storage.from('room-photos').getPublicUrl(fileName)
 
-      // B. CALL THE INTELLIGENCE API (The Brain)
+      // B. CALL THE INTELLIGENCE API
       const response = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
             roomName: selectedRoom,
             imageUrl: publicUrl,
-            // 🟢 PASS THE LUX DATA TO THE AI
             measuredLux: manualLux ? parseInt(manualLux) : null
         })
       })
@@ -123,7 +92,7 @@ export default function RoomAudit() {
           image_url: publicUrl,
           entropy_score: parseFloat(analysis.data.entropy_score),
           lighting_kelvin: analysis.data.lighting_kelvin,
-          lux_reading: manualLux ? parseInt(manualLux) : null // Save this context
+          lux_reading: manualLux ? parseInt(manualLux) : null
       })
 
       // D. Show Results
@@ -144,7 +113,7 @@ export default function RoomAudit() {
       <Sidebar />
       <div className="md:ml-64 min-h-screen p-6 md:p-12">
         <div className="max-w-4xl mx-auto">
-           
+            
           <div className="mb-12 text-center">
             <h1 className="text-4xl font-serif text-[#c9ccbb] mb-4">Environmental Audit</h1>
             <p className="text-[#c9ccbb]/60 max-w-lg mx-auto">
@@ -156,14 +125,14 @@ export default function RoomAudit() {
             
             {/* LEFT: UPLOAD AREA */}
             <div className="glass-panel p-8 rounded-3xl border border-[#c9ccbb]/10 bg-[#000]/20 relative overflow-hidden h-fit">
-               
-               {/* LOCKED OVERLAY */}
-               {!isSubscribed && (
+                
+               {/* LOCKED OVERLAY - Now strictly uses hasAccess */}
+               {!hasAccess && (
                   <div className="absolute inset-0 z-50 backdrop-blur-md bg-[#1b270e]/95 flex flex-col items-center justify-center text-center p-8">
                     <Lock size={32} className="text-[#b5a642] mb-4" />
-                    <h3 className="text-xl font-serif text-[#c9ccbb] mb-4">Foundation Access Required</h3>
+                    <h3 className="text-xl font-serif text-[#c9ccbb] mb-4">This Space Is About to Level Up</h3>
                     <p className="text-[#c9ccbb]/60 text-xs mb-6 max-w-xs leading-relaxed">
-                      The NeuroDesign Analysis Engine is reserved for members of the Sentient protocol.
+                      Becoma a foundation member and see in real time what is working in your room, and what isn't.
                     </p>
                     <Link 
                       href="/upgrade" 
@@ -177,7 +146,7 @@ export default function RoomAudit() {
                <div className="flex justify-center mb-6">
                  <div className="inline-flex bg-[#000]/40 rounded-full p-1 border border-[#c9ccbb]/10">
                    {rooms.map(room => (
-                     <button key={room} onClick={() => setSelectedRoom(room)} disabled={!isSubscribed}
+                     <button key={room} onClick={() => setSelectedRoom(room)} disabled={!hasAccess}
                        className={`px-3 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest ${selectedRoom === room ? 'bg-[#b5a642] text-[#1b270e]' : 'text-[#c9ccbb]/40'}`}>
                        {room}
                      </button>
@@ -185,11 +154,11 @@ export default function RoomAudit() {
                  </div>
                </div>
 
-               <div onClick={() => isSubscribed && fileInputRef.current?.click()}
+               <div onClick={() => hasAccess && fileInputRef.current?.click()}
                  className={`w-full aspect-square rounded-2xl border-2 border-dashed flex flex-col items-center justify-center relative overflow-hidden cursor-pointer transition-all
                  ${previewUrl ? 'border-[#b5a642] bg-black' : 'border-[#c9ccbb]/20 hover:border-[#b5a642]/50'}`}>
                  
-                 <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept="image/*" className="hidden" disabled={!isSubscribed} />
+                 <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept="image/*" className="hidden" disabled={!hasAccess} />
                  
                  {previewUrl ? (
                    <img src={previewUrl} alt="Preview" className="absolute inset-0 w-full h-full object-cover opacity-60" />
@@ -201,7 +170,7 @@ export default function RoomAudit() {
                  )}
                </div>
 
-               {/* 🟢 NEW: OPTIONAL LUX INPUT */}
+               {/* LUX INPUT */}
                <div className="mt-6">
                  <label className="flex items-center gap-2 text-[#c9ccbb]/60 text-[10px] font-bold uppercase tracking-widest mb-2">
                     <Zap size={12} className="text-[#b5a642]" /> Add Light Meter Reading (Optional)
@@ -212,7 +181,7 @@ export default function RoomAudit() {
                         value={manualLux}
                         onChange={(e) => setManualLux(e.target.value)}
                         placeholder="e.g. 350"
-                        disabled={!isSubscribed}
+                        disabled={!hasAccess}
                         className="w-full bg-[#1b270e] border border-[#c9ccbb]/20 rounded-xl px-4 py-3 text-[#c9ccbb] text-sm focus:outline-none focus:border-[#b5a642] placeholder:text-[#c9ccbb]/20 disabled:opacity-50"
                     />
                     <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#c9ccbb]/30 text-[10px] font-bold">LUX</span>
@@ -220,15 +189,15 @@ export default function RoomAudit() {
                </div>
 
                <div className="mt-6 flex justify-center">
-                 <button onClick={handleUpload} disabled={!file || status === 'analyzing' || !isSubscribed}
+                 <button onClick={handleUpload} disabled={!file || status === 'analyzing' || !hasAccess}
                    className={`px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-widest flex items-center gap-2 transition-all
                    ${!file ? 'bg-[#c9ccbb]/10 text-[#c9ccbb]/20' : 'bg-[#b5a642] text-[#1b270e] hover:bg-[#d4c55e]'}`}>
-                   {status === 'analyzing' ? <><Loader2 size={14} className="animate-spin" /> Analyzing</> : <>Run Diagnosis <Brain size={14} /></>}
+                   {status === 'analyzing' ? <><Loader2 size={14} className="animate-spin" /> Analysing</> : <>Run Diagnosis <Brain size={14} /></>}
                  </button>
                </div>
             </div>
 
-            {/* RIGHT: RESULTS AREA (Reveals after analysis) */}
+            {/* RIGHT: RESULTS AREA */}
             <div className="relative">
                 {status === 'success' && result ? (
                     <div className="glass-panel p-8 rounded-3xl border border-[#b5a642]/30 bg-[#1b270e] animate-fade-in-up">
@@ -267,7 +236,7 @@ export default function RoomAudit() {
                         {/* PRESCRIPTIONS */}
                         <div>
                             <h4 className="text-[#b5a642] text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
-                                <Lightbulb size={14} /> Recommended Rituals
+                                <Lightbulb size={14} /> Recommended Actions
                             </h4>
                             <ul className="space-y-3">
                                 {result.prescriptions.map((item: string, i: number) => (
