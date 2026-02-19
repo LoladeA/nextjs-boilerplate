@@ -196,15 +196,15 @@ export default function NeuroFlashcard({ isPremium = false, scores }: Props) {
                     </div>
                     
                     <div>
-                        <h4 className="text-lg text-[#c9ccbb] font-serif mb-2">Protocol Locked</h4>
+                        <h4 className="text-lg text-[#c9ccbb] font-serif mb-2">Members Already Feel the Difference</h4>
                         <p className="text-sm text-[#c9ccbb]/60 max-w-[200px] mx-auto">
-                           Unlock the <strong>{currentCard.paid.protocol}</strong> to resolve this issue.
+                           Translate the <strong>{currentCard.paid.protocol}</strong> into actionable strategies.
                         </p>
                     </div>
 
                     <Link href="/upgrade" className="w-full max-w-[200px]">
                       <button className="w-full py-3 bg-[#c9ccbb] text-[#1b270e] text-xs font-bold uppercase tracking-widest rounded-full hover:bg-[#fff] transition-all transform hover:scale-105 shadow-lg shadow-[#c9ccbb]/10">
-                        Unlock Now
+                        Upgrade to Foundation
                       </button>
                     </Link>
                   </div>
