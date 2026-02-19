@@ -91,7 +91,14 @@ export default function AssessmentStep1() {
         ))}
       </div>
 
-      <div className="mt-12 flex justify-end">
+      <div className="mt-12 flex justify-between items-center">
+        <button 
+          onClick={handleSaveExit}
+          className="flex items-center gap-2 px-6 py-4 text-[#c9ccbb]/60 hover:text-[#c9ccbb] transition-colors text-sm font-medium"
+        >
+          <Save size={16} /> Save & Return Later
+        </button>
+
         <button 
           onClick={handleNext}
           // 🟢 THE FIX: Disable if they haven't answered all questions
