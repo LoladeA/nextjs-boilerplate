@@ -110,8 +110,13 @@ export default function AssessmentStep3() {
 
         <button 
           onClick={handleNext}
-          disabled={loading}
-          className="flex items-center gap-2 px-8 py-4 bg-[#b5a642] text-[#1b270e] font-bold rounded-xl hover:bg-[#d4c55e] transition-all disabled:opacity-50"
+          // 🟢 THE FIX: Disable if they haven't answered all questions
+          disabled={loading || Object.keys(responses).length < part.questions.length}
+          className={`flex items-center gap-2 px-8 py-4 font-bold rounded-xl transition-all ${
+            Object.keys(responses).length === part.questions.length && !loading
+              ? 'bg-[#b5a642] text-[#1b270e] hover:bg-white shadow-lg shadow-[#b5a642]/20' 
+              : 'bg-[#c9ccbb]/10 text-[#c9ccbb]/30 cursor-not-allowed'
+          }`}
         >
           {loading ? 'Saving...' : <>Next Part <ArrowRight size={20} /></>}
         </button>
