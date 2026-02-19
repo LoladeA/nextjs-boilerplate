@@ -44,6 +44,24 @@ export default async function AssessmentReport() {
   // 3. RUN CALCULATION
   // =========================================================
 
+  // 🟢 THE PLG SHIELD: Prevent server crash if data hasn't synced yet
+  if (safeResponses.length === 0) {
+    return (
+      <div className="min-h-screen bg-[#1b270e] flex flex-col items-center justify-center p-6 text-center font-sans">
+        <Activity className="text-[#b5a642] animate-pulse mb-6" size={48} />
+        <h1 className="text-3xl font-serif text-[#c9ccbb] mb-3">Calibrating Report...</h1>
+        <p className="text-[#c9ccbb]/70 text-sm max-w-md mx-auto mb-8">
+          Your sensory data is currently synchronising. Please return to the dashboard to complete the baseline calibration.
+        </p>
+        <Link href="/dashboard">
+           <button className="px-8 py-3 bg-[#b5a642] text-[#1b270e] font-bold text-sm uppercase tracking-widest rounded-xl hover:bg-white transition-all">
+              Return to Dashboard
+           </button>
+        </Link>
+      </div>
+    )
+  }
+
   const engineInput = safeResponses.map((r: any) => ({
     question_key: r.question_key,
     answer: { response: r.answer_value }
