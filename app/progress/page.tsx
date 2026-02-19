@@ -2,7 +2,7 @@
 
 import Sidebar from '../components/Sidebar'
 import { useState, useEffect } from 'react'
-import { Heart, Wind, Sun, Volume2, CheckCircle, TrendingUp, Activity, AlertCircle, Zap, ShieldAlert, Loader2, Moon, Sunrise, Brain } from 'lucide-react'
+import { Heart, Wind, Sun, Volume2, CheckCircle, TrendingUp, Activity, AlertCircle, Zap, ShieldAlert, Loader2, Moon, Sunrise, Brain, Fingerprint } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
@@ -22,7 +22,7 @@ export default function Progress() {
   const [luxScore, setLuxScore] = useState<string>('') 
   const [dbScore, setDbScore] = useState<string>('')
 
-  // 🟢 NEW BIO-METRICS (Default to 0 so they don't crash if empty)
+  // BIO-METRICS
   const [focusScore, setFocusScore] = useState<number>(0)
   const [tensionScore, setTensionScore] = useState<number>(0)
   const [wakeScore, setWakeScore] = useState<number>(0)
@@ -42,6 +42,93 @@ export default function Progress() {
     const hour = new Date().getHours()
     if (hour >= 17) setActiveTab('evening')
   }, [])
+
+  // --- 🟢 UPGRADED FEEDBACK ENGINE LOGIC ---
+  
+  // 1. Immediate Morning Feedback (Reframe & Direction Format)
+  const getMorningFeedback = () => {
+    if (tensionScore >= 7 && wakeScore >= 3) return {
+      title: "The System Was Working Through the Night",
+      reframe: "What you felt on waking is not a failure of sleep. It is the trace of active biological labour. Your nervous system was processing accumulated daytime load, navigating hormonal cycles, or responding to sensory intrusion that your sleeping environment did not adequately support or absorb. Your body did what it was designed to do. The environment did not hold it.",
+      direction: "The priority is your sleep envelope: absolute darkness, a stable ambient temperature, a robust pre-sleep routine and organic breathable sleepwear that removes thermoregulatory friction from the recovery equation. Reduce what the system has to manage at 2am, and it will spend that energy on restoration instead."
+    }
+    if (tensionScore >= 7) return {
+      title: "You Slept Through, But Your Body Was Bracing Itself",
+      reframe: "Continuous sleep is not the same as restorative sleep. When muscular tension persists through the night, it indicates the nervous system remained in a low-grade protective state: bracing against residual stress, uncomfortable materials, inadequate sleep support or acoustic intrusion that never fully resolved. You rested. You did not recover.",
+      direction: "Work backwards from the source: unresolved physical tension before bed, the acoustic quality of your sleep environment, and the materials you are sleeping on and in. Each is a variable within your control."
+    }
+    if (wakeScore >= 3) return {
+      title: "Interrupted Sleep Is Often an Environmental Signal",
+      reframe: "Waking through the night — particularly if re-entry is relatively easy — is less often a sign of dysregulation than a sign of thermoregulatory shift. Night sweats, hormonal fluctuations, or subtle changes in ambient temperature are among the most common and most overlooked disruptors. Your nervous system is not the problem. Its environment may not be matching its needs.",
+      direction: "Focus on the recovery envelope: breathable organic sleepwear, a cooler ambient temperature, and complete darkness. These three variables together reduce the physiological triggers that pull the system up from deep sleep."
+    }
+    return {
+      title: "Environment Held. System Restored",
+      reframe: "This is what successful environmental design produces: a night in which your nervous system was not required to manage, defend, or compensate. It simply recovered. That distinction matters: a regulated morning is not luck. It is the result of an environment that absorbed your physical needs and returned you to capacity.",
+      direction: "Maintain what is working. Your sensory boundaries, thermal ecology, and evening wind-down pattern are functioning as an eco-system. The task now is to protect them, particularly during periods of higher stress, when the temptation to compromise the environment increases."
+    }
+  }
+
+  // 2. Immediate Evening Feedback (Reframe & Direction Format)
+  const getEveningFeedback = () => {
+    if (focusScore >= 8) return {
+      title: "High Cognitive Output Requires Deliberate Recovery",
+      reframe: "Extended time in high-beta execution mode — sustained focus, decision-making, problem-solving — is a central nervous system stressor in the same category as physical exertion. The day was productive. The nervous system is now carrying that cost. Recovery is not optional tonight; it is proportional to output.",
+      direction: "Tonight's environment must match today's demand. Transition strictly to warm, low-level lighting. This is not aesthetic preference but a direct instruction to your melatonin pathway. Protect your wind down routine after work with the same intentionality you protect your peak focus window."
+    }
+    if (focusScore >= 4) return {
+      title: "Output Was Balanced. Protect the Transition",
+      reframe: "A sustainable ratio of deep work to recovery indicates your environment was supporting your capacity rather than extracting from it. That balance reflects an alignment between your energy curve and your spatial conditions. Your nervous system is not depleted, but transitions matter: how the evening begins determines whether that capacity is replenished or quietly eroded overnight.",
+      direction: "Step out of optimisation mode with a deliberate act, not a gradual drift. One small environmental reset, such as clearing the first surface you will see tomorrow morning or closing the workshop moving away from your work zone, signals to the nervous system that the day has ended and the recovery cycle has begun."
+    }
+    return {
+      title: "Low Output Is an Environmental Symptom, Not a Personal One",
+      reframe: "When capacity feels constrained despite effort, the instinct is to attribute it to discipline or motivation. That is rarely the case. Constrained cognitive output is most often the product of environmental friction such as visual noise, interruption patterns, inadequate lighting, or a space that does not signal focus clearly enough for the brain to enter and sustain it. The environment set the conditions. You responded to them.",
+      direction: "Do not attempt to recover through effort tonight. Instead, remove friction: evaluate the visual noise in your primary spaces, identify what broke your attention during the day, and approach this evening as architectural decompression, the deliberate restoration of the conditions capacity requires."
+    }
+  }
+
+  // 3. The 14-Day Macro Synthesis
+  const getMacroSynthesis = () => {
+    if (chartLogs.length < 14) {
+      return {
+        ready: false,
+        daysLeft: 14 - chartLogs.length,
+        title: "System Calibrating",
+        text: `Log ${14 - chartLogs.length} more days to generate your biological rhythm synthesis. The engine requires a complete cycle to identify environmental friction patterns.`
+      }
+    }
+
+    // Calculate Averages for the last 14 days
+    const avgMood = chartLogs.reduce((acc, log) => acc + log.mood, 0) / 14
+    const avgTension = chartLogs.reduce((acc, log) => acc + log.tension, 0) / 14
+    const avgFocus = chartLogs.reduce((acc, log) => acc + log.focus, 0) / 14
+
+    if (avgTension >= 6 && avgFocus <= 4) return {
+        ready: true,
+        title: "The Environment Is Spending Your Capacity Before You Do",
+        text: "Across the last fourteen days, your somatic cost has remained consistently elevated while cognitive output has stayed constrained. This is a recognisable pattern: the nervous system is absorbing chronic environmental friction: sensory noise, thermal disruption, accumulated overnight load, and arriving at each day already depleted. The output you are generating is happening against resistance, not from reserves. This pattern resolves when the environmental source of the drain is identified and reduced. The two most probable contributors are your sleep ecology and the sensory load of your primary daytime spaces. Both are addressable."
+    }
+    if (avgFocus >= 6 && avgMood <= 2.5) return {
+        ready: true,
+        title: "High Output, Borrowed Cost",
+        text: "Fourteen days of sustained cognitive output alongside consistently low mood regulation carries a specific signature: the nervous system is maintaining performance by drawing on sympathetic activation rather than restorative capacity. This is a viable strategy in the short term. Over time, it erodes the very reserves it is borrowing from. What this pattern is asking for is not less work. It needs clear boundary between your work and rest zones, and a firm evening wind down routine. Your rhythm needs a floor, not a ceiling."
+    }
+    if (avgMood >= 4 && avgTension <= 3) return {
+        ready: true,
+        title: "Fourteen Days of Regulated Ground",
+        text: "Across the board, your somatic tension has remained low and your mood regulation consistently high. This is the result of an environment that is doing its job: absorbing daily load, supporting overnight recovery, and returning you to capacity. What this data confirms is that your current environmental conditions are not accidental. Your sensory boundaries, thermal ecology, and recovery architecture are functioning as a coherent system. The task now is to understand what is working precisely enough to protect it, particularly during elevated stress periods, travel, or seasonal change."
+    }
+    return {
+        ready: true,
+        title: "High Variance. No Stable Floor Yet",
+        text: "The last fourteen days show fluctuation across mood, tension, and focus. Before locating the source of that variance in your environment, it is worth naming something the data cannot distinguish: not all fluctuation is environmental. Hormonal shifts, perimenopause, periods of high relational or emotional demand produce real, measurable changes in energy, sleep quality, focus, and somatic load. Your body doing precisely what it is designed to do under particular biological conditions. The appropriate response to those phases is not optimisation. It is accommodation. If your variance aligns with a cyclical or biological pattern, the role of your environment is to reduce the additional friction layered on top of it, so the body can move through its natural rhythm without also managing an environment that is working against it. If unrelated to cyclical patterns, then the environmental baseline such as sleep ecology, morning sensory sequence, thermal consistency, is worth examining as a stabilising factor."
+    }
+  }
+
+  const morningInsight = getMorningFeedback()
+  const eveningInsight = getEveningFeedback()
+  const macroSynthesis = getMacroSynthesis()
 
   // 1. MOOD SCALES
   const moods = [
@@ -77,7 +164,7 @@ export default function Progress() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    const today = new Date().toLocaleDateString('en-CA') // Local Time Fix 
+    const today = new Date().toLocaleDateString('en-CA') 
     
     const { data } = await supabase
       .from('daily_logs')
@@ -87,15 +174,12 @@ export default function Progress() {
       .single()
 
     if (data) {
-      // Restore existing data
       setMorningMood(data.mood_score)
       setMorningTags(data.tags || [])
       setMorningNote(data.note || '')
       if (data.lux_score) setLuxScore(data.lux_score.toString())
       if (data.db_score) setDbScore(data.db_score.toString())
 
-      // 🟢 RESTORE NEW METRICS
-      // We check if they exist, otherwise default to 0
       if (data.focus_hours) setFocusScore(data.focus_hours)
       if (data.morning_tension) setTensionScore(data.morning_tension)
       if (data.sleep_wakes) setWakeScore(data.sleep_wakes)
@@ -110,8 +194,6 @@ export default function Progress() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    // 🟢 FETCH NEW FIELDS FOR GRAPH
-    // We explicitly ask for the new columns here
     const { data } = await supabase
       .from('daily_logs')
       .select('date, mood_score, focus_hours, morning_tension, sleep_wakes') 
@@ -120,7 +202,6 @@ export default function Progress() {
       .limit(14) 
 
     if (data) {
-        // Format for CorrelationGraph
         const formatted = data.map((log: any) => ({
             date: new Date(log.date).toLocaleDateString('en-US', { weekday: 'short' }),
             mood: log.mood_score || 0,        
@@ -132,7 +213,6 @@ export default function Progress() {
     }
   }
 
-  // --- SAVE HANDLER ---
   const toggleTag = (id: string) => {
     if (activeTab === 'morning') {
         setMorningTags(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
@@ -154,19 +234,14 @@ export default function Progress() {
         const payload = {
             user_id: user.id,
             date: today,
-            // Morning Fields
             mood_score: morningMood,
             tags: morningTags,
             note: morningNote,
             lux_score: luxScore ? parseInt(luxScore) : null,
             db_score: dbScore ? parseInt(dbScore) : null,
-            
-            // 🟢 NEW BIO FIELDS (The sliders)
             focus_hours: focusScore,
             morning_tension: tensionScore,
             sleep_wakes: wakeScore,
-            
-            // Evening Fields
             evening_mood_score: eveningMood,
             evening_tags: eveningTags,
             evening_note: eveningNote
@@ -189,7 +264,6 @@ export default function Progress() {
     }
   }
 
-  // Helper vars
   const currentMood = activeTab === 'morning' ? morningMood : eveningMood
   const setCurrentMood = activeTab === 'morning' ? setMorningMood : setEveningMood
   const currentTags = activeTab === 'morning' ? morningTags : eveningTags
@@ -273,9 +347,8 @@ export default function Progress() {
                     <label className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-6 block flex items-center gap-2">
                         <Activity size={12} /> Somatic Baseline
                     </label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
                         
-                        {/* TENSION */}
                         <div>
                             <div className="flex justify-between mb-2">
                                 <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb]">
@@ -292,7 +365,6 @@ export default function Progress() {
                             />
                         </div>
 
-                        {/* WAKES */}
                         <div>
                             <div className="flex justify-between mb-2">
                                 <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb]">
@@ -307,6 +379,18 @@ export default function Progress() {
                             <p className="text-[#c9ccbb]/40 text-[10px] mb-3">Sleep interruptions.</p>
                         </div>
                     </div>
+
+                    {/* 🟢 DYNAMIC MORNING MIRROR */}
+                    {(tensionScore > 0 || wakeScore > 0) && (
+                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-6 p-4 bg-[#1b270e] border-l-2 border-[#b5a642] rounded-r-xl">
+                            <span className="text-[#b5a642] text-[10px] uppercase font-bold tracking-widest block mb-1">
+                                {morningInsight.title}
+                            </span>
+                            <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
+                                {morningInsight.text}
+                            </p>
+                        </motion.div>
+                    )}
                 </div>
             )}
 
@@ -316,9 +400,7 @@ export default function Progress() {
                     <label className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-6 block flex items-center gap-2">
                         <Brain size={12} /> Cognitive Output
                     </label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        
-                        {/* DEEP WORK (Focus) */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
                         <div>
                             <div className="flex justify-between mb-2">
                                 <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb]">
@@ -335,6 +417,18 @@ export default function Progress() {
                             />
                         </div>
                     </div>
+
+                    {/* 🟢 DYNAMIC EVENING MIRROR */}
+                    {focusScore > 0 && (
+                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-6 p-4 bg-[#1b270e] border-l-2 border-[#b5a642] rounded-r-xl">
+                            <span className="text-[#b5a642] text-[10px] uppercase font-bold tracking-widest block mb-1">
+                                {eveningInsight.title}
+                            </span>
+                            <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
+                                {eveningInsight.text}
+                            </p>
+                        </motion.div>
+                    )}
                 </div>
             )}
 
@@ -428,7 +522,33 @@ export default function Progress() {
             </div>
           </div>
 
-          {/* --- 🟢 UPGRADED CHART SECTION (The Swap) --- */}
+          {/* --- 🟢 14-DAY MACRO SYNTHESIS --- */}
+          <div className="glass-panel p-6 rounded-3xl mb-8 border border-[#b5a642]/20 relative overflow-hidden bg-gradient-to-r from-[#b5a642]/10 to-transparent">
+             <div className="flex items-start gap-4 relative z-10">
+                 <div className="p-3 bg-[#b5a642]/20 rounded-full text-[#b5a642] mt-1">
+                     <Fingerprint size={20} />
+                 </div>
+                 <div>
+                     <span className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-1 block">14-Day Rhythm Synthesis</span>
+                     <h4 className="text-lg font-serif text-[#c9ccbb] mb-2">{macroSynthesis.title}</h4>
+                     <p className="text-sm text-[#c9ccbb]/80 leading-relaxed max-w-2xl">
+                         {macroSynthesis.text}
+                     </p>
+                     
+                     {/* Progress Bar for Calibration */}
+                     {!macroSynthesis.ready && (
+                        <div className="w-full max-w-md h-1 bg-[#000]/50 rounded-full mt-4 overflow-hidden">
+                            <div 
+                                className="h-full bg-[#b5a642] transition-all duration-1000" 
+                                style={{ width: `${(chartLogs.length / 14) * 100}%` }}
+                            />
+                        </div>
+                     )}
+                 </div>
+             </div>
+          </div>
+
+          {/* --- UPGRADED CHART SECTION --- */}
           <div className="animate-fade-in-up delay-100 mb-12">
               <div className="flex justify-between items-end mb-6">
                 <div>
