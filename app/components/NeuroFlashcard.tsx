@@ -63,11 +63,11 @@ export default function NeuroFlashcard({ isPremium = false, scores }: Props) {
     <div className="h-full flex flex-col">
       {/* HEADER */}
       <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center gap-2">
-           <Brain className="text-[#b5a642]" size={20} />
-           <h3 className="text-[#c9ccbb] font-serif text-lg">
-             {hasAccess ? "NeuroDesign Spec" : "Somatic Insight"}
-           </h3>
+         <div className="flex items-center gap-2">
+            <Brain className="text-[#b5a642]" size={20} />
+            <h3 className="text-[#c9ccbb] font-serif text-lg">
+              Neuro Somatic Insights
+            </h3>
         </div>
         <button 
           onClick={nextCard} 
