@@ -2,10 +2,10 @@
 
 import Sidebar from '../components/Sidebar'
 import { useState, useEffect } from 'react'
-// 🟢 Added ChevronDown for the accordion toggle
-import { Heart, Wind, Sun, Volume2, CheckCircle, TrendingUp, Activity, AlertCircle, Zap, ShieldAlert, Loader2, Moon, Sunrise, Brain, Fingerprint, ChevronDown } from 'lucide-react'
+import { Heart, Wind, Sun, Volume2, CheckCircle, TrendingUp, Activity, AlertCircle, Zap, ShieldAlert, Loader2, Moon, Sunrise, Brain, Fingerprint, ChevronDown, Lock } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import Link from 'next/link'
 
 // 🟢 THE UPGRADE: We import CorrelationGraph instead of DashboardPulse for this page only
 import CorrelationGraph from './CorrelationGraph'
@@ -15,6 +15,10 @@ export default function Progress() {
   
   // TABS: MORNING vs EVENING
   const [activeTab, setActiveTab] = useState<'morning' | 'evening'>('morning')
+
+  // --- ACCESS CONTROL ---
+  const [isPremium, setIsPremium] = useState(false)
+  const [godMode, setGodMode] = useState(false)
 
   // --- LOGGING STATE ---
   const [morningMood, setMorningMood] = useState<number | null>(null)
@@ -35,7 +39,7 @@ export default function Progress() {
   const [status, setStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState('')
 
-  // 🟢 ACCORDION STATES
+  // ACCORDION STATES
   const [isMorningOpen, setIsMorningOpen] = useState(false)
   const [isEveningOpen, setIsEveningOpen] = useState(false)
   
@@ -47,6 +51,24 @@ export default function Progress() {
     const hour = new Date().getHours()
     if (hour >= 17) setActiveTab('evening')
   }, [])
+
+  // --- INITIAL DATA FETCH & AUTH ---
+  useEffect(() => {
+    checkAccess()
+    fetchTodayLog()
+    fetchHistory()
+  }, [])
+
+  const checkAccess = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    // 👑 God Mode bypass for you
+    if (user?.email === 'christchilde@gmail.com') {
+      setGodMode(true)
+    }
+    // Future logic: Check user metadata for premium stripe status here
+  }
+
+  const hasAccess = isPremium || godMode
 
   // --- 🟢 UPGRADED FEEDBACK ENGINE LOGIC ---
   
@@ -158,12 +180,6 @@ export default function Progress() {
     { id: 'acoustic_seal', label: 'Using Sound-Softening Barriers (Curtains, Doors & Mechanical Noise)', icon: <Volume2 size={14} /> },
     { id: 'tactile_enclosure', label: 'Using Gentle Weight & Soft Textures for Sleep', icon: <Heart size={14} /> },
   ]
-
-  // --- INITIAL DATA FETCH ---
-  useEffect(() => {
-    fetchTodayLog()
-    fetchHistory()
-  }, [])
 
   const fetchTodayLog = async () => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -381,11 +397,11 @@ export default function Progress() {
                                     <button onClick={() => setWakeScore(wakeScore + 1)} className="text-[#c9ccbb] hover:text-[#b5a642]">+</button>
                                 </div>
                             </div>
-                            <p className="text-[#c9ccbb]/40 text-[10px] mb-3">Sleep interruptions influenced by internal & external factors.</p>
+                            <p className="text-[#c9ccbb]/40 text-[10px] mb-3">Sleep interruptions.</p>
                         </div>
                     </div>
 
-                    {/* 🟢 DYNAMIC MORNING MIRROR ACCORDION */}
+                    {/* 🟢 DYNAMIC MORNING MIRROR ACCORDION (WITH PAYWALL) */}
                     {(tensionScore > 0 || wakeScore > 0) && (
                         <div className="mt-6 bg-[#1b270e] border-l-2 border-[#b5a642] rounded-r-xl overflow-hidden shadow-md">
                             <button 
@@ -406,19 +422,46 @@ export default function Progress() {
                                         animate={{ height: "auto", opacity: 1 }} 
                                         exit={{ height: 0, opacity: 0 }}
                                         transition={{ duration: 0.3, ease: "easeInOut" }}
-                                        className="overflow-hidden"
+                                        className="overflow-hidden relative"
                                     >
-                                        <div className="p-4 pt-0 space-y-3">
-                                            <div className="w-full h-px bg-[#b5a642]/10 mb-4" />
-                                            <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
-                                                <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Reframe:</strong> 
-                                                {morningInsight.reframe}
-                                            </p>
-                                            <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
-                                                <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Direction:</strong> 
-                                                {morningInsight.direction}
-                                            </p>
-                                        </div>
+                                        {hasAccess ? (
+                                            // PREMIUM / GOD MODE VIEW
+                                            <div className="p-4 pt-0 space-y-3">
+                                                <div className="w-full h-px bg-[#b5a642]/10 mb-4" />
+                                                <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
+                                                    <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Reframe:</strong> 
+                                                    {morningInsight.reframe}
+                                                </p>
+                                                <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
+                                                    <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Direction:</strong> 
+                                                    {morningInsight.direction}
+                                                </p>
+                                            </div>
+                                        ) : (
+                                            // BLURRED LOCK VIEW FOR FREE USERS
+                                            <div className="relative p-4 pt-0">
+                                                <div className="w-full h-px bg-[#b5a642]/10 mb-4" />
+                                                <div className="filter blur-[3px] opacity-30 select-none space-y-3 pointer-events-none">
+                                                    <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
+                                                        <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Reframe:</strong> 
+                                                        Waking through the night is less often a sign of dysregulation than a sign of thermoregulatory shift. Your environment may not be matching its needs.
+                                                    </p>
+                                                    <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
+                                                        <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Direction:</strong> 
+                                                        Focus on the recovery envelope: breathable organic sleepwear, a cooler ambient temperature, and complete darkness.
+                                                    </p>
+                                                </div>
+                                                <div className="absolute inset-0 flex flex-col items-center justify-center z-10 p-4">
+                                                    <Lock size={16} className="text-[#b5a642] mb-2" />
+                                                    <span className="text-[10px] font-bold text-[#c9ccbb] uppercase tracking-widest mb-3 text-center">Unlock Somatic Reframes</span>
+                                                    <Link href="/upgrade">
+                                                        <button className="px-6 py-2 bg-[#b5a642] text-[#1b270e] text-[10px] font-bold uppercase tracking-widest rounded-full hover:bg-white transition-all">
+                                                            Upgrade
+                                                        </button>
+                                                    </Link>
+                                                </div>
+                                            </div>
+                                        )}
                                     </motion.div>
                                 )}
                             </AnimatePresence>
@@ -451,7 +494,7 @@ export default function Progress() {
                         </div>
                     </div>
 
-                    {/* 🟢 DYNAMIC EVENING MIRROR ACCORDION */}
+                    {/* 🟢 DYNAMIC EVENING MIRROR ACCORDION (WITH PAYWALL) */}
                     {focusScore > 0 && (
                         <div className="mt-6 bg-[#1b270e] border-l-2 border-[#b5a642] rounded-r-xl overflow-hidden shadow-md">
                             <button 
@@ -472,19 +515,46 @@ export default function Progress() {
                                         animate={{ height: "auto", opacity: 1 }} 
                                         exit={{ height: 0, opacity: 0 }}
                                         transition={{ duration: 0.3, ease: "easeInOut" }}
-                                        className="overflow-hidden"
+                                        className="overflow-hidden relative"
                                     >
-                                        <div className="p-4 pt-0 space-y-3">
-                                            <div className="w-full h-px bg-[#b5a642]/10 mb-4" />
-                                            <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
-                                                <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Reframe:</strong> 
-                                                {eveningInsight.reframe}
-                                            </p>
-                                            <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
-                                                <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Direction:</strong> 
-                                                {eveningInsight.direction}
-                                            </p>
-                                        </div>
+                                        {hasAccess ? (
+                                            // PREMIUM / GOD MODE VIEW
+                                            <div className="p-4 pt-0 space-y-3">
+                                                <div className="w-full h-px bg-[#b5a642]/10 mb-4" />
+                                                <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
+                                                    <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Reframe:</strong> 
+                                                    {eveningInsight.reframe}
+                                                </p>
+                                                <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
+                                                    <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Direction:</strong> 
+                                                    {eveningInsight.direction}
+                                                </p>
+                                            </div>
+                                        ) : (
+                                            // BLURRED LOCK VIEW FOR FREE USERS
+                                            <div className="relative p-4 pt-0">
+                                                <div className="w-full h-px bg-[#b5a642]/10 mb-4" />
+                                                <div className="filter blur-[3px] opacity-30 select-none space-y-3 pointer-events-none">
+                                                    <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
+                                                        <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Reframe:</strong> 
+                                                        Extended time in high-beta execution mode is a central nervous system stressor. The day was productive.
+                                                    </p>
+                                                    <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
+                                                        <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Direction:</strong> 
+                                                        Tonight's environment must match today's demand. Transition strictly to warm, low-level lighting.
+                                                    </p>
+                                                </div>
+                                                <div className="absolute inset-0 flex flex-col items-center justify-center z-10 p-4">
+                                                    <Lock size={16} className="text-[#b5a642] mb-2" />
+                                                    <span className="text-[10px] font-bold text-[#c9ccbb] uppercase tracking-widest mb-3 text-center">Unlock Somatic Reframes</span>
+                                                    <Link href="/upgrade">
+                                                        <button className="px-6 py-2 bg-[#b5a642] text-[#1b270e] text-[10px] font-bold uppercase tracking-widest rounded-full hover:bg-white transition-all">
+                                                            Upgrade
+                                                        </button>
+                                                    </Link>
+                                                </div>
+                                            </div>
+                                        )}
                                     </motion.div>
                                 )}
                             </AnimatePresence>
@@ -583,26 +653,55 @@ export default function Progress() {
             </div>
           </div>
 
-          {/* --- 🟢 14-DAY MACRO SYNTHESIS --- */}
-          <div className="glass-panel p-6 rounded-3xl mb-8 border border-[#b5a642]/20 relative overflow-hidden bg-gradient-to-r from-[#b5a642]/10 to-transparent">
-             <div className="flex items-start gap-4 relative z-10">
-                 <div className="p-3 bg-[#b5a642]/20 rounded-full text-[#b5a642] mt-1">
-                     <Fingerprint size={20} />
+          {/* --- 🟢 14-DAY MACRO SYNTHESIS (WITH HARD PAYWALL) --- */}
+          <div className={`glass-panel p-6 rounded-3xl mb-8 border relative overflow-hidden transition-all ${!macroSynthesis.ready || hasAccess ? 'bg-gradient-to-r from-[#b5a642]/10 to-transparent border-[#b5a642]/20' : 'bg-[#b5a642]/10 border-[#b5a642]/40 shadow-lg shadow-[#b5a642]/5'}`}>
+             <div className="flex flex-col md:flex-row items-start md:items-center gap-4 relative z-10">
+                 
+                 {/* Icon */}
+                 <div className="p-3 bg-[#b5a642]/20 rounded-full text-[#b5a642] shrink-0">
+                     {macroSynthesis.ready && !hasAccess ? <Lock size={20} /> : <Fingerprint size={20} />}
                  </div>
-                 <div>
-                     <span className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-1 block">14-Day Rhythm Synthesis</span>
-                     <h4 className="text-lg font-serif text-[#c9ccbb] mb-2">{macroSynthesis.title}</h4>
-                     <p className="text-sm text-[#c9ccbb]/80 leading-relaxed max-w-2xl">
-                         {macroSynthesis.text}
-                     </p>
-                     
-                     {/* Progress Bar for Calibration */}
-                     {!macroSynthesis.ready && (
-                        <div className="w-full max-w-md h-1 bg-[#000]/50 rounded-full mt-4 overflow-hidden">
-                            <div 
-                                className="h-full bg-[#b5a642] transition-all duration-1000" 
-                                style={{ width: `${(chartLogs.length / 14) * 100}%` }}
-                            />
+                 
+                 <div className="flex-1 w-full">
+                     {!macroSynthesis.ready ? (
+                        // STATE 1: CALIBRATING (Free & Premium see this)
+                        <>
+                            <span className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-1 block">14-Day Rhythm Synthesis</span>
+                            <h4 className="text-lg font-serif text-[#c9ccbb] mb-2">{macroSynthesis.title}</h4>
+                            <p className="text-sm text-[#c9ccbb]/80 leading-relaxed max-w-2xl">
+                                {macroSynthesis.text}
+                            </p>
+                            <div className="w-full max-w-md h-1 bg-[#000]/50 rounded-full mt-4 overflow-hidden">
+                                <div 
+                                    className="h-full bg-[#b5a642] transition-all duration-1000" 
+                                    style={{ width: `${(chartLogs.length / 14) * 100}%` }}
+                                />
+                            </div>
+                        </>
+                     ) : hasAccess ? (
+                        // STATE 2: UNLOCKED (Premium / God Mode only)
+                        <>
+                            <span className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-1 block">14-Day Rhythm Synthesis</span>
+                            <h4 className="text-lg font-serif text-[#c9ccbb] mb-2">{macroSynthesis.title}</h4>
+                            <p className="text-sm text-[#c9ccbb]/80 leading-relaxed max-w-2xl">
+                                {macroSynthesis.text}
+                            </p>
+                        </>
+                     ) : (
+                        // STATE 3: LOCKED CTA (Free user hits Day 14)
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 w-full">
+                            <div>
+                                <span className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-1 block">Calibration Complete</span>
+                                <h4 className="text-xl font-serif text-[#c9ccbb] mb-2">Unlock Your Macro Synthesis</h4>
+                                <p className="text-sm text-[#c9ccbb]/80 leading-relaxed max-w-xl">
+                                    14 days of bio-spatial data successfully collected. The algorithm has identified your environmental friction patterns. Upgrade to reveal your biological rhythm signature.
+                                </p>
+                            </div>
+                            <Link href="/upgrade" className="shrink-0 w-full md:w-auto">
+                                <button className="w-full md:w-auto px-8 py-3 bg-[#b5a642] text-[#1b270e] text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-white transition-all shadow-lg shadow-[#b5a642]/20">
+                                    Unlock Report
+                                </button>
+                            </Link>
                         </div>
                      )}
                  </div>
