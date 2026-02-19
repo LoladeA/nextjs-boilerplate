@@ -3,9 +3,9 @@
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Save } from 'lucide-react' // 🟢 ADDED: Save icon import
 import { assessmentProtocol } from '../../data/assessment-protocol'
-import { saveGuestAnswer } from '../../utils/guest-storage' // <--- IMPORT GUEST UTILITY
+import { saveGuestAnswer } from '../../utils/guest-storage' 
 
 export default function AssessmentStep1() {
   const part = assessmentProtocol.part1
@@ -37,6 +37,26 @@ export default function AssessmentStep1() {
 
     // 3. ALWAYS NAVIGATE (Do not block guests)
     router.push('/assessments/step2')
+  }
+
+  // 🟢 ADDED: Missing handleSaveExit function to fix Vercel build error
+  const handleSaveExit = async () => {
+    Object.entries(responses).forEach(([key, value]) => {
+      saveGuestAnswer(key, value)
+    })
+
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+      const updates = Object.entries(responses).map(([key, value]) => ({
+        user_id: session.user.id,
+        assessment_step: 1, // Step 1 specifically
+        question_key: key,
+        answer: { response: value }
+      }))
+      await supabase.from('user_responses').upsert(updates)
+    }
+
+    router.push('/dashboard')
   }
 
   return (
@@ -101,7 +121,6 @@ export default function AssessmentStep1() {
 
         <button 
           onClick={handleNext}
-          // 🟢 THE FIX: Disable if they haven't answered all questions
           disabled={loading || Object.keys(responses).length < part.questions.length}
           className={`flex items-center gap-2 px-8 py-4 font-bold rounded-xl transition-all ${
             Object.keys(responses).length === part.questions.length && !loading
