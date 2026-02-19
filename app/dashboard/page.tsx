@@ -4,7 +4,6 @@ import { redirect } from 'next/navigation'
 import { Activity } from 'lucide-react' 
 import DashboardUI from './DashboardUI'
 import GuestSync from '../components/GuestSync'
-// 🟢 UPDATE IMPORTS
 import { calculateNeuroLoad } from '../utils/scoring-engine' 
 import { mapEngineToDashboard } from '@/app/lib/neuro-mapper' 
 
@@ -15,12 +14,12 @@ export default async function Dashboard() {
   const cookieStore = cookies()
   const supabase = createServerComponentClient({ cookies: () => cookieStore })
 
-  // ... (Auth Logic stays same)
+  // --- AUTH LOGIC ---
   const { data: { user }, error } = await supabase.auth.getUser()
   if (error || !user) redirect('/login')
   const displayName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Member'
 
-  // ... (Fetch Data Logic stays same)
+  // --- FETCH DATA ---
   const [responsesRes, logsRes] = await Promise.all([
     supabase.from('current_user_responses').select('*').eq('user_id', user.id),
     supabase.from('daily_logs').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(30)
@@ -28,28 +27,38 @@ export default async function Dashboard() {
   const safeResponses = responsesRes.data || []
   const recentLogs = logsRes.data || []
 
-  // ... (Guest Sync Logic stays same)
-  if (safeResponses.length === 0) { /* ... */ }
+  // 🟢 THE PLG SHIELD: Prevent the server crash & allow GuestSync to run
+  if (safeResponses.length === 0) {
+    return (
+      <div className="min-h-screen bg-[#1b270e] flex flex-col items-center justify-center p-6 text-center">
+        {/* GuestSync mounts, finds localStorage, pushes to Supabase, and forces a router.refresh() */}
+        <GuestSync /> 
+        
+        <Activity className="text-[#b5a642] animate-pulse mb-6" size={48} />
+        <h1 className="text-3xl font-serif text-[#c9ccbb] mb-3">Calibrating Your Baseline...</h1>
+        <p className="text-[#c9ccbb]/70 text-sm max-w-md mx-auto">
+          Synchronizing your sensory profile with the intelligence engine. This will just take a moment.
+        </p>
+      </div>
+    )
+  }
 
-  // 🟢 1. EXTRACT NEURO LENS (From the new 'part0' questions)
-  // We look for 'neuro_lens' specifically
+  // 🟢 1. EXTRACT NEURO LENS
   const neuroLensAnswer = safeResponses.find((r: any) => r.question_key === 'neuro_lens')?.answer_value
   
   // 🟢 2. RUN THE NEW SCORING ENGINE
-  // This calculates the load AND the sensory profile (Threshold/Regulation)
   const engineResult = calculateNeuroLoad(
     safeResponses.map((r: any) => ({
       question_key: r.question_key,
-      answer: { response: r.answer_value } // Ensure structure matches engine expectation
+      answer: { response: r.answer_value } 
     })),
-    neuroLensAnswer // Pass the string (e.g., "ADHD"), engine handles normalization
+    neuroLensAnswer 
   )
 
   // 🟢 3. MAP TO DASHBOARD IDENTITY
-  // Use the calculated sensory profile from the engine, not just the raw questions
   const dashboardProfile = mapEngineToDashboard(engineResult.sensoryProfile)
   
-  // 4. MAP RADAR DATA
+  // 🟢 4. MAP RADAR DATA
   const { finalNeuroLoad, systemState, percentIndices, rawIndices } = engineResult
   const radarData = [
     { subject: 'Circadian', A: Math.round(percentIndices.cii), fullMark: 100 },
@@ -70,7 +79,7 @@ export default async function Dashboard() {
         systemState={systemState}
         radarData={radarData}      
         circadianLoad={rawIndices?.cii || 0}
-        profile={dashboardProfile} // 🟢 Passes 'anchor' | 'seeker' | 'sensor'
+        profile={dashboardProfile} 
       />
     </div>
   )
