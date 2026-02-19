@@ -10,20 +10,22 @@ export async function GET(request: Request) {
   let next = requestUrl.searchParams.get('next') ?? '/dashboard'
 
   // 2. Security Check: Prevent Open Redirects
-  // Ensure the path is internal (starts with '/') and not protocol-relative ('//')
   if (!next.startsWith('/') || next.startsWith('//')) {
     next = '/dashboard' 
   }
 
   if (code) {
-    const cookieStore = cookies()
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+    // 🟢 THE FIX: Pass the imported cookies function directly
+    const supabase = createRouteHandlerClient({ cookies })
     
-    // Exchange the temporary code for a permanent session
-    await supabase.auth.exchangeCodeForSession(code)
+    // Exchange the temporary code for a permanent session and set the cookie
+    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    
+    if (error) {
+        console.error("Auth Callback Error:", error.message)
+    }
   }
 
-  // 3. Dynamic Origin: Automatically maps to 'sentienthome.lolade-ajai.com' 
-  // or localhost based on the incoming request URL.
-  return NextResponse.redirect(`${requestUrl.origin}${next}`)
+  // 🟢 THE FIX: Native Next.js URL constructor for bulletproof routing
+  return NextResponse.redirect(new URL(next, request.url))
 }
