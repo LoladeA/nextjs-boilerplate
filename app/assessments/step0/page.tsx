@@ -138,13 +138,20 @@ export default function AssessmentStep0() {
       </div>
 
      {/* FOOTER */}
-      <div className="mt-12 flex justify-end">
+      <div className="mt-12 flex justify-between items-center">
+        <button 
+          onClick={handleSaveExit}
+          className="flex items-center gap-2 px-6 py-4 text-[#c9ccbb]/60 hover:text-[#c9ccbb] transition-colors text-sm font-medium"
+        >
+          <Save size={16} /> Save & Return Later
+        </button>
+
         <button 
           onClick={handleNext}
           // 🟢 THE FIX: Disable if they haven't answered all questions
-          disabled={loading || Object.keys(responses).length < questions.length}
+          disabled={loading || Object.keys(responses).length < part.questions.length}
           className={`flex items-center gap-2 px-8 py-4 font-bold rounded-xl transition-all ${
-            Object.keys(responses).length === questions.length && !loading
+            Object.keys(responses).length === part.questions.length && !loading
               ? 'bg-[#b5a642] text-[#1b270e] hover:bg-white shadow-lg shadow-[#b5a642]/20' 
               : 'bg-[#c9ccbb]/10 text-[#c9ccbb]/30 cursor-not-allowed'
           }`}
