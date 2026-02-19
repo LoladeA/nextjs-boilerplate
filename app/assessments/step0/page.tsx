@@ -3,9 +3,9 @@
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Save } from 'lucide-react' // 🟢 ADDED: Save icon import
 import { assessmentProtocol } from '../../data/assessment-protocol'
-import { saveGuestAnswer } from '../../utils/guest-storage' // <--- IMPORT NEW UTILITY
+import { saveGuestAnswer } from '../../utils/guest-storage' 
 
 export default function AssessmentStep0() {
   const supabase = createClientComponentClient()
@@ -21,13 +21,11 @@ export default function AssessmentStep0() {
     setLoading(true)
 
     // 1. SAVE TO LOCAL STORAGE (GUEST MODE)
-    // We iterate through all answers and save them to the browser
     Object.entries(responses).forEach(([key, value]) => {
       saveGuestAnswer(key, value)
     })
 
     // 2. OPTIONAL: ATTEMPT SUPABASE SYNC (IF LOGGED IN)
-    // This ensures that if an existing user takes the quiz, their data is still backed up.
     const { data: { session } } = await supabase.auth.getSession()
     
     if (session) {
@@ -42,6 +40,26 @@ export default function AssessmentStep0() {
 
     // 3. NAVIGATE (No blocking)
     router.push('/assessments/step1')
+  }
+
+  // 🟢 ADDED: Missing handleSaveExit function to fix the Vercel build error
+  const handleSaveExit = async () => {
+    Object.entries(responses).forEach(([key, value]) => {
+      saveGuestAnswer(key, value)
+    })
+
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+      const updates = Object.entries(responses).map(([key, value]) => ({
+        user_id: session.user.id,
+        assessment_step: 0,
+        question_key: key,
+        answer: { response: value }
+      }))
+      await supabase.from('user_responses').upsert(updates)
+    }
+
+    router.push('/dashboard')
   }
 
   const part = assessmentProtocol.part0
@@ -137,7 +155,7 @@ export default function AssessmentStep0() {
 
       </div>
 
-     {/* FOOTER */}
+      {/* FOOTER */}
       <div className="mt-12 flex justify-between items-center">
         <button 
           onClick={handleSaveExit}
@@ -148,10 +166,9 @@ export default function AssessmentStep0() {
 
         <button 
           onClick={handleNext}
-          // 🟢 THE FIX: Disable if they haven't answered all questions
-          disabled={loading || Object.keys(responses).length < part.questions.length}
+          disabled={loading || Object.keys(responses).length < questions.length}
           className={`flex items-center gap-2 px-8 py-4 font-bold rounded-xl transition-all ${
-            Object.keys(responses).length === part.questions.length && !loading
+            Object.keys(responses).length === questions.length && !loading
               ? 'bg-[#b5a642] text-[#1b270e] hover:bg-white shadow-lg shadow-[#b5a642]/20' 
               : 'bg-[#c9ccbb]/10 text-[#c9ccbb]/30 cursor-not-allowed'
           }`}
