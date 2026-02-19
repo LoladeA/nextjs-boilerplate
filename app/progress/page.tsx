@@ -2,7 +2,8 @@
 
 import Sidebar from '../components/Sidebar'
 import { useState, useEffect } from 'react'
-import { Heart, Wind, Sun, Volume2, CheckCircle, TrendingUp, Activity, AlertCircle, Zap, ShieldAlert, Loader2, Moon, Sunrise, Brain, Fingerprint } from 'lucide-react'
+// 🟢 Added ChevronDown for the accordion toggle
+import { Heart, Wind, Sun, Volume2, CheckCircle, TrendingUp, Activity, AlertCircle, Zap, ShieldAlert, Loader2, Moon, Sunrise, Brain, Fingerprint, ChevronDown } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
@@ -33,6 +34,10 @@ export default function Progress() {
 
   const [status, setStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState('')
+
+  // 🟢 ACCORDION STATES
+  const [isMorningOpen, setIsMorningOpen] = useState(false)
+  const [isEveningOpen, setIsEveningOpen] = useState(false)
   
   // CHART STATE
   const [chartLogs, setChartLogs] = useState<any[]>([])
@@ -376,20 +381,48 @@ export default function Progress() {
                                     <button onClick={() => setWakeScore(wakeScore + 1)} className="text-[#c9ccbb] hover:text-[#b5a642]">+</button>
                                 </div>
                             </div>
-                            <p className="text-[#c9ccbb]/40 text-[10px] mb-3">Sleep interruptions.</p>
+                            <p className="text-[#c9ccbb]/40 text-[10px] mb-3">Sleep interruptions influenced by internal & external factors.</p>
                         </div>
                     </div>
 
-                    {/* 🟢 DYNAMIC MORNING MIRROR */}
+                    {/* 🟢 DYNAMIC MORNING MIRROR ACCORDION */}
                     {(tensionScore > 0 || wakeScore > 0) && (
-                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-6 p-4 bg-[#1b270e] border-l-2 border-[#b5a642] rounded-r-xl">
-                            <span className="text-[#b5a642] text-[10px] uppercase font-bold tracking-widest block mb-1">
-                                {morningInsight.title}
-                            </span>
-                            <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
-                                {morningInsight.text}
-                            </p>
-                        </motion.div>
+                        <div className="mt-6 bg-[#1b270e] border-l-2 border-[#b5a642] rounded-r-xl overflow-hidden shadow-md">
+                            <button 
+                                onClick={() => setIsMorningOpen(!isMorningOpen)}
+                                className="w-full flex items-center justify-between p-4 text-left hover:bg-[#b5a642]/5 transition-colors"
+                            >
+                                <span className="text-[#b5a642] text-[10px] uppercase font-bold tracking-widest">
+                                    {morningInsight.title}
+                                </span>
+                                <motion.div animate={{ rotate: isMorningOpen ? 180 : 0 }}>
+                                    <ChevronDown size={14} className="text-[#b5a642]" />
+                                </motion.div>
+                            </button>
+                            <AnimatePresence>
+                                {isMorningOpen && (
+                                    <motion.div 
+                                        initial={{ height: 0, opacity: 0 }} 
+                                        animate={{ height: "auto", opacity: 1 }} 
+                                        exit={{ height: 0, opacity: 0 }}
+                                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                                        className="overflow-hidden"
+                                    >
+                                        <div className="p-4 pt-0 space-y-3">
+                                            <div className="w-full h-px bg-[#b5a642]/10 mb-4" />
+                                            <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
+                                                <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Reframe:</strong> 
+                                                {morningInsight.reframe}
+                                            </p>
+                                            <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
+                                                <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Direction:</strong> 
+                                                {morningInsight.direction}
+                                            </p>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
                     )}
                 </div>
             )}
@@ -418,16 +451,44 @@ export default function Progress() {
                         </div>
                     </div>
 
-                    {/* 🟢 DYNAMIC EVENING MIRROR */}
+                    {/* 🟢 DYNAMIC EVENING MIRROR ACCORDION */}
                     {focusScore > 0 && (
-                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-6 p-4 bg-[#1b270e] border-l-2 border-[#b5a642] rounded-r-xl">
-                            <span className="text-[#b5a642] text-[10px] uppercase font-bold tracking-widest block mb-1">
-                                {eveningInsight.title}
-                            </span>
-                            <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
-                                {eveningInsight.text}
-                            </p>
-                        </motion.div>
+                        <div className="mt-6 bg-[#1b270e] border-l-2 border-[#b5a642] rounded-r-xl overflow-hidden shadow-md">
+                            <button 
+                                onClick={() => setIsEveningOpen(!isEveningOpen)}
+                                className="w-full flex items-center justify-between p-4 text-left hover:bg-[#b5a642]/5 transition-colors"
+                            >
+                                <span className="text-[#b5a642] text-[10px] uppercase font-bold tracking-widest">
+                                    {eveningInsight.title}
+                                </span>
+                                <motion.div animate={{ rotate: isEveningOpen ? 180 : 0 }}>
+                                    <ChevronDown size={14} className="text-[#b5a642]" />
+                                </motion.div>
+                            </button>
+                            <AnimatePresence>
+                                {isEveningOpen && (
+                                    <motion.div 
+                                        initial={{ height: 0, opacity: 0 }} 
+                                        animate={{ height: "auto", opacity: 1 }} 
+                                        exit={{ height: 0, opacity: 0 }}
+                                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                                        className="overflow-hidden"
+                                    >
+                                        <div className="p-4 pt-0 space-y-3">
+                                            <div className="w-full h-px bg-[#b5a642]/10 mb-4" />
+                                            <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
+                                                <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Reframe:</strong> 
+                                                {eveningInsight.reframe}
+                                            </p>
+                                            <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
+                                                <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Direction:</strong> 
+                                                {eveningInsight.direction}
+                                            </p>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
                     )}
                 </div>
             )}
