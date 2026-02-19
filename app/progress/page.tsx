@@ -123,7 +123,7 @@ export default function Progress() {
         // Format for CorrelationGraph
         const formatted = data.map((log: any) => ({
             date: new Date(log.date).toLocaleDateString('en-US', { weekday: 'short' }),
-            mood: log.mood_score || 0,        // 🟢 RESTORED: This was missing!
+            mood: log.mood_score || 0,        
             tension: log.morning_tension || 0,
             focus: log.focus_hours || 0,
             wakes: log.sleep_wakes || 0
@@ -267,31 +267,14 @@ export default function Progress() {
               ))}
             </div>
 
-            {/* 🟢 2. NEW BIO-SPATIAL INPUTS (MORNING ONLY) */}
+            {/* 🟢 2A. SOMATIC BASELINE (MORNING ONLY) */}
             {activeTab === 'morning' && (
                 <div className="mb-8 p-6 bg-[#b5a642]/5 rounded-2xl border border-[#b5a642]/10 animate-fade-in">
                     <label className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-6 block flex items-center gap-2">
-                        <Activity size={12} /> Biological Integrators
+                        <Activity size={12} /> Somatic Baseline
                     </label>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         
-                        {/* DEEP WORK (Focus) */}
-                        <div>
-                            <div className="flex justify-between mb-2">
-                                <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb]">
-                                   <Brain size={14} className="text-[#b5a642]" /> Deep Work (Hrs)
-                                </label>
-                                <span className="text-[#b5a642] font-mono text-xs">{focusScore}h</span>
-                            </div>
-                            <p className="text-[#c9ccbb]/40 text-[10px] mb-3">Hours of uninterrupted flow.</p>
-                            <input 
-                                type="range" min="0" max="12" step="0.5"
-                                value={focusScore}
-                                onChange={(e) => setFocusScore(parseFloat(e.target.value))}
-                                className="w-full accent-[#b5a642] h-1 bg-[#000]/50 rounded-lg appearance-none cursor-pointer"
-                            />
-                        </div>
-
                         {/* TENSION */}
                         <div>
                             <div className="flex justify-between mb-2">
@@ -322,6 +305,34 @@ export default function Progress() {
                                 </div>
                             </div>
                             <p className="text-[#c9ccbb]/40 text-[10px] mb-3">Sleep interruptions.</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* 🟢 2B. COGNITIVE OUTPUT (EVENING ONLY) */}
+            {activeTab === 'evening' && (
+                <div className="mb-8 p-6 bg-[#b5a642]/5 rounded-2xl border border-[#b5a642]/10 animate-fade-in">
+                    <label className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-6 block flex items-center gap-2">
+                        <Brain size={12} /> Cognitive Output
+                    </label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        
+                        {/* DEEP WORK (Focus) */}
+                        <div>
+                            <div className="flex justify-between mb-2">
+                                <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb]">
+                                   <Brain size={14} className="text-[#b5a642]" /> Deep Work (Hrs)
+                                </label>
+                                <span className="text-[#b5a642] font-mono text-xs">{focusScore}h</span>
+                            </div>
+                            <p className="text-[#c9ccbb]/40 text-[10px] mb-3">Hours of uninterrupted flow.</p>
+                            <input 
+                                type="range" min="0" max="12" step="0.5"
+                                value={focusScore}
+                                onChange={(e) => setFocusScore(parseFloat(e.target.value))}
+                                className="w-full accent-[#b5a642] h-1 bg-[#000]/50 rounded-lg appearance-none cursor-pointer"
+                            />
                         </div>
                     </div>
                 </div>
@@ -429,7 +440,6 @@ export default function Progress() {
               </div>
               
               <div className="glass-panel p-8 rounded-3xl border border-[#c9ccbb]/10 h-[300px] relative overflow-hidden">
-                   {/* 🟢 Replaced DashboardPulse with CorrelationGraph */}
                    <CorrelationGraph data={chartLogs} />
               </div>
           </div>
