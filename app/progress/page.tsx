@@ -321,7 +321,7 @@ export default function Progress() {
                                     <button onClick={() => setWakeScore(wakeScore + 1)} className="text-[#c9ccbb] hover:text-[#b5a642]">+</button>
                                 </div>
                             </div>
-                            <p className="text-[#c9ccbb]/40 text-[10px] mb-3">Unexplained sleep interruptions.</p>
+                            <p className="text-[#c9ccbb]/40 text-[10px] mb-3">Sleep interruptions.</p>
                         </div>
                     </div>
                 </div>
@@ -422,9 +422,9 @@ export default function Progress() {
               <div className="flex justify-between items-end mb-6">
                 <div>
                    <div className="flex items-center gap-2 text-[#c9ccbb]/80 text-xs font-bold uppercase tracking-widest mb-1">
-                     <TrendingUp size={14} /> Bio-Spatial Correlation
+                     <TrendingUp size={14} /> Your Bio-Spatial Rhythm
                    </div>
-                   <h3 className="text-xl font-serif text-[#c9ccbb]">Tension vs. Focus</h3>
+                   <h3 className="text-xl font-serif text-[#c9ccbb]">Nervous System Rhythm & Cognitive Capacity</h3>
                 </div>
               </div>
               
