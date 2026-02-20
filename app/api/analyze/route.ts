@@ -110,84 +110,82 @@ export async function POST(req: Request) {
     }
 
     // --------------------------------------------------
-    // 5️⃣ PREMIUM SCORING ENGINE (RUNS ONLY AFTER VALIDATION)
+    // 5️⃣ TRUE INTELLIGENCE ENGINE (Google Vision + OpenAI)
     // --------------------------------------------------
+    
+    // A. FETCH PIXEL DATA FROM GOOGLE VISION
+    const googleVisionRes = await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${process.env.GOOGLE_VISION_API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          requests: [{
+            image: { source: { imageUri: imageUrl } },
+            features: [
+              { type: 'OBJECT_LOCALIZATION', maxResults: 50 },
+              { type: 'IMAGE_PROPERTIES', maxResults: 10 }
+            ]
+          }]
+        })
+    });
+    
+    if (!googleVisionRes.ok) throw new Error('Vision API failed');
+    const visionData = await googleVisionRes.json();
+    const annotations = visionData.responses[0];
 
-    const entropyScore = (
-      Math.random() * (9.0 - 6.0) + 6.0
-    ).toFixed(1)
+    // B. PROPRIETARY MATH (V2 Engine)
+    const objectsDetected = annotations.localizedObjectAnnotations?.length || 0;
+    const colors = annotations.imagePropertiesAnnotation?.dominantColors?.colors || [];
+    
+    // Calculate Entropy (0 to 10 scale based on object density)
+    // Formula: (Objects / 25 Max Baseline) * 10
+    let calculatedEntropy = ((objectsDetected / 25) * 10).toFixed(1);
+    if (parseFloat(calculatedEntropy) > 10) calculatedEntropy = '10.0';
+    
+    // Calculate Biophilic Rating based on detected green/earth hues
+    const hasEarthTones = colors.some((c: any) => 
+        (c.color.green > 100 && c.color.red < 150 && c.color.blue < 150) || // Greens
+        (c.color.red > 100 && c.color.green > 80 && c.color.blue < 80)      // Browns/Earth
+    );
+    const biophilicRating = hasEarthTones ? 'MODERATE' : 'LOW';
 
-    let prescriptions: string[] = []
-    let insight = ''
-
-    if (roomName === 'Bedroom') {
-      insight =
-        "This space currently signals 'vigilance' rather than 'rest' due to high visual complexity near the sleep horizon."
-      prescriptions = [
-        'Reduce visual complexity (clutter) on bedside surfaces.',
-        "Cover reflective screens to reduce 'gaze pull'."
-      ]
-
-      if (measuredLux !== null) {
-        if (measuredLux > 50) {
-          prescriptions.push(
-            `Current lighting (${measuredLux} lx) is suppressing melatonin release. Switch to amber lamps (<20 lx).`
-          )
-          insight +=
-            ' Detected light levels are biologically antagonistic to sleep onset.'
-        } else {
-          prescriptions.push(
-            'Light levels are optimal for evening wind-down.'
-          )
-        }
-      } else {
-        prescriptions.push('Shift lighting temp to <2700K (Amber).')
-      }
-    } else if (roomName === 'Home Office') {
-      insight =
-        "Cognitive load is elevated. The visual field contains too many 'open loops'."
-      prescriptions = [
-        'Clear the primary visual cone (desk surface).',
-        'Introduce a biophilic anchor in the left periphery.'
-      ]
-
-      if (measuredLux !== null) {
-        if (measuredLux < 400) {
-          prescriptions.push(
-            `Current lighting (${measuredLux} lx) is too low. Boost to >500 lx.`
-          )
-          insight += ' Low illuminance likely causing fatigue.'
-        } else {
-          prescriptions.push('Light levels are sufficient.')
-        }
-      } else {
-        prescriptions.push('Reposition monitor to reduce glare.')
-      }
-    } else {
-      insight =
-        "The room lacks a clear 'safe harbor'. The eye is forced to scan."
-      prescriptions = [
-        'Create a singular focal point.',
-        'Use containment (rugs/blankets) to define the zone.'
-      ]
-
-      if (measuredLux !== null && measuredLux > 100) {
-        prescriptions.push('Dim overheads to <50 lx for evenings.')
-      } else {
-        prescriptions.push('Lower lighting horizon.')
-      }
+    // Estimate Kelvin from dominant color if lux isn't provided
+    let estimatedKelvin = measuredLux ? (measuredLux > 300 ? 4000 : 2700) : 3500;
+    if (!measuredLux && colors.length > 0) {
+        const primaryColor = colors[0].color;
+        if (primaryColor.blue > primaryColor.red && primaryColor.blue > 150) estimatedKelvin = 4500; // Cool
+        if (primaryColor.red > primaryColor.blue && primaryColor.red > 150) estimatedKelvin = 2700;  // Warm
     }
 
+    // C. LLM TRANSLATION (Clinical Narrative)
+    const enginePayload = `
+    ROOM TYPE: ${roomName}
+    VISUAL ENTROPY: ${calculatedEntropy}/10
+    BIOPHILIC PRESENCE: ${biophilicRating}
+    ESTIMATED KELVIN: ${estimatedKelvin}K
+    `;
+
+    const completion = await openai.chat.completions.create({
+        model: 'gpt-4o',
+        messages: [
+            { role: 'system', content: SYSTEM_PROMPT },
+            { role: 'user', content: `Analyze this deterministic room data and provide a JSON response with exactly two keys: 'insight' (a 2-sentence clinical insight) and 'prescriptions' (an array of 3 specific, actionable design interventions).\n\n${enginePayload}` }
+        ],
+        response_format: { type: 'json_object' },
+        temperature: 0.3, 
+    });
+
+    const llmResponse = JSON.parse(completion.choices[0].message.content || '{}');
+
     // --------------------------------------------------
-    // 6️⃣ WRITE AUDIT RECORD (AFTER SUCCESS)
+    // 6️⃣ WRITE AUDIT RECORD
     // --------------------------------------------------
     await supabase.from('room_audits').insert({
       user_id: user.id,
       room_name: roomName,
-      arousal_score: parseFloat(entropyScore),
+      arousal_score: parseFloat(calculatedEntropy),
       light_score: measuredLux ?? null,
-      insight,
-      prescriptions
+      insight: llmResponse.insight,
+      prescriptions: llmResponse.prescriptions
     })
 
     // --------------------------------------------------
@@ -196,18 +194,15 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       data: {
-        entropy_score: entropyScore,
-        lighting_kelvin: measuredLux
-          ? measuredLux > 300
-            ? 4000
-            : 2700
-          : 3500,
-        biophilic_rating: 'LOW',
-        insight,
-        prescriptions
+        entropy_score: calculatedEntropy,
+        lighting_kelvin: estimatedKelvin,
+        biophilic_rating: biophilicRating,
+        insight: llmResponse.insight,
+        prescriptions: llmResponse.prescriptions
       }
     })
   } catch (error) {
+    console.error('Analysis Engine Error:', error);
     return NextResponse.json(
       { error: 'Analysis Failed' },
       { status: 500 }
