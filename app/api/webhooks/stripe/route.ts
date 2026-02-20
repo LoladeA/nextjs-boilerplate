@@ -3,18 +3,17 @@ import { headers } from 'next/headers'
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
 
-// 1. Initialize Stripe (Uses the variable NAME, not the actual key)
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16', 
-})
-
-// 2. Initialize Supabase Admin 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
-
 export async function POST(req: Request) {
+  // 1. Initialize clients INSIDE the function (Runtime evaluation only)
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    apiVersion: '2023-10-16', 
+  })
+
+  const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
   const body = await req.text()
   const signature = headers().get('Stripe-Signature')
 
@@ -34,7 +33,6 @@ export async function POST(req: Request) {
   try {
     switch (event.type) {
       
-      // 🟢 EVENT A: INITIAL PURCHASE VIA PAYMENT LINK
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session
         
@@ -69,7 +67,6 @@ export async function POST(req: Request) {
         break
       }
 
-      // 🟢 EVENT B: MONTHLY RECURRING PAYMENT
       case 'invoice.paid': {
         const invoice = event.data.object as Stripe.Invoice
         const customerId = invoice.customer as string
@@ -93,7 +90,6 @@ export async function POST(req: Request) {
         break
       }
 
-      // 🛑 EVENT C: CANCELLATIONS
       case 'customer.subscription.deleted': {
         const subscription = event.data.object as Stripe.Subscription
         const customerId = subscription.customer as string
