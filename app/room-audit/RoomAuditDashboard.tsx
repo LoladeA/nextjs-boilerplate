@@ -48,10 +48,10 @@ export default function RoomAuditDashboard({ hasAccess, rooms, onRunAnalysis, re
       <div className="glass-panel p-8 rounded-3xl border border-[#c9ccbb]/10 bg-[#000]/20 relative overflow-hidden">
         
         {!hasAccess && (
-          <div className="absolute inset-0 z-50 backdrop-blur-md bg-[#1b270e]/95 flex flex-col items-center justify-center text-center p-8">
+          <div className="absolute inset-0 z-50 backdrop-blur-md bg-[#1b270e]/60 flex flex-col items-center justify-center text-center p-8">
             <ScanEye size={32} className="text-[#b5a642] mb-4" />
-            <h3 className="text-xl font-serif text-[#c9ccbb] mb-2">Premium Required</h3>
-            <p className="text-[#c9ccbb]/60 mb-4">Unlock full room insights with a premium membership.</p>
+            <h3 className="text-xl font-serif text-[#c9ccbb] mb-2">Your Home Is About to Level Up</h3>
+            <p className="text-[#c9ccbb]/60 mb-4">Become a foundation member and see in real time what is, and isn't working in your eoom and make realtime changes your nervous system will thank you for.</p>
           </div>
         )}
 
