@@ -38,7 +38,7 @@ export default function Sidebar({ onOpenGuide }: SidebarProps) {
     { name: 'Dashboard', href: '/dashboard', icon: <LayoutDashboard size={20} /> },
     { name: 'Assessment', href: '/assessments/report', icon: <FileText size={20} /> },
     // 🟢 ADDED: Audit Room (Linked to its own page)
-    { name: 'Audit Room', href: '/dashboard/audit-room', icon: <ScanEye size={20} /> }, 
+    { name: 'Audit Room', href: '/room-audit', icon: <ScanEye size={20} /> }, 
     { name: 'Coaching', href: '/coaching', icon: <Sparkles size={20} /> },
     { name: 'Insights', href: '/insights', icon: <BookOpen size={20} /> },
     { name: 'Progress', href: '/progress', icon: <BarChart2 size={20} /> },
