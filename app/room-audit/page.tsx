@@ -2,7 +2,7 @@
 
 import Sidebar from '../components/Sidebar'
 import { useState, useRef, useEffect } from 'react'
-import { Camera, Loader2, ScanEye, CheckCircle, Lock, Brain, Lightbulb, Zap } from 'lucide-react'
+import { Camera, Loader2, ScanEye, CheckCircle, Lock, Brain, Lightbulb, Zap, Info } from 'lucide-react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import Link from 'next/link'
 
@@ -24,6 +24,9 @@ export default function RoomAudit({ isPremium = false }: Props) {
   const [status, setStatus] = useState<'idle' | 'analyzing' | 'success'>('idle')
   const [manualLux, setManualLux] = useState<string>('')
   const [result, setResult] = useState<any>(null)
+  
+  // 🟢 NEW: State for graceful error handling
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   const rooms = ['Living Room', 'Bedroom', 'Home Office', 'Kitchen', 'Entryway']
 
@@ -87,12 +90,14 @@ export default function RoomAudit({ isPremium = false }: Props) {
       setPreviewUrl(URL.createObjectURL(selectedFile))
       setResult(null)
       setStatus('idle')
+      setErrorMsg(null) // 🟢 Clear errors on new file
     }
   }
 
   const handleUpload = async () => {
     if (!file || !hasAccess) return
     setStatus('analyzing')
+    setErrorMsg(null) // 🟢 Clear previous errors
 
     try {
       const { data: { user } } = await supabase.auth.getUser()
@@ -119,7 +124,8 @@ export default function RoomAudit({ isPremium = false }: Props) {
       setStatus('success')
     } catch (err: any) {
       console.error('Upload failed:', err)
-      alert(err.message)
+      // 🟢 NO MORE ALERTS: Set error state gracefully
+      setErrorMsg(err.message)
       setStatus('idle')
     }
   }
@@ -133,9 +139,9 @@ export default function RoomAudit({ isPremium = false }: Props) {
     return (
       <div className="min-h-screen bg-[#1b270e] font-sans flex flex-col items-center justify-center text-center p-12">
         <Lock size={48} className="text-[#b5a642] mb-4" />
-        <h2 className="text-xl font-serif text-[#c9ccbb] mb-2">Premium Access Required</h2>
+        <h2 className="text-xl font-serif text-[#c9ccbb] mb-2">Your Home Is About To Level Up</h2>
         <p className="text-[#c9ccbb]/60 mb-6 max-w-sm">
-          Room Audit is 100% premium. Unlock full access to analyze your environment and receive NeuroDesign recommendations.
+          Become a foundation member and see in real time what is, and isn't working in your room and make realtime changes your nervous system will thank you for.
         </p>
         <Link
           href="/upgrade"
@@ -165,6 +171,18 @@ export default function RoomAudit({ isPremium = false }: Props) {
 
             {/* UPLOAD PANEL */}
             <div className="glass-panel p-8 rounded-3xl border border-[#c9ccbb]/10 bg-[#000]/20 relative overflow-hidden h-fit">
+              
+              {/* 🟢 THE PROTOCOL (Rules of Engagement) */}
+              <div className="mb-8 p-4 bg-[#b5a642]/10 border border-[#b5a642]/20 rounded-xl flex items-start gap-3">
+                <Info size={16} className="text-[#b5a642] shrink-0 mt-0.5" />
+                <div>
+                  <span className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest block mb-1">Audit Protocol</span>
+                  <p className="text-[#c9ccbb]/70 text-xs leading-relaxed">
+                    To ensure longitudinal accuracy, you are allocated <strong>2 scans per month</strong>. These must be applied to <strong>1 Priority Room</strong> to accurately measure baseline vs. implementation.
+                  </p>
+                </div>
+              </div>
+
               <div className="flex justify-center mb-6">
                 <div className="inline-flex bg-[#000]/40 rounded-full p-1 border border-[#c9ccbb]/10">
                   {rooms.map(room => (
@@ -206,11 +224,18 @@ export default function RoomAudit({ isPremium = false }: Props) {
                 </div>
               </div>
 
-              <div className="mt-6 flex justify-center">
+              <div className="mt-6 flex flex-col items-center">
                 <button onClick={handleUpload} disabled={!file || status === 'analyzing'}
                   className={`px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-widest flex items-center gap-2 transition-all ${!file ? 'bg-[#c9ccbb]/10 text-[#c9ccbb]/20' : 'bg-[#b5a642] text-[#1b270e] hover:bg-[#d4c55e]'}`}>
                   {status === 'analyzing' ? <><Loader2 size={14} className="animate-spin" /> Analysing</> : <>Run Diagnosis <Brain size={14} /></>}
                 </button>
+
+                {/* 🟢 THE GRACEFUL ERROR DISPLAY */}
+                {errorMsg && (
+                  <div className="mt-4 text-red-400 text-xs font-medium bg-red-900/20 px-4 py-2 rounded-lg border border-red-900/50 text-center w-full">
+                    {errorMsg}
+                  </div>
+                )}
               </div>
             </div>
 
