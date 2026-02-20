@@ -1,88 +1,216 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server'
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { roomName, measuredLux } = body;
+    const supabase = createRouteHandlerClient({ cookies })
 
-    // SIMULATED NEURO-DESIGN INTELLIGENCE
-    // 1. Calculate a "Visual Entropy" score (Mocked logic)
-    // Random float between 6.0 and 9.0 (High entropy for demo purposes)
-    const entropyScore = (Math.random() * (9.0 - 6.0) + 6.0).toFixed(1);
+    // --------------------------------------------------
+    // 1️⃣ AUTH VALIDATION
+    // --------------------------------------------------
+    const {
+      data: { user },
+      error: userError
+    } = await supabase.auth.getUser()
 
-    // 2. Determine Prescriptions based on Room Type & Sensory Data
-    let prescriptions = [];
-    let insight = "";
-    
-    // --- BASE LOGIC (Room Function) ---
-    if (roomName === 'Bedroom') {
-      insight = "This space currently signals 'vigilance' rather than 'rest' due to high visual complexity near the sleep horizon.";
-      prescriptions = [
-        "Reduce visual complexity (clutter) on bedside surfaces.",
-        "Cover reflective screens to reduce 'gaze pull'."
-      ];
-      
-      // LIGHTING OVERRIDE: Bedrooms need darkness
-      if (measuredLux !== null) {
-          if (measuredLux > 50) {
-              prescriptions.push(`Current lighting (${measuredLux} lx) is suppressing melatonin release. Switch to amber lamps or candlelight in a heat safe container (<20 lx).`);
-              insight += " Detected light levels are biologically antagonistic to sleep onset.";
-          } else {
-              prescriptions.push("Light levels are optimal for evening wind-down.");
-          }
-      } else {
-          prescriptions.push("Shift lighting temp to <2700K (Amber).");
-      }
+    if (userError || !user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
 
-    } else if (roomName === 'Home Office') {
-      insight = "Cognitive load is elevated. The visual field contains too many 'open loops' (clutter) competing for attention.";
-      prescriptions = [
-        "Clear the primary visual cone (desk surface).",
-        "Introduce a biophilic anchor (plant) in the left periphery."
-      ];
+    // --------------------------------------------------
+    // 2️⃣ SUBSCRIPTION VALIDATION
+    // --------------------------------------------------
+    const { data: subscription, error: subError } = await supabase
+      .from('subscriptions')
+      .select('plan, status, current_period_end')
+      .eq('user_id', user.id)
+      .single()
 
-      // LIGHTING OVERRIDE: Offices need brightness
-      if (measuredLux !== null) {
-          if (measuredLux < 400) {
-              prescriptions.push(`Current lighting (${measuredLux} lx) is too low for cortisol maintenance. Boost to >500 lx.`);
-              insight += " Low illuminance is likely causing midday fatigue.";
-          } else {
-              prescriptions.push("Light levels are sufficient for sustained focus.");
-          }
-      } else {
-           prescriptions.push("Align monitor or reposition to reduce glare contrast.");
-      }
+    if (
+      subError ||
+      !subscription ||
+      subscription.plan !== 'premium' ||
+      subscription.status !== 'active' ||
+      new Date(subscription.current_period_end) < new Date()
+    ) {
+      return NextResponse.json(
+        { error: 'Premium subscription required' },
+        { status: 403 }
+      )
+    }
 
+    // --------------------------------------------------
+    // 3️⃣ MONTHLY SCAN LIMIT (MAX 2)
+    // --------------------------------------------------
+    const firstDayOfMonth = new Date()
+    firstDayOfMonth.setUTCDate(1)
+    firstDayOfMonth.setUTCHours(0, 0, 0, 0)
+
+    const { count, error: countError } = await supabase
+      .from('room_audits')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .gte('created_at', firstDayOfMonth.toISOString())
+
+    if (countError) {
+      return NextResponse.json(
+        { error: 'Usage check failed' },
+        { status: 500 }
+      )
+    }
+
+    if ((count ?? 0) >= 2) {
+      return NextResponse.json(
+        { error: 'Monthly scan limit reached (2 per month)' },
+        { status: 429 }
+      )
+    }
+
+    // --------------------------------------------------
+    // 4️⃣ PRIORITY ROOM ENFORCEMENT (1 PER MONTH)
+    // --------------------------------------------------
+    const body = await req.json()
+    const { roomName, measuredLux } = body
+
+    const currentMonth = new Date().toISOString().slice(0, 7) // YYYY-MM
+
+    const { data: profile, error: profileError } = await supabase
+      .from('users')
+      .select('priority_room, priority_month')
+      .eq('id', user.id)
+      .single()
+
+    if (profileError) {
+      return NextResponse.json(
+        { error: 'Profile lookup failed' },
+        { status: 500 }
+      )
+    }
+
+    if (!profile.priority_month || profile.priority_month !== currentMonth) {
+      // First scan this month → lock priority room
+      await supabase
+        .from('users')
+        .update({
+          priority_room: roomName,
+          priority_month: currentMonth
+        })
+        .eq('id', user.id)
     } else {
-      // Default / Living Room
-      insight = "The room lacks a clear 'safe harbor'. The eye is forced to scan continuously without a resting point.";
-      prescriptions = [
-        "Create a singular focal point to anchor the gaze.",
-        "Use 'containment' (rugs/blankets) to define the zone."
-      ];
-
-      // LIGHTING OVERRIDE: Living rooms need flexibility
-      if (measuredLux !== null && measuredLux > 100) {
-           prescriptions.push("Ensure overheads can be dimmed to <50 lx for evening social connection.");
-      } else {
-           prescriptions.push("Lower the lighting horizon (table and floor lamps only).");
+      if (profile.priority_room !== roomName) {
+        return NextResponse.json(
+          { error: `Only priority room "${profile.priority_room}" allowed this month` },
+          { status: 403 }
+        )
       }
     }
 
-    // 3. Return the Structured Data
+    // --------------------------------------------------
+    // 5️⃣ PREMIUM SCORING ENGINE (RUNS ONLY AFTER VALIDATION)
+    // --------------------------------------------------
+
+    const entropyScore = (
+      Math.random() * (9.0 - 6.0) + 6.0
+    ).toFixed(1)
+
+    let prescriptions: string[] = []
+    let insight = ''
+
+    if (roomName === 'Bedroom') {
+      insight =
+        "This space currently signals 'vigilance' rather than 'rest' due to high visual complexity near the sleep horizon."
+      prescriptions = [
+        'Reduce visual complexity (clutter) on bedside surfaces.',
+        "Cover reflective screens to reduce 'gaze pull'."
+      ]
+
+      if (measuredLux !== null) {
+        if (measuredLux > 50) {
+          prescriptions.push(
+            `Current lighting (${measuredLux} lx) is suppressing melatonin release. Switch to amber lamps (<20 lx).`
+          )
+          insight +=
+            ' Detected light levels are biologically antagonistic to sleep onset.'
+        } else {
+          prescriptions.push(
+            'Light levels are optimal for evening wind-down.'
+          )
+        }
+      } else {
+        prescriptions.push('Shift lighting temp to <2700K (Amber).')
+      }
+    } else if (roomName === 'Home Office') {
+      insight =
+        "Cognitive load is elevated. The visual field contains too many 'open loops'."
+      prescriptions = [
+        'Clear the primary visual cone (desk surface).',
+        'Introduce a biophilic anchor in the left periphery.'
+      ]
+
+      if (measuredLux !== null) {
+        if (measuredLux < 400) {
+          prescriptions.push(
+            `Current lighting (${measuredLux} lx) is too low. Boost to >500 lx.`
+          )
+          insight += ' Low illuminance likely causing fatigue.'
+        } else {
+          prescriptions.push('Light levels are sufficient.')
+        }
+      } else {
+        prescriptions.push('Reposition monitor to reduce glare.')
+      }
+    } else {
+      insight =
+        "The room lacks a clear 'safe harbor'. The eye is forced to scan."
+      prescriptions = [
+        'Create a singular focal point.',
+        'Use containment (rugs/blankets) to define the zone.'
+      ]
+
+      if (measuredLux !== null && measuredLux > 100) {
+        prescriptions.push('Dim overheads to <50 lx for evenings.')
+      } else {
+        prescriptions.push('Lower lighting horizon.')
+      }
+    }
+
+    // --------------------------------------------------
+    // 6️⃣ WRITE AUDIT RECORD (AFTER SUCCESS)
+    // --------------------------------------------------
+    await supabase.from('room_audits').insert({
+      user_id: user.id,
+      room_name: roomName,
+      arousal_score: parseFloat(entropyScore),
+      light_score: measuredLux ?? null,
+      insight,
+      prescriptions
+    })
+
+    // --------------------------------------------------
+    // 7️⃣ RETURN PREMIUM RESPONSE
+    // --------------------------------------------------
     return NextResponse.json({
       success: true,
       data: {
         entropy_score: entropyScore,
-        // If we have real data, use it to estimate Kelvin (cool if bright, warm if dim)
-        lighting_kelvin: measuredLux ? (measuredLux > 300 ? 4000 : 2700) : 3500,
-        biophilic_rating: "LOW",
-        insight: insight,
-        prescriptions: prescriptions
+        lighting_kelvin: measuredLux
+          ? measuredLux > 300
+            ? 4000
+            : 2700
+          : 3500,
+        biophilic_rating: 'LOW',
+        insight,
+        prescriptions
       }
-    });
-
+    })
   } catch (error) {
-    return NextResponse.json({ error: 'Analysis Failed' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Analysis Failed' },
+      { status: 500 }
+    )
   }
 }
