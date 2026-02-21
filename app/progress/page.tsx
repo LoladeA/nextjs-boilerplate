@@ -122,7 +122,9 @@ export default function Progress() {
         ready: false,
         daysLeft: 14 - chartLogs.length,
         title: "System Calibrating",
-        text: `Log ${14 - chartLogs.length} more days to generate your biological rhythm synthesis. The engine requires a complete cycle to identify environmental friction patterns.`
+        paragraphs: [
+          `Log ${14 - chartLogs.length} more days to generate your biological rhythm synthesis. The engine requires a complete cycle to identify environmental friction patterns.`
+        ]
       }
     }
 
@@ -134,25 +136,42 @@ export default function Progress() {
     if (avgTension >= 6 && avgFocus <= 4) return {
         ready: true,
         title: "The Environment Is Spending Your Capacity Before You Do",
-        text: "Across the last fourteen days, your somatic cost has remained consistently elevated while cognitive output has stayed constrained. This is a recognisable pattern: the nervous system is absorbing chronic environmental friction: sensory noise, thermal disruption, accumulated overnight load, and arriving at each day already depleted. The output you are generating is happening against resistance, not from reserves. This pattern resolves when the environmental source of the drain is identified and reduced. The two most probable contributors are your sleep ecology and the sensory load of your primary daytime spaces. Both are addressable."
+        paragraphs: [
+          "Across the last fourteen days, your somatic cost has remained consistently elevated while cognitive output has stayed constrained. This is a recognisable pattern: the nervous system is absorbing chronic environmental friction—sensory noise, thermal disruption, accumulated overnight load—and arriving at each day already depleted.",
+          "The output you are generating is happening against resistance, not from reserves.",
+          "This pattern resolves when the environmental source of the drain is identified and reduced. The two most probable contributors are your sleep ecology and the sensory load of your primary daytime spaces. Both are addressable."
+        ]
     }
     if (avgFocus >= 6 && avgMood <= 2.5) return {
         ready: true,
         title: "High Output, Borrowed Cost",
-        text: "Fourteen days of sustained cognitive output alongside consistently low mood regulation carries a specific signature: the nervous system is maintaining performance by drawing on sympathetic activation rather than restorative capacity. This is a viable strategy in the short term. Over time, it erodes the very reserves it is borrowing from. What this pattern is asking for is not less work. It needs clear boundary between your work and rest zones, and a firm evening wind down routine. Your rhythm needs a floor, not a ceiling."
+        paragraphs: [
+          "Fourteen days of sustained cognitive output alongside consistently low mood regulation carries a specific signature: the nervous system is maintaining performance by drawing on sympathetic activation rather than restorative capacity.",
+          "This is a viable strategy in the short term. Over time, it erodes the very reserves it is borrowing from.",
+          "What this pattern is asking for is not less work. It needs a clear boundary between your work and rest zones, and a firm evening wind-down routine. Your rhythm needs a floor, not a ceiling."
+        ]
     }
     if (avgMood >= 4 && avgTension <= 3) return {
         ready: true,
         title: "Fourteen Days of Regulated Ground",
-        text: "Across the board, your somatic tension has remained low and your mood regulation consistently high. This is the result of an environment that is doing its job: absorbing daily load, supporting overnight recovery, and returning you to capacity. What this data confirms is that your current environmental conditions are not accidental. Your sensory boundaries, thermal ecology, and recovery architecture are functioning as a coherent system. The task now is to understand what is working precisely enough to protect it, particularly during elevated stress periods, travel, or seasonal change."
+        paragraphs: [
+          "Across the board, your somatic tension has remained low and your mood regulation consistently high. This is the result of an environment that is doing its job: absorbing daily load, supporting overnight recovery, and returning you to capacity.",
+          "What this data confirms is that your current environmental conditions are not accidental. Your sensory boundaries, thermal ecology, and recovery architecture are functioning as a coherent system.",
+          "The task now is to understand what is working precisely enough to protect it, particularly during elevated stress periods, travel, or seasonal change."
+        ]
     }
     return {
         ready: true,
         title: "High Variance. No Stable Floor Yet",
-        text: "The last fourteen days show fluctuation across mood, tension, and focus. Before locating the source of that variance in your environment, it is worth naming something the data cannot distinguish: not all fluctuation is environmental. Hormonal shifts, perimenopause, periods of high relational or emotional demand produce real, measurable changes in energy, sleep quality, focus, and somatic load. Your body doing precisely what it is designed to do under particular biological conditions. The appropriate response to those phases is not optimisation. It is accommodation. If your variance aligns with a cyclical or biological pattern, the role of your environment is to reduce the additional friction layered on top of it, so the body can move through its natural rhythm without also managing an environment that is working against it. If unrelated to cyclical patterns, then the environmental baseline such as sleep ecology, morning sensory sequence, thermal consistency, is worth examining as a stabilising factor."
+        paragraphs: [
+          "The last fourteen days show fluctuation across mood, tension, and focus. Before locating the source of that variance in your environment, it is worth naming something the data cannot distinguish: not all fluctuation is environmental.",
+          "Hormonal shifts, perimenopause, periods of high relational or emotional demand produce real, measurable changes in energy, sleep quality, focus, and somatic load. Your body is doing precisely what it is designed to do under particular biological conditions.",
+          "The appropriate response to those phases is not optimisation. It is accommodation. If your variance aligns with a cyclical or biological pattern, the role of your environment is to reduce the additional friction layered on top of it, so the body can move through its natural rhythm without also managing an environment that is working against it.",
+          "If unrelated to cyclical patterns, then the environmental baseline such as sleep ecology, morning sensory sequence, and thermal consistency, is worth examining as a stabilising factor."
+        ]
     }
   }
-
+  
   const morningInsight = getMorningFeedback()
   const eveningInsight = getEveningFeedback()
   const macroSynthesis = getMacroSynthesis()
