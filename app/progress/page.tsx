@@ -2,7 +2,7 @@
 
 import Sidebar from '../components/Sidebar'
 import { useState, useEffect } from 'react'
-import { Heart, Wind, Sun, Volume2, CheckCircle, TrendingUp, Activity, AlertCircle, Zap, ShieldAlert, Loader2, Moon, Sunrise, Brain, Fingerprint, ChevronDown, Lock } from 'lucide-react'
+import { Heart, Wind, Sun, Volume2, CheckCircle, TrendingUp, Activity, AlertCircle, Zap, ShieldAlert, Loader2, Moon, Sunrise, Brain, Fingerprint, ChevronDown, ChevronUp, Lock } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import Link from 'next/link'
@@ -42,6 +42,7 @@ export default function Progress() {
   // ACCORDION STATES
   const [isMorningOpen, setIsMorningOpen] = useState(false)
   const [isEveningOpen, setIsEveningOpen] = useState(false)
+  const [isSynthesisExpanded, setIsSynthesisExpanded] = useState(false) // 🟢 Added state for Synthesis Accordion
   
   // CHART STATE
   const [chartLogs, setChartLogs] = useState<any[]>([])
@@ -86,7 +87,7 @@ export default function Progress() {
     }
     if (wakeScore >= 3) return {
       title: "Interrupted Sleep Is Often an Environmental Signal",
-      reframe: "Waking through the night — particularly if re-entry is relatively easy — is less often a sign of dysregulation than a sign of thermoregulatory shift. Night sweats, hormonal fluctuations, or subtle changes in ambient temperature are among the most common and most overlooked disruptors. Your nervous system is not the problem. Its environment may not be matching its needs.",
+      reframe: "Waking through the night —particularly if re-entry is relatively easy— is less often a sign of dysregulation than a sign of thermoregulatory shift. Night sweats, hormonal fluctuations, or subtle changes in ambient temperature are among the most common and most overlooked disruptors. Your nervous system is not the problem. Its environment may not be matching its needs.",
       direction: "Focus on the recovery envelope: breathable organic sleepwear, a cooler ambient temperature, and complete darkness. These three variables together reduce the physiological triggers that pull the system up from deep sleep."
     }
     return {
@@ -115,7 +116,7 @@ export default function Progress() {
     }
   }
 
-  // 3. The 14-Day Macro Synthesis
+  // 3. The 14-Day Macro Synthesis (🟢 UPDATED FOR BREATHABILITY)
   const getMacroSynthesis = () => {
     if (chartLogs.length < 14) {
       return {
@@ -128,7 +129,6 @@ export default function Progress() {
       }
     }
 
-    // Calculate Averages for the last 14 days
     const avgMood = chartLogs.reduce((acc, log) => acc + log.mood, 0) / 14
     const avgTension = chartLogs.reduce((acc, log) => acc + log.tension, 0) / 14
     const avgFocus = chartLogs.reduce((acc, log) => acc + log.focus, 0) / 14
@@ -420,7 +420,7 @@ export default function Progress() {
                         </div>
                     </div>
 
-                    {/* 🟢 DYNAMIC MORNING MIRROR ACCORDION (WITH PAYWALL) */}
+                    {/* DYNAMIC MORNING MIRROR ACCORDION */}
                     {(tensionScore > 0 || wakeScore > 0) && (
                         <div className="mt-6 bg-[#1b270e] border-l-2 border-[#b5a642] rounded-r-xl overflow-hidden shadow-md">
                             <button 
@@ -444,7 +444,6 @@ export default function Progress() {
                                         className="overflow-hidden relative"
                                     >
                                         {hasAccess ? (
-                                            // PREMIUM / GOD MODE VIEW
                                             <div className="p-4 pt-0 space-y-3">
                                                 <div className="w-full h-px bg-[#b5a642]/10 mb-4" />
                                                 <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
@@ -457,7 +456,6 @@ export default function Progress() {
                                                 </p>
                                             </div>
                                         ) : (
-                                            // BLURRED LOCK VIEW FOR FREE USERS
                                             <div className="relative p-4 pt-0">
                                                 <div className="w-full h-px bg-[#b5a642]/10 mb-4" />
                                                 <div className="filter blur-[3px] opacity-30 select-none space-y-3 pointer-events-none">
@@ -513,7 +511,7 @@ export default function Progress() {
                         </div>
                     </div>
 
-                    {/* 🟢 DYNAMIC EVENING MIRROR ACCORDION (WITH PAYWALL) */}
+                    {/* DYNAMIC EVENING MIRROR ACCORDION */}
                     {focusScore > 0 && (
                         <div className="mt-6 bg-[#1b270e] border-l-2 border-[#b5a642] rounded-r-xl overflow-hidden shadow-md">
                             <button 
@@ -537,7 +535,6 @@ export default function Progress() {
                                         className="overflow-hidden relative"
                                     >
                                         {hasAccess ? (
-                                            // PREMIUM / GOD MODE VIEW
                                             <div className="p-4 pt-0 space-y-3">
                                                 <div className="w-full h-px bg-[#b5a642]/10 mb-4" />
                                                 <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
@@ -550,7 +547,6 @@ export default function Progress() {
                                                 </p>
                                             </div>
                                         ) : (
-                                            // BLURRED LOCK VIEW FOR FREE USERS
                                             <div className="relative p-4 pt-0">
                                                 <div className="w-full h-px bg-[#b5a642]/10 mb-4" />
                                                 <div className="filter blur-[3px] opacity-30 select-none space-y-3 pointer-events-none">
@@ -672,62 +668,83 @@ export default function Progress() {
             </div>
           </div>
 
-          {/* --- 🟢 14-DAY MACRO SYNTHESIS (WITH HARD PAYWALL) --- */}
+          {/* --- 🟢 14-DAY MACRO SYNTHESIS ACCORDION --- */}
           <div className={`glass-panel p-6 rounded-3xl mb-8 border relative overflow-hidden transition-all ${!macroSynthesis.ready || hasAccess ? 'bg-gradient-to-r from-[#b5a642]/10 to-transparent border-[#b5a642]/20' : 'bg-[#b5a642]/10 border-[#b5a642]/40 shadow-lg shadow-[#b5a642]/5'}`}>
-             <div className="flex flex-col md:flex-row items-start md:items-center gap-4 relative z-10">
-                 
-                 {/* Icon */}
-                 <div className="p-3 bg-[#b5a642]/20 rounded-full text-[#b5a642] shrink-0">
-                     {macroSynthesis.ready && !hasAccess ? <Lock size={20} /> : <Fingerprint size={20} />}
+            <div 
+              className={`flex items-center justify-between w-full relative z-10 ${hasAccess && macroSynthesis.ready ? 'cursor-pointer group' : ''}`}
+              onClick={() => {
+                if (hasAccess && macroSynthesis.ready) setIsSynthesisExpanded(!isSynthesisExpanded)
+              }}
+            >
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-[#b5a642]/20 rounded-full text-[#b5a642] shrink-0">
+                  {macroSynthesis.ready && !hasAccess ? <Lock size={20} /> : <Fingerprint size={20} />}
+                </div>
+                <div>
+                  <span className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-1 block">
+                    {macroSynthesis.ready ? "14-Day Rhythm Synthesis" : "Calibration Status"}
+                  </span>
+                  <h4 className="text-xl font-serif text-[#c9ccbb]">{macroSynthesis.title}</h4>
+                </div>
+              </div>
+
+              {/* Only show chevron if ready AND user has access */}
+              {hasAccess && macroSynthesis.ready && (
+                <div className="text-[#c9ccbb]/40 group-hover:text-[#b5a642] transition-colors ml-4 shrink-0">
+                  {isSynthesisExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                </div>
+              )}
+            </div>
+
+            {/* EXPANDABLE CONTENT */}
+            {!macroSynthesis.ready ? (
+               // STATE 1: CALIBRATING 
+               <div className="mt-4 pt-4 border-t border-[#c9ccbb]/10 w-full relative z-10">
+                 <p className="text-sm text-[#c9ccbb]/80 leading-relaxed max-w-2xl">
+                    {macroSynthesis.paragraphs[0]}
+                 </p>
+                 <div className="w-full max-w-md h-1 bg-[#000]/50 rounded-full mt-4 overflow-hidden">
+                    <div 
+                      className="h-full bg-[#b5a642] transition-all duration-1000" 
+                      style={{ width: `${(chartLogs.length / 14) * 100}%` }}
+                    />
                  </div>
-                 
-                 <div className="flex-1 w-full">
-                     {!macroSynthesis.ready ? (
-                        // STATE 1: CALIBRATING (Free & Premium see this)
-                        <>
-                            <span className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-1 block">14-Day Rhythm Synthesis</span>
-                            <h4 className="text-lg font-serif text-[#c9ccbb] mb-2">{macroSynthesis.title}</h4>
-                            <p className="text-sm text-[#c9ccbb]/80 leading-relaxed max-w-2xl">
-                                {macroSynthesis.text}
-                            </p>
-                            <div className="w-full max-w-md h-1 bg-[#000]/50 rounded-full mt-4 overflow-hidden">
-                                <div 
-                                    className="h-full bg-[#b5a642] transition-all duration-1000" 
-                                    style={{ width: `${(chartLogs.length / 14) * 100}%` }}
-                                />
-                            </div>
-                        </>
-                     ) : hasAccess ? (
-                        // STATE 2: UNLOCKED (Premium / God Mode only)
-                        <>
-                            <span className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-1 block">14-Day Rhythm Synthesis</span>
-                            <h4 className="text-lg font-serif text-[#c9ccbb] mb-2">{macroSynthesis.title}</h4>
-                            <p className="text-sm text-[#c9ccbb]/80 leading-relaxed max-w-2xl">
-                                {macroSynthesis.text}
-                            </p>
-                        </>
-                     ) : (
-                        // STATE 3: LOCKED CTA (Free user hits Day 14)
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 w-full">
-                            <div>
-                                <span className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-1 block">Calibration Complete</span>
-                                <h4 className="text-xl font-serif text-[#c9ccbb] mb-2">Unlock Your Macro Synthesis</h4>
-                                <p className="text-sm text-[#c9ccbb]/80 leading-relaxed max-w-xl">
-                                    14 days of bio-spatial data successfully collected. The algorithm has identified your environmental friction patterns. Upgrade to reveal your biological rhythm signature.
-                                </p>
-                            </div>
-                            <Link href="/upgrade" className="shrink-0 w-full md:w-auto">
-                                <button className="w-full md:w-auto px-8 py-3 bg-[#b5a642] text-[#1b270e] text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-white transition-all shadow-lg shadow-[#b5a642]/20">
-                                    Unlock Report
-                                </button>
-                            </Link>
-                        </div>
-                     )}
-                 </div>
-             </div>
+               </div>
+            ) : hasAccess ? (
+               // STATE 2: UNLOCKED ACCORDION CONTENT
+               <AnimatePresence>
+                 {isSynthesisExpanded && (
+                   <motion.div 
+                     initial={{ height: 0, opacity: 0 }} 
+                     animate={{ height: "auto", opacity: 1 }} 
+                     exit={{ height: 0, opacity: 0 }}
+                     transition={{ duration: 0.3, ease: "easeInOut" }}
+                     className="overflow-hidden relative z-10"
+                   >
+                     <div className="mt-6 space-y-4 text-[#c9ccbb]/80 text-sm leading-relaxed border-t border-[#c9ccbb]/10 pt-6">
+                       {macroSynthesis.paragraphs.map((para, i) => (
+                         <p key={i}>{para}</p>
+                       ))}
+                     </div>
+                   </motion.div>
+                 )}
+               </AnimatePresence>
+            ) : (
+               // STATE 3: LOCKED CTA (Free user hits Day 14)
+               <div className="mt-6 pt-6 border-t border-[#c9ccbb]/10 flex flex-col md:flex-row md:items-center justify-between gap-6 w-full relative z-10">
+                 <p className="text-sm text-[#c9ccbb]/80 leading-relaxed max-w-xl">
+                   14 days of bio-spatial data successfully collected. The algorithm has identified your environmental friction patterns. Upgrade to reveal your biological rhythm signature.
+                 </p>
+                 <Link href="/upgrade" className="shrink-0 w-full md:w-auto">
+                   <button className="w-full md:w-auto px-8 py-3 bg-[#b5a642] text-[#1b270e] text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-white transition-all shadow-lg shadow-[#b5a642]/20">
+                     Unlock Report
+                   </button>
+                 </Link>
+               </div>
+            )}
           </div>
 
-          {/* --- UPGRADED CHART SECTION --- */}
+          {/* --- UPGRADED CHART SECTION (🟢 SCROLLABLE ON MOBILE) --- */}
           <div className="animate-fade-in-up delay-100 mb-12">
               <div className="flex justify-between items-end mb-6">
                 <div>
@@ -738,8 +755,13 @@ export default function Progress() {
                 </div>
               </div>
               
-              <div className="glass-panel p-8 rounded-3xl border border-[#c9ccbb]/10 h-[300px] relative overflow-hidden">
-                   <CorrelationGraph data={chartLogs} />
+              <div className="glass-panel p-4 md:p-8 rounded-3xl border border-[#c9ccbb]/10 relative overflow-hidden">
+                   {/* Scrollable Wrapper */}
+                   <div className="w-full overflow-x-auto hide-scrollbar">
+                     <div className="min-w-[600px] h-[300px]">
+                       <CorrelationGraph data={chartLogs} />
+                     </div>
+                   </div>
               </div>
           </div>
 
