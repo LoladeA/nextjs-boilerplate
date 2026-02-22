@@ -1,169 +1,205 @@
 'use client'
 
 import Sidebar from '../components/Sidebar'
-import { Lock, ArrowRight, CheckCircle, BookOpen, Sparkles } from 'lucide-react'
-import Link from 'next/link'
+import { useState, useEffect } from 'react'
+import { BookOpen, ArrowRight, Lock, Loader2 } from 'lucide-react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-import { useEffect, useState } from 'react'
+import Link from 'next/link'
 
 export default function Coaching() {
   const supabase = createClientComponentClient()
-  const [completedSlugs, setCompletedSlugs] = useState<string[]>([])
-  const [hasAccess, setHasAccess] = useState(false) // 🟢 Tracks Premium/God Mode status
+  const [loading, setLoading] = useState(true)
+  
+  // 🟢 The user's progress state. Defaulting to 2 since you have 2 built.
+  const [currentModule, setCurrentModule] = useState(2) 
+
+  useEffect(() => {
+    async function fetchUserProgress() {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+
+        // Future-proofing: Fetching their actual progression from your users table
+        const { data: profile } = await supabase
+          .from('users')
+          .select('current_module')
+          .eq('id', user.id)
+          .single()
+
+        if (profile?.current_module) {
+          setCurrentModule(profile.current_module)
+        }
+      } catch (err) {
+        console.error('Failed to fetch progression', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchUserProgress()
+  }, [supabase])
 
   const modules = [
-    { 
-      week: "Module 1", 
-      slug: "foundations",
-      title: "Foundations of Neuropsychology in Interior Design", 
+    {
+      id: 1,
+      title: "Foundations of Neuropsychology in Interior Design",
       subtitle: "The Home as a Second Skin for the Nervous System.",
-      items: ["Neuro Load Scoring", "ACC & Theta Activity", "Hormonal Health"],
-      isPremium: false,
-      link: "/coaching/foundations"
+      weeks: ["Neuro Load Scoring", "ACC & Theta Activity", "Hormonal Health"]
     },
-    { 
-      week: "Module 2", 
-      slug: "sensory-lighting-dynamics", 
-      title: "Sensory and Lighting Dynamics", 
+    {
+      id: 2,
+      title: "Sensory and Lighting Dynamics",
       subtitle: "Understanding Sensory Load: Beyond the Obvious.",
-      items: [
-        "Week 1: Understanding Sensory Load: Beyond the Obvious", 
-        "Week 2: Circadian Stability & Sensory Filtering", 
-        "Week 3: Designing for Regulation (Not Aesthetics)", 
+      weeks: [
+        "Week 1: Understanding Sensory Load: Beyond the Obvious",
+        "Week 2: Circadian Stability & Sensory Filtering",
+        "Week 3: Designing for Regulation (Not Aesthetics)",
         "Week 4: The Evening Reset & Deep Night Setting"
-      ],
-      isPremium: true,
-      // Default link is upgrade, but we will override this if hasAccess is true
-      link: "/upgrade" 
+      ]
+    },
+    {
+      id: 3,
+      title: "Acoustic Balance",
+      subtitle: "The unseen architecture shaping your neural baseline.",
+      weeks: [
+        "Week 1: Sound as Neural Architecture",
+        "Week 2: The Neurophysiology of Acoustic Stress",
+        "Week 3: From Measurement to Intervention"
+      ]
+    },
+    {
+      id: 4,
+      title: "Colour Psychology",
+      subtitle: "Chromatic interventions for nervous system regulation.",
+      weeks: [
+        "Week 1: Colour as Neurochemical Modulator",
+        "Week 2: The Physiological Cascade of Colour Exposure",
+        "Week 3: From Measurement to Chromatic Intervention"
+      ]
+    },
+    {
+      id: 5,
+      title: "Spatial Flow and Layout",
+      subtitle: "Architectural alignment with biological movement.",
+      weeks: [
+        "Week 1: Spatial Cognition and the Navigating Nervous System",
+        "Week 2: When Space Works Against You",
+        "Week 3: From Spatial Diagnosis to Deliberate Intervention",
+        "Week 4: The Home as a Coherent Nervous System"
+      ]
+    },
+    {
+      id: 6,
+      title: "Biophilic Design",
+      subtitle: "Reconnecting human biology to its evolutionary baseline.",
+      weeks: [
+        "Week 1: Why the Brain Needs Nature",
+        "Week 2: What Nature Connection—or Its Absence—Is Actually Doing",
+        "Week 3: From Biophilic Deficit to Living Environment",
+        "Week 4: Integrating Nature Across Every Dimension"
+      ]
+    },
+    {
+      id: 7,
+      title: "Air Quality and Thermal Comfort",
+      subtitle: "The invisible boundaries of biological regulation.",
+      weeks: [
+        "Week 1: Olfactory Processing and Threat Detection",
+        "Week 2: Thermal Consistency vs. Friction",
+        "Week 3: Interventions for Atmospheric Stability"
+      ]
+    },
+    {
+      id: 8,
+      title: "Ergonomics and Physical Alignment",
+      subtitle: "Removing somatic resistance from your environment.",
+      weeks: [
+        "Week 1: Somatic Load Mapping",
+        "Week 2: Postural Priming for Deep Work",
+        "Week 3: The Architecture of Decompression",
+        "Week 4: Long-term Biomechanical Support"
+      ]
+    },
+    {
+      id: 9,
+      title: "Whole-Home Integration and Mastery",
+      subtitle: "Synchronising all domains into a unified NeuroDesign ecosystem.",
+      weeks: [
+        "Week 1: The Synthesis Protocol",
+        "Week 2: Identifying Competing Interventions",
+        "Week 3: Seasonal Adaptation Strategies",
+        "Week 4: Scaling to Multiple Occupants",
+        "Week 5: Longitudinal Tracking",
+        "Week 6: The Sentient Home Baseline"
+      ]
     }
   ]
 
-  // FETCH PROGRESS & CHECK SUBSCRIPTION
-  useEffect(() => {
-    async function checkStatus() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-
-      // 1. GET QUIZ PROGRESS
-      const { data: progress } = await supabase.from('quiz_submissions').select('module_slug').eq('user_id', user.id)
-      if (progress) setCompletedSlugs(progress.map(row => row.module_slug))
-
-      // 2. CHECK ACCESS (Golden Ticket + Subscription)
-      // 👑 GOD MODE: Instant Unlock for You
-      if (user.email === 'christchilde@gmail.com') {
-          console.log("👑 Golden Ticket: Modules Unlocked")
-          setHasAccess(true)
-          return
-      }
-
-      // Normal Subscription Check
-      const { data: subscription } = await supabase
-        .from('subscriptions')
-        .select('status')
-        .eq('user_id', user.id)
-        .in('status', ['active', 'trialing'])
-        .maybeSingle()
-
-      if (subscription) setHasAccess(true)
-    }
-    checkStatus()
-  }, [supabase])
+  if (loading) return <div className="min-h-screen bg-[#1b270e] flex items-center justify-center"><Loader2 className="animate-spin text-[#b5a642]" /></div>
 
   return (
     <div className="min-h-screen bg-[#1b270e] font-sans selection:bg-[#b5a642] selection:text-[#1b270e]">
       <Sidebar />
       <div className="md:ml-64 min-h-screen p-6 md:p-12">
-        
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           
-          <Link href="/dashboard" className="text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest hover:text-[#b5a642] mb-8 inline-block">
-            ← Back to Dashboard
-          </Link>
-
-          {/* --- HEADER SECTION --- */}
           <div className="mb-12">
-            <h1 className="text-4xl font-serif text-[#c9ccbb] mb-6">Your Sensory Coaching Journey</h1>
-            <div className="text-[#c9ccbb]/70 max-w-3xl leading-relaxed space-y-4">
-              <p>
-                Your home is constantly communicating with your nervous system, whether you’re aware of it or not.
-              </p>
-              <p>
-                This is a guided process of learning to listen, understand, and respond, without urgency or pressure to change everything at once.
-                The aim isn’t completion, but an ongoing relationship between you and the environment you live inside.
-              </p>
-            </div>
+            <h1 className="text-4xl font-serif text-[#c9ccbb] mb-4">Your Sensory Coaching</h1>
+            <p className="text-[#c9ccbb]/80 max-w-3xl leading-relaxed">
+              Your home environment is continuously shaping your nervous system: through light, sound, texture, temperature, and layout. 
+              This is a structured process of learning how to read those signals and respond with precision. There is no urgency here. We adjust one variable at a time, observe the effect, and build stability gradually. 
+              The goal is not a race to completion. It is to develop the awareness and agency to shape a home environment that consistently supports you.
+            </p>
           </div>
 
-          {/* GRID SECTION */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {modules.map((item, i) => {
-              // DYNAMIC LOGIC:
-              // 1. Is it locked? Only if it's premium AND user has no access
-              const isLocked = item.isPremium && !hasAccess
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {modules.map((mod) => {
+              // 🟢 SEQUENTIAL LOCK LOGIC
+              const isUnlocked = mod.id <= currentModule
               
-              // 2. Where does it link? 
-              // If locked -> Upgrade Page. 
-              // If unlocked Module 2 -> Week 1 Start Page.
-              // If Module 1 -> Regular Link.
-              const destination = isLocked 
-                  ? '/upgrade' 
-                  : (item.slug === 'sensory-lighting-dynamics' ? '/coaching/sensory-lighting-dynamics/week-1' : item.link)
-
-              // 3. Is it done? (Check if the main slug or the final week slug exists)
-              // For Module 2, we check if they finished Week 4 to mark the whole card complete
-              const isDone = completedSlugs.includes(item.slug) || completedSlugs.includes('sensory-lighting-dynamics-week-4')
-
               return (
-                <Link 
-                  href={destination} 
-                  key={i}
-                  className={`group relative flex flex-col justify-between p-8 rounded-3xl border transition-all duration-500 overflow-hidden min-h-[400px]
-                    ${item.isPremium 
-                      ? 'bg-gradient-to-br from-[#b5a642]/20 to-[#b5a642]/5 border-[#b5a642]/30' 
-                      : 'bg-[#1b270e] border-[#c9ccbb]/50 hover:border-[#b5a642]/50' 
-                    }
-                  `}
+                <div 
+                  key={mod.id} 
+                  className={`glass-panel p-8 rounded-3xl border flex flex-col h-full transition-all duration-300 ${
+                    isUnlocked 
+                      ? 'border-[#c9ccbb]/20 bg-[#000]/20 hover:border-[#b5a642]/50' 
+                      : 'border-[#c9ccbb]/5 bg-[#000]/10 opacity-70 cursor-default'
+                  }`}
                 >
-                  <div>
-                      <div className="flex justify-between items-start mb-6">
-                          <span className={`px-3 py-1 rounded border text-[10px] font-bold uppercase tracking-widest 
-                            ${item.isPremium ? 'border-[#1b270e]/20 text-[#1b270e]' : 'border-[#c9ccbb]/20 text-[#c9ccbb]/60'}`}>
-                              {item.week}
-                          </span>
-                          {isLocked && <Lock size={16} className="text-[#c9ccbb]/40" />}
-                      </div>
+                  <div className="flex-1">
+                    <span className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full border mb-6 inline-block ${
+                      isUnlocked 
+                        ? 'border-[#b5a642]/30 text-[#b5a642] bg-[#b5a642]/10' 
+                        : 'border-[#c9ccbb]/10 text-[#c9ccbb]/40'
+                    }`}>
+                      Module {mod.id}
+                    </span>
+                    
+                    <h3 className="text-xl font-serif text-[#c9ccbb] mb-3 leading-tight">{mod.title}</h3>
+                    <p className="text-[#c9ccbb]/60 text-xs leading-relaxed mb-8 h-10">{mod.subtitle}</p>
 
-                      <h3 className="text-2xl font-serif mb-2 text-[#c9ccbb]">
-                          {item.title}
-                      </h3>
-                      <p className="text-[#c9ccbb]/70 text-sm mb-8">{item.subtitle}</p>
-                      
-                      <div className="space-y-3 mb-8">
-                        {item.items.map((subItem, idx) => (
-                            <div key={idx} className="flex items-center gap-3 text-sm text-[#c9ccbb]/80">
-                                <BookOpen size={14} className="shrink-0 opacity-50" />
-                                <span>{subItem}</span>
-                            </div>
-                        ))}
-                      </div>
+                    <ul className="space-y-4 mb-8">
+                      {mod.weeks.map((week, index) => (
+                        <li key={index} className="flex gap-3 text-xs text-[#c9ccbb]/80 items-start">
+                          <BookOpen size={14} className={`shrink-0 mt-0.5 ${isUnlocked ? 'text-[#b5a642]' : 'text-[#c9ccbb]/30'}`} />
+                          <span className="leading-relaxed">{week}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
 
-                  <div className={`pt-6 border-t ${item.isPremium ? 'border-[#1b270e]/10' : 'border-[#c9ccbb]/10'} flex justify-between items-center`}>
-                      {isLocked ? (
-                          <span className="text-xs font-bold uppercase tracking-widest text-[#b5a642] flex items-center gap-2">
-                              Upgrade to Unlock <Lock size={12} />
-                          </span>
-                      ) : isDone ? (
-                          <span className="text-xs font-bold uppercase tracking-widest text-emerald-400 flex items-center gap-2">
-                              Completed <CheckCircle size={14} />
-                          </span>
-                      ) : (
-                          <span className="text-xs font-bold uppercase tracking-widest text-[#c9ccbb] group-hover:text-[#b5a642] transition-colors flex items-center gap-2">
-                              Start Module <ArrowRight size={14} />
-                          </span>
-                      )}
+                  <div className="pt-6 border-t border-[#c9ccbb]/10 mt-auto">
+                    {isUnlocked ? (
+                      <Link href={`/coaching/module-${mod.id}`} className="group flex items-center gap-2 text-[#c9ccbb] hover:text-[#b5a642] text-[10px] font-bold uppercase tracking-widest transition-colors w-fit">
+                        {mod.id < currentModule ? "Review Module" : "Continue Module"} <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                      </Link>
+                    ) : (
+                      // 🟢 EXPLICIT PREREQUISITE REQUIREMENT
+                      <div className="flex items-center gap-2 text-[#c9ccbb]/40 text-[10px] font-bold uppercase tracking-widest">
+                        <Lock size={12} className="text-[#b5a642]/50" /> Complete Module {mod.id - 1} to Unlock
+                      </div>
+                    )}
                   </div>
-                </Link>
+                </div>
               )
             })}
           </div>
