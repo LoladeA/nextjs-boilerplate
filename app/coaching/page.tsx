@@ -10,7 +10,6 @@ export default function Coaching() {
   const supabase = createClientComponentClient()
   const [loading, setLoading] = useState(true)
   
-  // 🟢 The user's progress state. Defaulting to 2 since you have 2 built.
   const [currentModule, setCurrentModule] = useState(2) 
 
   useEffect(() => {
@@ -19,7 +18,6 @@ export default function Coaching() {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return
 
-        // Future-proofing: Fetching their actual progression from your users table
         const { data: profile } = await supabase
           .from('users')
           .select('current_module')
@@ -122,7 +120,7 @@ export default function Coaching() {
     {
       id: 9,
       title: "Whole-Home Integration and Mastery",
-      subtitle: "Synchronising all domains into a unified NeuroDesign ecosystem.",
+      subtitle: "Synchronizing all domains into a unified NeuroDesign.",
       weeks: [
         "Week 1: The Synthesis Protocol",
         "Week 2: Identifying Competing Interventions",
@@ -137,10 +135,15 @@ export default function Coaching() {
   if (loading) return <div className="min-h-screen bg-[#1b270e] flex items-center justify-center"><Loader2 className="animate-spin text-[#b5a642]" /></div>
 
   return (
-    <div className="mb-12">
+    <div className="min-h-screen bg-[#1b270e] font-sans selection:bg-[#b5a642] selection:text-[#1b270e]">
+      <Sidebar />
+      <div className="md:ml-64 min-h-screen p-6 md:p-12">
+        <div className="max-w-6xl mx-auto">
+          
+          {/* 🟢 THE CORRECTED HEADER SECTION */}
+          <div className="mb-12">
             <h1 className="text-4xl font-serif text-[#c9ccbb] mb-6">Your Sensory Coaching</h1>
             
-            {/* 🟢 Replaced the single <p> with a flex container of multiple <p> tags */}
             <div className="space-y-4 text-[#c9ccbb]/80 max-w-3xl leading-relaxed">
               <p>
                 Your home environment is continuously shaping your nervous system: through light, sound, texture, temperature, and layout. 
@@ -152,10 +155,10 @@ export default function Coaching() {
                 The goal is not a race to completion. It is to develop the awareness and agency to shape a home environment that consistently supports you.
               </p>
             </div>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {modules.map((mod) => {
-              // 🟢 SEQUENTIAL LOCK LOGIC
               const isUnlocked = mod.id <= currentModule
               
               return (
@@ -195,7 +198,6 @@ export default function Coaching() {
                         {mod.id < currentModule ? "Review Module" : "Continue Module"} <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
                       </Link>
                     ) : (
-                      // 🟢 EXPLICIT PREREQUISITE REQUIREMENT
                       <div className="flex items-center gap-2 text-[#c9ccbb]/40 text-[10px] font-bold uppercase tracking-widest">
                         <Lock size={12} className="text-[#b5a642]/50" /> Complete Module {mod.id - 1} to Unlock
                       </div>
