@@ -41,7 +41,7 @@ export default function Sidebar({ onOpenGuide }: SidebarProps) {
     { name: 'Audit Room', href: '/room-audit', icon: <ScanEye size={20} /> }, 
     { name: 'Coaching', href: '/coaching', icon: <Sparkles size={20} /> },
     { name: 'Insights', href: '/insights', icon: <BookOpen size={20} /> },
-    { name: 'Progress', href: '/progress', icon: <BarChart2 size={20} /> },
+    { name: 'Daily Logs', href: '/progress', icon: <BarChart2 size={20} /> },
     { name: 'Settings', href: '/settings', icon: <Settings size={20} /> },
   ]
 
