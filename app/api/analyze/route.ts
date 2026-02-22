@@ -196,8 +196,37 @@ export async function POST(req: Request) {
     
     let recovery = biophilicScore - (entropyScore * 0.5);
     recovery = Math.min(Math.max(recovery, 0), 100);
+
+    // --------------------------------------------------
+    // CONTEXTUAL ROOM WEIGHTING (The Alignment Score)
+    // --------------------------------------------------
+    const roomNameLower = roomName.toLowerCase();
+    let w = { circadian: 1, autonomic: 1, predictive: 1, recovery: 1, sensory: 1 };
+
+    if (roomNameLower.includes('bedroom')) {
+      w = { circadian: 1.5, autonomic: 1.2, predictive: 1.0, recovery: 1.5, sensory: 1.5 };
+    } else if (roomNameLower.includes('office') || roomNameLower.includes('workspace')) {
+      w = { circadian: 1.2, autonomic: 1.3, predictive: 1.5, recovery: 0.8, sensory: 0.8 };
+    } else if (roomNameLower.includes('living') || roomNameLower.includes('family')) {
+      w = { circadian: 1.0, autonomic: 1.1, predictive: 1.1, recovery: 1.2, sensory: 1.0 };
+    } else if (roomNameLower.includes('kitchen')) {
+      w = { circadian: 1.0, autonomic: 1.0, predictive: 1.4, recovery: 0.8, sensory: 0.5 };
+    }
+
+    const rawAlignment = (
+      (circadian * w.circadian) +
+      (autonomic * w.autonomic) +
+      (predictive * w.predictive) +
+      (recovery * w.recovery) +
+      ((100 - sensory) * w.sensory)
+    );
     
+    const maxPossibleWeight = (100 * w.circadian) + (100 * w.autonomic) + (100 * w.predictive) + (100 * w.recovery) + (100 * w.sensory);
+    const alignmentScore = Math.round((rawAlignment / maxPossibleWeight) * 100);
+    
+    // --------------------------------------------------
     // LLM TRANSLATION LAYER (INTERPRETATION ONLY)
+    // --------------------------------------------------
     const enginePayload = `
     ROOM TYPE: ${roomName}
     ENTROPY SCORE: ${entropyScore.toFixed(1)}
@@ -232,6 +261,7 @@ export async function POST(req: Request) {
       user_id: user.id,
       room_name: roomName,
       arousal_score: parseFloat(entropyScore.toFixed(1)),
+      alignment_score: alignmentScore, // 🟢 NOW SAVED LONGITUDINALLY
       insight: llmResponse.insight,
     }).select('id').single();
 
@@ -292,11 +322,23 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       data: {
+        // CORE V3 METRICS
         entropy_score: (entropyScore / 10).toFixed(1), // Scaled to 10 for the UI
         lighting_kelvin: estimatedKelvin,
         biophilic_rating: biophilicScore >= 60 ? 'HIGH' : biophilicScore >= 30 ? 'MODERATE' : 'LOW',
+        
+        // PHASE 7 DOMAINS & TRANSLATION
+        alignment_index: alignmentScore,
+        domains: {
+          Circadian: Math.round(circadian),
+          Autonomic: Math.round(autonomic),
+          Predictive: Math.round(predictive),
+          Sensory: Math.round(sensory),
+          Recovery: Math.round(recovery)
+        },
         insight: llmResponse.insight,
-        prescriptions: llmResponse.prescriptions
+        triggers: llmResponse.triggers || [],
+        prescriptions: llmResponse.prescriptions || []
       }
     })
   } catch (error: any) {
