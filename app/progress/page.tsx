@@ -238,17 +238,27 @@ export default function Progress() {
       .from('daily_logs')
       .select('date, mood_score, focus_hours, morning_tension, sleep_wakes') 
       .eq('user_id', user.id)
-      .order('date', { ascending: true }) 
+      // 🟢 1. FETCH THE 14 NEWEST LOGS
+      .order('date', { ascending: false }) 
       .limit(14) 
 
     if (data) {
-        const formatted = data.map((log: any) => ({
-            date: new Date(log.date).toLocaleDateString('en-US', { weekday: 'short' }),
-            mood: log.mood_score || 0,        
-            tension: log.morning_tension || 0,
-            focus: log.focus_hours || 0,
-            wakes: log.sleep_wakes || 0
-        }))
+        // 🟢 2. REVERSE THE ARRAY FOR LEFT-TO-RIGHT CHART DISPLAY
+        const chronologicalData = data.reverse()
+        
+        const formatted = chronologicalData.map((log: any) => {
+            // 🟢 3. SAFE DATE PARSING (Prevents timezone shifting)
+            const [year, month, day] = log.date.split('-')
+            const dateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
+            
+            return {
+                date: dateObj.toLocaleDateString('en-US', { weekday: 'short' }),
+                mood: log.mood_score || 0,        
+                tension: log.morning_tension || 0,
+                focus: log.focus_hours || 0,
+                wakes: log.sleep_wakes || 0
+            }
+        })
         setChartLogs(formatted)
     }
   }
@@ -319,7 +329,7 @@ export default function Progress() {
         <div className="max-w-4xl mx-auto">
           
           <div className="mb-12">
-            <h1 className="text-4xl font-serif text-[#c9ccbb] mb-2">Progress & Tracking</h1>
+            <h1 className="text-4xl font-serif text-[#c9ccbb] mb-2">Your Daily Logs</h1>
             <p className="text-[#c9ccbb]/80">
               Log your daily state to train the nervous system and reveal long-term patterns.
             </p>
