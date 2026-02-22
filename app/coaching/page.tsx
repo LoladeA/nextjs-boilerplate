@@ -152,7 +152,6 @@ export default function Coaching() {
                 The goal is not a race to completion. It is to develop the awareness and agency to shape a home environment that consistently supports you.
               </p>
             </div>
-          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {modules.map((mod) => {
