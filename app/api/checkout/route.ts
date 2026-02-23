@@ -1,29 +1,30 @@
-import { NextResponse } from 'next/server';
-import Stripe from 'stripe';
+import { NextResponse } from 'next/server'
+import Stripe from 'stripe'
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
 
-// Initialize Stripe with your Secret Key
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16', // This handles the connection to Stripe
-});
+  apiVersion: '2023-10-16',
+})
 
-export async function POST(req: Request) {
+export async function POST() {
   try {
-    // 1. Read the request from your button
-    const body = await req.json();
-    const { priceId } = body;
+    const supabase = createRouteHandlerClient({ cookies })
 
-    console.log("Processing Checkout for Price ID:", priceId);
+    const {
+      data: { user },
+      error
+    } = await supabase.auth.getUser()
 
-    // 2. Validate the Price ID
-    if (!priceId) {
-      return NextResponse.json(
-        { error: 'Price ID is missing' },
-        { status: 400 }
-      );
+    if (error || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // 3. Create the Stripe Session
+    // IMPORTANT: Never trust client priceId
+    const priceId = process.env.STRIPE_PREMIUM_PRICE_ID!
+
     const session = await stripe.checkout.sessions.create({
+      mode: 'subscription',
       payment_method_types: ['card'],
       line_items: [
         {
@@ -31,19 +32,19 @@ export async function POST(req: Request) {
           quantity: 1,
         },
       ],
-      mode: 'subscription', 
+      client_reference_id: user.id,
+      customer_email: user.email ?? undefined,
       success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard?success=true`,
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/upgrade?canceled=true`,
-    });
+    })
 
-    // 4. Send the checkout URL back to the button
-    return NextResponse.json({ url: session.url });
-    
+    return NextResponse.json({ url: session.url })
+
   } catch (error: any) {
-    console.error("Stripe Error:", error);
+    console.error('Stripe Error:', error)
     return NextResponse.json(
       { error: error.message || 'Internal Server Error' },
       { status: 500 }
-    );
+    )
   }
 }
