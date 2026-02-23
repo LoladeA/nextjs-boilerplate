@@ -93,7 +93,7 @@ export default function Coaching() {
         "Week 1: Why the Brain Needs Nature",
         "Week 2: What Nature Connection—or Its Absence—Is Actually Doing",
         "Week 3: From Biophilic Deficit to Living Environment",
-        "Week 4: Integrating Nature Across Every Dimension"
+        "Week 4: Integrating Nature Across Every Dimension of The Sentient Home"
       ]
     },
     {
@@ -101,9 +101,9 @@ export default function Coaching() {
       title: "Air Quality and Thermal Comfort",
       subtitle: "The invisible boundaries of biological regulation.",
       weeks: [
-        "Week 1: Olfactory Processing and Threat Detection",
-        "Week 2: Thermal Consistency vs. Friction",
-        "Week 3: Interventions for Atmospheric Stability"
+        "Week 1: What You Cannot See Is Still Regulating You",
+        "Week 2: What Poor Air Quality and Thermal Dysregulation Are Actually Costing You",
+        "Week 3: From Measurement to Intervention"
       ]
     },
     {
@@ -111,10 +111,9 @@ export default function Coaching() {
       title: "Ergonomics and Physical Alignment",
       subtitle: "Removing somatic resistance from your environment.",
       weeks: [
-        "Week 1: Somatic Load Mapping",
-        "Week 2: Postural Priming for Deep Work",
-        "Week 3: The Architecture of Decompression",
-        "Week 4: Long-term Biomechanical Support"
+        "Week 1: Why How You Sit, Stand, and Move in Your Home Determines How You Feel",
+        "Week 2: What Years of Poor Ergonomics Have Been Costing You",
+        "Week 3: From Assessment to Sustainable Ergonomic Support"
       ]
     },
     {
@@ -122,11 +121,11 @@ export default function Coaching() {
       title: "Whole-Home Integration and Mastery",
       subtitle: "Synchronizing all domains into a unified NeuroDesign.",
       weeks: [
-        "Week 1: The Synthesis Protocol",
-        "Week 2: Identifying Competing Interventions",
-        "Week 3: Seasonal Adaptation Strategies",
-        "Week 4: Scaling to Multiple Occupants",
-        "Week 5: Longitudinal Tracking",
+        "Week 1: How Environmental Variables Interact",
+        "Week 2: Your Unique Environmental Signature",
+        "Week 3: Building Your Home's Operating System",
+        "Week 4: Designing to Accomodate Multiple Occupants",
+        "Week 5: Long-Term Maintenance and Evolution",
         "Week 6: The Sentient Home Baseline"
       ]
     }
