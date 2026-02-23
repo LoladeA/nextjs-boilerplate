@@ -5,10 +5,9 @@ import { createClient } from '@supabase/supabase-js'
 
 export async function POST(req: Request) {
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: '2023-10-16', 
+    apiVersion: '2023-10-16',
   })
 
-  // We use the Service Role Key here because webhooks operate outside of normal user authentication
   const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -18,13 +17,20 @@ export async function POST(req: Request) {
   const signature = headers().get('Stripe-Signature')
 
   if (!signature || !process.env.STRIPE_WEBHOOK_SECRET) {
-    return NextResponse.json({ error: 'Missing stripe signature or webhook secret' }, { status: 400 })
+    return NextResponse.json(
+      { error: 'Missing stripe signature or webhook secret' },
+      { status: 400 }
+    )
   }
 
   let event: Stripe.Event
 
   try {
-    event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET)
+    event = stripe.webhooks.constructEvent(
+      body,
+      signature,
+      process.env.STRIPE_WEBHOOK_SECRET
+    )
   } catch (err: any) {
     console.error(`Webhook signature verification failed: ${err.message}`)
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
@@ -32,72 +38,87 @@ export async function POST(req: Request) {
 
   try {
     switch (event.type) {
-      
-      // TRIGGERED WHEN A USER FIRST UPGRADES
-      case 'checkout.session.completed': {
-        const session = event.data.object as Stripe.Checkout.Session
-        
-        const userId = session.client_reference_id 
-        const customerId = session.customer as string
 
-        if (!userId) throw new Error('No client_reference_id found in Stripe session.')
+      // 🔹 Handles new subscriptions
+      case 'customer.subscription.created':
 
-        // Create or update the master subscription record
+      // 🔹 Handles renewals, plan changes, trial transitions, status changes
+      case 'customer.subscription.updated': {
+
+        const subscription = event.data.object as Stripe.Subscription
+
+        const userId = subscription.metadata?.user_id
+
+        if (!userId) {
+          console.error('Missing user_id in subscription metadata')
+          break
+        }
+
         await supabaseAdmin
           .from('subscriptions')
           .upsert({
             user_id: userId,
-            status: 'active',
-            plan: 'premium',
-            stripe_customer_id: customerId,
-            current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), 
+            stripe_customer_id: subscription.customer as string,
+            price_id: subscription.items.data[0]?.price.id ?? null,
+            status: subscription.status,
+            current_period_start: new Date(
+              subscription.current_period_start * 1000
+            ).toISOString(),
+            current_period_end: new Date(
+              subscription.current_period_end * 1000
+            ).toISOString(),
+            cancel_at_period_end: subscription.cancel_at_period_end,
+            cancel_at: subscription.cancel_at
+              ? new Date(subscription.cancel_at * 1000).toISOString()
+              : null,
+            canceled_at: subscription.canceled_at
+              ? new Date(subscription.canceled_at * 1000).toISOString()
+              : null,
+            trial_start: subscription.trial_start
+              ? new Date(subscription.trial_start * 1000).toISOString()
+              : null,
+            trial_end: subscription.trial_end
+              ? new Date(subscription.trial_end * 1000).toISOString()
+              : null,
           })
-        
+
         break
       }
 
-      // TRIGGERED EVERY MONTH WHEN THEIR RECURRING PAYMENT CLEARS
-      case 'invoice.paid': {
-        const invoice = event.data.object as Stripe.Invoice
-        const customerId = invoice.customer as string
-
-        // Find who this customer is in our database
-        const { data: subRecord } = await supabaseAdmin
-          .from('subscriptions')
-          .select('user_id')
-          .eq('stripe_customer_id', customerId)
-          .single()
-
-        // Push their expiration date out another 30 days
-        if (subRecord?.user_id) {
-          await supabaseAdmin
-            .from('subscriptions')
-            .update({
-              current_period_end: new Date(invoice.lines.data[0].period.end * 1000).toISOString(),
-              status: 'active'
-            })
-            .eq('user_id', subRecord.user_id)
-        }
-        break
-      }
-
-      // TRIGGERED IF THEY CANCEL OR THEIR CARD FAILS MULTIPLE TIMES
+      // 🔹 Handles cancellations
       case 'customer.subscription.deleted': {
+
         const subscription = event.data.object as Stripe.Subscription
-        const customerId = subscription.customer as string
-          
+
+        const userId = subscription.metadata?.user_id
+
+        if (!userId) {
+          console.error('Missing user_id in subscription metadata on delete')
+          break
+        }
+
         await supabaseAdmin
           .from('subscriptions')
-          .update({ status: 'canceled' })
-          .eq('stripe_customer_id', customerId)
-          
+          .update({
+            status: subscription.status, // typically 'canceled'
+            canceled_at: subscription.canceled_at
+              ? new Date(subscription.canceled_at * 1000).toISOString()
+              : new Date().toISOString(),
+            ended_at: new Date().toISOString(),
+          })
+          .eq('user_id', userId)
+
         break
       }
     }
 
     return NextResponse.json({ received: true })
+
   } catch (err: any) {
     console.error('Webhook processing error:', err)
-    return NextResponse.json({ error: 'Webhook handler failed' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Webhook handler failed' },
+      { status: 500 }
+    )
   }
 }
