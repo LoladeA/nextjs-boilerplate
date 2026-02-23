@@ -20,7 +20,6 @@ export async function POST() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // IMPORTANT: Never trust client priceId
     const priceId = process.env.STRIPE_PREMIUM_PRICE_ID!
 
     const session = await stripe.checkout.sessions.create({
@@ -32,8 +31,15 @@ export async function POST() {
           quantity: 1,
         },
       ],
-      client_reference_id: user.id,
+
+      // 👇 CRITICAL LINK BETWEEN STRIPE AND YOUR DATABASE
+      metadata: {
+        user_id: user.id,
+      },
+
+      client_reference_id: user.id, // optional but useful for debugging
       customer_email: user.email ?? undefined,
+
       success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard?success=true`,
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/upgrade?canceled=true`,
     })
