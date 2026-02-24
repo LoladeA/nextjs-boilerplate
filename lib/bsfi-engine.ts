@@ -6,10 +6,10 @@ export interface DailyLogParams {
     evening_lux: number | null;
     daytime_db: number | null;
     nighttime_db: number | null;
-    morning_tension: number;
-    sleep_wakes: number;
-    focus_hours: number;
-    mood_score: number;
+    morning_tension: number | null; 
+    sleep_wakes: number | null;     
+    focus_hours: number | null;     
+    mood_score: number | null;      
     morning_tags: string[];
     evening_tags: string[];
 }
