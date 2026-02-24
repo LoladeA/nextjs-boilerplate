@@ -651,7 +651,7 @@ export default function Progress() {
                                     onClick={() => { setActiveMeterTarget('morningLux'); setIsLightMeterOpen(true); }}
                                     className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest hover:text-white transition-colors flex items-center gap-1 bg-[#b5a642]/10 px-2 py-1 rounded-md border border-[#b5a642]/20"
                                 >
-                                    <Activity size={12} /> Measure Now
+                                    <Activity size={12} /> Measure
                                 </button>
                             </div>
                             <input 
@@ -671,7 +671,7 @@ export default function Progress() {
                                     onClick={() => { setActiveMeterTarget('nighttimeDb'); setIsAcousticMeterOpen(true); }}
                                     className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest hover:text-white transition-colors flex items-center gap-1 bg-[#b5a642]/10 px-2 py-1 rounded-md border border-[#b5a642]/20"
                                 >
-                                    <Activity size={12} /> Measure Now
+                                    <Activity size={12} /> Measure
                                 </button>
                             </div>
                             <input 
