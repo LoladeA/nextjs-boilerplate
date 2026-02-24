@@ -5,6 +5,73 @@ import { useState, useEffect, useRef } from 'react'
 import { Mic, Activity, Volume2, Info, X } from 'lucide-react'
 import Link from 'next/link'
 
+// This is a stripped-down version of your noise meter just for the popup
+export function NoiseSensorModal({ onClose, onSave }: { onClose: () => void, onSave: (db: number) => void }) {
+  const [isListening, setIsListening] = useState(false)
+  const [db, setDb] = useState<number>(0)
+  const [error, setError] = useState('')
+  const audioContextRef = useRef<AudioContext | null>(null)
+  const analyserRef = useRef<AnalyserNode | null>(null)
+  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null)
+  const animationRef = useRef<number | null>(null)
+
+  useEffect(() => { return () => stopListening() }, [])
+
+  const startListening = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)()
+      analyserRef.current = audioContextRef.current.createAnalyser()
+      sourceRef.current = audioContextRef.current.createMediaStreamSource(stream)
+      sourceRef.current.connect(analyserRef.current)
+      analyserRef.current.fftSize = 256
+      setIsListening(true)
+      setError('')
+      analyzeLoop()
+    } catch (err) {
+      setError('Microphone access denied.')
+    }
+  }
+
+  const stopListening = () => {
+    if (audioContextRef.current) audioContextRef.current.close()
+    if (animationRef.current) cancelAnimationFrame(animationRef.current)
+    setIsListening(false)
+  }
+
+  const analyzeLoop = () => {
+    if (!analyserRef.current) return
+    const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount)
+    analyserRef.current.getByteFrequencyData(dataArray)
+    let sum = 0
+    for (let i = 0; i < dataArray.length; i++) sum += dataArray[i] * dataArray[i]
+    const rms = Math.sqrt(sum / dataArray.length)
+    const estimatedDb = Math.max(30, Math.round(20 * Math.log10(rms || 1) + 30))
+    setDb(prev => Math.round(prev + (estimatedDb - prev) * 0.1))
+    animationRef.current = requestAnimationFrame(analyzeLoop)
+  }
+
+  return (
+    <div className="p-8 text-center text-[#c9ccbb] flex flex-col items-center">
+      <h3 className="text-xl font-serif mb-2">Acoustic Sensor</h3>
+      <div className="w-32 h-32 rounded-full border-4 border-[#b5a642]/20 flex flex-col items-center justify-center mb-8 relative">
+        <span className="text-4xl font-serif text-[#b5a642] relative z-10">{db}</span>
+        <span className="text-[10px] font-bold uppercase tracking-widest relative z-10">dB</span>
+      </div>
+      {error && <p className="text-red-400 text-xs mb-4">{error}</p>}
+      {!isListening ? (
+        <button onClick={startListening} className="px-8 py-3 bg-[#b5a642]/10 text-[#b5a642] border border-[#b5a642]/30 font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-[#b5a642] hover:text-[#1b270e] transition-all">
+           Start Sensor
+        </button>
+      ) : (
+        <button onClick={() => { stopListening(); onSave(db); }} className="px-8 py-3 bg-[#b5a642] text-[#1b270e] font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-white transition-all">
+          Save Reading
+        </button>
+      )}
+    </div>
+  )
+}
+
 export default function NoiseMeterTool() {
   const [isListening, setIsListening] = useState(false)
   const [db, setDb] = useState<number>(0)
