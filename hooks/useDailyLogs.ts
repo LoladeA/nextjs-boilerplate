@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
-// 1. We define exactly what a Daily Log looks like to enforce strict TypeScript safety.
 export interface DailyLogState {
   morningMood: number | null;
   morningTags: string[];
@@ -28,10 +27,7 @@ const initialState: DailyLogState = {
 export function useDailyLogs() {
   const supabase = createClientComponentClient()
   
-  // 2. We group 16 separate UI states into ONE single object. Massive performance win.
   const [formData, setFormData] = useState<DailyLogState>(initialState)
-  
-  // 3. System States
   const [status, setStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState('')
   const [showAccuracyWarning, setShowAccuracyWarning] = useState(false)
@@ -47,14 +43,11 @@ export function useDailyLogs() {
 
   const checkAccess = async () => {
     const { data: { user } } = await supabase.auth.getUser()
-    // For V1, checking against your admin email. 
-    // In the future, this checks their Stripe/Subscription status.
     if (user?.email === 'christchilde@gmail.com') {
       setHasAccess(true)
     }
   }
 
-  // A helper function to update any single field in our form cleanly
   const updateField = <K extends keyof DailyLogState>(field: K, value: DailyLogState[K]) => {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
@@ -79,20 +72,8 @@ export function useDailyLogs() {
     const startOfToday = new Date().setHours(0, 0, 0, 0)
     const endOfToday = new Date().setHours(23, 59, 59, 999)
 
-    const { data: logData } = await supabase
-      .from('daily_logs')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('date', todayStr)
-      .single()
-      
-    const { data: existingBsfi } = await supabase
-      .from('bsfi_results')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('calculated_for_date', { ascending: false })
-      .limit(1)
-      .maybeSingle() 
+    const { data: logData } = await supabase.from('daily_logs').select('*').eq('user_id', user.id).eq('date', todayStr).single()
+    const { data: existingBsfi } = await supabase.from('bsfi_results').select('*').eq('user_id', user.id).order('calculated_for_date', { ascending: false }).limit(1).maybeSingle() 
       
     if (existingBsfi) {
       setBsfiData({
@@ -102,12 +83,7 @@ export function useDailyLogs() {
       })
     }
 
-    const { data: scanData } = await supabase
-      .from('meter_scans')
-      .select('metric_type, value, created_at')
-      .eq('user_id', user.id)
-      .gte('created_at', new Date(startOfToday).toISOString())
-      .lte('created_at', new Date(endOfToday).toISOString())
+    const { data: scanData } = await supabase.from('meter_scans').select('metric_type, value, created_at').eq('user_id', user.id).gte('created_at', new Date(startOfToday).toISOString()).lte('created_at', new Date(endOfToday).toISOString())
 
     let autoMorningLux = '', autoEveningLux = '', autoDaytimeDb = '', autoNighttimeDb = ''
 
@@ -153,12 +129,7 @@ export function useDailyLogs() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    const { data } = await supabase
-      .from('daily_logs')
-      .select('date, mood_score, focus_hours, morning_tension, sleep_wakes') 
-      .eq('user_id', user.id)
-      .order('date', { ascending: false }) 
-      .limit(14) 
+    const { data } = await supabase.from('daily_logs').select('date, mood_score, focus_hours, morning_tension, sleep_wakes').eq('user_id', user.id).order('date', { ascending: false }).limit(14) 
 
     if (data) {
         const chronologicalData = data.reverse()
@@ -177,12 +148,16 @@ export function useDailyLogs() {
     }
   }
 
-  const handleSave = async (activeTab: 'morning' | 'evening', isForced = false) => {
-    const criticalFields = activeTab === 'morning' 
-      ? [ { value: formData.morningLux, label: 'Morning Light' }, { value: formData.daytimeDb, label: 'Daytime Noise' } ]
-      : [ { value: formData.eveningLux, label: 'Evening Light' }, { value: formData.nighttimeDb, label: 'Nighttime Noise' } ];
+  // 🟢 EXACT ORIGINAL SAVE LOGIC RESTORED
+  const handleSave = async (isForced = false) => {
+    const criticalFields = [
+      { value: formData.morningLux, label: 'Morning Light' },
+      { value: formData.eveningLux, label: 'Evening Light' },
+      { value: formData.daytimeDb, label: 'Daytime Noise' },
+      { value: formData.nighttimeDb, label: 'Nighttime Noise' }
+    ];
 
-    const missing = criticalFields.filter(f => f.value === null || f.value === undefined || String(f.value).trim() === '');
+    const missing = criticalFields.filter(f => f.value === null || f.value === '');
 
     if (missing.length > 0 && isForced !== true) {
       setShowAccuracyWarning(true);
@@ -209,7 +184,7 @@ export function useDailyLogs() {
             evening_lux: formData.eveningLux ? parseInt(formData.eveningLux) : null,
             daytime_db: formData.daytimeDb ? parseInt(formData.daytimeDb) : null,
             nighttime_db: formData.nighttimeDb ? parseInt(formData.nighttimeDb) : null,
-            focus_hours: formData.focusScore,
+            focus_hours: formData.focusScore, // Floating points preserved exactly as before
             morning_tension: formData.tensionScore,
             sleep_wakes: formData.wakeScore,
             evening_mood_score: formData.eveningMood,
@@ -218,42 +193,28 @@ export function useDailyLogs() {
         }
 
         const { error } = await supabase.from('daily_logs').upsert(payload, { onConflict: 'user_id, date' })
+        
         if (error) throw error
 
-        setChartLogs(prev => {
-            const newLogs = [...prev];
-            if (newLogs.length > 0) {
-                newLogs[newLogs.length - 1] = {
-                    ...newLogs[newLogs.length - 1],
-                    focus: formData.focusScore,
-                    tension: formData.tensionScore,
-                    wakes: formData.wakeScore
-                };
-            }
-            return newLogs;
-        });
+        const res = await fetch('/api/calculate-bsfi', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+
+        const data = await res.json()
+        
+        if (data.success && data.bsfiResult) {
+            setBsfiData({
+                total_score: data.bsfiResult.bsfi_total,
+                dominant_domain: data.bsfiResult.dominant_domain,
+                is_internal_driver: data.bsfiResult.is_internal_driver
+            })
+        }
 
         setStatus('success')
+        fetchHistory() 
         setTimeout(() => setStatus('idle'), 2000)
-        setTimeout(() => { fetchHistory() }, 500)
-
-        try {
-            const res = await fetch('/api/calculate-bsfi', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            })
-            const data = await res.json()
-            if (data.success && data.bsfiResult) {
-                setBsfiData({
-                    total_score: data.bsfiResult.bsfi_total,
-                    dominant_domain: data.bsfiResult.dominant_domain,
-                    is_internal_driver: data.bsfiResult.is_internal_driver
-                })
-            }
-        } catch (engineError) {
-            console.error("BSFI calculation pending or failed, fallback engaged.")
-        }
 
     } catch (err: any) {
         console.error("Save Error:", err)
@@ -262,18 +223,8 @@ export function useDailyLogs() {
     }
   }
 
-  // 4. Expose exactly what the UI needs, and nothing more.
   return {
-    formData,
-    updateField,
-    toggleTag,
-    status,
-    errorMessage,
-    showAccuracyWarning,
-    setShowAccuracyWarning,
-    bsfiData,
-    chartLogs,
-    hasAccess,
-    handleSave
+    formData, updateField, toggleTag, status, errorMessage, 
+    showAccuracyWarning, setShowAccuracyWarning, bsfiData, chartLogs, hasAccess, handleSave
   }
 }
