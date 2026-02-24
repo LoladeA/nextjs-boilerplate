@@ -7,6 +7,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import Link from 'next/link'
 import CorrelationGraph from './CorrelationGraph'
+
+// 🟢 CRITICAL FIX: Importing your actual hardware sensors instead of placeholders
 import { LightSensorModal } from '../tools/light-meter/page'
 import { NoiseSensorModal } from '../tools/noise-meter/page'
 
@@ -50,7 +52,7 @@ export default function Progress() {
   // --- SOFT-GATE VALIDATION STATE ---
   const [showAccuracyWarning, setShowAccuracyWarning] = useState(false)
 
-  // --- 🟢 BSFI STATE ---
+  // --- BSFI STATE ---
   const [bsfiData, setBsfiData] = useState<{ total_score: number, dominant_domain: string, is_internal_driver: boolean } | null>(null)
 
   // ACCORDION STATES
@@ -124,21 +126,19 @@ export default function Progress() {
   }
 
   const getMacroSynthesis = () => {
-    // 1. Not enough days (Standard Calibrating State)
     if (chartLogs.length < 14) {
       return {
         ready: false,
         title: "System Calibrating",
         paragraphs: [
-          `Log ${14 - chartLogs.length} more days to generate your biological rhythm synthesis. The engine requires a complete cycle to identify environmental friction patterns.`
+          `Log ${Math.max(0, 14 - chartLogs.length)} more days to generate your biological rhythm synthesis. The engine requires a complete cycle to identify environmental friction patterns.`
         ]
       }
     }
 
-    // 2. 🟢 THE "0 DAYS" FIX: 14 days achieved, but no BSFI calculated yet
     if (chartLogs.length >= 14 && !bsfiData) {
       return {
-        ready: false, // Keeps the progress bar showing full
+        ready: false,
         title: "Calibration Complete",
         paragraphs: [
           "You have successfully logged 14 days of baseline data. Log your entry today to trigger the Bio-Spatial Friction engine and reveal your first synthesis."
@@ -146,7 +146,6 @@ export default function Progress() {
       }
     }
 
-    // 3. Biological Variance Detected
     if (bsfiData && bsfiData.is_internal_driver) {
        return {
           ready: true,
@@ -162,7 +161,6 @@ export default function Progress() {
     const score = bsfiData!.total_score;
     const domain = bsfiData!.dominant_domain;
 
-    // 4. 0–20: LOW FRICTION
     if (score <= 20) {
       return {
         ready: true,
@@ -175,7 +173,6 @@ export default function Progress() {
       }
     }
     
-    // 5. 21–60: MODERATE STRAIN
     if (score <= 60) { 
       return {
         ready: true,
@@ -188,7 +185,6 @@ export default function Progress() {
       }
     }
 
-    // 6. 61–100: DYSREGULATED LOAD
     return {
       ready: true,
       title: "Dysregulated Load Pattern: System Under Extraction",
@@ -226,7 +222,6 @@ export default function Progress() {
     { id: 'tactile_enclosure', label: 'Using Gentle Weight & Soft Textures for Sleep', icon: <Heart size={14} /> },
   ]
 
-  // 🟢 BSFI LABEL HELPER
   const getBsfiLabel = (score: number) => {
     if (score <= 20) return { label: 'Low Environmental Friction', color: 'text-emerald-400', border: 'border-emerald-500/30' }
     if (score <= 40) return { label: 'Mild Load', color: 'text-blue-400', border: 'border-blue-500/30' }
@@ -235,7 +230,7 @@ export default function Progress() {
     return { label: 'Dysregulated Pattern', color: 'text-red-400', border: 'border-red-500/30' }
   }
 
- const fetchTodayLog = async () => {
+  const fetchTodayLog = async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
@@ -243,7 +238,6 @@ export default function Progress() {
     const startOfToday = new Date().setHours(0, 0, 0, 0)
     const endOfToday = new Date().setHours(23, 59, 59, 999)
 
-    // Fetch Base Log
     const { data: logData } = await supabase
       .from('daily_logs')
       .select('*')
@@ -251,14 +245,13 @@ export default function Progress() {
       .eq('date', todayStr)
       .single()
       
-    // 🟢 THE FIX: Fetch the MOST RECENT BSFI Score (Even if it's from yesterday)
     const { data: existingBsfi } = await supabase
       .from('bsfi_results')
       .select('*')
       .eq('user_id', user.id)
       .order('calculated_for_date', { ascending: false })
       .limit(1)
-      .maybeSingle() // Prevents error if no score exists at all
+      .maybeSingle() 
       
     if (existingBsfi) {
       setBsfiData({
@@ -268,7 +261,6 @@ export default function Progress() {
       })
     }
 
-    // Fetch Meter Scans
     const { data: scanData } = await supabase
       .from('meter_scans')
       .select('metric_type, value, created_at')
@@ -360,7 +352,6 @@ export default function Progress() {
     }
   }
 
-  // AGENCY-FIRST SAVE PROTOCOL
   const handleSave = async (isForced = false) => {
     const criticalFields = [
       { value: morningLux, label: 'Morning Light' },
@@ -386,7 +377,7 @@ export default function Progress() {
 
         const today = new Date().toLocaleDateString('en-CA') 
 
-        const payload = {
+       const payload = {
             user_id: user.id,
             date: today,
             mood_score: morningMood,
@@ -404,32 +395,37 @@ export default function Progress() {
             evening_note: eveningNote
         }
 
+        // 1. Save data to database
         const { error } = await supabase
         .from('daily_logs')
         .upsert(payload, { onConflict: 'user_id, date' })
 
         if (error) throw error
 
-        // 🟢 Trigger Background BSFI Calc
-        const res = await fetch('/api/calculate-bsfi', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        })
-
-        const data = await res.json()
-        
-        if (data.success && data.bsfiResult) {
-            setBsfiData({
-                total_score: data.bsfiResult.bsfi_total,
-                dominant_domain: data.bsfiResult.dominant_domain,
-                is_internal_driver: data.bsfiResult.is_internal_driver
-            })
-        }
-
+        // 🟢 CRITICAL FIX: Update the graph immediately before the API even runs.
+        // This guarantees your work hours appear on the graph instantly.
+        await fetchHistory()
         setStatus('success')
-        fetchHistory() 
         setTimeout(() => setStatus('idle'), 2000)
+
+        // 2. Silently trigger the BSFI math in the background so it doesn't block the UI
+        try {
+            const res = await fetch('/api/calculate-bsfi', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            const data = await res.json()
+            if (data.success && data.bsfiResult) {
+                setBsfiData({
+                    total_score: data.bsfiResult.bsfi_total,
+                    dominant_domain: data.bsfiResult.dominant_domain,
+                    is_internal_driver: data.bsfiResult.is_internal_driver
+                })
+            }
+        } catch (engineError) {
+            console.error("BSFI calculation skipped or failed, but log was saved.", engineError)
+        }
 
     } catch (err: any) {
         console.error("Save Error:", err)
@@ -706,6 +702,7 @@ export default function Progress() {
                 </div>
             )}
 
+            {/* 🟢 CRITICAL FIX: The correct layout for Daytime/Nighttime metrics */}
             <div className="mb-8 p-6 bg-[#000]/20 rounded-2xl border border-[#c9ccbb]/5">
                 <label className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-4 block flex items-center gap-2">
                     <Activity size={12} /> Environmental Exposure
@@ -733,7 +730,7 @@ export default function Progress() {
                                 className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
                             />
                         </div>
-                       <div>
+                        <div>
                             <div className="flex items-center justify-between mb-2">
                                 <div className="flex items-center gap-2 text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest">
                                     <Volume2 size={14} className="text-red-400" /> Daytime Noise (dB)
@@ -747,7 +744,7 @@ export default function Progress() {
                             </div>
                             <input 
                                 type="number" 
-                                placeholder="e.g. 45 (Living Room) or 70 (Kitchen)"
+                                placeholder="e.g. 45 (Office) or 70 (Street)"
                                 value={daytimeDb}
                                 onChange={(e) => setDaytimeDb(e.target.value)}
                                 className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
@@ -756,26 +753,6 @@ export default function Progress() {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">
-                       <div>
-                            <div className="flex items-center justify-between mb-2">
-                                <div className="flex items-center gap-2 text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest">
-                                    <Moon size={14} className="text-blue-400" /> Nighttime Noise (dB)
-                                </div>
-                                <button 
-                                    onClick={() => { setActiveMeterTarget('nighttimeDb'); setIsAcousticMeterOpen(true); }}
-                                    className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest hover:text-white transition-colors flex items-center gap-1 bg-[#b5a642]/10 px-2 py-1 rounded-md border border-[#b5a642]/20"
-                                >
-                                    <Activity size={12} /> Measure
-                                </button>
-                            </div>
-                            <input 
-                                type="number" 
-                                placeholder="e.g. 35 (Quiet) or 55 (Loud)"
-                                value={nighttimeDb}
-                                onChange={(e) => setNighttimeDb(e.target.value)}
-                                className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
-                            />
-                        </div>
                         <div>
                             <div className="flex items-center justify-between mb-2">
                                 <div className="flex items-center gap-2 text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest">
@@ -793,6 +770,26 @@ export default function Progress() {
                                 placeholder="e.g. 100 (Warm) or 800 (Overhead)"
                                 value={eveningLux}
                                 onChange={(e) => setEveningLux(e.target.value)}
+                                className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
+                            />
+                        </div>
+                        <div>
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2 text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest">
+                                    <Moon size={14} className="text-blue-400" /> Nighttime Noise (dB)
+                                </div>
+                                <button 
+                                    onClick={() => { setActiveMeterTarget('nighttimeDb'); setIsAcousticMeterOpen(true); }}
+                                    className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest hover:text-white transition-colors flex items-center gap-1 bg-[#b5a642]/10 px-2 py-1 rounded-md border border-[#b5a642]/20"
+                                >
+                                    <Activity size={12} /> Measure
+                                </button>
+                            </div>
+                            <input 
+                                type="number" 
+                                placeholder="e.g. 35 (Quiet) or 55 (Loud)"
+                                value={nighttimeDb}
+                                onChange={(e) => setNighttimeDb(e.target.value)}
                                 className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
                             />
                         </div>
@@ -835,7 +832,7 @@ export default function Progress() {
                   >
                     <p className="text-sm text-[#c9ccbb] leading-relaxed">
                       <strong className="text-[#b5a642] uppercase tracking-widest text-[10px] mr-2 block mb-1">Data Integrity Notice:</strong> 
-                      Your Bio-Spatial Friction Index requires all sensory inputs to accurately calculate correlations. Saving now will result in an incomplete score.
+                      Your Bio-Spatial Friction Index requires all sensory inputs to calculate clinical correlations. Saving now will result in an incomplete score.
                     </p>
                   </motion.div>
                 )}
@@ -872,7 +869,6 @@ export default function Progress() {
             </div>
           </div>
 
-          {/* --- 🟢 NEW: BSFI DAILY RESULT WIDGET --- */}
           <AnimatePresence>
             {bsfiData && (
               <motion.div
@@ -1009,6 +1005,7 @@ export default function Progress() {
         </div>
       </div>
 
+      {/* 🟢 CRITICAL FIX: The actual Modals imported directly from your tools */}
       <AnimatePresence>
         {isLightMeterOpen && (
           <LightSensorModal 
