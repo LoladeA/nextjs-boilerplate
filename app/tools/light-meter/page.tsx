@@ -6,7 +6,7 @@ import { Sun, CheckCircle, ArrowDown, ArrowUp, Info, Camera, X, Zap } from 'luci
 import Link from 'next/link'
 
 // --- INTERNAL COMPONENT: CAMERA MODAL WITH CALIBRATION ---
-function LightSensorModal({ onClose, onSave }: { onClose: () => void, onSave: (lux: number) => void }) {
+export function LightSensorModal({ onClose, onSave }: { onClose: () => void, onSave: (lux: number) => void }) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [lux, setLux] = useState<number>(0)
