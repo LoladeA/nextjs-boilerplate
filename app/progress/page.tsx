@@ -6,8 +6,6 @@ import { Heart, Wind, Sun, Volume2, CheckCircle, TrendingUp, Activity, AlertCirc
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import Link from 'next/link'
-
-// 🟢 THE UPGRADE: We import CorrelationGraph instead of DashboardPulse for this page only
 import CorrelationGraph from './CorrelationGraph'
 
 export default function Progress() {
@@ -24,9 +22,18 @@ export default function Progress() {
   const [morningMood, setMorningMood] = useState<number | null>(null)
   const [morningTags, setMorningTags] = useState<string[]>([])
   const [morningNote, setMorningNote] = useState('')
-  const [luxScore, setLuxScore] = useState<string>('') 
-  const [dbScore, setDbScore] = useState<string>('')
+  
+  // --- TEMPORAL ENVIRONMENTAL INPUTS ---
+  const [morningLux, setMorningLux] = useState<string>('') 
+  const [nighttimeDb, setNighttimeDb] = useState<string>('')
+  const [eveningLux, setEveningLux] = useState<string>('')
+  const [daytimeDb, setDaytimeDb] = useState<string>('')
 
+  // --- METER MODAL STATES ---
+  const [isLightMeterOpen, setIsLightMeterOpen] = useState(false)
+  const [isAcousticMeterOpen, setIsAcousticMeterOpen] = useState(false)
+  const [activeMeterTarget, setActiveMeterTarget] = useState<'morningLux' | 'eveningLux' | 'daytimeDb' | 'nighttimeDb' | null>(null)
+  
   // BIO-METRICS
   const [focusScore, setFocusScore] = useState<number>(0)
   const [tensionScore, setTensionScore] = useState<number>(0)
@@ -42,7 +49,7 @@ export default function Progress() {
   // ACCORDION STATES
   const [isMorningOpen, setIsMorningOpen] = useState(false)
   const [isEveningOpen, setIsEveningOpen] = useState(false)
-  const [isSynthesisExpanded, setIsSynthesisExpanded] = useState(false) // 🟢 Added state for Synthesis Accordion
+  const [isSynthesisExpanded, setIsSynthesisExpanded] = useState(false) 
   
   // CHART STATE
   const [chartLogs, setChartLogs] = useState<any[]>([])
@@ -62,18 +69,14 @@ export default function Progress() {
 
   const checkAccess = async () => {
     const { data: { user } } = await supabase.auth.getUser()
-    // 👑 God Mode bypass for you
     if (user?.email === 'christchilde@gmail.com') {
       setGodMode(true)
     }
-    // Future logic: Check user metadata for premium stripe status here
   }
 
   const hasAccess = isPremium || godMode
 
-  // --- 🟢 UPGRADED FEEDBACK ENGINE LOGIC ---
-  
-  // 1. Immediate Morning Feedback (Reframe & Direction Format)
+  // --- UPGRADED FEEDBACK ENGINE LOGIC ---
   const getMorningFeedback = () => {
     if (tensionScore >= 7 && wakeScore >= 3) return {
       title: "The System Was Working Through the Night",
@@ -97,7 +100,6 @@ export default function Progress() {
     }
   }
 
-  // 2. Immediate Evening Feedback (Reframe & Direction Format)
   const getEveningFeedback = () => {
     if (focusScore >= 8) return {
       title: "High Cognitive Output Requires Deliberate Recovery",
@@ -116,7 +118,6 @@ export default function Progress() {
     }
   }
 
-  // 3. The 14-Day Macro Synthesis (🟢 UPDATED FOR BREATHABILITY)
   const getMacroSynthesis = () => {
     if (chartLogs.length < 14) {
       return {
@@ -204,29 +205,72 @@ export default function Progress() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    const today = new Date().toLocaleDateString('en-CA') 
-    
-    const { data } = await supabase
+    // 1. Define today's boundaries for querying
+    const todayStr = new Date().toLocaleDateString('en-CA') 
+    const startOfToday = new Date().setHours(0, 0, 0, 0)
+    const endOfToday = new Date().setHours(23, 59, 59, 999)
+
+    // 2. Fetch the saved Daily Log (if it exists)
+    const { data: logData } = await supabase
       .from('daily_logs')
       .select('*')
       .eq('user_id', user.id)
-      .eq('date', today)
+      .eq('date', todayStr)
       .single()
 
-    if (data) {
-      setMorningMood(data.mood_score)
-      setMorningTags(data.tags || [])
-      setMorningNote(data.note || '')
-      if (data.lux_score) setLuxScore(data.lux_score.toString())
-      if (data.db_score) setDbScore(data.db_score.toString())
+    // 3. Fetch today's raw meter scans
+    const { data: scanData } = await supabase
+      .from('meter_scans')
+      .select('metric_type, value, created_at')
+      .eq('user_id', user.id)
+      .gte('created_at', new Date(startOfToday).toISOString())
+      .lte('created_at', new Date(endOfToday).toISOString())
 
-      if (data.focus_hours) setFocusScore(data.focus_hours)
-      if (data.morning_tension) setTensionScore(data.morning_tension)
-      if (data.sleep_wakes) setWakeScore(data.sleep_wakes)
+    // 4. Intelligence Parsing: Separate scans by time of day
+    let autoMorningLux = ''
+    let autoEveningLux = ''
+    let autoDaytimeDb = ''
+    let autoNighttimeDb = ''
 
-      setEveningMood(data.evening_mood_score)
-      setEveningTags(data.evening_tags || [])
-      setEveningNote(data.evening_note || '')
+    if (scanData && scanData.length > 0) {
+      scanData.forEach(scan => {
+        const scanHour = new Date(scan.created_at).getHours()
+        
+        if (scan.metric_type === 'lux') {
+          if (scanHour >= 4 && scanHour < 12) autoMorningLux = scan.value.toString()
+          if (scanHour >= 16) autoEveningLux = scan.value.toString()
+        }
+        
+        if (scan.metric_type === 'db') {
+          if (scanHour >= 8 && scanHour < 18) autoDaytimeDb = scan.value.toString()
+          if (scanHour < 6 || scanHour >= 22) autoNighttimeDb = scan.value.toString()
+        }
+      })
+    }
+
+    // 5. Populate UI: Prioritize saved log data, fallback to auto-fill intelligence
+    if (logData) {
+      setMorningMood(logData.mood_score)
+      setMorningTags(logData.tags || [])
+      setMorningNote(logData.note || '')
+      
+      setMorningLux(logData.morning_lux ? logData.morning_lux.toString() : autoMorningLux)
+      setEveningLux(logData.evening_lux ? logData.evening_lux.toString() : autoEveningLux)
+      setDaytimeDb(logData.daytime_db ? logData.daytime_db.toString() : autoDaytimeDb)
+      setNighttimeDb(logData.nighttime_db ? logData.nighttime_db.toString() : autoNighttimeDb)
+
+      if (logData.focus_hours) setFocusScore(logData.focus_hours)
+      if (logData.morning_tension) setTensionScore(logData.morning_tension)
+      if (logData.sleep_wakes) setWakeScore(logData.sleep_wakes)
+
+      setEveningMood(logData.evening_mood_score)
+      setEveningTags(logData.evening_tags || [])
+      setEveningNote(logData.evening_note || '')
+    } else {
+      setMorningLux(autoMorningLux)
+      setEveningLux(autoEveningLux)
+      setDaytimeDb(autoDaytimeDb)
+      setNighttimeDb(autoNighttimeDb)
     }
   }
 
@@ -238,16 +282,13 @@ export default function Progress() {
       .from('daily_logs')
       .select('date, mood_score, focus_hours, morning_tension, sleep_wakes') 
       .eq('user_id', user.id)
-      // 🟢 1. FETCH THE 14 NEWEST LOGS
       .order('date', { ascending: false }) 
       .limit(14) 
 
     if (data) {
-        // 🟢 2. REVERSE THE ARRAY FOR LEFT-TO-RIGHT CHART DISPLAY
         const chronologicalData = data.reverse()
         
         const formatted = chronologicalData.map((log: any) => {
-            // 🟢 3. SAFE DATE PARSING (Prevents timezone shifting)
             const [year, month, day] = log.date.split('-')
             const dateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
             
@@ -281,14 +322,18 @@ export default function Progress() {
 
         const today = new Date().toLocaleDateString('en-CA') 
 
-        const payload = {
+       const payload = {
             user_id: user.id,
             date: today,
             mood_score: morningMood,
             tags: morningTags,
             note: morningNote,
-            lux_score: luxScore ? parseInt(luxScore) : null,
-            db_score: dbScore ? parseInt(dbScore) : null,
+            // 🟢 The split temporal metrics
+            morning_lux: morningLux ? parseInt(morningLux) : null,
+            evening_lux: eveningLux ? parseInt(eveningLux) : null,
+            daytime_db: daytimeDb ? parseInt(daytimeDb) : null,
+            nighttime_db: nighttimeDb ? parseInt(nighttimeDb) : null,
+            // ---
             focus_hours: focusScore,
             morning_tension: tensionScore,
             sleep_wakes: wakeScore,
@@ -588,40 +633,102 @@ export default function Progress() {
                 </div>
             )}
 
-            {/* 3. OBJECTIVE DATA (MORNING ONLY) */}
-            {activeTab === 'morning' && (
-                <div className="mb-8 p-6 bg-[#000]/20 rounded-2xl border border-[#c9ccbb]/5">
-                    <label className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-4 block flex items-center gap-2">
-                        <Activity size={12} /> Objective Metrics
-                    </label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+           {/* 3. OBJECTIVE DATA (DYNAMIC BY TIME OF DAY) */}
+            <div className="mb-8 p-6 bg-[#000]/20 rounded-2xl border border-[#c9ccbb]/5">
+                <label className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-4 block flex items-center gap-2">
+                    <Activity size={12} /> Environmental Exposure
+                </label>
+                
+                {activeTab === 'morning' ? (
+                    // MORNING VIEW
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">
                         <div>
-                            <div className="flex items-center gap-2 mb-2 text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest">
-                                <Zap size={14} className="text-orange-400" /> Light (Lux)
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2 text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest">
+                                    <Sun size={14} className="text-orange-400" /> Morning Light (Lux)
+                                </div>
+                                <button 
+                                    onClick={() => { setActiveMeterTarget('morningLux'); setIsLightMeterOpen(true); }}
+                                    className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest hover:text-white transition-colors flex items-center gap-1 bg-[#b5a642]/10 px-2 py-1 rounded-md border border-[#b5a642]/20"
+                                >
+                                    <Activity size={12} /> Measure Now
+                                </button>
                             </div>
                             <input 
                                 type="number" 
-                                placeholder="e.g. 500"
-                                value={luxScore}
-                                onChange={(e) => setLuxScore(e.target.value)}
+                                placeholder="e.g. 250 (Dim) or 2500 (Bright)"
+                                value={morningLux}
+                                onChange={(e) => setMorningLux(e.target.value)}
                                 className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
                             />
                         </div>
                         <div>
-                            <div className="flex items-center gap-2 mb-2 text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest">
-                                <ShieldAlert size={14} className="text-blue-400" /> Noise (dB)
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2 text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest">
+                                    <Moon size={14} className="text-blue-400" /> Nighttime Noise (dB)
+                                </div>
+                                <button 
+                                    onClick={() => { setActiveMeterTarget('nighttimeDb'); setIsAcousticMeterOpen(true); }}
+                                    className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest hover:text-white transition-colors flex items-center gap-1 bg-[#b5a642]/10 px-2 py-1 rounded-md border border-[#b5a642]/20"
+                                >
+                                    <Activity size={12} /> Measure Now
+                                </button>
                             </div>
                             <input 
                                 type="number" 
-                                placeholder="e.g. 45"
-                                value={dbScore}
-                                onChange={(e) => setDbScore(e.target.value)}
+                                placeholder="e.g. 35 (Quiet) or 55 (Loud)"
+                                value={nighttimeDb}
+                                onChange={(e) => setNighttimeDb(e.target.value)}
                                 className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
                             />
                         </div>
                     </div>
-                </div>
-            )}
+                ) : (
+                    // EVENING VIEW
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">
+                        <div>
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2 text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest">
+                                    <Volume2 size={14} className="text-red-400" /> Daytime Avg Noise (dB)
+                                </div>
+                                <button 
+                                    onClick={() => { setActiveMeterTarget('daytimeDb'); setIsAcousticMeterOpen(true); }}
+                                    className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest hover:text-white transition-colors flex items-center gap-1 bg-[#b5a642]/10 px-2 py-1 rounded-md border border-[#b5a642]/20"
+                                >
+                                    <Activity size={12} /> Measure
+                                </button>
+                            </div>
+                            <input 
+                                type="number" 
+                                placeholder="e.g. 45 (Office) or 70 (Street)"
+                                value={daytimeDb}
+                                onChange={(e) => setDaytimeDb(e.target.value)}
+                                className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
+                            />
+                        </div>
+                        <div>
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2 text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest">
+                                    <Zap size={14} className="text-orange-400" /> Evening Light (Lux)
+                                </div>
+                                <button 
+                                    onClick={() => { setActiveMeterTarget('eveningLux'); setIsLightMeterOpen(true); }}
+                                    className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest hover:text-white transition-colors flex items-center gap-1 bg-[#b5a642]/10 px-2 py-1 rounded-md border border-[#b5a642]/20"
+                                >
+                                    <Activity size={12} /> Measure
+                                </button>
+                            </div>
+                            <input 
+                                type="number" 
+                                placeholder="e.g. 100 (Warm) or 800 (Overhead)"
+                                value={eveningLux}
+                                onChange={(e) => setEveningLux(e.target.value)}
+                                className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
+                            />
+                        </div>
+                    </div>
+                )}
+            </div>
 
             {/* 4. HABIT TAGS */}
             <div className="flex flex-wrap gap-2 mb-8 animate-fade-in">
@@ -777,6 +884,72 @@ export default function Progress() {
 
         </div>
       </div>
+
+      {/* --- REAL-TIME SENSOR MODALS --- */}
+      <AnimatePresence>
+        {isLightMeterOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#000]/80 backdrop-blur-sm p-4">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-lg bg-[#1b270e] border border-[#b5a642]/30 rounded-3xl overflow-hidden shadow-2xl relative"
+            >
+              <button onClick={() => setIsLightMeterOpen(false)} className="absolute top-4 right-4 text-[#c9ccbb]/50 hover:text-[#b5a642] z-10">✕</button>
+              
+              {/* NOTE: Mount your actual Light Meter component here. 
+                  Pass an onComplete callback so it can return the value to this page. */}
+              <div className="p-8 text-center text-[#c9ccbb]">
+                  <h3 className="text-xl font-serif mb-4">Light Meter</h3>
+                  <p className="text-sm opacity-70 mb-8">Tap below to simulate a reading. In production, your actual sensor component goes here.</p>
+                  
+                  <button 
+                      onClick={() => {
+                          const mockLux = 450; // Replace with actual hardware reading
+                          if (activeMeterTarget === 'morningLux') setMorningLux(mockLux.toString());
+                          if (activeMeterTarget === 'eveningLux') setEveningLux(mockLux.toString());
+                          setIsLightMeterOpen(false);
+                      }}
+                      className="px-8 py-3 bg-[#b5a642] text-[#1b270e] font-bold text-xs uppercase tracking-widest rounded-xl"
+                  >
+                      Capture Reading
+                  </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {isAcousticMeterOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#000]/80 backdrop-blur-sm p-4">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-lg bg-[#1b270e] border border-[#b5a642]/30 rounded-3xl overflow-hidden shadow-2xl relative"
+            >
+              <button onClick={() => setIsAcousticMeterOpen(false)} className="absolute top-4 right-4 text-[#c9ccbb]/50 hover:text-[#b5a642] z-10">✕</button>
+              
+              {/* NOTE: Mount your actual Noise Meter component here. */}
+              <div className="p-8 text-center text-[#c9ccbb]">
+                  <h3 className="text-xl font-serif mb-4">Noise Level Sensor</h3>
+                  <p className="text-sm opacity-70 mb-8">Tap below to simulate a reading. In production, your actual sensor component goes here.</p>
+                  
+                  <button 
+                      onClick={() => {
+                          const mockDb = 42; // Replace with actual hardware reading
+                          if (activeMeterTarget === 'nighttimeDb') setNighttimeDb(mockDb.toString());
+                          if (activeMeterTarget === 'daytimeDb') setDaytimeDb(mockDb.toString());
+                          setIsAcousticMeterOpen(false);
+                      }}
+                      className="px-8 py-3 bg-[#b5a642] text-[#1b270e] font-bold text-xs uppercase tracking-widest rounded-xl"
+                  >
+                      Capture Reading
+                  </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
