@@ -2,46 +2,235 @@
 
 import Sidebar from '../components/Sidebar'
 import { useState, useEffect } from 'react'
-import { Heart, Wind, Sun, Volume2, CheckCircle, TrendingUp, Activity, Zap, Loader2, Moon, Sunrise, Brain, Fingerprint, ChevronDown, ChevronUp, Lock } from 'lucide-react'
+import { Heart, Wind, Sun, Volume2, CheckCircle, TrendingUp, Activity, Zap, Loader2, Moon, Sunrise, Brain, Fingerprint, ChevronDown, ChevronUp, Lock, AlertCircle } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import Link from 'next/link'
 import CorrelationGraph from './CorrelationGraph'
 import { LightSensorModal } from '../tools/light-meter/page'
 import { NoiseSensorModal } from '../tools/noise-meter/page'
 
-// 🟢 1. IMPORTING OUR NEW ENTERPRISE LAYERS
-import { useDailyLogs } from '../../hooks/useDailyLogs'
-import { getMorningFeedback, getEveningFeedback, getMacroSynthesis } from '../../lib/synthesisEngine'
-
 export default function Progress() {
+  const supabase = createClientComponentClient()
+  
   const [activeTab, setActiveTab] = useState<'morning' | 'evening'>('morning')
 
-  // 🟢 2. CALLING THE DATA CONTROLLER HOOK (Abstracts 500 lines of code)
-  const { 
-    formData, updateField, toggleTag, 
-    status, showAccuracyWarning, setShowAccuracyWarning, 
-    bsfiData, chartLogs, hasAccess, handleSave 
-  } = useDailyLogs()
+  // --- ACCESS CONTROL ---
+  const [isPremium, setIsPremium] = useState(false)
+  const [godMode, setGodMode] = useState(false)
 
-  // UI Modals & Accordions
+  // --- LOGGING STATE ---
+  const [morningMood, setMorningMood] = useState<number | null>(null)
+  const [morningTags, setMorningTags] = useState<string[]>([])
+  const [morningNote, setMorningNote] = useState('')
+  
+  // --- TEMPORAL ENVIRONMENTAL INPUTS ---
+  const [morningLux, setMorningLux] = useState<string>('') 
+  const [nighttimeDb, setNighttimeDb] = useState<string>('')
+  const [eveningLux, setEveningLux] = useState<string>('')
+  const [daytimeDb, setDaytimeDb] = useState<string>('')
+
+  // --- METER MODAL STATES ---
   const [isLightMeterOpen, setIsLightMeterOpen] = useState(false)
   const [isAcousticMeterOpen, setIsAcousticMeterOpen] = useState(false)
   const [activeMeterTarget, setActiveMeterTarget] = useState<'morningLux' | 'eveningLux' | 'daytimeDb' | 'nighttimeDb' | null>(null)
+  
+  // BIO-METRICS
+  const [focusScore, setFocusScore] = useState<number>(0)
+  const [tensionScore, setTensionScore] = useState<number>(0)
+  const [wakeScore, setWakeScore] = useState<number>(0)
+
+  const [eveningMood, setEveningMood] = useState<number | null>(null)
+  const [eveningTags, setEveningTags] = useState<string[]>([])
+  const [eveningNote, setEveningNote] = useState('')
+
+  const [status, setStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle')
+  const [errorMessage, setErrorMessage] = useState('')
+  
+  // --- SOFT-GATE VALIDATION STATE ---
+  const [showAccuracyWarning, setShowAccuracyWarning] = useState(false)
+
+  // --- BSFI STATE ---
+  const [bsfiData, setBsfiData] = useState<{ total_score: number, dominant_domain: string, is_internal_driver: boolean } | null>(null)
+
+  // ACCORDION STATES
   const [isMorningOpen, setIsMorningOpen] = useState(false)
   const [isEveningOpen, setIsEveningOpen] = useState(false)
   const [isSynthesisExpanded, setIsSynthesisExpanded] = useState(false) 
+  
+  // CHART STATE
+  const [chartLogs, setChartLogs] = useState<any[]>([])
 
   useEffect(() => {
     const hour = new Date().getHours()
     if (hour >= 17) setActiveTab('evening')
   }, [])
 
-  // 🟢 3. CALLING THE IP ENGINE (Calculates insights dynamically based on the hook's data)
-  const morningInsight = getMorningFeedback(formData.tensionScore, formData.wakeScore)
-  const eveningInsight = getEveningFeedback(formData.focusScore)
-  const macroSynthesis = getMacroSynthesis(chartLogs, bsfiData)
+  useEffect(() => {
+    checkAccess()
+    fetchTodayLog()
+    fetchHistory()
+  }, [])
 
-  // Options & Constants
+  const checkAccess = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user?.email === 'christchilde@gmail.com') {
+      setGodMode(true)
+    }
+  }
+
+  const hasAccess = isPremium || godMode
+
+  // --- FEEDBACK ENGINE LOGIC ---
+  const getMorningFeedback = () => {
+    if (tensionScore >= 7 && wakeScore >= 3) return {
+      title: "The System Was Working Through the Night",
+      reframe: "What you felt on waking is not a failure of sleep. It is the trace of active biological labour. Your nervous system was processing accumulated daytime load, navigating hormonal cycles, or responding to sensory intrusion that your sleeping environment did not adequately support or absorb. Your body did what it was designed to do. The environment did not hold it.",
+      direction: "The priority is your sleep envelope: absolute darkness, a stable ambient temperature, a robust pre-sleep routine and organic breathable sleepwear that removes thermoregulatory friction from the recovery equation. Reduce what the system has to manage at 2am, and it will spend that energy on restoration instead."
+    }
+    if (tensionScore >= 7) return {
+      title: "You Slept Through, But Your Body Was Bracing Itself",
+      reframe: "Continuous sleep is not the same as restorative sleep. When muscular tension persists through the night, it indicates the nervous system remained in a low-grade protective state: bracing against residual stress, uncomfortable materials, inadequate sleep support or acoustic intrusion that never fully resolved. You rested. You did not recover.",
+      direction: "Work backwards from the source: unresolved physical tension before bed, the acoustic quality of your sleep environment, and the materials you are sleeping on and in. Each is a variable within your control."
+    }
+    if (wakeScore >= 3) return {
+      title: "Interrupted Sleep Is Often an Environmental Signal",
+      reframe: "Waking through the night —particularly if re-entry is relatively easy— is less often a sign of dysregulation than a sign of thermoregulatory shift. Night sweats, hormonal fluctuations, or subtle changes in ambient temperature are among the most common and most overlooked disruptors. Your nervous system is not the problem. Its environment may not be matching its needs.",
+      direction: "Focus on the recovery envelope: breathable organic sleepwear, a cooler ambient temperature, and complete darkness. These three variables together reduce the physiological triggers that pull the system up from deep sleep."
+    }
+    return {
+      title: "Environment Held. System Restored",
+      reframe: "This is what successful environmental design produces: a night in which your nervous system was not required to manage, defend, or compensate. It simply recovered. That distinction matters: a regulated morning is not luck. It is the result of an environment that absorbed your physical needs and returned you to capacity.",
+      direction: "Maintain what is working. Your sensory boundaries, thermal ecology, and evening wind-down pattern are functioning as an eco-system. The task now is to protect them, particularly during periods of higher stress, when the temptation to compromise the environment increases."
+    }
+  }
+
+  const getEveningFeedback = () => {
+    if (focusScore >= 8) return {
+      title: "High Cognitive Output Requires Deliberate Recovery",
+      reframe: "Extended time in high-beta execution mode — sustained focus, decision-making, problem-solving — is a central nervous system stressor in the same category as physical exertion. The day was productive. The nervous system is now carrying that cost. Recovery is not optional tonight; it is proportional to output.",
+      direction: "Tonight's environment must match today's demand. Transition strictly to warm, low-level lighting. This is not aesthetic preference but a direct instruction to your melatonin pathway. Protect your wind down routine after work with the same intentionality you protect your peak focus window."
+    }
+    if (focusScore >= 4) return {
+      title: "Output Was Balanced. Protect the Transition",
+      reframe: "A sustainable ratio of deep work to recovery indicates your environment was supporting your capacity rather than extracting from it. That balance reflects an alignment between your energy curve and your spatial conditions. Your nervous system is not depleted, but transitions matter: how the evening begins determines whether that capacity is replenished or quietly eroded overnight.",
+      direction: "Step out of optimisation mode with a deliberate act, not a gradual drift. One small environmental reset, such as clearing the first surface you will see tomorrow morning or closing the workshop moving away from your work zone, signals to the nervous system that the day has ended and the recovery cycle has begun."
+    }
+    return {
+      title: "Low Output Is an Environmental Symptom, Not a Personal One",
+      reframe: "When capacity feels constrained despite effort, the instinct is to attribute it to discipline or motivation. That is rarely the case. Constrained cognitive output is most often the product of environmental friction such as visual noise, interruption patterns, inadequate lighting, or a space that does not signal focus clearly enough for the brain to enter and sustain it. The environment set the conditions. You responded to them.",
+      direction: "Do not attempt to recover through effort tonight. Instead, remove friction: evaluate the visual noise in your primary spaces, identify what broke your attention during the day, and approach this evening as architectural decompression, the deliberate restoration of the conditions capacity requires."
+    }
+  }
+
+  const getMacroSynthesis = () => {
+    if (chartLogs.length < 14) {
+      return {
+        ready: false,
+        title: "System Calibrating",
+        paragraphs: [
+          `Log ${Math.max(0, 14 - chartLogs.length)} more days to generate your biological rhythm synthesis. The engine requires a complete cycle to identify environmental friction patterns.`
+        ]
+      }
+    }
+
+    if (chartLogs.length >= 14 && !bsfiData) {
+        const avgMood = chartLogs.reduce((acc, log) => acc + log.mood, 0) / chartLogs.length
+        const avgTension = chartLogs.reduce((acc, log) => acc + log.tension, 0) / chartLogs.length
+        const avgFocus = chartLogs.reduce((acc, log) => acc + log.focus, 0) / chartLogs.length
+      
+        if (avgTension >= 6 && avgFocus <= 4) return {
+            ready: true,
+            title: "The Environment Is Spending Your Capacity Before You Do",
+            paragraphs: [
+              "Across the last fourteen days, your somatic cost has remained consistently elevated while cognitive output has stayed constrained. This is a recognisable pattern: the nervous system is absorbing chronic environmental friction—sensory noise, thermal disruption, accumulated overnight load—and arriving at each day already depleted.",
+              "The output you are generating is happening against resistance, not from reserves.",
+              "This pattern resolves when the environmental source of the drain is identified and reduced. The two most probable contributors are your sleep ecology and the sensory load of your primary daytime spaces. Both are addressable."
+            ]
+        }
+        if (avgFocus >= 6 && avgMood <= 2.5) return {
+            ready: true,
+            title: "High Output, Borrowed Cost",
+            paragraphs: [
+              "Fourteen days of sustained cognitive output alongside consistently low mood regulation carries a specific signature: the nervous system is maintaining performance by drawing on sympathetic activation rather than restorative capacity.",
+              "This is a viable strategy in the short term. Over time, it erodes the very reserves it is borrowing from.",
+              "What this pattern is asking for is not less work. It needs a clear boundary between your work and rest zones, and a firm evening wind-down routine. Your rhythm needs a floor, not a ceiling."
+            ]
+        }
+        if (avgMood >= 4 && avgTension <= 3) return {
+            ready: true,
+            title: "Fourteen Days of Regulated Ground",
+            paragraphs: [
+              "Across the board, your somatic tension has remained low and your mood regulation consistently high. This is the result of an environment that is doing its job: absorbing daily load, supporting overnight recovery, and returning you to capacity.",
+              "What this data confirms is that your current environmental conditions are not accidental. Your sensory boundaries, thermal ecology, and recovery architecture are functioning as a coherent system.",
+              "The task now is to understand what is working precisely enough to protect it, particularly during elevated stress periods, travel, or seasonal change."
+            ]
+        }
+        return {
+            ready: true,
+            title: "High Variance. No Stable Floor Yet",
+            paragraphs: [
+              "The last fourteen days show fluctuation across mood, tension, and focus. Before locating the source of that variance in your environment, it is worth naming something the data cannot distinguish: not all fluctuation is environmental.",
+              "Hormonal shifts, perimenopause, periods of high relational or emotional demand produce real, measurable changes in energy, sleep quality, focus, and somatic load. Your body is doing precisely what it is designed to do under particular biological conditions.",
+              "The appropriate response to those phases is not optimisation. It is accommodation. If your variance aligns with a cyclical or biological pattern, the role of your environment is to reduce the additional friction layered on top of it, so the body can move through its natural rhythm without also managing an environment that is working against it."
+            ]
+        }
+    }
+
+    if (bsfiData && bsfiData.is_internal_driver) {
+       return {
+          ready: true,
+          title: "Environment is Stable. Fluctuation is Internal.",
+          paragraphs: [
+            "Over the last fourteen days, your somatic tension and focus have shown high variance, but your environmental metrics (light, noise) have remained remarkably stable.",
+            "This data signature tells us the friction you are feeling is not coming from your physical space. It is biological or cognitive—such as a period of high emotional demand, cyclical changes, or natural energy rhythms.",
+            "The appropriate response to this phase is not spatial optimization. Do not attempt to 'fix' the room today; instead, lower your overall demands and allow your body to move through its natural rhythm without adding extra friction."
+          ]
+       }
+    }
+
+    const score = bsfiData!.total_score;
+    const domain = bsfiData!.dominant_domain;
+
+    if (score <= 20) {
+      return {
+        ready: true,
+        title: "Low Friction Environment: Regulated Ground",
+        paragraphs: [
+          "Across the board, your Bio-Spatial Friction Index is exceptionally low. This is the result of an environment that is doing its job: absorbing daily load, supporting overnight recovery, and returning you to capacity.",
+          "What this data confirms is that your current environmental conditions are not accidental. Your sensory boundaries, thermal ecology, and recovery architecture are functioning as a coherent system.",
+          "The task now is to protect this baseline. Document what is working right now so you can replicate it during periods of elevated stress or seasonal change."
+        ]
+      }
+    }
+    
+    if (score <= 60) { 
+      return {
+        ready: true,
+        title: `Moderate Strain: ${domain} Dominance`,
+        paragraphs: [
+          `Your environment is introducing a moderate level of friction, pulling your nervous system out of baseline. The algorithm has identified ${domain} as the primary source of this drain.`,
+          "The output you are generating is beginning to happen against resistance, not from reserves. You are spending cognitive capacity just to manage the space.",
+          `Target the ${domain} immediately. If it is Acoustic Load, upgrade your buffering. If it is Circadian Friction, audit your evening light exposure. Removing this specific friction point will return you to baseline.`
+        ]
+      }
+    }
+
+    return {
+      ready: true,
+      title: "Dysregulated Load Pattern: System Under Extraction",
+      paragraphs: [
+         "Your Bio-Spatial Friction Index indicates a high-load, dysregulated pattern. The environment is actively extracting from your capacity before you even begin your day.",
+         "Fourteen days of sustained environmental friction alongside lowered mood regulation carries a specific signature: your nervous system is maintaining performance by drawing on sympathetic activation (stress hormones) rather than restorative capacity.",
+         "Deploy immediate architectural interventions. You need strict acoustic sealing, absolute darkness for sleep, and a rigid boundary between work and rest zones. Stop optimizing for output and start optimizing for spatial recovery."
+      ]
+    }
+  }
+  
+  const morningInsight = getMorningFeedback()
+  const eveningInsight = getEveningFeedback()
+  const macroSynthesis = getMacroSynthesis()
+
   const moods = [
     { val: 1, label: 'Burned Out', desc: 'Running on empty', color: 'bg-red-500/20 border-red-500/50 text-red-400' },
     { val: 2, label: 'Tense / Edgy', desc: 'Buzzing with stress', color: 'bg-orange-500/20 border-orange-500/50 text-orange-400' },
@@ -72,12 +261,210 @@ export default function Progress() {
     return { label: 'Dysregulated Pattern', color: 'text-red-400', border: 'border-red-500/30' }
   }
 
-  // Dynamic UI Resolvers based on the active tab
-  const currentMood = activeTab === 'morning' ? formData.morningMood : formData.eveningMood
-  const setCurrentMood = (val: number) => updateField(activeTab === 'morning' ? 'morningMood' : 'eveningMood', val)
-  const currentTags = activeTab === 'morning' ? formData.morningTags : formData.eveningTags
-  const currentNote = activeTab === 'morning' ? formData.morningNote : formData.eveningNote
-  const setCurrentNote = (val: string) => updateField(activeTab === 'morning' ? 'morningNote' : 'eveningNote', val)
+  const fetchTodayLog = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const todayStr = new Date().toLocaleDateString('en-CA') 
+    const startOfToday = new Date().setHours(0, 0, 0, 0)
+    const endOfToday = new Date().setHours(23, 59, 59, 999)
+
+    const { data: logData } = await supabase
+      .from('daily_logs')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('date', todayStr)
+      .single()
+      
+    const { data: existingBsfi } = await supabase
+      .from('bsfi_results')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('calculated_for_date', { ascending: false })
+      .limit(1)
+      .maybeSingle() 
+      
+    if (existingBsfi) {
+      setBsfiData({
+        total_score: existingBsfi.total_score,
+        dominant_domain: existingBsfi.dominant_domain,
+        is_internal_driver: existingBsfi.domain_scores?.is_internal_driver || false
+      })
+    }
+
+    const { data: scanData } = await supabase
+      .from('meter_scans')
+      .select('metric_type, value, created_at')
+      .eq('user_id', user.id)
+      .gte('created_at', new Date(startOfToday).toISOString())
+      .lte('created_at', new Date(endOfToday).toISOString())
+
+    let autoMorningLux = ''
+    let autoEveningLux = ''
+    let autoDaytimeDb = ''
+    let autoNighttimeDb = ''
+
+    if (scanData && scanData.length > 0) {
+      scanData.forEach(scan => {
+        const scanHour = new Date(scan.created_at).getHours()
+        
+        if (scan.metric_type === 'lux') {
+          if (scanHour >= 4 && scanHour < 12) autoMorningLux = scan.value.toString()
+          if (scanHour >= 16) autoEveningLux = scan.value.toString()
+        }
+        
+        if (scan.metric_type === 'db') {
+          if (scanHour >= 8 && scanHour < 18) autoDaytimeDb = scan.value.toString()
+          if (scanHour < 6 || scanHour >= 22) autoNighttimeDb = scan.value.toString()
+        }
+      })
+    }
+
+    if (logData) {
+      setMorningMood(logData.mood_score)
+      setMorningTags(logData.tags || [])
+      setMorningNote(logData.note || '')
+      
+      setMorningLux(logData.morning_lux !== null ? logData.morning_lux.toString() : autoMorningLux)
+      setEveningLux(logData.evening_lux !== null ? logData.evening_lux.toString() : autoEveningLux)
+      setDaytimeDb(logData.daytime_db !== null ? logData.daytime_db.toString() : autoDaytimeDb)
+      setNighttimeDb(logData.nighttime_db !== null ? logData.nighttime_db.toString() : autoNighttimeDb)
+
+      if (logData.focus_hours !== null) setFocusScore(logData.focus_hours)
+      if (logData.morning_tension !== null) setTensionScore(logData.morning_tension)
+      if (logData.sleep_wakes !== null) setWakeScore(logData.sleep_wakes)
+
+      setEveningMood(logData.evening_mood_score)
+      setEveningTags(logData.evening_tags || [])
+      setEveningNote(logData.evening_note || '')
+    } else {
+      setMorningLux(autoMorningLux)
+      setEveningLux(autoEveningLux)
+      setDaytimeDb(autoDaytimeDb)
+      setNighttimeDb(autoNighttimeDb)
+    }
+  }
+
+  const fetchHistory = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const { data } = await supabase
+      .from('daily_logs')
+      .select('date, mood_score, focus_hours, morning_tension, sleep_wakes') 
+      .eq('user_id', user.id)
+      .order('date', { ascending: false }) 
+      .limit(14) 
+
+    if (data) {
+        const chronologicalData = data.reverse()
+        
+        const formatted = chronologicalData.map((log: any) => {
+            const [year, month, day] = log.date.split('-')
+            const dateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
+            
+            return {
+                date: dateObj.toLocaleDateString('en-US', { weekday: 'short' }),
+                mood: log.mood_score || 0,        
+                tension: log.morning_tension || 0,
+                focus: log.focus_hours || 0,
+                wakes: log.sleep_wakes || 0
+            }
+        })
+        setChartLogs(formatted)
+    }
+  }
+
+  const toggleTag = (id: string) => {
+    if (activeTab === 'morning') {
+        setMorningTags(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
+    } else {
+        setEveningTags(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
+    }
+  }
+
+  const handleSave = async (isForced = false) => {
+    // 🟢 SURGICAL FIX 1: Checks ONLY the metrics relevant to the tab you are looking at.
+    const criticalFields = activeTab === 'morning' 
+        ? [morningLux, daytimeDb]
+        : [eveningLux, nighttimeDb];
+
+    const isMissing = criticalFields.some(val => val === null || val === '');
+
+    if (isMissing && isForced !== true) {
+      setShowAccuracyWarning(true);
+      return;
+    }
+
+    setStatus('saving')
+    setErrorMessage('')
+    setShowAccuracyWarning(false)
+
+    try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) throw new Error("No user logged in")
+
+        const today = new Date().toLocaleDateString('en-CA') 
+
+        const payload = {
+            user_id: user.id,
+            date: today,
+            mood_score: morningMood,
+            tags: morningTags,
+            note: morningNote,
+            morning_lux: morningLux ? parseInt(morningLux) : null,
+            evening_lux: eveningLux ? parseInt(eveningLux) : null,
+            daytime_db: daytimeDb ? parseInt(daytimeDb) : null,
+            nighttime_db: nighttimeDb ? parseInt(nighttimeDb) : null,
+            focus_hours: Math.round(focusScore), // 🟢 SURGICAL FIX 2: Prevents Supabase from rejecting decimals
+            morning_tension: tensionScore,
+            sleep_wakes: wakeScore,
+            evening_mood_score: eveningMood,
+            evening_tags: eveningTags,
+            evening_note: eveningNote
+        }
+
+        const { error } = await supabase
+        .from('daily_logs')
+        .upsert(payload, { onConflict: 'user_id, date' })
+
+        if (error) throw error
+
+        // 🟢 SURGICAL FIX 3: Placed securely above the math engine so your UI updates instantly
+        setStatus('success')
+        fetchHistory() 
+        setTimeout(() => setStatus('idle'), 2000)
+
+        try {
+            const res = await fetch('/api/calculate-bsfi', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            const data = await res.json()
+            if (data.success && data.bsfiResult) {
+                setBsfiData({
+                    total_score: data.bsfiResult.bsfi_total,
+                    dominant_domain: data.bsfiResult.dominant_domain,
+                    is_internal_driver: data.bsfiResult.is_internal_driver
+                })
+            }
+        } catch (engineError) {
+            console.warn("BSFI engine skipped due to missing daily counterparts, but save was successful.")
+        }
+
+    } catch (err: any) {
+        console.error("Save Error:", err)
+        setStatus('error')
+        setErrorMessage(err.message || "Database rejected entry.")
+    }
+  }
+
+  const currentMood = activeTab === 'morning' ? morningMood : eveningMood
+  const setCurrentMood = activeTab === 'morning' ? setMorningMood : setEveningMood
+  const currentTags = activeTab === 'morning' ? morningTags : eveningTags
+  const currentNote = activeTab === 'morning' ? morningNote : eveningNote
+  const setCurrentNote = activeTab === 'morning' ? setMorningNote : setEveningNote
   const currentOptions = activeTab === 'morning' ? morningTagOptions : eveningTagOptions
 
   return (
@@ -160,13 +547,13 @@ export default function Progress() {
                                 <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb]">
                                    <Activity size={14} className="text-[#b5a642]" /> Jaw/Body Tension
                                 </label>
-                                <span className="text-[#b5a642] font-mono text-xs">{formData.tensionScore}/10</span>
+                                <span className="text-[#b5a642] font-mono text-xs">{tensionScore}/10</span>
                             </div>
                             <p className="text-[#c9ccbb]/40 text-[10px] mb-3">Jaw/Shoulder tightness upon waking.</p>
                             <input 
                                 type="range" min="0" max="10" step="1"
-                                value={formData.tensionScore}
-                                onChange={(e) => updateField('tensionScore', parseInt(e.target.value))}
+                                value={tensionScore}
+                                onChange={(e) => setTensionScore(parseInt(e.target.value))}
                                 className="w-full accent-[#b5a642] h-1 bg-[#000]/50 rounded-lg appearance-none cursor-pointer"
                             />
                         </div>
@@ -177,16 +564,16 @@ export default function Progress() {
                                    <Moon size={14} className="text-[#b5a642]" /> Sleep Interruptions
                                 </label>
                                 <div className="flex gap-3">
-                                    <button onClick={() => updateField('wakeScore', Math.max(0, formData.wakeScore - 1))} className="text-[#c9ccbb] hover:text-[#b5a642]">-</button>
-                                    <span className="text-[#b5a642] font-mono text-xs">{formData.wakeScore}</span>
-                                    <button onClick={() => updateField('wakeScore', formData.wakeScore + 1)} className="text-[#c9ccbb] hover:text-[#b5a642]">+</button>
+                                    <button onClick={() => setWakeScore(Math.max(0, wakeScore - 1))} className="text-[#c9ccbb] hover:text-[#b5a642]">-</button>
+                                    <span className="text-[#b5a642] font-mono text-xs">{wakeScore}</span>
+                                    <button onClick={() => setWakeScore(wakeScore + 1)} className="text-[#c9ccbb] hover:text-[#b5a642]">+</button>
                                 </div>
                             </div>
                             <p className="text-[#c9ccbb]/40 text-[10px] mb-3">Sleep interruptions.</p>
                         </div>
                     </div>
 
-                    {(formData.tensionScore > 0 || formData.wakeScore > 0) && (
+                    {(tensionScore > 0 || wakeScore > 0) && (
                         <div className="mt-6 bg-[#1b270e] border-l-2 border-[#b5a642] rounded-r-xl overflow-hidden shadow-md">
                             <button 
                                 onClick={() => setIsMorningOpen(!isMorningOpen)}
@@ -263,19 +650,19 @@ export default function Progress() {
                                 <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb]">
                                    <Brain size={14} className="text-[#b5a642]" /> Deep Work (Hrs)
                                 </label>
-                                <span className="text-[#b5a642] font-mono text-xs">{formData.focusScore}h</span>
+                                <span className="text-[#b5a642] font-mono text-xs">{focusScore}h</span>
                             </div>
                             <p className="text-[#c9ccbb]/40 text-[10px] mb-3">Hours of uninterrupted workflow.</p>
                             <input 
                                 type="range" min="0" max="12" step="0.5"
-                                value={formData.focusScore}
-                                onChange={(e) => updateField('focusScore', parseFloat(e.target.value))}
+                                value={focusScore}
+                                onChange={(e) => setFocusScore(parseFloat(e.target.value))}
                                 className="w-full accent-[#b5a642] h-1 bg-[#000]/50 rounded-lg appearance-none cursor-pointer"
                             />
                         </div>
                     </div>
 
-                    {formData.focusScore > 0 && (
+                    {focusScore > 0 && (
                         <div className="mt-6 bg-[#1b270e] border-l-2 border-[#b5a642] rounded-r-xl overflow-hidden shadow-md">
                             <button 
                                 onClick={() => setIsEveningOpen(!isEveningOpen)}
@@ -363,8 +750,8 @@ export default function Progress() {
                             <input 
                                 type="number" 
                                 placeholder="e.g. 250 (Dim) or 2500 (Bright)"
-                                value={formData.morningLux}
-                                onChange={(e) => updateField('morningLux', e.target.value)}
+                                value={morningLux}
+                                onChange={(e) => setMorningLux(e.target.value)}
                                 className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
                             />
                         </div>
@@ -383,8 +770,8 @@ export default function Progress() {
                             <input 
                                 type="number" 
                                 placeholder="e.g. 45 (Office) or 70 (Street)"
-                                value={formData.daytimeDb}
-                                onChange={(e) => updateField('daytimeDb', e.target.value)}
+                                value={daytimeDb}
+                                onChange={(e) => setDaytimeDb(e.target.value)}
                                 className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
                             />
                         </div>
@@ -406,8 +793,8 @@ export default function Progress() {
                             <input 
                                 type="number" 
                                 placeholder="e.g. 100 (Warm) or 800 (Overhead)"
-                                value={formData.eveningLux}
-                                onChange={(e) => updateField('eveningLux', e.target.value)}
+                                value={eveningLux}
+                                onChange={(e) => setEveningLux(e.target.value)}
                                 className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
                             />
                         </div>
@@ -426,8 +813,8 @@ export default function Progress() {
                             <input 
                                 type="number" 
                                 placeholder="e.g. 35 (Quiet) or 55 (Loud)"
-                                value={formData.nighttimeDb}
-                                onChange={(e) => updateField('nighttimeDb', e.target.value)}
+                                value={nighttimeDb}
+                                onChange={(e) => setNighttimeDb(e.target.value)}
                                 className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
                             />
                         </div>
@@ -439,7 +826,7 @@ export default function Progress() {
               {currentOptions.map((tag) => (
                 <button
                   key={tag.id}
-                  onClick={() => toggleTag(activeTab, tag.id)}
+                  onClick={() => toggleTag(tag.id)}
                   className={`flex items-center gap-2 px-4 py-3 h-auto rounded-full border text-[10px] font-bold uppercase tracking-widest transition-all ${
                     currentTags.includes(tag.id)
                       ? 'bg-[#b5a642] border-[#b5a642] text-[#1b270e]'
@@ -469,23 +856,30 @@ export default function Progress() {
                     className="p-4 bg-[#b5a642]/10 border border-[#b5a642]/30 rounded-xl"
                   >
                     <p className="text-sm text-[#c9ccbb] leading-relaxed">
-                      <strong className="text-[#b5a642] uppercase tracking-widest text-[10px] mr-2 block mb-1">Oops:</strong> 
-                      Looks like you have missing sensory readings for this session. The Bio-Spatial Friction engine requires these metrics for accuracy.
+                      <strong className="text-[#b5a642] uppercase tracking-widest text-[10px] mr-2 block mb-1">Data Integrity Notice:</strong> 
+                      You have missing sensory readings for this session. Save anyway?
                     </p>
                   </motion.div>
                 )}
               </AnimatePresence>
 
               <div className="flex justify-end items-center gap-4">
+                 
+                 {/* 🟢 NEW ERROR DISPLAY TO PREVENT SILENT FAILURES */}
                  <AnimatePresence>
-                   {status === 'success' && (
-                     <motion.span 
-                       initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
-                       className="text-[#b5a642] text-xs font-bold uppercase tracking-widest flex items-center gap-1"
-                     >
-                       <CheckCircle size={14} /> Saved
-                     </motion.span>
-                   )}
+                    {status === 'error' && (
+                        <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} className="text-red-400 text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
+                        <AlertCircle size={14} /> {errorMessage}
+                        </motion.div>
+                    )}
+                    {status === 'success' && (
+                        <motion.span 
+                        initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
+                        className="text-[#b5a642] text-xs font-bold uppercase tracking-widest flex items-center gap-1"
+                        >
+                        <CheckCircle size={14} /> Saved
+                        </motion.span>
+                    )}
                  </AnimatePresence>
                  
                  <button 
@@ -648,8 +1042,8 @@ export default function Progress() {
           <LightSensorModal 
             onClose={() => setIsLightMeterOpen(false)} 
             onSave={(lux) => {
-              if (activeMeterTarget === 'morningLux') updateField('morningLux', lux.toString());
-              if (activeMeterTarget === 'eveningLux') updateField('eveningLux', lux.toString());
+              if (activeMeterTarget === 'morningLux') setMorningLux(lux.toString());
+              if (activeMeterTarget === 'eveningLux') setEveningLux(lux.toString());
               setIsLightMeterOpen(false);
             }} 
           />
@@ -668,8 +1062,8 @@ export default function Progress() {
               <NoiseSensorModal 
                 onClose={() => setIsAcousticMeterOpen(false)}
                 onSave={(db) => {
-                  if (activeMeterTarget === 'nighttimeDb') updateField('nighttimeDb', db.toString());
-                  if (activeMeterTarget === 'daytimeDb') updateField('daytimeDb', db.toString());
+                  if (activeMeterTarget === 'nighttimeDb') setNighttimeDb(db.toString());
+                  if (activeMeterTarget === 'daytimeDb') setDaytimeDb(db.toString());
                   setIsAcousticMeterOpen(false);
                 }} 
               />
