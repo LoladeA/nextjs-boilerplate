@@ -7,6 +7,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import Link from 'next/link'
 import CorrelationGraph from './CorrelationGraph'
+import { LightSensorModal } from '../tools/light-meter/page'
+import { NoiseSensorModal } from '../tools/noise-meter/page'
 
 export default function Progress() {
   const supabase = createClientComponentClient()
@@ -888,64 +890,35 @@ export default function Progress() {
       {/* --- REAL-TIME SENSOR MODALS --- */}
       <AnimatePresence>
         {isLightMeterOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#000]/80 backdrop-blur-sm p-4">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-lg bg-[#1b270e] border border-[#b5a642]/30 rounded-3xl overflow-hidden shadow-2xl relative"
-            >
-              <button onClick={() => setIsLightMeterOpen(false)} className="absolute top-4 right-4 text-[#c9ccbb]/50 hover:text-[#b5a642] z-10">✕</button>
-              
-              {/* NOTE: Mount your actual Light Meter component here. 
-                  Pass an onComplete callback so it can return the value to this page. */}
-              <div className="p-8 text-center text-[#c9ccbb]">
-                  <h3 className="text-xl font-serif mb-4">Light Meter</h3>
-                  <p className="text-sm opacity-70 mb-8">Tap below to simulate a reading. In production, your actual sensor component goes here.</p>
-                  
-                  <button 
-                      onClick={() => {
-                          const mockLux = 450; // Replace with actual hardware reading
-                          if (activeMeterTarget === 'morningLux') setMorningLux(mockLux.toString());
-                          if (activeMeterTarget === 'eveningLux') setEveningLux(mockLux.toString());
-                          setIsLightMeterOpen(false);
-                      }}
-                      className="px-8 py-3 bg-[#b5a642] text-[#1b270e] font-bold text-xs uppercase tracking-widest rounded-xl"
-                  >
-                      Capture Reading
-                  </button>
-              </div>
-            </motion.div>
-          </div>
+          // Notice we don't need a wrapper div here, because your LightSensorModal already has the fixed inset-0 background built into it!
+          <LightSensorModal 
+            onClose={() => setIsLightMeterOpen(false)} 
+            onSave={(lux) => {
+              if (activeMeterTarget === 'morningLux') setMorningLux(lux.toString());
+              if (activeMeterTarget === 'eveningLux') setEveningLux(lux.toString());
+              setIsLightMeterOpen(false);
+            }} 
+          />
         )}
 
         {isAcousticMeterOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#000]/80 backdrop-blur-sm p-4">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#000]/80 backdrop-blur-sm p-4">
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-lg bg-[#1b270e] border border-[#b5a642]/30 rounded-3xl overflow-hidden shadow-2xl relative"
+              className="w-full max-w-md bg-[#1b270e] border border-[#b5a642]/30 rounded-3xl overflow-hidden shadow-2xl relative"
             >
               <button onClick={() => setIsAcousticMeterOpen(false)} className="absolute top-4 right-4 text-[#c9ccbb]/50 hover:text-[#b5a642] z-10">✕</button>
               
-              {/* NOTE: Mount your actual Noise Meter component here. */}
-              <div className="p-8 text-center text-[#c9ccbb]">
-                  <h3 className="text-xl font-serif mb-4">Noise Level Sensor</h3>
-                  <p className="text-sm opacity-70 mb-8">Tap below to simulate a reading. In production, your actual sensor component goes here.</p>
-                  
-                  <button 
-                      onClick={() => {
-                          const mockDb = 42; // Replace with actual hardware reading
-                          if (activeMeterTarget === 'nighttimeDb') setNighttimeDb(mockDb.toString());
-                          if (activeMeterTarget === 'daytimeDb') setDaytimeDb(mockDb.toString());
-                          setIsAcousticMeterOpen(false);
-                      }}
-                      className="px-8 py-3 bg-[#b5a642] text-[#1b270e] font-bold text-xs uppercase tracking-widest rounded-xl"
-                  >
-                      Capture Reading
-                  </button>
-              </div>
+              <NoiseSensorModal 
+                onClose={() => setIsAcousticMeterOpen(false)}
+                onSave={(db) => {
+                  if (activeMeterTarget === 'nighttimeDb') setNighttimeDb(db.toString());
+                  if (activeMeterTarget === 'daytimeDb') setDaytimeDb(db.toString());
+                  setIsAcousticMeterOpen(false);
+                }} 
+              />
             </motion.div>
           </div>
         )}
