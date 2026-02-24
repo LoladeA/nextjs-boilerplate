@@ -124,35 +124,45 @@ export default function Progress() {
   }
 
   const getMacroSynthesis = () => {
-    // 1. If not enough days or BSFI hasn't calculated yet
-    if (chartLogs.length < 14 || !bsfiData) {
+    // 1. Not enough days (Standard Calibrating State)
+    if (chartLogs.length < 14) {
       return {
         ready: false,
-        daysLeft: Math.max(0, 14 - chartLogs.length),
         title: "System Calibrating",
         paragraphs: [
-          `Log ${Math.max(0, 14 - chartLogs.length)} more days to generate your biological rhythm synthesis. The engine requires a complete cycle to identify environmental friction patterns.`
+          `Log ${14 - chartLogs.length} more days to generate your biological rhythm synthesis. The engine requires a complete cycle to identify environmental friction patterns.`
         ]
       }
     }
 
-    // 2. 🟢 THE NEUROTYPE INCLUSIVITY SAFEGUARD
-    if (bsfiData.is_internal_driver) {
+    // 2. 🟢 THE "0 DAYS" FIX: 14 days achieved, but no BSFI calculated yet
+    if (chartLogs.length >= 14 && !bsfiData) {
+      return {
+        ready: false, // Keeps the progress bar showing full
+        title: "Calibration Complete",
+        paragraphs: [
+          "You have successfully logged 14 days of baseline data. Log your entry today to trigger the Bio-Spatial Friction engine and reveal your first synthesis."
+        ]
+      }
+    }
+
+    // 3. Biological Variance Detected
+    if (bsfiData && bsfiData.is_internal_driver) {
        return {
           ready: true,
           title: "Environment is Stable. Fluctuation is Internal.",
           paragraphs: [
             "Over the last fourteen days, your somatic tension and focus have shown high variance, but your environmental metrics (light, noise) have remained remarkably stable.",
-            "This data signature tells us the friction you are feeling is not coming from your physical space. It is biological or cognitive, such as a period of high emotional demand, cyclical changes, or natural energy rhythms.",
-            "The appropriate response to this phase is not spatial optimisation. Do not attempt to fix the room today; instead, lower your overall demands and allow your body to move through its natural rhythm without adding extra friction."
+            "This data signature tells us the friction you are feeling is not coming from your physical space. It is biological or cognitive—such as a period of high emotional demand, cyclical changes, or natural energy rhythms.",
+            "The appropriate response to this phase is not spatial optimization. Do not attempt to 'fix' the room today; instead, lower your overall demands and allow your body to move through its natural rhythm without adding extra friction."
           ]
        }
     }
 
-    const score = bsfiData.total_score;
-    const domain = bsfiData.dominant_domain;
+    const score = bsfiData!.total_score;
+    const domain = bsfiData!.dominant_domain;
 
-    // 3. 0–20: LOW FRICTION
+    // 4. 0–20: LOW FRICTION
     if (score <= 20) {
       return {
         ready: true,
@@ -165,7 +175,7 @@ export default function Progress() {
       }
     }
     
-    // 4. 21–60: MODERATE STRAIN (Targeting the Sub-Score)
+    // 5. 21–60: MODERATE STRAIN
     if (score <= 60) { 
       return {
         ready: true,
@@ -178,14 +188,14 @@ export default function Progress() {
       }
     }
 
-    // 5. 61–100: DYSREGULATED LOAD
+    // 6. 61–100: DYSREGULATED LOAD
     return {
       ready: true,
       title: "Dysregulated Load Pattern: System Under Extraction",
       paragraphs: [
          "Your Bio-Spatial Friction Index indicates a high-load, dysregulated pattern. The environment is actively extracting from your capacity before you even begin your day.",
          "Fourteen days of sustained environmental friction alongside lowered mood regulation carries a specific signature: your nervous system is maintaining performance by drawing on sympathetic activation (stress hormones) rather than restorative capacity.",
-         "Deploy immediate architectural interventions. You need strict acoustic sealing, absolute darkness for sleep, and a rigid boundary between work and rest zones. Stop optimising for output and start optimising for spatial recovery."
+         "Deploy immediate architectural interventions. You need strict acoustic sealing, absolute darkness for sleep, and a rigid boundary between work and rest zones. Stop optimizing for output and start optimizing for spatial recovery."
       ]
     }
   }
@@ -225,7 +235,7 @@ export default function Progress() {
     return { label: 'Dysregulated Pattern', color: 'text-red-400', border: 'border-red-500/30' }
   }
 
-  const fetchTodayLog = async () => {
+ const fetchTodayLog = async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
@@ -241,13 +251,14 @@ export default function Progress() {
       .eq('date', todayStr)
       .single()
       
-    // 🟢 NEW: Fetch Existing BSFI Score for today
+    // 🟢 THE FIX: Fetch the MOST RECENT BSFI Score (Even if it's from yesterday)
     const { data: existingBsfi } = await supabase
       .from('bsfi_results')
       .select('*')
       .eq('user_id', user.id)
-      .eq('calculated_for_date', todayStr)
-      .single()
+      .order('calculated_for_date', { ascending: false })
+      .limit(1)
+      .maybeSingle() // Prevents error if no score exists at all
       
     if (existingBsfi) {
       setBsfiData({
