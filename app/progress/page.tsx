@@ -124,57 +124,69 @@ export default function Progress() {
   }
 
   const getMacroSynthesis = () => {
-    if (chartLogs.length < 14) {
+    // 1. If not enough days or BSFI hasn't calculated yet
+    if (chartLogs.length < 14 || !bsfiData) {
       return {
         ready: false,
-        daysLeft: 14 - chartLogs.length,
+        daysLeft: Math.max(0, 14 - chartLogs.length),
         title: "System Calibrating",
         paragraphs: [
-          `Log ${14 - chartLogs.length} more days to generate your biological rhythm synthesis. The engine requires a complete cycle to accurately identify environmental friction patterns.`
+          `Log ${Math.max(0, 14 - chartLogs.length)} more days to generate your biological rhythm synthesis. The engine requires a complete cycle to identify environmental friction patterns.`
         ]
       }
     }
 
-    const avgMood = chartLogs.reduce((acc, log) => acc + log.mood, 0) / 14
-    const avgTension = chartLogs.reduce((acc, log) => acc + log.tension, 0) / 14
-    const avgFocus = chartLogs.reduce((acc, log) => acc + log.focus, 0) / 14
+    // 2. 🟢 THE NEUROTYPE INCLUSIVITY SAFEGUARD
+    if (bsfiData.is_internal_driver) {
+       return {
+          ready: true,
+          title: "Environment is Stable. Fluctuation is Internal.",
+          paragraphs: [
+            "Over the last fourteen days, your somatic tension and focus have shown high variance, but your environmental metrics (light, noise) have remained remarkably stable.",
+            "This data signature tells us the friction you are feeling is not coming from your physical space. It is biological or cognitive, such as a period of high emotional demand, cyclical changes, or natural energy rhythms.",
+            "The appropriate response to this phase is not spatial optimisation. Do not attempt to fix the room today; instead, lower your overall demands and allow your body to move through its natural rhythm without adding extra friction."
+          ]
+       }
+    }
 
-    if (avgTension >= 6 && avgFocus <= 4) return {
+    const score = bsfiData.total_score;
+    const domain = bsfiData.dominant_domain;
+
+    // 3. 0–20: LOW FRICTION
+    if (score <= 20) {
+      return {
         ready: true,
-        title: "The Environment Is Spending Your Capacity Before You Do",
+        title: "Low Friction Environment: Regulated Ground",
         paragraphs: [
-          "Across the last fourteen days, your somatic cost has remained consistently elevated while cognitive output has stayed constrained. This is a recognisable pattern: the nervous system is absorbing chronic environmental friction—sensory noise, thermal disruption, accumulated overnight load—and arriving at each day already depleted.",
-          "The output you are generating is happening against resistance, not from reserves.",
-          "This pattern resolves when the environmental source of the drain is identified and reduced. The two most probable contributors are your sleep ecology and the sensory load of your primary daytime spaces. Both are addressable."
-        ]
-    }
-    if (avgFocus >= 6 && avgMood <= 2.5) return {
-        ready: true,
-        title: "High Output, Borrowed Cost",
-        paragraphs: [
-          "Fourteen days of sustained cognitive output alongside consistently low mood regulation carries a specific signature: the nervous system is maintaining performance by drawing on sympathetic activation rather than restorative capacity.",
-          "This is a viable strategy in the short term. Over time, it erodes the very reserves it is borrowing from.",
-          "What this pattern is asking for is not less work. It needs a clear boundary between your work and rest zones, and a firm evening wind-down routine. Your rhythm needs a floor, not a ceiling."
-        ]
-    }
-    if (avgMood >= 4 && avgTension <= 3) return {
-        ready: true,
-        title: "Fourteen Days of Regulated Ground",
-        paragraphs: [
-          "Across the board, your somatic tension has remained low and your mood regulation consistently high. This is the result of an environment that is doing its job: absorbing daily load, supporting overnight recovery, and returning you to capacity.",
+          "Across the board, your Bio-Spatial Friction Index is exceptionally low. This is the result of an environment that is doing its job: absorbing daily load, supporting overnight recovery, and returning you to capacity.",
           "What this data confirms is that your current environmental conditions are not accidental. Your sensory boundaries, thermal ecology, and recovery architecture are functioning as a coherent system.",
-          "The task now is to understand what is working precisely enough to protect it, particularly during elevated stress periods, travel, or seasonal change."
+          "The task now is to protect this baseline. Document what is working right now so you can replicate it during periods of elevated stress or seasonal change."
         ]
+      }
     }
-    return {
+    
+    // 4. 21–60: MODERATE STRAIN (Targeting the Sub-Score)
+    if (score <= 60) { 
+      return {
         ready: true,
-        title: "High Variance. No Stable Floor Yet",
+        title: `Moderate Strain: ${domain} Dominance`,
         paragraphs: [
-          "The last fourteen days show fluctuation across mood, tension, and focus. Before locating the source of that variance in your environment, it is worth naming something the data cannot distinguish: not all fluctuation is environmental.",
-          "Hormonal shifts, perimenopause, periods of high relational or emotional demand produce real, measurable changes in energy, sleep quality, focus, and somatic load. Your body is doing precisely what it is designed to do under particular biological conditions.",
-          "The appropriate response to those phases is not optimisation. It is accommodation. If your variance aligns with a cyclical or biological pattern, the role of your environment is to reduce the additional friction layered on top of it, so the body can move through its natural rhythm without also managing an environment that is working against it.",
-          "If unrelated to cyclical patterns, then the environmental baseline such as sleep ecology, morning sensory sequence, and thermal consistency, is worth examining as a stabilising factor."
+          `Your environment is introducing a moderate level of friction, pulling your nervous system out of baseline. The algorithm has identified ${domain} as the primary source of this drain.`,
+          "The output you are generating is beginning to happen against resistance, not from reserves. You are spending cognitive capacity just to manage the space.",
+          `Target the ${domain} immediately. If it is Acoustic Load, upgrade your buffering. If it is Circadian Friction, audit your evening light exposure. Removing this specific friction point will return you to baseline.`
         ]
+      }
+    }
+
+    // 5. 61–100: DYSREGULATED LOAD
+    return {
+      ready: true,
+      title: "Dysregulated Load Pattern: System Under Extraction",
+      paragraphs: [
+         "Your Bio-Spatial Friction Index indicates a high-load, dysregulated pattern. The environment is actively extracting from your capacity before you even begin your day.",
+         "Fourteen days of sustained environmental friction alongside lowered mood regulation carries a specific signature: your nervous system is maintaining performance by drawing on sympathetic activation (stress hormones) rather than restorative capacity.",
+         "Deploy immediate architectural interventions. You need strict acoustic sealing, absolute darkness for sleep, and a rigid boundary between work and rest zones. Stop optimising for output and start optimising for spatial recovery."
+      ]
     }
   }
   
