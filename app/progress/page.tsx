@@ -733,7 +733,30 @@ export default function Progress() {
                                 className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
                             />
                         </div>
-                        <div>
+                       <div>
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2 text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest">
+                                    <Volume2 size={14} className="text-red-400" /> Daytime Noise (dB)
+                                </div>
+                                <button 
+                                    onClick={() => { setActiveMeterTarget('daytimeDb'); setIsAcousticMeterOpen(true); }}
+                                    className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest hover:text-white transition-colors flex items-center gap-1 bg-[#b5a642]/10 px-2 py-1 rounded-md border border-[#b5a642]/20"
+                                >
+                                    <Activity size={12} /> Measure
+                                </button>
+                            </div>
+                            <input 
+                                type="number" 
+                                placeholder="e.g. 45 (Living Room) or 70 (Kitchen)"
+                                value={daytimeDb}
+                                onChange={(e) => setDaytimeDb(e.target.value)}
+                                className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
+                            />
+                        </div>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">
+                       <div>
                             <div className="flex items-center justify-between mb-2">
                                 <div className="flex items-center gap-2 text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest">
                                     <Moon size={14} className="text-blue-400" /> Nighttime Noise (dB)
@@ -750,29 +773,6 @@ export default function Progress() {
                                 placeholder="e.g. 35 (Quiet) or 55 (Loud)"
                                 value={nighttimeDb}
                                 onChange={(e) => setNighttimeDb(e.target.value)}
-                                className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
-                            />
-                        </div>
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">
-                        <div>
-                            <div className="flex items-center justify-between mb-2">
-                                <div className="flex items-center gap-2 text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest">
-                                    <Volume2 size={14} className="text-red-400" /> Daytime Avg Noise (dB)
-                                </div>
-                                <button 
-                                    onClick={() => { setActiveMeterTarget('daytimeDb'); setIsAcousticMeterOpen(true); }}
-                                    className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest hover:text-white transition-colors flex items-center gap-1 bg-[#b5a642]/10 px-2 py-1 rounded-md border border-[#b5a642]/20"
-                                >
-                                    <Activity size={12} /> Measure
-                                </button>
-                            </div>
-                            <input 
-                                type="number" 
-                                placeholder="e.g. 45 (Office) or 70 (Street)"
-                                value={daytimeDb}
-                                onChange={(e) => setDaytimeDb(e.target.value)}
                                 className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
                             />
                         </div>
