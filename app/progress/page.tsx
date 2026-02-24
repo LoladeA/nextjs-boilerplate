@@ -489,7 +489,7 @@ export default function Progress() {
                  </AnimatePresence>
                  
                  <button 
-                   onClick={() => handleSave(activeTab, showAccuracyWarning)}
+                   onClick={() => handleSave(showAccuracyWarning)}
                    disabled={currentMood === null || status === 'saving'}
                    className={`px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-all flex items-center gap-2 ${
                      currentMood === null 
