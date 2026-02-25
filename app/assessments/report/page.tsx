@@ -10,7 +10,6 @@ import { calculateNeuroLoad } from '@/app/utils/scoring-engine'
 import { mapEngineToDashboard } from '@/app/lib/neuro-mapper'
 
 // 🟢 COMPONENT IMPORTS
-import DownloadButton from './DownloadButton'
 import OrbitalBadge from '../../components/OrbitalBadge'
 import Sidebar from '../../components/Sidebar'
 import PriorityList from './PriorityList'
@@ -182,24 +181,10 @@ export default async function AssessmentReport() {
               </p>
             </div>
             
-            {/* RIGHT: BADGE & BUTTON (SIDE BY SIDE) */}
-            {/* 🟢 LAYOUT FIX: 'flex-row' makes them sit next to each other */}
+            {/* RIGHT: BADGE */}
             <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-                
                 {/* 1. ORBITAL BADGE (The Glowing Trigger) */}
                 <OrbitalBadge profile={profile} />
-
-                {/* 2. PDF DOWNLOAD BUTTON */}
-                <DownloadButton 
-                  data={{
-                    displayName: session?.user.user_metadata?.full_name || 'Resident',
-                    score: finalNeuroLoad,
-                    systemState: systemState,
-                    profile: profile,
-                    domains: domains
-                  }}
-                />
-
             </div>
           </div>
 
