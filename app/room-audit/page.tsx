@@ -2,9 +2,10 @@
 
 import Sidebar from '../components/Sidebar'
 import { useState, useRef, useEffect } from 'react'
-import { Camera, Loader2, ScanEye, CheckCircle, Lock, Brain, Lightbulb, Zap, Info, Activity, AlertCircle, ShieldCheck } from 'lucide-react'
+import { Camera, Loader2, ScanEye, CheckCircle, Lock, Brain, Lightbulb, Zap, Info, Activity, AlertCircle, ShieldCheck, HelpCircle, X } from 'lucide-react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import Link from 'next/link'
+import { motion, AnimatePresence } from 'framer-motion'
 
 export default function RoomAudit() {
   const supabase = createClientComponentClient()
@@ -18,6 +19,9 @@ export default function RoomAudit() {
   const [file, setFile] = useState<File | null>(null)
   const [manualLux, setManualLux] = useState<string>('')
   
+  // 🟢 MANUAL STATE
+  const [isManualOpen, setIsManualOpen] = useState(false)
+
   // 🟢 PHASE 7: EXPLICIT FLOW STATES
   const [status, setStatus] = useState<'idle' | 'validating' | 'processing' | 'success'>('idle')
   const [result, setResult] = useState<any>(null)
@@ -84,7 +88,6 @@ export default function RoomAudit() {
   const handleRunAnalysis = async () => {
     if (!file || !hasAccess) return
     
-    // STEP 8.1: /scan/start -> Validation Phase
     setStatus('validating')
     setErrorMsg(null)
     setLoadingText("Validating Priority Room Allocation...")
@@ -99,7 +102,6 @@ export default function RoomAudit() {
 
       const { data: { publicUrl } } = supabase.storage.from('room-photos').getPublicUrl(fileName)
 
-      // STEP 8.2: /scan/process -> Orchestration Phase
       setStatus('processing')
       let stageIndex = 0
       setLoadingText(orchestrationStages[0])
@@ -117,14 +119,12 @@ export default function RoomAudit() {
         body: JSON.stringify({ roomName: selectedRoom, imageUrl: publicUrl, measuredLux: manualLux ? parseInt(manualLux) : null })
       })
       
-      clearInterval(stageInterval) // Stop the text rotation
+      clearInterval(stageInterval)
       
       const analysis = await response.json()
       
-      // Catches Priority Room Lockouts gracefully
       if (!analysis.success) throw new Error(analysis.error || 'Analysis failed')
 
-      // STEP 8.3: Success Dashboard
       setResult(analysis.data)
       setStatus('success')
       
@@ -158,9 +158,20 @@ export default function RoomAudit() {
       <div className="md:ml-64 min-h-screen p-6 md:p-12">
         <div className="max-w-4xl mx-auto">
 
-          <div className="mb-12 text-center">
-            <h1 className="text-4xl font-serif text-[#c9ccbb] mb-4">Environmental Audit</h1>
-            <p className="text-[#c9ccbb]/60 max-w-lg mx-auto">NeuroDesign Analysis Engine</p>
+          <div className="mb-12 flex justify-between items-start">
+            <div>
+              <h1 className="text-4xl font-serif text-[#c9ccbb] mb-4 flex items-center gap-4">
+                Environmental Audit
+                {/* 🟢 NEW: Manual Trigger Icon */}
+                <button 
+                  onClick={() => setIsManualOpen(true)} 
+                  className="text-[#b5a642]/60 hover:text-[#b5a642] transition-colors p-2 rounded-full hover:bg-[#b5a642]/10"
+                >
+                  <HelpCircle size={24} />
+                </button>
+              </h1>
+              <p className="text-[#c9ccbb]/60 max-w-lg">NeuroDesign Analysis Engine</p>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -351,6 +362,57 @@ export default function RoomAudit() {
           </div>
         </div>
       </div>
+
+      <AnimatePresence>
+        {/* 🟢 NEW: Room Audit Manual Modal */}
+        {isManualOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#000]/80 backdrop-blur-sm p-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className="w-full max-w-2xl max-h-[85vh] overflow-y-auto hide-scrollbar bg-[#1b270e] border border-[#b5a642]/30 rounded-3xl shadow-2xl relative p-8 md:p-12"
+            >
+              <button 
+                onClick={() => setIsManualOpen(false)} 
+                className="absolute top-6 right-6 text-[#c9ccbb]/50 hover:text-[#b5a642] z-10 transition-colors bg-[#000]/20 p-2 rounded-full"
+              >
+                <X size={20} />
+              </button>
+
+              <h2 className="text-3xl font-serif text-[#c9ccbb] mb-8 border-b border-[#c9ccbb]/10 pb-6">Room Audit Manual</h2>
+
+              <div className="space-y-8 text-[#c9ccbb]/80 text-sm leading-relaxed font-light">
+                <section>
+                  <h3 className="text-lg font-serif text-[#b5a642] mb-2">The Engine's Perspective</h3>
+                  <p>The NeuroDesign Analysis Engine does not evaluate your room for aesthetics or style. It scans the architecture to determine how much biological work your system is required to do to exist within it. It translates spatial geometry into sensory load.</p>
+                </section>
+
+                <section>
+                  <h3 className="text-lg font-serif text-[#b5a642] mb-2">NeuroDesign Alignment Score</h3>
+                  <p>A holistic rating (0-100) of how well the room supports nervous system regulation. A high score means the room acts as a restorative container; a low score indicates the space is extracting cognitive capacity.</p>
+                </section>
+
+                <section>
+                  <h3 className="text-lg font-serif text-[#b5a642] mb-2">Visual Entropy (0-10)</h3>
+                  <p>Measures visual noise and clutter. The brain must unconsciously map every object in a room. High visual entropy (a score closer to 10) creates a sustained, low-grade cognitive tax that quietly erodes focus and rest.</p>
+                </section>
+
+                <section>
+                  <h3 className="text-lg font-serif text-[#b5a642] mb-2">Biophilic Index</h3>
+                  <p>Evaluates the presence of natural elements (light, organic textures, plant life). Biophilic markers act as automatic parasympathetic triggers, signaling safety to the autonomic nervous system without requiring conscious thought.</p>
+                </section>
+
+                <section>
+                  <h3 className="text-lg font-serif text-[#b5a642] mb-2">Somatic Domains</h3>
+                  <p>The engine breaks the room down into specific friction points (e.g., Circadian Friction from poor lighting, or Acoustic Load from hard surfaces) so you know exactly which structural element is draining your energy.</p>
+                </section>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
     </div>
   )
 }
