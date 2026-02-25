@@ -52,6 +52,7 @@ export default function Progress() {
 
   // --- BSFI STATE ---
   const [bsfiData, setBsfiData] = useState<{ total_score: number, dominant_domain: string, is_internal_driver: boolean } | null>(null)
+  const [bsfiLoading, setBsfiLoading] = useState(true)
 
   // ACCORDION STATES
   const [isMorningOpen, setIsMorningOpen] = useState(false)
@@ -74,52 +75,89 @@ export default function Progress() {
 
   const checkAccess = async () => {
     const { data: { user } } = await supabase.auth.getUser()
-    if (user?.email === 'christchilde@gmail.com') {
+    if (!user) return
+
+    if (user.email === 'christchilde@gmail.com') {
       setGodMode(true)
+      return
     }
+
+    const { data: profile } = await supabase
+      .from('profiles') 
+      .select('is_premium')
+      .eq('user_id', user.id)
+      .single()
+
+    if (profile?.is_premium) setIsPremium(true)
   }
 
   const hasAccess = isPremium || godMode
 
   // --- FEEDBACK ENGINE LOGIC ---
   const getMorningFeedback = () => {
-    if (tensionScore >= 7 && wakeScore >= 3) return {
-      title: "The System Was Working Through the Night",
-      reframe: "What you felt on waking is not a failure of sleep. It is the trace of active biological labour. Your nervous system was processing accumulated daytime load, navigating hormonal cycles, or responding to sensory intrusion that your sleeping environment did not adequately support or absorb. Your body did what it was designed to do. The environment did not hold it.",
-      direction: "The priority is your sleep envelope: absolute darkness, a stable ambient temperature, a robust pre-sleep routine and organic breathable sleepwear that removes thermoregulatory friction from the recovery equation. Reduce what the system has to manage at 2am, and it will spend that energy on restoration instead."
+    const moodScore = morningMood ?? 3 // neutral fallback
+
+    // Burned out + physical symptoms — highest priority
+    if (moodScore <= 2 && tensionScore >= 7 && wakeScore >= 3) return {
+      title: "Sleep Occurred. Recovery Did Not",
+      reframe: "Three or more wake events alongside high somatic tension and low mood on rising is a specific neuroendocrine signature — not a reflection of how well you slept in a subjective sense, but of how much biological work your system was required to do overnight. Fragmented sleep prevents full progression through slow-wave and REM architecture, leaving cortisol clearance incomplete and the HPA axis already activated before the day begins",
+      direction: "Your sleep envelope is the priority, not optimisation, but structural protection. Tonight: acoustic sealing of the sleep space, full blackout, tactile enclosure, and a firm light boundary of below 50 lux from at least 90 minutes before bed. Do not attempt to compensate for last night through output today. Your system needs a reduced load, not an increased one"
     }
-    if (tensionScore >= 7) return {
+
+    // Low mood, high tension
+    if (moodScore <= 2 && tensionScore >= 7) return {
       title: "You Slept Through, But Your Body Was Bracing Itself",
-      reframe: "Continuous sleep is not the same as restorative sleep. When muscular tension persists through the night, it indicates the nervous system remained in a low-grade protective state: bracing against residual stress, uncomfortable materials, inadequate sleep support or acoustic intrusion that never fully resolved. You rested. You did not recover.",
-      direction: "Work backwards from the source: unresolved physical tension before bed, the acoustic quality of your sleep environment, and the materials you are sleeping on and in. Each is a variable within your control."
+      reframe: "Sleep continuity is a necessary condition for restoration, but it is not sufficient. ustained somatic tension on waking, alongside low mood, indicates that your autonomic nervous system remained in an elevated state overnight. Without the parasympathetic drop required for slow-wave sleep entry, the body continues processing physiological and emotional load rather than clearing it. You slept through. Your system did not stand down.",
+      direction: "Work backwards from pre-sleep conditions: unresolved physical tension in the hour before bed typically originates from thermal load, unprocessed cognitive activation, or the absence of proprioceptive grounding. Introduce tactile enclosure tonight — weighted or layered bedding — and reduce your pre-sleep light exposure to warm-toned sources below 50 lux. The goal is a nervous system that arrives at sleep already decelerating."
     }
-    if (wakeScore >= 3) return {
-      title: "Interrupted Sleep Is Often an Environmental Signal",
-      reframe: "Waking through the night —particularly if re-entry is relatively easy— is less often a sign of dysregulation than a sign of thermoregulatory shift. Night sweats, hormonal fluctuations, or subtle changes in ambient temperature are among the most common and most overlooked disruptors. Your nervous system is not the problem. Its environment may not be matching its needs.",
-      direction: "Focus on the recovery envelope: breathable organic sleepwear, a cooler ambient temperature, and complete darkness. These three variables together reduce the physiological triggers that pull the system up from deep sleep."
+
+    // Reasonable mood but interrupted sleep
+    if (moodScore >= 3 && wakeScore >= 3) return {
+      title: "Interrupted Sleep Is an Environmental Signal Worth Investigating.",
+      reframe: "Waking three or more times through the night, in the presence of stable mood, is more reliably an environmental pattern than a dysregulation one. The most frequent structural causes are thermoregulatory disruption — your body temperature cycling against an unsuitable ambient environment — and acoustic intrusion events that trigger partial arousals without full conscious waking. You are coping well with the disruption. The disruption itself is still worth addressing.",
+      direction: "Audit your sleep environment for two variables tonight: ambient temperature and acoustic consistency. The thermoneutral sleep zone for most adults is 17–19°C. Breathable, natural-fibre bedding supports the body's core temperature drop required for sleep stage entry. For acoustic disruption, identify whether the waking pattern correlates with a specific time — early morning traffic, household sounds, or HVAC cycling — and introduce low-level white or pink noise to mask event-based intrusions"
     }
+
+    // Good mood, low tension — environment held
+    if (moodScore >= 4 && tensionScore <= 3) return {
+      title: "System Restored. Environment Held",
+      reframe: "Low somatic tension and elevated mood on waking are the measurable output of a sleep environment that supported full autonomic recovery overnight. Your cortisol awakening response is following its natural arc, slow-wave sleep likely proceeded without disruption, and your prefrontal cortex is arriving at the day with its regulatory capacity intact. This is not a passive outcome; it is the result of environmental conditions that were coherent with your nervous system's requirements",
+      direction: "Identify and record what was consistent yesterday evening. Your sensory boundaries, thermal conditions, and pre-sleep routine are currently functioning as a coherent system. Protect those conditions — especially during periods of elevated schedule demand, travel, or seasonal light change, when the instinct is to deprioritise exactly what is working."
+    }
+
+    // Default neutral
     return {
-      title: "Environment Held. System Restored",
-      reframe: "This is what successful environmental design produces: a night in which your nervous system was not required to manage, defend, or compensate. It simply recovered. That distinction matters: a regulated morning is not luck. It is the result of an environment that absorbed your physical needs and returned you to capacity.",
-      direction: "Maintain what is working. Your sensory boundaries, thermal ecology, and evening wind-down pattern are functioning as an eco-system. The task now is to protect them, particularly during periods of higher stress, when the temptation to compromise the environment increases."
+      title: "Baseline Registered",
+      reframe: "Your morning readings sit within a neutral functional range today: no acute recovery deficit, no clear environmental signal in either direction. Neutral is not absence of data. It is the system in maintenance mode: not under significant load, not in peak restoration. The pattern becomes legible over time, not in a single morning",
+      direction: "Log your environmental readings accurately: light levels, sounds, and sleep conditions. No acute intervention is required today. Use this session to build the baseline your fourteen-day synthesis will draw from."
     }
   }
 
   const getEveningFeedback = () => {
-    if (focusScore >= 8) return {
-      title: "High Cognitive Output Requires Deliberate Recovery",
-      reframe: "Extended time in high-beta execution mode — sustained focus, decision-making, problem-solving — is a central nervous system stressor in the same category as physical exertion. The day was productive. The nervous system is now carrying that cost. Recovery is not optional tonight; it is proportional to output.",
-      direction: "Tonight's environment must match today's demand. Transition strictly to warm, low-level lighting. This is not aesthetic preference but a direct instruction to your melatonin pathway. Protect your wind down routine after work with the same intentionality you protect your peak focus window."
+    const moodScore = eveningMood ?? 3
+
+    if (focusScore >= 8 && moodScore <= 2) return {
+      title: "High Output, High Cost. Recovery Is Non-Negotiable Tonight",
+      reframe: "Extended deep work alongside low mood regulation is a recognisable autonomic signature: your prefrontal cortex sustained performance by drawing on sympathetic activation rather than regulated capacity. The output was real. So is the cost. Your emotional processing systems — particularly the amygdala's overnight consolidation work — are carrying a heavier load into sleep than your focus score would suggest.",
+      direction: "Tonight's environment must match today's demand. Transition away from screens and bright overhead light within the next thirty minutes — warm-toned sources below 100 lux only. Remove high-stimulation zones from your evening sightline. Your nervous system needs a firm, unhurried deceleration tonight, not a continuation of execution mode into the hours before sleep."
     }
-    if (focusScore >= 4) return {
-      title: "Output Was Balanced. Protect the Transition",
-      reframe: "A sustainable ratio of deep work to recovery indicates your environment was supporting your capacity rather than extracting from it. That balance reflects an alignment between your energy curve and your spatial conditions. Your nervous system is not depleted, but transitions matter: how the evening begins determines whether that capacity is replenished or quietly eroded overnight.",
-      direction: "Step out of optimisation mode with a deliberate act, not a gradual drift. One small environmental reset, such as clearing the first surface you will see tomorrow morning or closing the workshop moving away from your work zone, signals to the nervous system that the day has ended and the recovery cycle has begun."
+
+    if (focusScore >= 8 && moodScore >= 4) return {
+      title: "Sustained Output Without Mood Erosion. Protect the Close",
+      reframe: "Deep work sustained across the day without a corresponding drop in mood regulation indicates that your environment was supporting your cognitive load rather than extracting from it. This is the functional design outcome: your nervous system was able to meet demand from a regulated baseline rather than from stress-driven performance. The risk now is not what today cost; it is what tonight's environment does with that state",
+      direction: "Do not coast through the evening without a deliberate transition. High performers in sustained flow are particularly susceptible to remaining in execution mode well past the point where the cortisol curve should be descending. Initiate a conscious environmental close: shift to warm light, step away from your primary work zone, and introduce one low-stimulation activity before your sleep preparation begins"
     }
+
+    if (focusScore <= 2 && moodScore <= 2) return {
+      title: "Low Output Is an Environmental Reading, Not a Personal One",
+      reframe: "When attentional capacity feels constrained despite effort, the instinct is to attribute it to discipline or motivation. The more precise reading, particularly when mood and focus drop together, is environmental: your space was not providing the sensory conditions required for sustained cognitive engagement. High acoustic load, insufficient light contrast between work and rest zones, and accumulated visual entropy are the most common structural contributors to this specific combined profile..",
+      direction: "Do not attempt to recover through effort or extended hours tonight. Remove friction instead. Identify one controllable sensory variable in your primary space: noise, light quality, or visual clutter; and address only that. A single, deliberate environmental adjustment will do more for tomorrow morning's capacity than any amount of compensatory work tonight."
+    }
+
     return {
-      title: "Low Output Is an Environmental Symptom, Not a Personal One",
-      reframe: "When capacity feels constrained despite effort, the instinct is to attribute it to discipline or motivation. That is rarely the case. Constrained cognitive output is most often the product of environmental friction such as visual noise, interruption patterns, inadequate lighting, or a space that does not signal focus clearly enough for the brain to enter and sustain it. The environment set the conditions. You responded to them.",
-      direction: "Do not attempt to recover through effort tonight. Instead, remove friction: evaluate the visual noise in your primary spaces, identify what broke your attention during the day, and approach this evening as architectural decompression, the deliberate restoration of the conditions capacity requires."
+      title: "Baseline Registered. Protect the Transition",
+      reframe: "Output and mood regulation have remained within a functional range today: neither a high-cost performance day nor a low-capacity one. The evening's role in this context is not recovery from deficit, but maintenance of the baseline your system is already holding.",
+      direction: "Step away from high-stimulation zones within the next hour. Your evening transition does not need to be elaborate — it needs to be consistent. A reliable pre-sleep sensory routine is cumulative in its regulatory effect: the nervous system learns to begin decelerating in response to environmental cues before the cues themselves are consciously processed."
     }
   }
 
@@ -129,104 +167,106 @@ export default function Progress() {
         ready: false,
         title: "System Calibrating",
         paragraphs: [
-          `Log ${Math.max(0, 14 - chartLogs.length)} more days to generate your biological rhythm synthesis. The engine requires a complete cycle to identify environmental friction patterns.`
+          `Log ${Math.max(0, 14 - chartLogs.length)} days remaining.`
         ]
       }
     }
 
-    if (chartLogs.length >= 14 && !bsfiData) {
-        const avgMood = chartLogs.reduce((acc, log) => acc + log.mood, 0) / chartLogs.length
-        const avgTension = chartLogs.reduce((acc, log) => acc + log.tension, 0) / chartLogs.length
-        const avgFocus = chartLogs.reduce((acc, log) => acc + log.focus, 0) / chartLogs.length
-      
-        if (avgTension >= 6 && avgFocus <= 4) return {
-            ready: true,
-            title: "The Environment Is Spending Your Capacity Before You Do",
-            paragraphs: [
-              "Across the last fourteen days, your somatic cost has remained consistently elevated while cognitive output has stayed constrained. This is a recognisable pattern: the nervous system is absorbing chronic environmental friction—sensory noise, thermal disruption, accumulated overnight load—and arriving at each day already depleted.",
-              "The output you are generating is happening against resistance, not from reserves.",
-              "This pattern resolves when the environmental source of the drain is identified and reduced. The two most probable contributors are your sleep ecology and the sensory load of your primary daytime spaces. Both are addressable."
-            ]
+    if (bsfiData) {
+        if (bsfiData.is_internal_driver) {
+           return {
+              ready: true,
+              title: "Your Environment Is Stable. The Fluctuation Is Biological.",
+              paragraphs: [
+                "Over the last fourteen days, your somatic tension and mood have shown significant variance, but your measured environmental conditions have remained largely consistent.",
+                "This data signature has a specific meaning: the primary source of friction right now is not your physical space. Biological fluctuation — cyclical hormonal shifts, periods of elevated relational or emotional demand, accumulated cognitive load produces real, measurable changes in tension, sleep quality, focus, and mood that register in your logs independently of what your space is doing. Your nervous system is responding to an internal condition, not an environmental one.",
+                "The appropriate response to this phase is accommodation, not optimisation. Do not attempt to redesign or reconfigure your space right now. Instead, ask your environment to do one thing: reduce the additional friction layered on top of an already-demanding internal state. Quieter, warmer, simpler. Less to manage, not more to perform."
+              ]
+           }
         }
-        if (avgFocus >= 6 && avgMood <= 2.5) return {
+
+        const score = bsfiData.total_score;
+        const domain = bsfiData.dominant_domain;
+
+        if (score <= 20) {
+          return {
             ready: true,
-            title: "High Output, Borrowed Cost",
+            title: "Low Friction Environment. Your System Has a Stable Floor",
             paragraphs: [
-              "Fourteen days of sustained cognitive output alongside consistently low mood regulation carries a specific signature: the nervous system is maintaining performance by drawing on sympathetic activation rather than restorative capacity.",
-              "This is a viable strategy in the short term. Over time, it erodes the very reserves it is borrowing from.",
-              "What this pattern is asking for is not less work. It needs a clear boundary between your work and rest zones, and a firm evening wind-down routine. Your rhythm needs a floor, not a ceiling."
+              "Across fourteen days, your Bio-Spatial Friction Index has remained exceptionally low. Your environment is doing precisely what it is designed to do: absorbing daily sensory load, supporting overnight recovery, and returning your nervous system to a regulated baseline each morning. This is not a passive outcome — it reflects environmental conditions that are coherent with your biological requirements.",
+              "What this data confirms is that your current sensory conditions are not accidental. Your light habits, acoustic boundaries, sleep ecology, and spatial practices are functioning as a coherent, mutually reinforcing system. Each element is reducing the demand placed on the others.",
+              "The task now is protection, not improvement. Document the specific conditions that are producing this baseline: light levels, thermal settings, pre-sleep routine, morning habits — in sufficient detail that you can replicate them accurately during periods of elevated stress, travel, or seasonal change, when the instinct is to deprioritise exactly what is working."
             ]
+          }
         }
-        if (avgMood >= 4 && avgTension <= 3) return {
+        
+        if (score <= 60) { 
+          return {
             ready: true,
-            title: "Fourteen Days of Regulated Ground",
+            title: `Moderate Environmental Load: ${domain} Is The Primary Source`,
             paragraphs: [
-              "Across the board, your somatic tension has remained low and your mood regulation consistently high. This is the result of an environment that is doing its job: absorbing daily load, supporting overnight recovery, and returning you to capacity.",
-              "What this data confirms is that your current environmental conditions are not accidental. Your sensory boundaries, thermal ecology, and recovery architecture are functioning as a coherent system.",
-              "The task now is to understand what is working precisely enough to protect it, particularly during elevated stress periods, travel, or seasonal change."
+              `Over the last fourteen days, your environment has been introducing a moderate but consistent level of friction. Your BSFI total indicates that your nervous system is absorbing environmental load across multiple domains — but the engine has identified ${dominant_domain} as the source generating the greatest sustained demand. This is where the leverage is.`,
+              "The output you are producing is beginning to happen against environmental resistance rather than from regulated reserves. At moderate friction levels, this distinction is easy to miss — performance remains intact while the underlying cost accumulates quietly, day by day, in the form of reduced attentional stamina, elevated baseline tension, and slightly compressed emotional range.",
+              `Address ${dominant_domain} this week as a structural priority. A targeted intervention in your highest-friction domain will produce a disproportionate return, reducing the load on every other domain simultaneously, because your nervous system will no longer need to compensate for it.`
             ]
+          }
         }
+
+      if (score >= 60) {
         return {
-            ready: true,
-            title: "High Variance. No Stable Floor Yet",
-            paragraphs: [
-              "The last fourteen days show fluctuation across mood, tension, and focus. Before locating the source of that variance in your environment, it is worth naming something the data cannot distinguish: not all fluctuation is environmental.",
-              "Hormonal shifts, perimenopause, periods of high relational or emotional demand produce real, measurable changes in energy, sleep quality, focus, and somatic load. Your body is doing precisely what it is designed to do under particular biological conditions.",
-              "The appropriate response to those phases is not optimisation. It is accommodation. If your variance aligns with a cyclical or biological pattern, the role of your environment is to reduce the additional friction layered on top of it, so the body can move through its natural rhythm without also managing an environment that is working against it."
-            ]
+          ready: true,
+          title: "Sustained High Friction. Your Environment Is Extracting Before You Begin",
+          paragraphs: [
+             "Your fourteen-day BSFI indicates a high-load, dysregulated environmental pattern. Across circadian, acoustic, spatial, and recovery domains, your home is generating friction that is consistently arriving before your day begins — depleting regulatory capacity at the point when it should be replenishing it. The nervous system is not starting each day from a recovered baseline. It is starting each day already managing accumulated overnight load.",
+             "Sustained multi-domain environmental friction at this level carries a specific physiological signature: the autonomic nervous system shifts to sympathetic maintenance mode, cortisol-driven performance rather than restored capacity. Output may remain present. But it is being borrowed, not generated. The reserves that sustain that borrowing are finite.",
+             "Stop optimising for output. Start optimising for environmental recovery. The three structural priorities in order: acoustic sealing of your sleep environment, a hard circadian light boundary after 8pm, and a single cleared, low-stimulation space you can access without friction during the day. These are not enhancements to your current environment. At this score, they are the minimum viable conditions your nervous system requires to begin recovering."
+          ]
         }
     }
 
-    if (bsfiData && bsfiData.is_internal_driver) {
-       return {
-          ready: true,
-          title: "Environment is Stable. Fluctuation is Internal.",
-          paragraphs: [
-            "Over the last fourteen days, your somatic tension and focus have shown high variance, but your environmental metrics (light, noise) have remained remarkably stable.",
-            "This data signature tells us the friction you are feeling is not coming from your physical space. It is biological or cognitive—such as a period of high emotional demand, cyclical changes, or natural energy rhythms.",
-            "The appropriate response to this phase is not spatial optimization. Do not attempt to 'fix' the room today; instead, lower your overall demands and allow your body to move through its natural rhythm without adding extra friction."
-          ]
-       }
-    }
+    // Fallback logic if 14 days hit but BSFI isn't calculated yet
+    const avgMood = chartLogs.reduce((acc, log) => acc + log.mood, 0) / chartLogs.length
+    const avgTension = chartLogs.reduce((acc, log) => acc + log.tension, 0) / chartLogs.length
+    const avgFocus = chartLogs.reduce((acc, log) => acc + log.focus, 0) / chartLogs.length
 
-    const score = bsfiData!.total_score;
-    const domain = bsfiData!.dominant_domain;
-
-    if (score <= 20) {
-      return {
+    if (avgTension >= 6 && avgFocus <= 4) return {
         ready: true,
-        title: "Low Friction Environment: Regulated Ground",
+        title: "Elevated Cost, Constrained Output. The Environment Is Spending Your Capacity.",
         paragraphs: [
-          "Across the board, your Bio-Spatial Friction Index is exceptionally low. This is the result of an environment that is doing its job: absorbing daily load, supporting overnight recovery, and returning you to capacity.",
-          "What this data confirms is that your current environmental conditions are not accidental. Your sensory boundaries, thermal ecology, and recovery architecture are functioning as a coherent system.",
-          "The task now is to protect this baseline. Document what is working right now so you can replicate it during periods of elevated stress or seasonal change."
+          "Fourteen days of consistently elevated somatic tension alongside constrained cognitive output describes a recognisable pattern: your nervous system is absorbing sustained environmental friction — acoustic load, circadian disruption, accumulated overnight recovery debt — and arriving at each day already partially depleted. The output you are generating is happening against environmental resistance, not from regulated reserves.",
+          "At this pattern level, the gap between how capable you are and how capable you feel is environmental in origin. The space is spending your capacity before you have the opportunity to direct it. That is not a discipline or motivation problem, it is an architectural one",
+          "The two most probable friction sources at this profile are your sleep ecology and the sensory load of your primary daytime environment. Both are structurally addressable. Identify which of your four domain scores is highest and begin there."
         ]
-      }
     }
-    
-    if (score <= 60) { 
-      return {
+    if (avgFocus >= 6 && avgMood <= 2.5) return {
         ready: true,
-        title: `Moderate Strain: ${domain} Dominance`,
+        title: "High Output, Borrowed Cost",
         paragraphs: [
-          `Your environment is introducing a moderate level of friction, pulling your nervous system out of baseline. The algorithm has identified ${domain} as the primary source of this drain.`,
-          "The output you are generating is beginning to happen against resistance, not from reserves. You are spending cognitive capacity just to manage the space.",
-          `Target the ${domain} immediately. If it is Acoustic Load, upgrade your buffering. If it is Circadian Friction, audit your evening light exposure. Removing this specific friction point will return you to baseline.`
+          "Fourteen days of sustained cognitive output alongside consistently low mood regulation carries a specific autonomic signature: your nervous system is maintaining performance through sympathetic activation rather than from a recovered, regulated baseline. The output is real. So is the cost: it is being drawn from the same reserves that emotional regulation, overnight recovery, and long-term cognitive capacity depend on.",
+          "This is a viable short-term strategy. Over the course of weeks and months, it progressively narrows the floor it is borrowing from. The early indicators are already present in your data: mood that does not recover with rest, a reduced emotional margin for ordinary demands, and a performance that feels increasingly effortful to maintain.",
+          "What this pattern requires is not less work — it requires a firm boundary between your work zone and your rest zone, and a deliberate evening transition that your nervous system can begin to recognise as a deceleration signal. Your environment needs a consistent floor as much as it needs a functioning ceiling."
         ]
-      }
     }
-
+    if (avgMood >= 4 && avgTension <= 3) return {
+        ready: true,
+        title: "Fourteen Days of Regulated Ground",
+        paragraphs: [
+          "Across fourteen days, your somatic tension has remained consistently low and your mood regulation consistently high. This is not ambient good fortune; it is the measurable output of an environment that is absorbing daily load, supporting overnight recovery, and returning your nervous system to a regulated baseline each morning. Your space is doing its job..",
+          "What the data confirms is that your current environmental conditions are not accidental. Your sensory practices, thermal ecology, sleep habits, and spatial routines are functioning as a coherent, mutually reinforcing system. Each element is reducing the demand placed on the others.",
+          "The task now is to understand what is working precisely enough to protect it, particularly during elevated stress periods, travel, or seasonal light change, when the instinct is to deprioritise exactly the conditions that are generating this baseline."
+        ]
+    }
     return {
-      ready: true,
-      title: "Dysregulated Load Pattern: System Under Extraction",
-      paragraphs: [
-         "Your Bio-Spatial Friction Index indicates a high-load, dysregulated pattern. The environment is actively extracting from your capacity before you even begin your day.",
-         "Fourteen days of sustained environmental friction alongside lowered mood regulation carries a specific signature: your nervous system is maintaining performance by drawing on sympathetic activation (stress hormones) rather than restorative capacity.",
-         "Deploy immediate architectural interventions. You need strict acoustic sealing, absolute darkness for sleep, and a rigid boundary between work and rest zones. Stop optimizing for output and start optimizing for spatial recovery."
-      ]
+        ready: true,
+        title: "High Variance. No Stable Floor Yet",
+        paragraphs: [
+          "The last fourteen days show significant fluctuation across mood, tension, and focus without a consistent directional pattern. Before locating the source of that variance in your physical environment, it is worth naming what the data cannot distinguish: not all fluctuation is environmental in originl.",
+          "Hormonal shifts, perimenopause, periods of elevated relational or cognitive demand, and natural energy cycles produce real, measurable changes in tension, sleep quality, focus, and mood — changes that register in your logs independently of what your physical space is doing. Your body is responding accurately to its conditions. The question the engine is still resolving is which portion of that variance is environmental and which is biological.",
+          "Continue logging consistently. The appropriate response to biological fluctuation phases is not environmental optimisation, it is friction reduction. Ask your environment to do less against you, not more for you. Quieter, simpler, warmer. As the pattern stabilises, the engine will be able to isolate the environmental contribution more precisely."
+        ]
     }
   }
-  
+
   const morningInsight = getMorningFeedback()
   const eveningInsight = getEveningFeedback()
   const macroSynthesis = getMacroSynthesis()
@@ -262,86 +302,94 @@ export default function Progress() {
   }
 
   const fetchTodayLog = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
 
-    const todayStr = new Date().toLocaleDateString('en-CA') 
-    const startOfToday = new Date().setHours(0, 0, 0, 0)
-    const endOfToday = new Date().setHours(23, 59, 59, 999)
+        const todayStr = new Date().toLocaleDateString('en-CA') 
+        const startOfToday = new Date().setHours(0, 0, 0, 0)
+        const endOfToday = new Date().setHours(23, 59, 59, 999)
 
-    const { data: logData } = await supabase
-      .from('daily_logs')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('date', todayStr)
-      .single()
-      
-    const { data: existingBsfi } = await supabase
-      .from('bsfi_results')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('calculated_for_date', { ascending: false })
-      .limit(1)
-      .maybeSingle() 
-      
-    if (existingBsfi) {
-      setBsfiData({
-        total_score: existingBsfi.total_score,
-        dominant_domain: existingBsfi.dominant_domain,
-        is_internal_driver: existingBsfi.domain_scores?.is_internal_driver || false
-      })
-    }
-
-    const { data: scanData } = await supabase
-      .from('meter_scans')
-      .select('metric_type, value, created_at')
-      .eq('user_id', user.id)
-      .gte('created_at', new Date(startOfToday).toISOString())
-      .lte('created_at', new Date(endOfToday).toISOString())
-
-    let autoMorningLux = ''
-    let autoEveningLux = ''
-    let autoDaytimeDb = ''
-    let autoNighttimeDb = ''
-
-    if (scanData && scanData.length > 0) {
-      scanData.forEach(scan => {
-        const scanHour = new Date(scan.created_at).getHours()
-        
-        if (scan.metric_type === 'lux') {
-          if (scanHour >= 4 && scanHour < 12) autoMorningLux = scan.value.toString()
-          if (scanHour >= 16) autoEveningLux = scan.value.toString()
+        const { data: logData } = await supabase
+          .from('daily_logs')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('date', todayStr)
+          .single()
+          
+        const { data: existingBsfi } = await supabase
+          .from('bsfi_results')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('calculated_for_date', { ascending: false })
+          .limit(1)
+          .maybeSingle() 
+          
+        if (existingBsfi) {
+          setBsfiData({
+            total_score: existingBsfi.total_score,
+            dominant_domain: existingBsfi.dominant_domain,
+            is_internal_driver: existingBsfi.domain_scores?.is_internal_driver || false
+          })
         }
-        
-        if (scan.metric_type === 'db') {
-          if (scanHour >= 8 && scanHour < 18) autoDaytimeDb = scan.value.toString()
-          if (scanHour < 6 || scanHour >= 22) autoNighttimeDb = scan.value.toString()
+
+        const { data: scanData } = await supabase
+          .from('meter_scans')
+          .select('metric_type, value, created_at')
+          .eq('user_id', user.id)
+          .gte('created_at', new Date(startOfToday).toISOString())
+          .lte('created_at', new Date(endOfToday).toISOString())
+
+        let autoMorningLux = ''
+        let autoEveningLux = ''
+        let autoDaytimeDb = ''
+        let autoNighttimeDb = ''
+
+        if (scanData && scanData.length > 0) {
+          scanData.forEach(scan => {
+            const scanHour = new Date(scan.created_at).getHours()
+            
+            if (scan.metric_type === 'lux') {
+              if (scanHour >= 4 && scanHour < 12) autoMorningLux = scan.value.toString()
+              if (scanHour >= 16) autoEveningLux = scan.value.toString()
+            }
+            
+            if (scan.metric_type === 'db') {
+              if (scanHour >= 8 && scanHour < 18) autoDaytimeDb = scan.value.toString()
+              if (scanHour < 6 || scanHour >= 22) autoNighttimeDb = scan.value.toString()
+            }
+          })
         }
-      })
-    }
 
-    if (logData) {
-      setMorningMood(logData.mood_score)
-      setMorningTags(logData.tags || [])
-      setMorningNote(logData.note || '')
-      
-      setMorningLux(logData.morning_lux !== null ? logData.morning_lux.toString() : autoMorningLux)
-      setEveningLux(logData.evening_lux !== null ? logData.evening_lux.toString() : autoEveningLux)
-      setDaytimeDb(logData.daytime_db !== null ? logData.daytime_db.toString() : autoDaytimeDb)
-      setNighttimeDb(logData.nighttime_db !== null ? logData.nighttime_db.toString() : autoNighttimeDb)
+        if (logData) {
+          setMorningMood(logData.mood_score)
+          setMorningTags(logData.tags || [])
+          setMorningNote(logData.note || '')
+          
+          setMorningLux(logData.morning_lux !== null ? logData.morning_lux.toString() : autoMorningLux)
+          setEveningLux(logData.evening_lux !== null ? logData.evening_lux.toString() : autoEveningLux)
+          setDaytimeDb(logData.daytime_db !== null ? logData.daytime_db.toString() : autoDaytimeDb)
+          setNighttimeDb(logData.nighttime_db !== null ? logData.nighttime_db.toString() : autoNighttimeDb)
 
-      if (logData.focus_hours !== null) setFocusScore(logData.focus_hours)
-      if (logData.morning_tension !== null) setTensionScore(logData.morning_tension)
-      if (logData.sleep_wakes !== null) setWakeScore(logData.sleep_wakes)
+          if (logData.focus_hours !== null) setFocusScore(logData.focus_hours)
+          if (logData.morning_tension !== null) setTensionScore(logData.morning_tension)
+          if (logData.sleep_wakes !== null) setWakeScore(logData.sleep_wakes)
 
-      setEveningMood(logData.evening_mood_score)
-      setEveningTags(logData.evening_tags || [])
-      setEveningNote(logData.evening_note || '')
-    } else {
-      setMorningLux(autoMorningLux)
-      setEveningLux(autoEveningLux)
-      setDaytimeDb(autoDaytimeDb)
-      setNighttimeDb(autoNighttimeDb)
+          setEveningMood(logData.evening_mood_score)
+          setEveningTags(logData.evening_tags || [])
+          setEveningNote(logData.evening_note || '')
+        } else {
+          setMorningLux(autoMorningLux)
+          setEveningLux(autoEveningLux)
+          setDaytimeDb(autoDaytimeDb)
+          setNighttimeDb(autoNighttimeDb)
+        }
+    } catch (err) {
+        console.error('fetchTodayLog failed:', err)
+        setStatus('error')
+        setErrorMessage('Could not load today\'s log. Please refresh.')
+    } finally {
+        setBsfiLoading(false)
     }
   }
 
@@ -384,7 +432,6 @@ export default function Progress() {
   }
 
   const handleSave = async (isForced = false) => {
-    // 🟢 SURGICAL FIX 1: Checks ONLY the metrics relevant to the tab you are looking at.
     const criticalFields = activeTab === 'morning' 
         ? [morningLux, daytimeDb]
         : [eveningLux, nighttimeDb];
@@ -416,7 +463,7 @@ export default function Progress() {
             evening_lux: eveningLux ? parseInt(eveningLux) : null,
             daytime_db: daytimeDb ? parseInt(daytimeDb) : null,
             nighttime_db: nighttimeDb ? parseInt(nighttimeDb) : null,
-            focus_hours: Math.round(focusScore), // 🟢 SURGICAL FIX 2: Prevents Supabase from rejecting decimals
+            focus_hours: Math.round(focusScore), 
             morning_tension: tensionScore,
             sleep_wakes: wakeScore,
             evening_mood_score: eveningMood,
@@ -430,7 +477,6 @@ export default function Progress() {
 
         if (error) throw error
 
-        // 🟢 SURGICAL FIX 3: Placed securely above the math engine so your UI updates instantly
         setStatus('success')
         fetchHistory() 
         setTimeout(() => setStatus('idle'), 2000)
@@ -654,9 +700,9 @@ export default function Progress() {
                             </div>
                             <p className="text-[#c9ccbb]/40 text-[10px] mb-3">Hours of uninterrupted workflow.</p>
                             <input 
-                                type="range" min="0" max="12" step="0.5"
+                                type="range" min="0" max="12" step="1"
                                 value={focusScore}
-                                onChange={(e) => setFocusScore(parseFloat(e.target.value))}
+                                onChange={(e) => setFocusScore(parseInt(e.target.value))}
                                 className="w-full accent-[#b5a642] h-1 bg-[#000]/50 rounded-lg appearance-none cursor-pointer"
                             />
                         </div>
@@ -749,6 +795,8 @@ export default function Progress() {
                             </div>
                             <input 
                                 type="number" 
+                                min="0"
+                                max="100000"
                                 placeholder="e.g. 250 (Dim) or 2500 (Bright)"
                                 value={morningLux}
                                 onChange={(e) => setMorningLux(e.target.value)}
@@ -768,8 +816,10 @@ export default function Progress() {
                                 </button>
                             </div>
                             <input 
-                                type="number" 
-                                placeholder="e.g. 45 (Office) or 70 (Street)"
+                                type="number"
+                                min="0"
+                                max="140"
+                                placeholder="e.g. 45 (Kitchen) or 70 (Bedroom)"
                                 value={daytimeDb}
                                 onChange={(e) => setDaytimeDb(e.target.value)}
                                 className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
@@ -853,19 +903,24 @@ export default function Progress() {
                 {showAccuracyWarning && (
                   <motion.div 
                     initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                    className="p-4 bg-[#b5a642]/10 border border-[#b5a642]/30 rounded-xl"
+                    className="flex justify-between items-center p-4 bg-[#b5a642]/10 border border-[#b5a642]/30 rounded-xl"
                   >
                     <p className="text-sm text-[#c9ccbb] leading-relaxed">
                       <strong className="text-[#b5a642] uppercase tracking-widest text-[10px] mr-2 block mb-1">Data Integrity Notice:</strong> 
                       You have missing sensory readings for this session. Save anyway?
                     </p>
+                    <button 
+                        onClick={() => handleSave(true)}
+                        className="px-6 py-2 rounded-xl border border-[#b5a642] text-[#b5a642] text-xs font-bold uppercase tracking-widest hover:bg-[#b5a642]/10 transition-all shrink-0"
+                    > 
+                        Save Anyway
+                    </button>
                   </motion.div>
                 )}
               </AnimatePresence>
 
               <div className="flex justify-end items-center gap-4">
                  
-                 {/* 🟢 NEW ERROR DISPLAY TO PREVENT SILENT FAILURES */}
                  <AnimatePresence>
                     {status === 'error' && (
                         <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} className="text-red-400 text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
@@ -882,20 +937,16 @@ export default function Progress() {
                     )}
                  </AnimatePresence>
                  
-                 <button 
-                   onClick={() => handleSave(showAccuracyWarning)}
+                 <button  
+                   onClick={() => handleSave(false)}
                    disabled={currentMood === null || status === 'saving'}
                    className={`px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-all flex items-center gap-2 ${
                      currentMood === null 
                        ? 'bg-[#c9ccbb]/10 text-[#c9ccbb]/50 cursor-not-allowed'
-                       : showAccuracyWarning
-                         ? 'bg-transparent border border-[#b5a642] text-[#b5a642] hover:bg-[#b5a642]/10'
-                         : 'bg-[#c9ccbb] text-[#1b270e] hover:bg-white' 
+                       : 'bg-[#c9ccbb] text-[#1b270e] hover:bg-white' 
                    }`}
                  >
-                   {status === 'saving' ? (
-                      <>Saving <Loader2 size={14} className="animate-spin" /></>
-                   ) : showAccuracyWarning ? 'Save Incomplete Entry' : 'Log Entry'}
+                   {status === 'saving' ? <><Loader2 size={14} className="animate-spin" /> Saving</> : 'Log Entry'}
                  </button>
               </div>
             </div>
