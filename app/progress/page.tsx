@@ -2,7 +2,7 @@
 
 import Sidebar from '../components/Sidebar'
 import { useState, useEffect } from 'react'
-import { Heart, Wind, Sun, Volume2, CheckCircle, TrendingUp, Activity, Zap, Loader2, Moon, Sunrise, Brain, Fingerprint, ChevronDown, ChevronUp, Lock, AlertCircle } from 'lucide-react'
+import { Heart, Wind, Sun, Volume2, CheckCircle, TrendingUp, Activity, Zap, Loader2, Moon, Sunrise, Brain, Fingerprint, ChevronDown, ChevronUp, Lock, AlertCircle, HelpCircle, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import Link from 'next/link'
@@ -35,6 +35,9 @@ export default function Progress() {
   const [isAcousticMeterOpen, setIsAcousticMeterOpen] = useState(false)
   const [activeMeterTarget, setActiveMeterTarget] = useState<'morningLux' | 'eveningLux' | 'daytimeDb' | 'nighttimeDb' | null>(null)
   
+  // --- MANUAL STATE ---
+  const [isManualOpen, setIsManualOpen] = useState(false)
+
   // BIO-METRICS
   const [focusScore, setFocusScore] = useState<number>(0)
   const [tensionScore, setTensionScore] = useState<number>(0)
@@ -97,35 +100,30 @@ export default function Progress() {
   const getMorningFeedback = () => {
     const moodScore = morningMood ?? 3 // neutral fallback
 
-    // Burned out + physical symptoms — highest priority
     if (moodScore <= 2 && tensionScore >= 7 && wakeScore >= 3) return {
       title: "Sleep Occurred. Recovery Did Not",
       reframe: "Three or more wake events alongside high somatic tension and low mood on rising is a specific neuroendocrine signature — not a reflection of how well you slept in a subjective sense, but of how much biological work your system was required to do overnight. Fragmented sleep prevents full progression through slow-wave and REM architecture, leaving cortisol clearance incomplete and the HPA axis already activated before the day begins",
       direction: "Your sleep envelope is the priority, not optimisation, but structural protection. Tonight: acoustic sealing of the sleep space, full blackout, tactile enclosure, and a firm light boundary of below 50 lux from at least 90 minutes before bed. Do not attempt to compensate for last night through output today. Your system needs a reduced load, not an increased one"
     }
 
-    // Low mood, high tension
     if (moodScore <= 2 && tensionScore >= 7) return {
       title: "You Slept Through, But Your Body Was Bracing Itself",
       reframe: "Sleep continuity is a necessary condition for restoration, but it is not sufficient. ustained somatic tension on waking, alongside low mood, indicates that your autonomic nervous system remained in an elevated state overnight. Without the parasympathetic drop required for slow-wave sleep entry, the body continues processing physiological and emotional load rather than clearing it. You slept through. Your system did not stand down.",
       direction: "Work backwards from pre-sleep conditions: unresolved physical tension in the hour before bed typically originates from thermal load, unprocessed cognitive activation, or the absence of proprioceptive grounding. Introduce tactile enclosure tonight — weighted or layered bedding — and reduce your pre-sleep light exposure to warm-toned sources below 50 lux. The goal is a nervous system that arrives at sleep already decelerating."
     }
 
-    // Reasonable mood but interrupted sleep
     if (moodScore >= 3 && wakeScore >= 3) return {
       title: "Interrupted Sleep Is an Environmental Signal Worth Investigating.",
       reframe: "Waking three or more times through the night, in the presence of stable mood, is more reliably an environmental pattern than a dysregulation one. The most frequent structural causes are thermoregulatory disruption — your body temperature cycling against an unsuitable ambient environment — and acoustic intrusion events that trigger partial arousals without full conscious waking. You are coping well with the disruption. The disruption itself is still worth addressing.",
       direction: "Audit your sleep environment for two variables tonight: ambient temperature and acoustic consistency. The thermoneutral sleep zone for most adults is 17–19°C. Breathable, natural-fibre bedding supports the body's core temperature drop required for sleep stage entry. For acoustic disruption, identify whether the waking pattern correlates with a specific time — early morning traffic, household sounds, or HVAC cycling — and introduce low-level white or pink noise to mask event-based intrusions"
     }
 
-    // Good mood, low tension — environment held
     if (moodScore >= 4 && tensionScore <= 3) return {
       title: "System Restored. Environment Held",
       reframe: "Low somatic tension and elevated mood on waking are the measurable output of a sleep environment that supported full autonomic recovery overnight. Your cortisol awakening response is following its natural arc, slow-wave sleep likely proceeded without disruption, and your prefrontal cortex is arriving at the day with its regulatory capacity intact. This is not a passive outcome; it is the result of environmental conditions that were coherent with your nervous system's requirements",
       direction: "Identify and record what was consistent yesterday evening. Your sensory boundaries, thermal conditions, and pre-sleep routine are currently functioning as a coherent system. Protect those conditions — especially during periods of elevated schedule demand, travel, or seasonal light change, when the instinct is to deprioritise exactly what is working."
     }
 
-    // Default neutral
     return {
       title: "Baseline Registered",
       reframe: "Your morning readings sit within a neutral functional range today: no acute recovery deficit, no clear environmental signal in either direction. Neutral is not absence of data. It is the system in maintenance mode: not under significant load, not in peak restoration. The pattern becomes legible over time, not in a single morning",
@@ -225,7 +223,6 @@ export default function Progress() {
     }
   }
 
-    // Fallback logic if 14 days hit but BSFI isn't calculated yet
     const avgMood = chartLogs.reduce((acc, log) => acc + log.mood, 0) / (chartLogs.length || 1)
     const avgTension = chartLogs.reduce((acc, log) => acc + log.tension, 0) / (chartLogs.length || 1)
     const avgFocus = chartLogs.reduce((acc, log) => acc + log.focus, 0) / (chartLogs.length || 1)
@@ -331,7 +328,7 @@ export default function Progress() {
             total_score: existingBsfi.total_score,
             dominant_domain: existingBsfi.dominant_domain,
             is_internal_driver: existingBsfi.domain_scores?.is_internal_driver || false
-          }) // <-- SURGICALLY REPAIRED BRACKET
+          })
         }
 
         const { data: scanData } = await supabase
@@ -521,11 +518,22 @@ export default function Progress() {
         
         <div className="max-w-4xl mx-auto">
           
-          <div className="mb-12">
-            <h1 className="text-4xl font-serif text-[#c9ccbb] mb-2">Your Daily Logs</h1>
-            <p className="text-[#c9ccbb]/80">
-              Log your daily state to train the nervous system and reveal long-term patterns.
-            </p>
+          <div className="mb-12 flex justify-between items-start">
+            <div>
+              <h1 className="text-4xl font-serif text-[#c9ccbb] mb-2 flex items-center gap-4">
+                Your Daily Logs
+                {/* 🟢 NEW: Manual Trigger Icon */}
+                <button 
+                  onClick={() => setIsManualOpen(true)} 
+                  className="text-[#b5a642]/60 hover:text-[#b5a642] transition-colors p-2 rounded-full hover:bg-[#b5a642]/10"
+                >
+                  <HelpCircle size={24} />
+                </button>
+              </h1>
+              <p className="text-[#c9ccbb]/80">
+                Log your daily state to train the nervous system and reveal long-term patterns.
+              </p>
+            </div>
           </div>
 
           <div className="glass-panel p-8 rounded-3xl mb-16 relative overflow-hidden border border-[#c9ccbb]/10">
@@ -1090,6 +1098,54 @@ export default function Progress() {
       </div>
 
       <AnimatePresence>
+        {/* 🟢 NEW: Daily Logs Manual Modal */}
+        {isManualOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#000]/80 backdrop-blur-sm p-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className="w-full max-w-2xl max-h-[85vh] overflow-y-auto hide-scrollbar bg-[#1b270e] border border-[#b5a642]/30 rounded-3xl shadow-2xl relative p-8 md:p-12"
+            >
+              <button 
+                onClick={() => setIsManualOpen(false)} 
+                className="absolute top-6 right-6 text-[#c9ccbb]/50 hover:text-[#b5a642] z-10 transition-colors bg-[#000]/20 p-2 rounded-full"
+              >
+                <X size={20} />
+              </button>
+
+              <h2 className="text-3xl font-serif text-[#c9ccbb] mb-8 border-b border-[#c9ccbb]/10 pb-6">Daily Logs Manual</h2>
+
+              <div className="space-y-8 text-[#c9ccbb]/80 text-sm leading-relaxed font-light">
+                <section>
+                  <h3 className="text-lg font-serif text-[#b5a642] mb-2">The Purpose of Logging</h3>
+                  <p>We do not track data to enforce relentless optimisation. We track to reveal the invisible relationship between your architectural reality and your cognitive capacity. Consistent logging translates subjective feelings into objective environmental signals.</p>
+                </section>
+
+                <section>
+                  <h3 className="text-lg font-serif text-[#b5a642] mb-2">Somatic Baseline (Morning)</h3>
+                  <p>Measures the physiological trace of your overnight recovery. Waking with jaw/shoulder tension or experiencing frequent sleep interruptions are not failures of discipline—they are traces of active biological labour. This section tracks whether your environment is holding your nervous system or demanding endurance.</p>
+                </section>
+
+                <section>
+                  <h3 className="text-lg font-serif text-[#b5a642] mb-2">Cognitive Output (Evening)</h3>
+                  <p>Tracks hours of uninterrupted deep work. High output without a corresponding deliberate evening transition borrows capacity from tomorrow. We monitor this to ensure your evening environment matches the intensity of your daily demand.</p>
+                </section>
+
+                <section>
+                  <h3 className="text-lg font-serif text-[#b5a642] mb-2">Bio-Spatial Friction Index (BSFI)</h3>
+                  <p>A proprietary scoring engine (0-100) that calculates how much resistance your physical space is adding to your nervous system. A low score means your environment is a regulated ground. A high score means the architecture is actively extracting from your capacity.</p>
+                </section>
+
+                <section>
+                  <h3 className="text-lg font-serif text-[#b5a642] mb-2">14-Day Rhythm Synthesis</h3>
+                  <p>After 14 days, the engine maps the standard deviation of your metrics to identify your environmental floor. It mathematically separates spatial dysregulation (friction from the room) from internal variance (biological, cyclical, or emotional shifts), ensuring we never pathologise a natural human rhythm.</p>
+                </section>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
         {isLightMeterOpen && (
           <LightSensorModal 
             onClose={() => setIsLightMeterOpen(false)} 
