@@ -25,8 +25,16 @@ export default function DashboardUI({
 }: any) {
   
   const [isGuideOpen, setIsGuideOpen] = useState(false)
+  // 🟢 NEW: Hydration-safe greeting state
+  const [greeting, setGreeting] = useState('Welcome back') 
 
   useEffect(() => {
+    // 🟢 NEW: Client-side time check
+    const hour = new Date().getHours()
+    if (hour < 12) setGreeting('Good morning')
+    else if (hour < 17) setGreeting('Good afternoon')
+    else setGreeting('Good evening')
+
     const hasSeen = localStorage.getItem('hasSeenGuide')
     if (!hasSeen) {
       setIsGuideOpen(true)
@@ -34,7 +42,7 @@ export default function DashboardUI({
     }
   }, [])
 
-  // 🟢 NEW: Identity Translation Map
+  // Identity Translation Map
   // Internal Code -> Brand Identity
   const profileLabels: Record<string, string> = {
     standard: 'Anchor', // Replaces "Standard" with "Anchor"
@@ -72,7 +80,6 @@ export default function DashboardUI({
         {/* HEADER */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
-            {/* 🟢 FIXED: Brand Name Logo */}
             <div className="flex items-center gap-3 mb-2">
                 <div className="relative w-12 h-12">
                    <Image src="/logo.PNG" alt="Logo" fill className="object-contain" priority />
@@ -81,8 +88,9 @@ export default function DashboardUI({
                   The Sentient <span className="text-[#b5a642]">Home</span>
                 </h1>
             </div>
+            {/* 🟢 FIXED: Injected dynamic greeting */}
             <p className="text-[#c9ccbb]/80 font-light capitalize text-lg">
-              Welcome back, <span className="text-[#c9ccbb] font-normal">{displayName}</span>.
+              {greeting}, <span className="text-[#c9ccbb] font-normal">{displayName}</span>.
             </p>
           </div>
           <div className="flex gap-4">
@@ -94,7 +102,6 @@ export default function DashboardUI({
         </div>
 
         {/* --- ROW 1: CORE METRICS (Mobile Scroll / Desktop Grid) --- */}
-        {/* 🟢 FIXED: 'flex overflow-x-auto' creates the swipeable row on mobile */}
         <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 -mx-6 px-6 md:grid md:grid-cols-2 lg:grid-cols-4 md:overflow-visible md:pb-0 md:mx-0 md:px-0 mb-8 scrollbar-hide">
             
             {/* 1. NeuroLoad */}
@@ -136,18 +143,16 @@ export default function DashboardUI({
                 <div className="absolute bottom-0 right-0 w-32 h-32 bg-[#b5a642]/10 rounded-full blur-2xl pointer-events-none" />
             </div>
 
-            {/* 4. 🟢 NEURO-IDENTITY CARD (Replaces Retake Link) */}
+            {/* 4. NEURO-IDENTITY CARD */}
             <div className="snap-center shrink-0 w-[85vw] md:w-auto glass-panel p-6 rounded-3xl border border-[#c9ccbb]/10 flex flex-col justify-between min-h-[180px] relative overflow-hidden group">
                 <div className="flex justify-between items-start z-10 relative">
                     <h3 className="text-[#c9ccbb] font-serif text-xl">Sensory Profile</h3>
                     <Fingerprint className="text-[#b5a642]" size={20} />
                 </div>
                 <div className="z-10 relative">
-                    {/* Display the Profile Name */}
                     <div className="text-4xl font-serif text-[#c9ccbb] mb-2 capitalize">
                         The {profile}
                     </div>
-                    {/* Retake Link Tucked Here */}
                     <Link href="/assessments/step0" className="inline-flex items-center gap-2 text-[10px] text-[#b5a642] uppercase tracking-widest hover:text-[#b5a642]/80 transition-colors border border-[#b5a642]/20 px-3 py-1.5 rounded-full hover:bg-[#b5a642]/10">
                        <RefreshCw size={10} /> Update Baseline
                     </Link>
