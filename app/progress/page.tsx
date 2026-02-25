@@ -205,9 +205,9 @@ export default function Progress() {
             ready: true,
             title: `Moderate Environmental Load: ${domain} Is The Primary Source`,
             paragraphs: [
-              `Over the last fourteen days, your environment has been introducing a moderate but consistent level of friction. Your BSFI total indicates that your nervous system is absorbing environmental load across multiple domains — but the engine has identified ${dominant_domain} as the source generating the greatest sustained demand. This is where the leverage is.`,
+              `Over the last fourteen days, your environment has been introducing a moderate but consistent level of friction. Your BSFI total indicates that your nervous system is absorbing environmental load across multiple domains — but the engine has identified ${domain} as the source generating the greatest sustained demand. This is where the leverage is.`,
               "The output you are producing is beginning to happen against environmental resistance rather than from regulated reserves. At moderate friction levels, this distinction is easy to miss — performance remains intact while the underlying cost accumulates quietly, day by day, in the form of reduced attentional stamina, elevated baseline tension, and slightly compressed emotional range.",
-              `Address ${dominant_domain} this week as a structural priority. A targeted intervention in your highest-friction domain will produce a disproportionate return, reducing the load on every other domain simultaneously, because your nervous system will no longer need to compensate for it.`
+              `Address ${domain} this week as a structural priority. A targeted intervention in your highest-friction domain will produce a disproportionate return, reducing the load on every other domain simultaneously, because your nervous system will no longer need to compensate for it.`
             ]
           }
         }
@@ -223,11 +223,12 @@ export default function Progress() {
           ]
         }
     }
+  }
 
     // Fallback logic if 14 days hit but BSFI isn't calculated yet
-    const avgMood = chartLogs.reduce((acc, log) => acc + log.mood, 0) / chartLogs.length
-    const avgTension = chartLogs.reduce((acc, log) => acc + log.tension, 0) / chartLogs.length
-    const avgFocus = chartLogs.reduce((acc, log) => acc + log.focus, 0) / chartLogs.length
+    const avgMood = chartLogs.reduce((acc, log) => acc + log.mood, 0) / (chartLogs.length || 1)
+    const avgTension = chartLogs.reduce((acc, log) => acc + log.tension, 0) / (chartLogs.length || 1)
+    const avgFocus = chartLogs.reduce((acc, log) => acc + log.focus, 0) / (chartLogs.length || 1)
 
     if (avgTension >= 6 && avgFocus <= 4) return {
         ready: true,
@@ -330,7 +331,7 @@ export default function Progress() {
             total_score: existingBsfi.total_score,
             dominant_domain: existingBsfi.dominant_domain,
             is_internal_driver: existingBsfi.domain_scores?.is_internal_driver || false
-          })
+          }) // <-- SURGICALLY REPAIRED BRACKET
         }
 
         const { data: scanData } = await supabase
