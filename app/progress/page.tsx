@@ -96,9 +96,82 @@ export default function Progress() {
 
   const hasAccess = isPremium || godMode
 
+  // ---------------------------------------------------------------------------
+  // CIRCADIAN COHERENCE SCORE (lux_score) — 0 to 100
+  //
+  // Encodes the full circadian light curve as a single composite score.
+  // High score = correct polarity: strong morning anchor + low evening lux.
+  // Neither reading alone can produce a high score — both must be correct.
+  //
+  // morning component = morning_lux clamped 0–1000, scaled to 0–50
+  // evening component = (1 - evening_lux clamped 0–800 / 800) × 50
+  //
+  // Null handling:
+  //   Both absent  → null (no data to score)
+  //   Morning only → 0 anchor points assumed (unlogged = no activation)
+  //   Evening only → 50 points assumed safe (no data = no penalty)
+  //
+  // Sources: Zeitzer et al. 2000, Gooley et al. 2011, Cajochen et al. 2011
+  // ---------------------------------------------------------------------------
+  const deriveLuxScore = (morningLux: string, eveningLux: string): number | null => {
+    const morning = morningLux !== null && morningLux !== '' ? parseInt(morningLux) : null
+    const evening = eveningLux !== null && eveningLux !== '' ? parseInt(eveningLux) : null
+
+    if (morning === null && evening === null) return null
+
+    const morningComponent = morning !== null
+      ? Math.min(morning, 1000) / 1000 * 50
+      : 0   // absent morning = no circadian anchor assumed
+
+    const eveningComponent = evening !== null
+      ? (1 - Math.min(evening, 800) / 800) * 50
+      : 50  // absent evening = assumed safe (no penalty)
+
+    return Math.round(morningComponent + eveningComponent)
+  }
+
+  // ---------------------------------------------------------------------------
+  // THRESHOLD-NORMALISED ACOUSTIC COMPOSITE (db_score) — 0 to 100
+  //
+  // Scores acoustic load against WHO-validated thresholds independently
+  // for each time window, then averages present readings.
+  //
+  // Daytime threshold:  55dB (WHO occupational noise guideline)
+  // Nighttime threshold: 40dB (WHO Environmental Noise Guidelines 2018)
+  //   — 15dB lower because noise travels faster at night and autonomic
+  //     arousal threshold drops during sleep.
+  //
+  // Readings below threshold contribute 0 — no false friction.
+  //   45dB daytime  = 0  (10dB below threshold)
+  //   45dB nighttime = 8  (5dB above threshold)
+  //
+  // Sources: WHO Environmental Noise Guidelines 2018, Basner et al. 2014
+  // ---------------------------------------------------------------------------
+  const deriveDbScore = (daytimeDb: string, nighttimeDb: string): number | null => {
+    const d = daytimeDb  !== null && daytimeDb  !== '' ? parseInt(daytimeDb)  : null
+    const n = nighttimeDb !== null && nighttimeDb !== '' ? parseInt(nighttimeDb) : null
+
+    if (d === null && n === null) return null
+
+    const DAYTIME_THRESHOLD   = 55
+    const NIGHTTIME_THRESHOLD = 40
+    const CEILING = 100
+
+    const scores: number[] = []
+
+    if (d !== null) {
+      scores.push(Math.max(0, d - DAYTIME_THRESHOLD)  / (CEILING - DAYTIME_THRESHOLD)  * 100)
+    }
+    if (n !== null) {
+      scores.push(Math.max(0, n - NIGHTTIME_THRESHOLD) / (CEILING - NIGHTTIME_THRESHOLD) * 100)
+    }
+
+    return Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
+  }
+
   // --- FEEDBACK ENGINE LOGIC ---
   const getMorningFeedback = () => {
-    const moodScore = morningMood ?? 3 // neutral fallback
+    const moodScore = morningMood ?? 3
 
     if (moodScore <= 2 && tensionScore >= 7 && wakeScore >= 3) return {
       title: "Sleep Occurred. Recovery Did Not",
@@ -108,7 +181,7 @@ export default function Progress() {
 
     if (moodScore <= 2 && tensionScore >= 7) return {
       title: "You Slept Through, But Your Body Was Bracing Itself",
-      reframe: "Sleep continuity is a necessary condition for restoration, but it is not sufficient. ustained somatic tension on waking, alongside low mood, indicates that your autonomic nervous system remained in an elevated state overnight. Without the parasympathetic drop required for slow-wave sleep entry, the body continues processing physiological and emotional load rather than clearing it. You slept through. Your system did not stand down.",
+      reframe: "Sleep continuity is a necessary condition for restoration, but it is not sufficient. Sustained somatic tension on waking, alongside low mood, indicates that your autonomic nervous system remained in an elevated state overnight. Without the parasympathetic drop required for slow-wave sleep entry, the body continues processing physiological and emotional load rather than clearing it. You slept through. Your system did not stand down.",
       direction: "Work backwards from pre-sleep conditions: unresolved physical tension in the hour before bed typically originates from thermal load, unprocessed cognitive activation, or the absence of proprioceptive grounding. Introduce tactile enclosure tonight — weighted or layered bedding — and reduce your pre-sleep light exposure to warm-toned sources below 50 lux. The goal is a nervous system that arrives at sleep already decelerating."
     }
 
@@ -148,7 +221,7 @@ export default function Progress() {
 
     if (focusScore <= 2 && moodScore <= 2) return {
       title: "Low Output Is an Environmental Reading, Not a Personal One",
-      reframe: "When attentional capacity feels constrained despite effort, the instinct is to attribute it to discipline or motivation. The more precise reading, particularly when mood and focus drop together, is environmental: your space was not providing the sensory conditions required for sustained cognitive engagement. High acoustic load, insufficient light contrast between work and rest zones, and accumulated visual entropy are the most common structural contributors to this specific combined profile..",
+      reframe: "When attentional capacity feels constrained despite effort, the instinct is to attribute it to discipline or motivation. The more precise reading, particularly when mood and focus drop together, is environmental: your space was not providing the sensory conditions required for sustained cognitive engagement. High acoustic load, insufficient light contrast between work and rest zones, and accumulated visual entropy are the most common structural contributors to this specific combined profile.",
       direction: "Do not attempt to recover through effort or extended hours tonight. Remove friction instead. Identify one controllable sensory variable in your primary space: noise, light quality, or visual clutter; and address only that. A single, deliberate environmental adjustment will do more for tomorrow morning's capacity than any amount of compensatory work tonight."
     }
 
@@ -220,8 +293,8 @@ export default function Progress() {
              "Stop optimising for output. Start optimising for environmental recovery. The three structural priorities in order: acoustic sealing of your sleep environment, a hard circadian light boundary after 8pm, and a single cleared, low-stimulation space you can access without friction during the day. These are not enhancements to your current environment. At this score, they are the minimum viable conditions your nervous system requires to begin recovering."
           ]
         }
+      }
     }
-  }
 
     const avgMood = chartLogs.reduce((acc, log) => acc + log.mood, 0) / (chartLogs.length || 1)
     const avgTension = chartLogs.reduce((acc, log) => acc + log.tension, 0) / (chartLogs.length || 1)
@@ -249,7 +322,7 @@ export default function Progress() {
         ready: true,
         title: "Fourteen Days of Regulated Ground",
         paragraphs: [
-          "Across fourteen days, your somatic tension has remained consistently low and your mood regulation consistently high. This is not ambient good fortune; it is the measurable output of an environment that is absorbing daily load, supporting overnight recovery, and returning your nervous system to a regulated baseline each morning. Your space is doing its job..",
+          "Across fourteen days, your somatic tension has remained consistently low and your mood regulation consistently high. This is not ambient good fortune; it is the measurable output of an environment that is absorbing daily load, supporting overnight recovery, and returning your nervous system to a regulated baseline each morning. Your space is doing its job.",
           "What the data confirms is that your current environmental conditions are not accidental. Your sensory practices, thermal ecology, sleep habits, and spatial routines are functioning as a coherent, mutually reinforcing system. Each element is reducing the demand placed on the others.",
           "The task now is to understand what is working precisely enough to protect it, particularly during elevated stress periods, travel, or seasonal light change, when the instinct is to deprioritise exactly the conditions that are generating this baseline."
         ]
@@ -258,7 +331,7 @@ export default function Progress() {
         ready: true,
         title: "High Variance. No Stable Floor Yet",
         paragraphs: [
-          "The last fourteen days show significant fluctuation across mood, tension, and focus without a consistent directional pattern. Before locating the source of that variance in your physical environment, it is worth naming what the data cannot distinguish: not all fluctuation is environmental in originl.",
+          "The last fourteen days show significant fluctuation across mood, tension, and focus without a consistent directional pattern. Before locating the source of that variance in your physical environment, it is worth naming what the data cannot distinguish: not all fluctuation is environmental in origin.",
           "Hormonal shifts, perimenopause, periods of elevated relational or cognitive demand, and natural energy cycles produce real, measurable changes in tension, sleep quality, focus, and mood — changes that register in your logs independently of what your physical space is doing. Your body is responding accurately to its conditions. The question the engine is still resolving is which portion of that variance is environmental and which is biological.",
           "Continue logging consistently. The appropriate response to biological fluctuation phases is not environmental optimisation, it is friction reduction. Ask your environment to do less against you, not more for you. Quieter, simpler, warmer. As the pattern stabilises, the engine will be able to isolate the environmental contribution more precisely."
         ]
@@ -280,7 +353,7 @@ export default function Progress() {
   const morningTagOptions = [
     { id: 'ventilation', label: 'Ventilated Home (Air Exchange)', icon: <Wind size={14} /> },
     { id: 'sunlight', label: 'Got Early Morning Sunlight', icon: <Sun size={14} /> },
-    { id: 'noise_buffer', label: 'Buffered Against Intrustive Noise', icon: <Volume2 size={14} /> },
+    { id: 'noise_buffer', label: 'Buffered Against Intrusive Noise', icon: <Volume2 size={14} /> },
     { id: 'declutter', label: 'Cleared/ Decluttered One Priority Area', icon: <CheckCircle size={14} /> },
   ]
 
@@ -449,29 +522,54 @@ export default function Progress() {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) throw new Error("No user logged in")
 
-        const today = new Date().toLocaleDateString('en-CA') 
+        const today = new Date().toLocaleDateString('en-CA')
 
         const payload = {
-            user_id: user.id,
-            date: today,
-            mood_score: morningMood,
-            tags: morningTags,
-            note: morningNote,
-            morning_lux: morningLux ? parseInt(morningLux) : null,
-            evening_lux: eveningLux ? parseInt(eveningLux) : null,
-            daytime_db: daytimeDb ? parseInt(daytimeDb) : null,
-            nighttime_db: nighttimeDb ? parseInt(nighttimeDb) : null,
-            focus_hours: Math.round(focusScore), 
-            morning_tension: tensionScore,
-            sleep_wakes: wakeScore,
-            evening_mood_score: eveningMood,
-            evening_tags: eveningTags,
-            evening_note: eveningNote
+          user_id:  user.id,
+          date:     today,
+
+          // --- SOMATIC BASELINE ---
+          mood_score:       morningMood,
+          tags:             morningTags,      // 'tags' column = morning tags (confirmed schema)
+          note:             morningNote,
+          morning_tension:  tensionScore,
+          sleep_wakes:      wakeScore,
+
+          // --- GRANULAR ENVIRONMENTAL READINGS ---
+          // Primary BSFI engine inputs — always stored at full resolution.
+          morning_lux:  morningLux  ? parseInt(morningLux)  : null,
+          evening_lux:  eveningLux  ? parseInt(eveningLux)  : null,
+          daytime_db:   daytimeDb   ? parseInt(daytimeDb)   : null,
+          nighttime_db: nighttimeDb ? parseInt(nighttimeDb) : null,
+
+          // --- DERIVED COMPOSITE SCORES ---
+          // Computed from granular readings on every save.
+          // Written independently of the BSFI engine.
+          //
+          // lux_score:   Circadian Coherence Score (0–100)
+          //              Rewards high morning lux AND low evening lux together.
+          //
+          // db_score:    Threshold-Normalised Acoustic Composite (0–100)
+          //              Each reading scored against its WHO threshold independently.
+          //              Daytime: 55dB | Nighttime: 40dB
+          //
+          // readiness_score: null — reserved for Oura ring integration.
+          lux_score:        deriveLuxScore(morningLux, eveningLux),
+          db_score:         deriveDbScore(daytimeDb, nighttimeDb),
+          readiness_score:  null,
+
+          // --- COGNITIVE OUTPUT ---
+          focus_hours: Math.round(focusScore),
+
+          // --- EVENING ---
+          evening_mood_score: eveningMood,
+          evening_tags:       eveningTags,
+          evening_note:       eveningNote,
         }
 
         const { error } = await supabase
-        .from('daily_logs')
-        .upsert(payload, { onConflict: 'user_id, date' })
+          .from('daily_logs')
+          .upsert(payload, { onConflict: 'user_id, date' })
 
         if (error) throw error
 
@@ -522,7 +620,6 @@ export default function Progress() {
             <div>
               <h1 className="text-4xl font-serif text-[#c9ccbb] mb-2 flex items-center gap-4">
                 Your Daily Logs
-                {/* 🟢 NEW: Manual Trigger Icon */}
                 <button 
                   onClick={() => setIsManualOpen(true)} 
                   className="text-[#b5a642]/60 hover:text-[#b5a642] transition-colors p-2 rounded-full hover:bg-[#b5a642]/10"
@@ -929,19 +1026,18 @@ export default function Progress() {
               </AnimatePresence>
 
               <div className="flex justify-end items-center gap-4">
-                 
                  <AnimatePresence>
                     {status === 'error' && (
                         <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} className="text-red-400 text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
-                        <AlertCircle size={14} /> {errorMessage}
+                          <AlertCircle size={14} /> {errorMessage}
                         </motion.div>
                     )}
                     {status === 'success' && (
                         <motion.span 
-                        initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
-                        className="text-[#b5a642] text-xs font-bold uppercase tracking-widest flex items-center gap-1"
+                          initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
+                          className="text-[#b5a642] text-xs font-bold uppercase tracking-widest flex items-center gap-1"
                         >
-                        <CheckCircle size={14} /> Saved
+                          <CheckCircle size={14} /> Saved
                         </motion.span>
                     )}
                  </AnimatePresence>
@@ -1098,7 +1194,6 @@ export default function Progress() {
       </div>
 
       <AnimatePresence>
-        {/* 🟢 NEW: Daily Logs Manual Modal */}
         {isManualOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#000]/80 backdrop-blur-sm p-4">
             <motion.div
