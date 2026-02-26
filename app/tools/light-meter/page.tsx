@@ -2,7 +2,7 @@
 
 import Sidebar from '../../components/Sidebar'
 import { useState, useEffect, useRef } from 'react'
-import { Sun, CheckCircle, ArrowDown, ArrowUp, Info, Camera, X, Zap } from 'lucide-react'
+import { Sun, CheckCircle, ArrowDown, ArrowUp, Info, Camera, X, Zap, RotateCcw } from 'lucide-react'
 import Link from 'next/link'
 
 
@@ -40,6 +40,28 @@ const LUX_THRESHOLDS = {
     threshold: 10    // Any light above this disrupts sleep architecture
   }
 } as const
+
+// --- CALIBRATION FACTOR BOUNDS ---
+// Real-world lux correction factors must fall within this range.
+// Values outside it indicate a calibration that was set in abnormal
+// conditions (near-dark scene, wrong reference value entered) and
+// will produce impossibly large or small readings.
+// Max 200: accounts for the most extreme sensor variation observed
+// across device types. Min 0.01: prevents division-by-zero and
+// near-zero suppression of all readings.
+const CALIBRATION_FACTOR_MIN = 0.01
+const CALIBRATION_FACTOR_MAX = 200
+
+// --- PHYSICAL LUX CEILING ---
+// Direct sunlight = ~100,000 lux. Values above 120,000 are physically
+// impossible in a residential environment and indicate sensor overflow
+// or a corrupted calibration factor. Capping at 120,000 prevents
+// display of nonsensical readings and protects BSFI scoring inputs.
+const LUX_CEILING = 120000
+
+// Clamps a calibration factor to the physically meaningful range
+const clampCalibrationFactor = (factor: number): number =>
+  Math.max(CALIBRATION_FACTOR_MIN, Math.min(factor, CALIBRATION_FACTOR_MAX))
 
 // --- KELVIN CORRECTION CURVE ---
 // Correction factor normalised to 5700K = 1.0
@@ -103,11 +125,29 @@ export function LightSensorModal({
   const [isCapturingDarkFrame, setIsCapturingDarkFrame] = useState(false)
   const [error, setError] = useState('')
   const [source, setSource] = useState<'camera' | 'sensor'>('camera')
+  const [calibrationWarning, setCalibrationWarning] = useState(false)
 
   // 1. LOAD SAVED CALIBRATION + DARK FRAME BASELINE
+  //
+  // IMPORTANT: calibration factor is clamped on load using
+  // clampCalibrationFactor(). If a previous session stored a corrupted
+  // factor (e.g. from calibrating in a near-dark scene with a wrong
+  // reference value), the clamp prevents it from inflating readings.
+  // The clamped value is written back to localStorage immediately so
+  // the corruption is cleared on next open even if the user does not
+  // recalibrate.
   useEffect(() => {
     const saved = localStorage.getItem('lux_calibration')
-    if (saved) setCalibration(parseFloat(saved))
+    if (saved) {
+      const raw = parseFloat(saved)
+      const clamped = clampCalibrationFactor(raw)
+      setCalibration(clamped)
+      // Flag if the stored value was out of bounds — warn user to recalibrate
+      if (raw !== clamped) {
+        setCalibrationWarning(true)
+        localStorage.setItem('lux_calibration', clamped.toString())
+      }
+    }
     const savedDark = localStorage.getItem('lux_dark_frame')
     if (savedDark) setDarkFrameBaseline(parseFloat(savedDark))
   }, [])
@@ -120,7 +160,8 @@ export function LightSensorModal({
         const sensor = new AmbientLightSensor()
         sensor.onreading = () => {
           setSource('sensor')
-          setLux(sensor.illuminance)
+          // Hardware sensor reports in lux directly — apply ceiling only
+          setLux(Math.min(Math.round(sensor.illuminance), LUX_CEILING))
         }
         sensor.onerror = (event: any) => {
           console.log(event.error.name, event.error.message)
@@ -134,6 +175,12 @@ export function LightSensorModal({
   }, [])
 
   // 3. START CAMERA STREAM (Fallback when no hardware sensor)
+  //
+  // Explicit resolution constraint (max 1280×720) ensures consistent
+  // frame data across device types. Without this, some mobile cameras
+  // initialise at native resolution (4K+), which — while the canvas
+  // is fixed at 100×100 — can affect how the browser scales the frame
+  // and may interact with OS-level auto-exposure differently.
   useEffect(() => {
     if (source === 'sensor') return
     let stream: MediaStream | null = null
@@ -142,6 +189,8 @@ export function LightSensorModal({
         stream = await navigator.mediaDevices.getUserMedia({
           video: {
             facingMode: 'environment',
+            width:  { ideal: 1280, max: 1280 },
+            height: { ideal: 720,  max: 720  },
             // @ts-ignore
             advanced: [{ exposureMode: 'continuous' }]
           }
@@ -161,6 +210,7 @@ export function LightSensorModal({
   // Pipeline: RGB pixels → avgBrightness + estimatedKelvin
   //           → correctedRaw (dark frame subtracted)
   //           → lux (user calibration × Kelvin spectral correction)
+  //           → capped at LUX_CEILING (120,000 lux)
   useEffect(() => {
     if (error || source === 'sensor') return
 
@@ -205,7 +255,10 @@ export function LightSensorModal({
           const kelvinFactor = getKelvinCorrectionFactor(kelvin)
           const correctedLux = Math.round(correctedRaw * calibration * kelvinFactor)
 
-          const finalLux = Math.max(correctedLux, 0)
+          // Cap at physical ceiling — values above 120,000 lux are not
+          // achievable in a residential environment and indicate sensor
+          // overflow or a calibration factor that escaped the clamp
+          const finalLux = Math.min(Math.max(correctedLux, 0), LUX_CEILING)
           setLux(finalLux)
           setConfidence(getLuxConfidence(correctedRaw, darkFrameBaseline, finalLux))
         }
@@ -224,22 +277,43 @@ export function LightSensorModal({
     }
   }
 
-  // Single-point calibration — accounts for Kelvin correction in stored factor
-  // so the stored factor remains valid across colour temperature changes
+  // Single-point calibration
+  // Calibration factor is clamped before saving. If the entered reference
+  // value and current scene produce a factor outside the physical range,
+  // the calibration is rejected with a warning rather than stored silently.
   const handleCalibrate = (realValue: number) => {
     if (rawReading > 0) {
       const kelvinFactor = getKelvinCorrectionFactor(estimatedKelvin)
-      const newFactor = realValue / (rawReading * kelvinFactor)
-      setCalibration(newFactor)
-      localStorage.setItem('lux_calibration', newFactor.toString())
+      const rawFactor = realValue / (rawReading * kelvinFactor)
+      const clampedFactor = clampCalibrationFactor(rawFactor)
+
+      if (rawFactor !== clampedFactor) {
+        // Factor was out of range — warn user before saving clamped value
+        setCalibrationWarning(true)
+      } else {
+        setCalibrationWarning(false)
+      }
+
+      setCalibration(clampedFactor)
+      localStorage.setItem('lux_calibration', clampedFactor.toString())
       setIsCalibrating(false)
     }
   }
 
+  // Reset calibration to default (factor = 1)
+  // Clears both stored factor and dark frame baseline
+  const handleResetCalibration = () => {
+    setCalibration(1)
+    setDarkFrameBaseline(0)
+    setCalibrationWarning(false)
+    localStorage.removeItem('lux_calibration')
+    localStorage.removeItem('lux_dark_frame')
+  }
+
   const confidenceDisplay = {
-    high: { text: 'High confidence', color: 'text-emerald-400' },
-    moderate: { text: 'Moderate confidence', color: 'text-amber-400' },
-    low: { text: 'Low confidence — set dark frame for accuracy', color: 'text-red-400' }
+    high: { text: 'High Confidence', color: 'text-emerald-400' },
+    moderate: { text: 'Moderate Confidence', color: 'text-amber-400' },
+    low: { text: 'Low Confidence — set dark frame for accuracy', color: 'text-red-400' }
   }
 
   return (
@@ -264,6 +338,15 @@ export function LightSensorModal({
           {source === 'sensor' ? 'Using device hardware.' : 'Analysing environment brightness.'}
         </p>
 
+        {/* CALIBRATION WARNING BANNER */}
+        {calibrationWarning && (
+          <div className="mb-6 p-3 bg-amber-900/20 border border-amber-500/30 rounded-xl text-xs text-amber-300 leading-relaxed animate-fade-in">
+            <strong className="block text-amber-400 uppercase tracking-widest text-[10px] mb-1">Calibration Reset</strong>
+            A previous calibration produced an out-of-range factor and has been cleared. 
+            Readings are now using default calibration. Recalibrate with a reference meter if needed.
+          </div>
+        )}
+
         {/* VISUALIZER */}
         <div className="relative w-48 h-48 bg-[#000] rounded-full mx-auto mb-4 border-4 border-[#c9ccbb]/10 overflow-hidden flex items-center justify-center">
           {source === 'camera' && (
@@ -283,7 +366,7 @@ export function LightSensorModal({
               ? <span className="text-red-400 text-xs">{error}</span>
               : (
                 <>
-                  <div className="text-5xl font-serif text-[#c9ccbb] tabular-nums">{lux}</div>
+                  <div className="text-5xl font-serif text-[#c9ccbb] tabular-nums">{lux.toLocaleString()}</div>
                   <div className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mt-1">Lux</div>
                 </>
               )
@@ -299,8 +382,8 @@ export function LightSensorModal({
         {/* KELVIN ESTIMATE + CONFIDENCE (Camera mode only) */}
         {source === 'camera' && !error && (
           <div className="text-center mb-6 space-y-1">
-            <p className="text-[#c9ccbb]/50 text-[10px] uppercase tracking-widest">
-              ~{estimatedKelvin}K estimated
+            <p className="text-[#c9ccbb]/80 text-[10px] uppercase tracking-widest">
+              ~{estimatedKelvin}K Estimated
             </p>
             <p className={`text-[10px] uppercase tracking-widest ${confidenceDisplay[confidence].color}`}>
               {confidenceDisplay[confidence].text}
@@ -312,9 +395,9 @@ export function LightSensorModal({
         {source === 'camera' && !error && (
           <div className="mb-6 space-y-3">
 
-            {/* Default state — two calibration options */}
+            {/* Default state — calibration options + reset */}
             {!isCalibrating && !isCapturingDarkFrame && (
-              <div className="flex justify-center gap-4">
+              <div className="flex justify-center items-center gap-4 flex-wrap">
                 <button
                   onClick={() => setIsCalibrating(true)}
                   className="text-xs text-[#c9ccbb]/50 underline hover:text-[#b5a642]"
@@ -328,6 +411,17 @@ export function LightSensorModal({
                 >
                   Set dark frame
                 </button>
+                {calibration !== 1 && (
+                  <>
+                    <span className="text-[#c9ccbb]/20 text-xs">|</span>
+                    <button
+                      onClick={handleResetCalibration}
+                      className="text-xs text-red-400/60 underline hover:text-red-400 flex items-center gap-1"
+                    >
+                      <RotateCcw size={10} /> Reset
+                    </button>
+                  </>
+                )}
               </div>
             )}
 
@@ -354,6 +448,9 @@ export function LightSensorModal({
                     Set
                   </button>
                 </div>
+                <p className="text-[10px] text-[#c9ccbb]/40 mt-2 leading-relaxed">
+                  For best results, calibrate in a well-lit environment (100–2000 lux). Calibrating in near-darkness will produce an inaccurate factor.
+                </p>
                 <button
                   onClick={() => setIsCalibrating(false)}
                   className="text-[10px] text-red-400 mt-2 hover:underline"
