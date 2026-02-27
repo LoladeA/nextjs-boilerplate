@@ -6,17 +6,18 @@
 // =============================================================================
 //
 // PURPOSE:
-//   Detects guest assessment data in localStorage on first authenticated
-//   dashboard load and transfers it to user_responses.
-//   Renders nothing visible. Handles its own lifecycle silently.
+//   On first authenticated dashboard load after sign-up, detects guest
+//   assessment data in localStorage and transfers it to user_responses.
+//   On success, calls router.refresh() so the server component re-fetches
+//   and the dashboard renders with the transferred data — no redirect,
+//   no visible interruption. The user lands on the dashboard and sees
+//   their score and report link as expected.
 //
 // USAGE:
-//   Add once to your dashboard page or layout — it self-deactivates
-//   after a successful transfer so it never runs twice.
+//   Add once to app/dashboard/page.tsx (or its layout):
 //
-//   In app/dashboard/page.tsx (or layout.tsx):
 //     import GuestTransferHandler from '@/app/components/GuestTransferHandler'
-//     ...
+//
 //     return (
 //       <>
 //         <GuestTransferHandler />
@@ -25,19 +26,30 @@
 //     )
 //
 // LIFECYCLE:
-//   Mount → check localStorage for guest data
-//   If found → run transferGuestDataToAccount()
-//   On success → guest data cleared, flag set in sessionStorage to skip reruns
-//   On failure → logs error, preserves guest data for retry on next mount
+//   Mount → check sessionStorage flag (skip if already ran this session)
+//   → check localStorage for guest data (skip if none)
+//   → get authenticated user
+//   → run transferGuestDataToAccount()
+//   → on success: router.refresh() + set sessionStorage flag
+//   → on failure: log error, preserve guest data, skip flag (retries next mount)
 //
-// WHY sessionStorage FLAG:
-//   Prevents the transfer from running on every dashboard navigation.
-//   sessionStorage is cleared when the browser tab closes, so a fresh
-//   session always checks again. This is the correct scope — we want
-//   one attempt per login session, not one per page visit.
+// WHY router.refresh():
+//   Dashboard is a server component — it fetched user_responses at T=0,
+//   before this client component had a chance to write anything. Without
+//   a refresh, the transferred data exists in the database but the page
+//   still shows the empty/pre-transfer state. router.refresh() re-runs
+//   the server fetch without a full navigation, updating the dashboard
+//   in place.
+//
+// WHY sessionStorage FOR THE FLAG:
+//   Scoped to the browser tab session — cleared on tab close. This means
+//   one transfer attempt per login session, not one per page visit.
+//   A fresh login always checks for guest data again, which is correct
+//   behaviour for users who log out and back in on the same device.
 // =============================================================================
 
 import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { transferGuestDataToAccount } from '@/app/utils/guest-transfer'
 import { getGuestData } from '@/app/utils/guest-storage'
@@ -45,27 +57,26 @@ import { getGuestData } from '@/app/utils/guest-storage'
 const TRANSFER_FLAG = 'sentient_guest_transfer_done'
 
 export default function GuestTransferHandler() {
+  const router   = useRouter()
   const supabase = createClientComponentClient()
 
   useEffect(() => {
     const runTransfer = async () => {
 
-      // Skip if already transferred this session
+      // Already ran this session — skip
       if (sessionStorage.getItem(TRANSFER_FLAG)) return
 
-      // Skip if no guest data exists — avoids unnecessary auth call
-      // for users who signed up without completing the guest assessment
+      // No guest data in localStorage — nothing to transfer
       const guestData = getGuestData()
       if (!guestData || Object.keys(guestData.answers).length === 0) {
         sessionStorage.setItem(TRANSFER_FLAG, 'true')
         return
       }
 
-      // Get authenticated user
+      // Confirm authenticated user before attempting write
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
-        // Not authenticated yet — do not transfer, do not set flag
-        // Component will re-run on next mount when session is ready
+        // Session not ready yet — skip without setting flag so it retries
         return
       }
 
@@ -73,21 +84,28 @@ export default function GuestTransferHandler() {
       const result = await transferGuestDataToAccount(user.id)
 
       if (result.success) {
+        // Set flag regardless of rowsWritten — 0 rows is a valid outcome
+        // (guest data was empty or already transferred in a previous session)
+        sessionStorage.setItem(TRANSFER_FLAG, 'true')
+
         if (result.rowsWritten > 0) {
           console.info(
-            `[GuestTransferHandler] Transferred ${result.rowsWritten} responses for user ${user.id}`
+            `[GuestTransferHandler] Transferred ${result.rowsWritten} responses ` +
+            `for user ${user.id}. Refreshing dashboard.`
           )
+          // Re-run the server component fetch so the dashboard reflects
+          // the transferred data without a full page navigation.
+          router.refresh()
         }
-        // Set flag whether rowsWritten is 0 or more — either way, no more transfers needed
-        sessionStorage.setItem(TRANSFER_FLAG, 'true')
+
       } else {
-        // Transfer failed — log but do not set flag so it retries next mount
+        // Transfer failed — do not set flag, preserve guest data for retry
         console.error('[GuestTransferHandler] Transfer failed:', result.error)
       }
     }
 
     runTransfer()
-  }, [supabase])
+  }, [supabase, router])
 
   // Renders nothing — purely a side-effect component
   return null
