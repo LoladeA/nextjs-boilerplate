@@ -8,9 +8,6 @@ import { calculateNeuroLoad } from '../utils/scoring-engine'
 import { mapEngineToDashboard } from '@/app/lib/neuro-mapper' 
 import GuestTransferHandler from '@/app/components/GuestTransferHandler'
 
-// Inside the return, anywhere at the top level:
-<GuestTransferHandler />
-
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
