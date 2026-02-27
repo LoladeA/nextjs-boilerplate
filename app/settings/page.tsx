@@ -398,9 +398,14 @@ const handleSaveProfile = async (e: React.FormEvent) => {
   setProfileLoading(true)
   setProfileMessage(null)
   try {
+    // Write to user_profiles (persistent settings store)
     const { error: profileError } = await upsertProfile({ display_name: displayName })
     if (profileError) throw profileError
 
+    // FIX: Mirror into Supabase Auth user_metadata so the dashboard
+    // greeting reads the updated name without an extra DB fetch.
+    // Dashboard reads: user.user_metadata?.full_name
+    // Without this call, the profile row updates but the JWT does not.
     const { error: authError } = await supabase.auth.updateUser({
       data: { full_name: displayName }
     })
@@ -413,7 +418,7 @@ const handleSaveProfile = async (e: React.FormEvent) => {
     setProfileLoading(false)
   }
 }
-
+  
   // NEURO LENS
   const handleSaveNeuroLens = async (e: React.FormEvent) => {
     e.preventDefault()
