@@ -3,16 +3,25 @@
 import { useEffect, useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import Link from 'next/link'
-import { ShieldCheck, ArrowRight, LayoutGrid, CheckCircle } from 'lucide-react'
+import { ShieldCheck, ArrowRight, LayoutGrid, CheckCircle, Lock, Unlock } from 'lucide-react'
 import Sidebar from '@/app/components/Sidebar'
 
 export default function FoundationsNudge() {
   const [score, setScore] = useState<number | null>(null)
+  const [hasAccess, setHasAccess] = useState(false)
+  const [isChecking, setIsChecking] = useState(true)
   const supabase = createClientComponentClient()
 
   useEffect(() => {
-    const fetchScore = async () => {
-      const { data } = await supabase
+    const initializePage = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        setIsChecking(false)
+        return
+      }
+
+      // 1. Fetch Quiz Score
+      const { data: scoreData } = await supabase
         .from('quiz_submissions')
         .select('score')
         .eq('module_slug', 'foundations')
@@ -20,9 +29,34 @@ export default function FoundationsNudge() {
         .limit(1)
         .single()
       
-      if (data) setScore(data.score)
+      if (scoreData) setScore(scoreData.score)
+
+      // 2. Validate Premium Access
+      if (user.email === 'christchilde@gmail.com') {
+        setHasAccess(true)
+        setIsChecking(false)
+        return
+      }
+
+      const { data: subscription, error: subError } = await supabase
+        .from('subscriptions')
+        .select('plan, status, current_period_end')
+        .eq('user_id', user.id)
+        .single()
+
+      if (
+        !subError && subscription && subscription.plan === 'premium' &&
+        subscription.status === 'active' && new Date(subscription.current_period_end) >= new Date()
+      ) {
+        setHasAccess(true)
+      } else {
+        setHasAccess(false)
+      }
+      
+      setIsChecking(false)
     }
-    fetchScore()
+
+    initializePage()
   }, [supabase])
 
   return (
@@ -82,12 +116,20 @@ export default function FoundationsNudge() {
 
           <div className="flex flex-col items-center border-t border-[#c9ccbb]/10 pt-20">
             <h4 className="text-[#c9ccbb] font-serif text-3xl mb-10">Ready for the next shift?</h4>
-            <Link 
-              href="/upgrade" 
-              className="group flex items-center gap-4 px-14 py-6 bg-[#c9ccbb] text-[#1b270e] font-bold rounded-full hover:bg-[#b5a642] transition-all shadow-2xl shadow-[#b5a642]/20"
-            >
-              Unlock Module 2: Sensory & Lighting Dynamics <ArrowRight size={24} className="group-hover:translate-x-2 transition-transform" />
-            </Link>
+            
+            {/* 🟢 INTELLIGENT ROUTING: Checks auth state before rendering destination */}
+            {!isChecking && (
+              <Link 
+                href={hasAccess ? "/coaching/sensory-lighting-dynamics/week-1" : "/upgrade"} 
+                className="group flex items-center gap-4 px-14 py-6 bg-[#c9ccbb] text-[#1b270e] font-bold rounded-full hover:bg-[#b5a642] transition-all shadow-2xl shadow-[#b5a642]/20"
+              >
+                {hasAccess ? (
+                  <>Enter Module 2: Sensory & Lighting Dynamics <ArrowRight size={24} className="group-hover:translate-x-2 transition-transform" /></>
+                ) : (
+                  <>Unlock Module 2: Sensory & Lighting Dynamics <Lock size={20} className="ml-2 opacity-80" /></>
+                )}
+              </Link>
+            )}
           </div>
         </div>
       </main>
