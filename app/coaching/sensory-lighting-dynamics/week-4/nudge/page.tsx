@@ -66,7 +66,7 @@ export default function Week4Nudge() {
             <Sparkles className="text-[#b5a642] mb-6" size={32} />
             <h4 className="text-[#c9ccbb] font-serif text-3xl mb-10">Sensory Dynamics Complete!</h4>
             <Link 
-              href="/coaching" 
+              href="/coaching/sensory-lighting-dynamics/week-2" 
               className="group flex items-center gap-4 px-14 py-6 bg-[#b5a642] text-[#1b270e] font-bold rounded-full hover:bg-[#d4c55e] transition-all shadow-2xl shadow-[#b5a642]/20"
             >
               Return to Dashboard <ArrowRight size={24} className="group-hover:translate-x-2 transition-transform" />
