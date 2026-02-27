@@ -202,7 +202,7 @@ export default function PriorityList({ areas, profile = 'anchor' }: { areas: any
                     </h3>
                     {!isOpen && (
                         <span className="hidden md:inline-flex px-2 py-0.5 rounded bg-[#b5a642]/10 text-[#b5a642] text-[10px] font-bold uppercase tracking-widest">
-                           {profile === 'anchor' ? 'Core Support' : `For The ${profile}`}
+                           {profile === 'anchor' ? 'Core Support' : `For The ${PROFILE_LABELS[profile] || profile}`}
                         </span>
                     )}
                   </div>
