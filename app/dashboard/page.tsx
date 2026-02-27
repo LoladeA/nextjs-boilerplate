@@ -37,14 +37,14 @@ export default async function Dashboard() {
         <Activity className="text-[#b5a642] animate-pulse mb-6" size={48} />
         <h1 className="text-3xl font-serif text-[#c9ccbb] mb-3">Calibrating Your Baseline...</h1>
         <p className="text-[#c9ccbb]/70 text-sm max-w-md mx-auto">
-          Synchronizing your sensory profile with the intelligence engine. This will just take a moment.
+          Synchronising your sensory profile with the intelligence engine. This will just take a moment.
         </p>
       </div>
     )
   }
 
   // 🟢 1. EXTRACT NEURO LENS
-  const neuroLensAnswer = safeResponses.find((r: any) => r.question_key === 'neuro_lens')?.answer_value
+  const neuroLensAnswer = safeResponses.find((r: any) => r.question_key === 'neuro_lens')?.answer_value || 'None'
   
   // 🟢 2. RUN THE NEW SCORING ENGINE
   const engineResult = calculateNeuroLoad(
