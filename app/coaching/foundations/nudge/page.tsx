@@ -86,7 +86,7 @@ export default function FoundationsNudge() {
               href="/upgrade" 
               className="group flex items-center gap-4 px-14 py-6 bg-[#c9ccbb] text-[#1b270e] font-bold rounded-full hover:bg-[#b5a642] transition-all shadow-2xl shadow-[#b5a642]/20"
             >
-              Unlock Module 2: Sensory & Lighting <ArrowRight size={24} className="group-hover:translate-x-2 transition-transform" />
+              Unlock Module 2: Sensory & Lighting Dynamics <ArrowRight size={24} className="group-hover:translate-x-2 transition-transform" />
             </Link>
           </div>
         </div>
