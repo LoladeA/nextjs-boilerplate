@@ -44,14 +44,16 @@ export default function DashboardUI({
 
   // Identity Translation Map
   // Internal Code -> Brand Identity
-  const profileLabels: Record<string, string> = {
-    standard: 'Anchor', // Replaces "Standard" with "Anchor"
-    seeker: 'Seeker',
-    sensor: 'Sensor'
-  }
+ // FIX: 'standard' key removed (engine no longer returns it).
+// 'anchor' key added. identityLabel now used in render — not dead code.
+const profileLabels: Record<string, string> = {
+  anchor: 'Anchor',
+  seeker: 'Seeker',
+  sensor: 'Sensor'
+}
 
-  // Get the display label (Safe fallback to 'Anchor')
-  const identityLabel = profileLabels[profile] || 'Anchor'
+// Used in the Sensory Profile card to capitalise the archetype name.
+const identityLabel = profileLabels[profile] || 'Anchor'
   
   // --- 1. DATA EXTRACTION ---
   const recoveryRaw = radarData?.find((d: any) => d.subject === 'Recovery')?.A || 50
@@ -150,8 +152,8 @@ export default function DashboardUI({
                     <Fingerprint className="text-[#b5a642]" size={20} />
                 </div>
                 <div className="z-10 relative">
-                    <div className="text-4xl font-serif text-[#c9ccbb] mb-2 capitalize">
-                        The {profile}
+                    <div className="text-4xl font-serif text-[#c9ccbb] mb-2">
+                        The {identityLabel}
                     </div>
                     <Link href="/assessments/step0" className="inline-flex items-center gap-2 text-[10px] text-[#b5a642] uppercase tracking-widest hover:text-[#b5a642]/80 transition-colors border border-[#b5a642]/20 px-3 py-1.5 rounded-full hover:bg-[#b5a642]/10">
                        <RefreshCw size={10} /> Update Baseline
