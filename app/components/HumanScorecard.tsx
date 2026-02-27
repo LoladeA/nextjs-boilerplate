@@ -97,7 +97,7 @@ export default function HumanScorecard({ scores, profile = 'anchor' }: { scores:
       highMsg: "Restorative",
       details: getText('sensory'),
       toolName: "Noise Meter",
-      toolLink: "/tools/noise-meter"
+      toolLink: "/progress"
     },
     {
       id: 'recovery',
@@ -110,7 +110,7 @@ export default function HumanScorecard({ scores, profile = 'anchor' }: { scores:
       highMsg: "Recharging",
       details: getText('recovery'),
       toolName: "Sleep Audit",
-      toolLink: "/tools/sleep-audit"
+      toolLink: "/progress"
     }
   ]
 
