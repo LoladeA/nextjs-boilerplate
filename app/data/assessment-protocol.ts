@@ -1,3 +1,23 @@
+// =============================================================================
+// ASSESSMENT PROTOCOL — The Sentient Home
+// =============================================================================
+//
+// CHANGE LOG:
+//   q27 — reworded to clarify that avoidance is driven by how the room makes
+//          the person feel, not simply by disuse. Scoring direction unchanged.
+//   q30 — reworded to frame the behaviour as a demand the home places on the
+//          person rather than a coping competence. Scoring direction unchanged.
+//   q31 — reworded to frame constant adjustment as a home failing its resident
+//          rather than attentive self-care. Scoring direction unchanged.
+//
+// SCORING PRINCIPLE (q30 & q31):
+//   A Sentient Home should not require its resident to perform constant
+//   environmental labour to feel regulated. High agreement with q30 and q31
+//   indicates a home that is imposing active management demands — which is
+//   high friction, not high agency. The scoring direction (high = friction)
+//   is intentional and clinically correct.
+// =============================================================================
+
 export const assessmentProtocol = {
   part0: {
     title: "Nervous System Snapshot",
@@ -6,12 +26,40 @@ export const assessmentProtocol = {
     main_question: "Baseline Regulation Check",
     description: "Before we assess the environment, we must establish the current load on your nervous system.",
     questions: [
-      { id: 'q_state', text: "How does your body feel in your home environment right now?", type: 'choice', options: ['Alert', 'Calm', 'Wired', 'Flat', 'Tense'] },
-      { id: 'energy_tax', text: "What percentage of your energy goes toward managing your environment vs. living in it?", type: 'slider' },
-      { id: 'primary_strain', text: "Which feels most true right now?", type: 'choice', options: ['Mental overload', 'Physical tension', 'Emotional volatility', 'Sleep disruption', 'None of the above'] },
-      { id: 'neuro_lens', text: "My sensory processing is influenced by:", type: 'choice', options: ['HSP', 'ADHD', 'Autism', 'Dyslexia', 'SPD', 'None'] },
+      {
+        id: 'q_state',
+        text: "How does your body feel in your home environment right now?",
+        type: 'choice',
+        options: ['Alert', 'Calm', 'Wired', 'Flat', 'Tense']
+      },
+      {
+        id: 'energy_tax',
+        text: "What percentage of your energy goes toward managing your environment vs. living in it?",
+        type: 'slider'
+        // Range: 0–100. Stored as numeric.
+        // Used as: baseline load modifier on final NeuroLoad score
+        //          + baseline for progress tracking across cycles
+      },
+      {
+        id: 'primary_strain',
+        text: "Which feels most true right now?",
+        type: 'choice',
+        options: ['Mental overload', 'Physical tension', 'Emotional volatility', 'Sleep disruption', 'None of the above']
+        // Used as: domain pre-weight modifier before scale responses are scored
+        //          + cross-validation signal against derived domain scores
+        //          + stored for progress tracking
+      },
+      {
+        id: 'neuro_lens',
+        text: "My sensory processing is influenced by:",
+        type: 'choice',
+        options: ['HSP', 'ADHD', 'Autism', 'Dyslexia', 'SPD', 'None']
+        // Used as: adaptive weight modifier (structural neurological trait)
+        //          + blend tiebreaker when threshold classification is ambiguous
+      },
     ]
   },
+
   part1: {
     title: "Circadian Integrity",
     step: 1,
@@ -26,6 +74,7 @@ export const assessmentProtocol = {
       { id: 'q9', text: "Low light levels during the day makes me feel sluggish or foggy.", type: 'scale' },
     ]
   },
+
   part2: {
     title: "Autonomic Load",
     step: 2,
@@ -40,6 +89,7 @@ export const assessmentProtocol = {
       { id: 'q14', text: "I notice subtle changes in sound, lighting, or temperature before others do.", type: 'scale' },
     ]
   },
+
   part3: {
     title: "Predictive Legibility",
     step: 3,
@@ -47,13 +97,14 @@ export const assessmentProtocol = {
     main_question: "How easily can your brain read and navigate your surroundings?",
     description: "This section assesses whether your environment is spatially clear and intuitive, or if it requires constant micro-decisions and mental recalibration to make sense of it.",
     questions: [
-      { id: 'q15', text: "When I enter a room in my home, I immediately know what it’s for.", type: 'scale' },
+      { id: 'q15', text: "When I enter a room in my home, I immediately know what it's for.", type: 'scale' },
       { id: 'q16', text: "I move through my home easily without bumping into things or backtracking.", type: 'scale' },
       { id: 'q17', text: "In most rooms, my eyes naturally settle on one main feature.", type: 'scale' },
-      { id: 'q18', text: "My eyes don’t feel pulled in multiple directions.", type: 'scale' },
+      { id: 'q18', text: "My eyes don't feel pulled in multiple directions.", type: 'scale' },
       { id: 'q19', text: "Moving through my home feels automatic rather than mentally effortful.", type: 'scale' },
     ]
   },
+
   part4: {
     title: "Sensory Load",
     step: 4,
@@ -70,6 +121,7 @@ export const assessmentProtocol = {
       { id: 'q26', text: "I feel my body relax in some rooms and tense up in others.", type: 'scale' },
     ]
   },
+
   part5: {
     title: "Recovery Capacity",
     step: 5,
@@ -77,13 +129,38 @@ export const assessmentProtocol = {
     main_question: "How effectively does your home help you to restore energy?",
     description: "This section indicates whether your space truly enables you to relax, recover and recharge, or leaves you technically off duty, but never fully restored.",
     questions: [
-      { id: 'q27', text: "There are rooms in my home I avoid spending time in.", type: 'scale' },
+      {
+        id: 'q27',
+        // REWORDED: adds causal link — avoidance because of how the room
+        // makes the person feel, not simply because it goes unused.
+        text: "There are rooms in my home I avoid because of how they make me feel.",
+        type: 'scale'
+      },
       { id: 'q28', text: "Time at home does not always leave me feeling fully restored.", type: 'scale' },
       { id: 'q29', text: "It takes me a long time to mentally wind down at night.", type: 'scale' },
-      { id: 'q30', text: "When a space feels overwhelming, I actively change it or leave it.", type: 'scale' },
-      { id: 'q31', text: "I regularly adjust lighting, sound, or layout to feel comfortable.", type: 'scale' },
+      {
+        id: 'q30',
+        // REWORDED: frames the behaviour as a demand the home places on the
+        // person. High agreement = home is failing to self-regulate for its
+        // resident. Scoring direction (high = friction) is correct and intentional.
+        text: "I find myself having to leave or change rooms in order to feel regulated.",
+        type: 'scale'
+      },
+      {
+        id: 'q31',
+        // REWORDED: 'requires' makes the home the subject imposing the demand.
+        // High agreement = the home does not support the person — the person
+        // must support the home. Scoring direction (high = friction) is correct.
+        text: "Feeling comfortable at home requires me to regularly adjust the lighting, sound, or layout.",
+        type: 'scale'
+      },
       { id: 'q32', text: "I feel more relaxed outside my home than inside.", type: 'scale' },
-      { id: 'q33', text: "My home helps me recover, not just get through the day.", type: 'scale', reverse: true },
+      {
+        id: 'q33',
+        text: "My home helps me recover, not just get through the day.",
+        type: 'scale',
+        reverse: true
+      },
     ]
   }
 }
