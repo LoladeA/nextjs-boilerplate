@@ -16,6 +16,7 @@
 //     --- ADD via migration (alter table only) ---
 //     wake_time      time  default '07:00'
 //     sleep_target   time  default '22:30'
+//     neuro_lens     text  default 'None'
 //     notif_log      bool  default true
 //     notif_log_time time  default '08:00'
 //     notif_assess   bool  default true
@@ -26,18 +27,20 @@
 //     alter table public.user_profiles
 //       add column if not exists wake_time      time    default '07:00',
 //       add column if not exists sleep_target   time    default '22:30',
+//       add column if not exists neuro_lens     text    default 'None',
 //       add column if not exists notif_log      boolean default true,
 //       add column if not exists notif_log_time time    default '08:00',
 //       add column if not exists notif_assess   boolean default true,
 //       add column if not exists notif_digest   boolean default true,
 //       add column if not exists notif_updates  boolean default false;
 //
-//   TABLE: assessment_responses (backs current_user_responses view)
-//     Updating neuro_lens writes here where question_key = 'neuro_lens'
-//     Uses user_id column (not id) — check your view definition
+//   TABLE: user_responses (backs current_user_responses view)
+//     neuro_lens is NOT written here — it is stored in user_profiles.neuro_lens
+//     for independent editability between assessment cycles.
+//     user_responses is read-only from the settings page.
 //
 //   EDGE FUNCTION: delete-user-account
-//     Requires service role. Cascades: daily_logs → assessment_responses
+//     Requires service role. Cascades: daily_logs → user_responses
 //     → bsfi_results → user_profiles → auth.admin.deleteUser()
 //
 // =============================================================================
@@ -342,20 +345,28 @@ export default function Settings() {
         setNotifAssess(profile.notif_assess ?? true)
         setNotifDigest(profile.notif_digest ?? true)
         setNotifUpdates(profile.notif_updates ?? false)
+        // neuro_lens now stored in user_profiles for independent editability
+        if (profile.neuro_lens) {
+          setNeuroLens(profile.neuro_lens)
+          setOriginalNeuroLens(profile.neuro_lens)
+        }
       }
 
-      // Load neuro_lens from assessment responses
-      // current_user_responses view uses user_id column (not id)
-      const { data: neuroData } = await supabase
-        .from('current_user_responses')
-        .select('answer_value')
-        .eq('user_id', user.id)
-        .eq('question_key', 'neuro_lens')
-        .single()
+      // Load neuro_lens — user_profiles is the primary source after first settings save.
+      // If not yet in user_profiles (pre-migration users), fall back to
+      // current_user_responses to pre-populate the field.
+      if (!profile?.neuro_lens) {
+        const { data: neuroData } = await supabase
+          .from('current_user_responses')
+          .select('answer_value')
+          .eq('user_id', user.id)
+          .eq('question_key', 'neuro_lens')
+          .single()
 
-      if (neuroData?.answer_value) {
-        setNeuroLens(neuroData.answer_value)
-        setOriginalNeuroLens(neuroData.answer_value)
+        if (neuroData?.answer_value) {
+          setNeuroLens(neuroData.answer_value)
+          setOriginalNeuroLens(neuroData.answer_value)
+        }
       }
 
       setInitialLoadDone(true)
@@ -370,9 +381,17 @@ export default function Settings() {
 
   const upsertProfile = async (fields: Record<string, any>) => {
     if (!userId) return { error: { message: 'Not authenticated.' } }
+    // email must always be included — NOT NULL in user_profiles.
+    // upsert matches on id (PK); if no row exists yet it inserts,
+    // and the insert requires email to satisfy the constraint.
     return await supabase
       .from('user_profiles')
-      .upsert({ id: userId, ...fields, updated_at: new Date().toISOString() })
+      .upsert({
+        id: userId,
+        email: userEmail,
+        ...fields,
+        updated_at: new Date().toISOString()
+      })
   }
 
   // =============================================================================
@@ -401,15 +420,12 @@ export default function Settings() {
     setNeuroLoading(true)
     setNeuroMessage(null)
     try {
-      // Update the assessment response directly so the engine reads the new value
-      // on next assessment cycle load
-      // assessment_responses uses user_id column (not id)
-      const { error } = await supabase
-        .from('assessment_responses')
-        .update({ answer_value: neuroLens })
-        .eq('user_id', userId)
-        .eq('question_key', 'neuro_lens')
-
+      // Write to user_profiles instead — neuro_lens stored as a profile
+      // field rather than an assessment response row, since it needs to be
+      // updatable independently of the assessment cycle.
+      // FALLBACK: if your assessment table is named differently, replace
+      // 'user_profiles' below with the correct table and column name.
+      const { error } = await upsertProfile({ neuro_lens: neuroLens })
       if (error) throw error
       setOriginalNeuroLens(neuroLens)
       setNeuroMessage({
@@ -477,7 +493,7 @@ export default function Settings() {
       return
     }
     if (newPassword.length < 8) {
-      setSecurityMessage({ type: 'error', text: 'Password must be at least 12 characters.' })
+      setSecurityMessage({ type: 'error', text: 'Password must be at least 8 characters.' })
       setSecurityLoading(false)
       return
     }
