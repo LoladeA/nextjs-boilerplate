@@ -379,40 +379,40 @@ export default function Settings() {
   // HELPERS
   // =============================================================================
 
-  const upsertProfile = async (fields: Record<string, any>) => {
-    if (!userId) return { error: { message: 'Not authenticated.' } }
-    // email must always be included — NOT NULL in user_profiles.
-    // upsert matches on id (PK); if no row exists yet it inserts,
-    // and the insert requires email to satisfy the constraint.
-    return await supabase
-      .from('user_profiles')
-      .upsert({
-        id: userId,
-        email: userEmail,
-        ...fields,
-        updated_at: new Date().toISOString()
-      })
-  }
+ // upsertProfile
+const upsertProfile = async (fields: Record<string, any>) => {
+  if (!userId) return { error: { message: 'Not authenticated.' } }
+  return await supabase
+    .from('user_profiles')
+    .upsert({
+      id: userId,
+      email: userEmail,
+      ...fields,
+      updated_at: new Date().toISOString()
+    })
+}
 
-  // =============================================================================
-  // HANDLERS
-  // =============================================================================
+// handleSaveProfile 
+const handleSaveProfile = async (e: React.FormEvent) => {
+  e.preventDefault()
+  setProfileLoading(true)
+  setProfileMessage(null)
+  try {
+    const { error: profileError } = await upsertProfile({ display_name: displayName })
+    if (profileError) throw profileError
 
-  // PROFILE
-  const handleSaveProfile = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setProfileLoading(true)
-    setProfileMessage(null)
-    try {
-      const { error } = await upsertProfile({ display_name: displayName })
-      if (error) throw error
-      setProfileMessage({ type: 'success', text: 'Profile updated.' })
-    } catch (err: any) {
-      setProfileMessage({ type: 'error', text: err.message })
-    } finally {
-      setProfileLoading(false)
-    }
+    const { error: authError } = await supabase.auth.updateUser({
+      data: { full_name: displayName }
+    })
+    if (authError) throw authError
+
+    setProfileMessage({ type: 'success', text: 'Profile updated.' })
+  } catch (err: any) {
+    setProfileMessage({ type: 'error', text: err.message })
+  } finally {
+    setProfileLoading(false)
   }
+}
 
   // NEURO LENS
   const handleSaveNeuroLens = async (e: React.FormEvent) => {
