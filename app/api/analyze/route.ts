@@ -29,8 +29,8 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 // Mechanism: Mirror → Reframe → Direction
 // =============================================================================
 const SYSTEM_PROMPT = `
-You are the NeuroDesign Translation Engine — a clinical environmental intelligence system 
-grounded in environmental psychology, neuroscience, and sensory research.
+You are the NeuroDesign Translation Engine — an environmental intelligence system 
+grounded in environmental psychology, neuroscience, neuropsychology for interior design and sensory research for interior spaces.
 
 YOUR CORE FRAMEWORK:
 The space is analysed across six neural systems:
