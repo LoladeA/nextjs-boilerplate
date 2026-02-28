@@ -120,38 +120,54 @@ const articles: Record<string, any> = {
 
       <h3 class="text-2xl font-serif text-[#b5a642] mb-4">Sound as Cognitive Load</h3>
       <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
-        The human auditory system has evolved to detect meaningful signals within complex soundscapes. In spaces dominated by hard, reflective surfaces such as concrete, glass and stone, sound waves bounce and overlap, creating persistent reverberation. While often unnoticed consciously, this acoustic complexity increases the brain’s processing demands.
+        You step into a sleek, minimalist living room with polished concrete floors, glass walls and exposed ceilings. It looks stunning. Yet, after twenty minutes of conversation, you feel a strange tiredness setting in, your thoughts are becoming muddled and you find yourself leaning forward just to hear what your partner is saying.
       </p>
 
       <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
-        When echoes distort speech and environmental cues, the brain has to work harder to distinguish the signal from the noise. This continuous filtering increases cognitive load, contributing to mental fatigue and reduced attentional capacity over time.
+        This subtle fatigue has a name: reverberation. It's the invisible acoustic tax that modern hard surfaces impose on your brain.
       </p>
 
-      <h3 class="text-2xl font-serif text-[#b5a642] mb-4">Reverberation and Stress Physiology</h3>
+      <h3 class="text-2xl font-serif text-[#b5a642] mb-4">Sound Is Never Just Sound</h3>
       <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
-        The nervous system interprets persistent acoustic unpredictability as a form of environmental uncertainty. Research in neuroscience and psychoacoustics links such conditions to elevated stress responses, including increased sympathetic activation and higher baseline cortisol signalling.
-      </p>
-
-      <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
-        <strong>What the nervous system detects:</strong> Overlapping sound reflections and reduced speech clarity.<br />
-        <strong>Associated response:</strong> Increased listening effort and sustained alertness.<br />
-        <strong>Why it matters:</strong> When auditory processing remains effortful, mental energy is diverted away from learning, creativity, and emotional regulation.
-      </p>
-
-      <h3 class="text-2xl font-serif text-[#b5a642] mb-4">Social Connection and Acoustic Safety</h3>
-      <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
-        Clear sound is essential for social bonding. Reverberant environments reduce vocal nuance and speech intelligibility, subtly impairing the cues the brain uses to assess trust, emotion, and intention. Over time, this can make social interaction feel more taxing, leading to withdrawal or irritability.
+         Your auditory system has evolved to detect meaningful signals within complex natural soundscapes, such as rustling leaves, distant footsteps or a child’s voice. However, in hard-surfaced interiors, sound waves bounce repeatedly, overlapping and blending together, making it difficult to distinguish individual syllables, footsteps or the clinking of glasses. This means the brain has to work harder to separate the signal from the echo. This additional cognitive load is known as listening effort, and it can be measured.
       </p>
 
       <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
-        <strong>The Design Strategy:</strong> Support acoustic safety by introducing elements that soften, absorb and stabilise sound, thereby reducing reverberation and easing the demands placed on auditory processing.
+        Neuroimaging shows that even moderate reverberation increases activity in the frontal lobes and the anterior cingulate cortex, which are the regions involved in mental arithmetic and emotional regulation. The nervous system interprets ongoing acoustic uncertainty as a minor environmental threat.
+      </p>
+      
+      <h3 class="text-2xl font-serif text-[#b5a642] mb-4">What the Nervous System Detects</h3>
+    <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+      <strong>Overlapping reflections</strong> that blur speech clarity.<br />
+      <strong>Prolonged listening effort</strong> that drains cognitive resources.<br />
+      <strong>Associated response</strong>: elevated sympathetic activation, higher baseline cortisol, and reduced tolerance for additional stressors.
+    </p>
+
+     <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+      Over weeks and months this quiet load contributes to mental fatigue, irritability, and the vague sense that socialising at home feels more effortful than it should.
+    </p>
+
+      <h3 class="text-2xl font-serif text-[#b5a642] mb-4">The Hidden Cost to Connection</h3>
+      <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+        Clear acoustics are essential for interpreting vocal nuances, such as the subtle rise in pitch that conveys warmth or the brief pause that signals empathy. When reverberation muddies these cues, the brain has to work harder to decode intent. Conversations become slightly more taxing, laughter less spontaneous and intimacy harder to sustain. Over time, people unconsciously withdraw from the space itself.
       </p>
 
-      <p class="text-[#c9ccbb]/80 leading-relaxed">
-        Acoustically supportive environments lower cognitive strain, improve communication and help the nervous system to shift out of constant listening vigilance.
-      </p>
-    `
-  },
+         <h3 class="text-2xl font-serif text-[#b5a642] mb-4">Creating Acoustic Safety: Simple, Effective Steps</h3>
+    <ul class="list-disc pl-6 mb-6 text-[#c9ccbb]/80 leading-relaxed">
+      <li>Introduce soft surfaces strategically: area rugs, upholstered furniture, heavy curtains, or acoustic wall panels (disguised as art if you prefer).</li>
+      <li>Break up parallel hard surfaces: add bookshelves, plants, or fabric wall hangings to diffuse noise.</li>
+      <li>Choose furnishings that absorb rather than reflect: such as wool, linen, velvet, felt.</li>
+      <li>Test it yourself: clap once in each room. A short, dry snap feels comfortable; a long, ringing tail means your brain is working overtime.</li>
+    </ul>
+    <p class="text-[#c9ccbb]/80 leading-relaxed">
+      When reverberation levels drop, conversations flow more naturally and mental energy is available for connection rather than decoding. Your home will no longer quietly drain you. The space begins to feel like a true refuge--not just visually, but sonically, too.
+    </p>
+    <p class="text-[#c9ccbb]/80 leading-relaxed">
+      Beauty and calm are not polar opposites. With a few carefully chosen acoustic features, your home can look exquisite and feel peaceful..
+    </p>
+  `
+},
+
 
   "refuge-and-prospect": {
     title: "Refuge and Prospect",
