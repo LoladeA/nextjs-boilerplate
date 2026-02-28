@@ -4,6 +4,13 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, Zap, Activity, Brain, Eye, Moon } from 'lucide-react'
 
+// 🟢 FIXED: Re-injected the missing dictionary to prevent the crash
+const PROFILE_LABELS: Record<string, string> = {
+  anchor: 'Anchor',
+  seeker: 'Seeker',
+  sensor: 'Sensor'
+}
+
 // --- THE ADAPTIVE WISDOM DICTIONARY ---
 // 🟢 UPDATED: Now supports 'anchor' (formerly standard), 'seeker', and 'sensor'
 const insightContent: any = {
@@ -248,7 +255,7 @@ export default function PriorityList({ areas, profile = 'anchor' }: { areas: any
                       <div className="space-y-6">
                         <div className="bg-[#b5a642]/5 rounded-xl p-5 border border-[#b5a642]/10">
                           <p className="text-[#b5a642] text-xs font-bold uppercase tracking-widest mb-3 flex items-center gap-2">
-                             How to create it
+                              How to create it
                           </p>
                           <ul className="space-y-2">
                             {content.how.map((step: string, i: number) => (
