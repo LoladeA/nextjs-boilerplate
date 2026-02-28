@@ -176,7 +176,7 @@ const articles: Record<string, any> = {
     date: "Jan 10, 2026",
     content: `
       <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
-        Why environments that combine visibility and protection feel instinctively safer to the human nervous system.
+        The evolutionary reason you feel safer with your back to a wall.
       </p>
 
       <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
@@ -188,40 +188,52 @@ const articles: Record<string, any> = {
         Together, these conditions form a spatial pattern that the human brain has relied on for survival for hundreds of thousands of years.
       </p>
 
-      <h3 class="text-2xl font-serif text-[#b5a642] mb-4">An Evolutionary Safety Pattern</h3>
+       <p class="text-xl text-[#c9ccbb] leading-relaxed mb-8">
+      You sit down for a quiet evening in your living room. One chair faces the open doorway, with nothing behind it. You feel restless and keep glancing over your shoulder. You move to the chair against the wall, with your back protected and a clear view of the entrance, and you instantly feel a sense of relief. This instinctive sense of relief is known as the refuge-and-prospect pattern. This is a hardwired evolutionary psychology, and your nervous system still relies on it every day.
+    </p>
+
+      <h3 class="text-2xl font-serif text-[#b5a642] mb-4">An Ancient Safety Equation</h3>
       <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
-        Long before modern buildings existed, survival depended on finding positions that allowed early threat detection without exposure. Locations offering outward visibility alongside physical protection reduced the need for constant vigilance. This pattern became neurologically encoded as a signal of safety.
+         For hundreds of thousands of years, survival depended on finding positions that offered two things simultaneously: Prospect (the ability to see what is coming) and refuge (protection from being seen or approached from behind). Those who chose these spots lived longer.
       </p>
 
       <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
-         In contemporary environments, the same pattern persists. When refuge is absent, such as when seated with exposed backs or with circulation behind the body, the nervous system increases environmental scanning, even if the individual feels 'fine' consciously.
+         In contemporary environments, the same pattern persists. When refuge is absent, such as when seated with exposed backs or with circulation behind the body, the nervous system increases environmental scanning, even if the individual feels fine.
       </p>
 
       <h3 class="text-2xl font-serif text-[#b5a642] mb-4">The Neurobiology of Feeling Safe</h3>
       <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
-        The brain continuously evaluates spatial conditions for potential threats. When visual access is clear and the body is protected from behind, the amygdala reduces monitoring activity. This lowers baseline stress signalling and supports nervous system regulation.
+        Neuroimaging confirms this effect: when the back is exposed, heightened monitoring activity is evident in the amygdala and anterior cingulate cortex. However, when refuge is provided, vigilance decreases, baseline cortisol signalling drops, and the nervous system shifts towards a state of parasympathetic calm.
       </p>
 
+      <h3 class="text-2xl font-serif text-[#b5a642] mb-4">What the Nervous System Detects</h3>
+
       <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
-        <strong>What the nervous system detects:</strong> Clear sightlines paired with physical backing.<br />
-        <strong>Associated response:</strong> Reduced vigilance and decreased tonic cortisol release.<br />
+        <strong>Exposed back + open circulation behind you:</strong> → constant low-level scanning.<br />
+        <strong>Protected back + clear sightlines ahead:</strong> → safety confirmed, energy reallocated to rest, connection, and creativity.<br />
         <strong>Why it matters:</strong> When threat detection demands drop, attention, learning, and emotional regulation improve.
       </p>
 
-      <h3 class="text-2xl font-serif text-[#b5a642] mb-4">Refuge, Prospect, and Cognitive Ease</h3>
+      <h3 class="text-2xl font-serif text-[#b5a642] mb-4">Making Refuge and Prospect Work in The Home</h3>
       <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
         Spaces that provide both refuge and prospect are consistently described as calming, grounding, and restorative. This reflects a reduction in cognitive and physiological workload.
       </p>
 
-      <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
-        When environments fail to provide refuge, the brain compensates by maintaining a low level of alertness. Over time, this background vigilance can lead to fatigue, irritability and a reduced ability to focus.
-      </p>
+      <ul class="list-disc pl-6 mb-6 text-[#c9ccbb]/80 leading-relaxed">
+      <li>Never place your main sofa, bed, or desk with open space directly behind it. Add a console, low shelf, or even a tall plant for a sense of enclosure.</li>
+      <li>Define zones with rugs, lighting clusters, or partial-height furniture so each seating area feels distinct and anchored.</li>
+      <li>From your favourite seat, you should be able to see the main entrance and primary movement paths without constantly turning your head.</li>
+      <li>In bedrooms, position the bed so you face the door while sleeping. This is the classic Command Position in Feng Shui that feels safe to your brain.</li>
+    </ul>
+    <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+      These adjustments cost almost nothing yet provide measurable relief to the nervous system. People consistently report deeper relaxation, fewer distractions, and a subtle but persistent sense that 'the room finally feels right'.”
+    </p>
+    <p class="text-[#c9ccbb]/80 leading-relaxed">
+      Your home does not need to resemble a fortress. It simply needs to speak the language that your brain has understood for half a million years. 'You are safe here. You can see. You cannot be seen from behind.' Once you give the space these simple signals, it will stop draining you and start restoring you.
+    </p>
+  `
+},
 
-      <p class="text-[#c9ccbb]/80 leading-relaxed">
-        Environments that balance refuge and prospect support a state of relaxed awareness, allowing the nervous system to conserve energy while remaining oriented and engaged.
-      </p>
-    `
-  },
 
   "somatic-grounding": {
     title: "Somatic Grounding",
@@ -230,10 +242,14 @@ const articles: Record<string, any> = {
     date: "Jan 05, 2026",
     content: `
       <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
-        How tactile contact with the built environment can help calm the nervous system.
+        Using tactile surfaces to manually down-regulate the nervous system.
       </p>
 
-      <h3 class="text-2xl font-serif text-[#b5a642] mb-4">Touch as a Neural Signal</h3>
+      <p class="text-xl text-[#c9ccbb] leading-relaxed mb-8">
+      Picture this: you sink into the sofa after a long and stressful day and feel something shift. You feel the soft wool throw under your palm, the cool linen cushion against your back and the gentle give of the rug beneath your bare feet. Within seconds, your shoulders relax, your breathing slows and your mind quiets. This is called somatic grounding: a direct, wordless dialogue between your skin (and touch receptors) and your nervous system.
+    </p>
+
+      <h3 class="text-2xl font-serif text-[#b5a642] mb-4">Touch Bypasses the Thinking Brain</h3>
       <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
         Touch is one of the fastest pathways into the nervous system. Sensory receptors in the skin send continuous feedback to the brain, informing it about safety, stability, and bodily orientation. Unlike visual or auditory input, tactile signals are processed with minimal cognitive filtering.
       </p>
@@ -247,17 +263,29 @@ const articles: Record<string, any> = {
         Tactile input activates pressure-sensitive mechanoreceptors associated with interoception, which is the brain’s awareness of the body’s internal state. This sensory feedback is closely linked to vagal pathways involved in calming and regulation.
       </p>
 
-      <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
-        <strong>What the nervous system detects:</strong> Texture, temperature, and resistance during contact.<br />
-        <strong>Associated response:</strong> Increased bodily awareness and reduced sympathetic arousal.<br />
-        <strong>Why it matters:</strong> When the body feels supported and oriented, stress signalling can soften without conscious effort.
-      </p>
-
-      <p class="text-[#c9ccbb]/80 leading-relaxed">
-        Environments that offer varied, tactile points of contact give the nervous system opportunities to settle, helping to restore a sense of physical presence and ease.
-      </p>
-    `
-  }
+      <h3 class="text-2xl font-serif text-[#b5a642] mb-4">What the Nervous System Detects</h3>
+    <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+      <strong>Warm, variable pressure</strong> against palms, soles, and back → increased vagal tone and parasympathetic activation.<br />
+      <strong>Rich tactile information</strong> from natural textures → enhanced interoception (the brain’s map of your internal state).<br />
+      <strong>Associated response</strong>: slower heart rate, deeper breathing, reduced sympathetic arousal: a manual reset button for the nervous system.
+    </p>
+    
+    <h3 class="text-2xl font-serif text-[#b5a642] mb-4">Turning Texture into Daily Regulation</h3>
+    <ul class="list-disc pl-6 mb-6 text-[#c9ccbb]/80 leading-relaxed">
+      <li>Place a thick wool or linen throw in the spot where you sit or lie most often—the one you instinctively reach for.</li>
+      <li>Choose a rug or runner made from natural fibres for walking barefoot; the subtle variation underfoot helps to keep the nervous system anchored.</li>
+      <li>Add a piece of untreated wooden furniture, such as a side table, bench or headboard, that invites touch.</li>
+      <li>In the bedroom, use heavy linen or cotton bedding and a weighted blanket. The deep pressure provides the same calming effect as a firm hug.</li>
+      <li>Notice the difference when you run your hand across a cold, synthetic surface and then a linen cushion. Your body already knows which feels like home.</li>
+    </ul>
+    <p class="text-[#c9ccbb]/80 leading-relaxed">
+      You don't need a full renovation. Placing a single well-chosen texture where your body rests most often can provide a daily anchor for calm. Over time, these small tactile cues will train your nervous system to calm down faster, turning your home into a place that consistently supports you.
+    </p>
+    <p class="text-[#c9ccbb]/80 leading-relaxed">
+      Your skin is the most powerful design cue, and it's already part of you. Give it surfaces that convey a sense of safety, and your nervous system will respond by bringing you peace.
+    </p>
+  `
+}
 }
 
 // --- 2. THE PAGE COMPONENT ---
