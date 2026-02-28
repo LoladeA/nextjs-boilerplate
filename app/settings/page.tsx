@@ -44,7 +44,7 @@
 //     → bsfi_results → user_profiles → auth.admin.deleteUser()
 //
 // =============================================================================
-
+ 
 import Sidebar from '../components/Sidebar'
 import { useState, useEffect, useRef } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
@@ -120,6 +120,7 @@ function Toggle({
   return (
     <button
       onClick={onChange}
+      type="button"
       className={`w-12 h-6 rounded-full transition-colors relative flex-shrink-0 ${
         checked ? 'bg-[#b5a642]' : 'bg-[#c9ccbb]/10'
       }`}
@@ -327,7 +328,7 @@ export default function Settings() {
 
       setUserId(user.id)
 
-      // Load profile + settings — email comes from user_profiles directly
+      // Load profile + settings
       const { data: profile } = await supabase
         .from('user_profiles')
         .select('*')
@@ -339,22 +340,20 @@ export default function Settings() {
         setDisplayName(profile.display_name || '')
         setWakeTime(profile.wake_time || '07:00')
         setSleepTarget(profile.sleep_target || '22:30')
-        setHousehold(profile.home_type || 'solo')   // home_type = household
+        setHousehold(profile.home_type || 'solo')
         setNotifLog(profile.notif_log ?? true)
         setNotifLogTime(profile.notif_log_time || '08:00')
         setNotifAssess(profile.notif_assess ?? true)
         setNotifDigest(profile.notif_digest ?? true)
         setNotifUpdates(profile.notif_updates ?? false)
-        // neuro_lens now stored in user_profiles for independent editability
+        
         if (profile.neuro_lens) {
           setNeuroLens(profile.neuro_lens)
           setOriginalNeuroLens(profile.neuro_lens)
         }
       }
 
-      // Load neuro_lens — user_profiles is the primary source after first settings save.
-      // If not yet in user_profiles (pre-migration users), fall back to
-      // current_user_responses to pre-populate the field.
+      // Fallback: Populate neuro_lens from initial assessment if not yet saved in settings
       if (!profile?.neuro_lens) {
         const { data: neuroData } = await supabase
           .from('current_user_responses')
@@ -379,58 +378,48 @@ export default function Settings() {
   // HELPERS
   // =============================================================================
 
- // upsertProfile
-const upsertProfile = async (fields: Record<string, any>) => {
-  if (!userId) return { error: { message: 'Not authenticated.' } }
-  return await supabase
-    .from('user_profiles')
-    .upsert({
-      id: userId,
-      email: userEmail,
-      ...fields,
-      updated_at: new Date().toISOString()
-    })
-}
-
-// handleSaveProfile 
-const handleSaveProfile = async (e: React.FormEvent) => {
-  e.preventDefault()
-  setProfileLoading(true)
-  setProfileMessage(null)
-  try {
-    // Write to user_profiles (persistent settings store)
-    const { error: profileError } = await upsertProfile({ display_name: displayName })
-    if (profileError) throw profileError
-
-    // FIX: Mirror into Supabase Auth user_metadata so the dashboard
-    // greeting reads the updated name without an extra DB fetch.
-    // Dashboard reads: user.user_metadata?.full_name
-    // Without this call, the profile row updates but the JWT does not.
-    const { error: authError } = await supabase.auth.updateUser({
-      data: { full_name: displayName }
-    })
-    if (authError) throw authError
-
-    setProfileMessage({ type: 'success', text: 'Profile updated.' })
-  } catch (err: any) {
-    setProfileMessage({ type: 'error', text: err.message })
-  } finally {
-    setProfileLoading(false)
+  // 🟢 SAFE UPDATE LOGIC
+  const updateProfile = async (fields: Record<string, any>) => {
+    if (!userId) return { error: { message: 'Not authenticated.' } }
+    return await supabase
+      .from('user_profiles')
+      .update({
+        ...fields,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', userId)
   }
-}
+
+  // PROFILE SAVE
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setProfileLoading(true)
+    setProfileMessage(null)
+    try {
+      const { error: profileError } = await updateProfile({ display_name: displayName })
+      if (profileError) throw profileError
+
+      // Mirror directly to auth layer for instantaneous UI dashboard updates
+      const { error: authError } = await supabase.auth.updateUser({
+        data: { full_name: displayName }
+      })
+      if (authError) throw authError
+
+      setProfileMessage({ type: 'success', text: 'Profile updated.' })
+    } catch (err: any) {
+      setProfileMessage({ type: 'error', text: err.message })
+    } finally {
+      setProfileLoading(false)
+    }
+  }
   
-  // NEURO LENS
+  // SENSORY IDENTITY SAVE
   const handleSaveNeuroLens = async (e: React.FormEvent) => {
     e.preventDefault()
     setNeuroLoading(true)
     setNeuroMessage(null)
     try {
-      // Write to user_profiles instead — neuro_lens stored as a profile
-      // field rather than an assessment response row, since it needs to be
-      // updatable independently of the assessment cycle.
-      // FALLBACK: if your assessment table is named differently, replace
-      // 'user_profiles' below with the correct table and column name.
-      const { error } = await upsertProfile({ neuro_lens: neuroLens })
+      const { error } = await updateProfile({ neuro_lens: neuroLens })
       if (error) throw error
       setOriginalNeuroLens(neuroLens)
       setNeuroMessage({
@@ -444,16 +433,16 @@ const handleSaveProfile = async (e: React.FormEvent) => {
     }
   }
 
-  // BSFI CALIBRATION
+  // CALIBRATION SAVE
   const handleSaveCalibration = async (e: React.FormEvent) => {
     e.preventDefault()
     setCalibLoading(true)
     setCalibMessage(null)
     try {
-      const { error } = await upsertProfile({
+      const { error } = await updateProfile({
         wake_time: wakeTime,
         sleep_target: sleepTarget,
-        home_type: household      // stored as home_type in user_profiles
+        home_type: household
       })
       if (error) throw error
       setCalibMessage({ type: 'success', text: 'Calibration saved. BSFI scores will reflect these anchors from the next log entry.' })
@@ -464,13 +453,13 @@ const handleSaveProfile = async (e: React.FormEvent) => {
     }
   }
 
-  // NOTIFICATIONS
+  // NOTIFICATION SAVE
   const handleSaveNotifications = async (e: React.FormEvent) => {
     e.preventDefault()
     setNotifLoading(true)
     setNotifMessage(null)
     try {
-      const { error } = await upsertProfile({
+      const { error } = await updateProfile({
         notif_log: notifLog,
         notif_log_time: notifLogTime,
         notif_assess: notifAssess,
@@ -486,7 +475,7 @@ const handleSaveProfile = async (e: React.FormEvent) => {
     }
   }
 
-  // SECURITY
+  // SECURITY SAVE
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault()
     setSecurityLoading(true)
@@ -533,7 +522,6 @@ const handleSaveProfile = async (e: React.FormEvent) => {
         return
       }
 
-      // Convert to CSV
       const headers = Object.keys(logs[0]).join(',')
       const rows = logs.map(row =>
         Object.values(row).map(v =>
@@ -581,8 +569,6 @@ const handleSaveProfile = async (e: React.FormEvent) => {
   const handleDeleteAccount = async () => {
     setDeleteLoading(true)
     try {
-      // Delete user data first, then the auth user via a server action or edge function
-      // The edge function should handle cascading deletes respecting RLS
       const { error } = await supabase.functions.invoke('delete-user-account', {
         body: { user_id: userId }
       })
@@ -715,7 +701,7 @@ const handleSaveProfile = async (e: React.FormEvent) => {
                 </div>
               </div>
 
-              {/* Engine impact — shown for any non-None selection */}
+              {/* Engine impact */}
               <div className={`rounded-xl p-4 border transition-all ${
                 neuroLens !== 'None'
                   ? 'bg-[#b5a642]/5 border-[#b5a642]/15'
