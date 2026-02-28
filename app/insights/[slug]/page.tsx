@@ -188,7 +188,7 @@ const articles: Record<string, any> = {
         Together, these conditions form a spatial pattern that the human brain has relied on for survival for hundreds of thousands of years.
       </p>
 
-       <p class="text-xl text-[#c9ccbb] leading-relaxed mb-8">
+      <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
       You sit down for a quiet evening in your living room. One chair faces the open doorway, with nothing behind it. You feel restless and keep glancing over your shoulder. You move to the chair against the wall, with your back protected and a clear view of the entrance, and you instantly feel a sense of relief. This instinctive sense of relief is known as the refuge-and-prospect pattern. This is a hardwired evolutionary psychology, and your nervous system still relies on it every day.
     </p>
 
@@ -245,7 +245,7 @@ const articles: Record<string, any> = {
         Using tactile surfaces to manually down-regulate the nervous system.
       </p>
 
-      <p class="text-xl text-[#c9ccbb] leading-relaxed mb-8">
+     <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
       Picture this: you sink into the sofa after a long and stressful day and feel something shift. You feel the soft wool throw under your palm, the cool linen cushion against your back and the gentle give of the rug beneath your bare feet. Within seconds, your shoulders relax, your breathing slows and your mind quiets. This is called somatic grounding: a direct, wordless dialogue between your skin (and touch receptors) and your nervous system.
     </p>
 
