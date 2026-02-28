@@ -66,7 +66,7 @@ const articles: Record<string, any> = {
     readTime: "4 min read",
     date: "Jan 28, 2026",
     content: `
-      <p class="text-xl text-[#c9ccbb] leading-relaxed mb-8">
+      <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
         Do you know that every evening, your bedroom lighting quietly negotiates with your hormones? The wrong light level, warmth and intensity creates states in your nervous system that either tells it to stay alert, or encourages it to wind down for the night. Either choice would lead to delayed melatonin production and sleep onset, or an easy transition into sleep, and that great quality, restorative sleep that prepares us for the demands of the next day. We are going to explore how simple, repeatable lighting rituals can act as circadian anchors, providing reliable environmental cues to your nervous system to signal when it is time to wind down or get ready for the day.
       </p>
 
@@ -114,7 +114,7 @@ const articles: Record<string, any> = {
     readTime: "5 min read",
     date: "Jan 15, 2026",
     content: `
-      <p class="text-xl text-[#c9ccbb] leading-relaxed mb-8">
+      <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
         How reflective interiors can quietly increase cognitive effort, stress signalling and social fatigue.
       </p>
 
@@ -159,7 +159,7 @@ const articles: Record<string, any> = {
     readTime: "7 min read",
     date: "Jan 10, 2026",
     content: `
-      <p class="text-xl text-[#c9ccbb] leading-relaxed mb-8">
+      <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
         Why environments that combine visibility and protection feel instinctively safer to the human nervous system.
       </p>
 
@@ -213,7 +213,7 @@ const articles: Record<string, any> = {
     readTime: "3 min read",
     date: "Jan 05, 2026",
     content: `
-      <p class="text-xl text-[#c9ccbb] leading-relaxed mb-8">
+      <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
         How tactile contact with the built environment can help calm the nervous system.
       </p>
 
