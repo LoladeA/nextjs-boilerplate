@@ -2,53 +2,110 @@
 
 import Sidebar from '../components/Sidebar'
 import { useState, useRef, useEffect } from 'react'
-import { Camera, Loader2, ScanEye, CheckCircle, Lock, Brain, Lightbulb, Zap, Info, Activity, AlertCircle, ShieldCheck, HelpCircle, X } from 'lucide-react'
+import {
+  Camera, Loader2, ScanEye, CheckCircle, Lock, Brain,
+  Lightbulb, Zap, Info, Activity, AlertCircle, HelpCircle,
+  X, Volume2, Thermometer
+} from 'lucide-react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
+
+// =============================================================================
+// DOMAIN METADATA — display labels, icons, and clinical descriptions
+// Maps the six neural system keys returned by /api/analyze
+// =============================================================================
+const DOMAIN_META: Record<string, { label: string; description: string; color: string }> = {
+  'Amygdala Regulation': {
+    label: 'Amygdala Regulation',
+    description: 'Threat detection, contrast, and sensory unpredictability.',
+    color: '#e8a87c'
+  },
+  'Prefrontal Buffer': {
+    label: 'Prefrontal Buffer',
+    description: 'Competing stimuli and executive attention demand.',
+    color: '#b5a642'
+  },
+  'Vagal Coherence': {
+    label: 'Vagal Coherence',
+    description: 'Biophilic cues, tactile anchors, and parasympathetic activation.',
+    color: '#7ec89a'
+  },
+  'Circadian Alignment': {
+    label: 'Circadian Alignment',
+    description: 'Spectral quality, luminance, and melatonin support.',
+    color: '#7eb5e8'
+  },
+  'Acoustic Safety': {
+    label: 'Acoustic Safety',
+    description: 'Surface composition and unpredictable noise buffering.',
+    color: '#c9ccbb'
+  },
+  'Neuroendocrine Balance': {
+    label: 'Neuroendocrine Balance',
+    description: 'Composite cortisol and sustained stress load.',
+    color: '#b57ec8'
+  }
+}
+
+// Score band — used for domain bar coloring
+function getScoreBand(score: number): 'high' | 'mid' | 'low' {
+  if (score >= 65) return 'high'
+  if (score >= 40) return 'mid'
+  return 'low'
+}
+
+const BAND_COLORS = {
+  high: 'from-[#7ec89a]/60 to-[#7ec89a]',
+  mid:  'from-[#b5a642]/60 to-[#b5a642]',
+  low:  'from-[#e87c7c]/60 to-[#e87c7c]'
+}
+
+const rooms = ['Living Room', 'Bedroom', 'Home Office', 'Kitchen', 'Entryway']
+
+const orchestrationStages = [
+  "Mapping spatial geometry and object density...",
+  "Extracting biophilic and tactile surface markers...",
+  "Calculating neural domain load across six systems...",
+  "Translating findings into neurodesign directives..."
+]
 
 export default function RoomAudit() {
   const supabase = createClientComponentClient()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const [loading, setLoading] = useState(true)
+  // Access gate
+  const [loading, setLoading]     = useState(true)
   const [hasAccess, setHasAccess] = useState(false)
 
+  // Scan state
   const [selectedRoom, setSelectedRoom] = useState('Living Room')
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [file, setFile] = useState<File | null>(null)
-  const [manualLux, setManualLux] = useState<string>('')
-  
-  // 🟢 MANUAL STATE
+  const [previewUrl, setPreviewUrl]     = useState<string | null>(null)
+  const [file, setFile]                 = useState<File | null>(null)
+  const [manualLux, setManualLux]       = useState<string>('')
+
+  // NEW: acoustic context — user-declared surface type
+  // Extends the engine's acoustic safety domain when Vision API cannot detect surfaces
+  const [acousticContext, setAcousticContext] = useState<'hard' | 'mixed' | 'soft' | ''>('')
+
+  // Flow state
+  const [status, setStatus]         = useState<'idle' | 'uploading' | 'processing' | 'success'>('idle')
+  const [result, setResult]         = useState<any>(null)
+  const [errorMsg, setErrorMsg]     = useState<string | null>(null)
+  const [loadingText, setLoadingText] = useState(orchestrationStages[0])
   const [isManualOpen, setIsManualOpen] = useState(false)
 
-  // 🟢 PHASE 7: EXPLICIT FLOW STATES
-  const [status, setStatus] = useState<'idle' | 'validating' | 'processing' | 'success'>('idle')
-  const [result, setResult] = useState<any>(null)
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
-
-  // 🟢 ORCHESTRATION UI
-  const [loadingText, setLoadingText] = useState("Validating Room Protocol...")
-  const orchestrationStages = [
-    "Extracting spatial geometry...",
-    "Mapping visual entropy...",
-    "Calculating sensory load...",
-    "Translating clinical insights..."
-  ]
-
-  const rooms = ['Living Room', 'Bedroom', 'Home Office', 'Kitchen', 'Entryway']
-
+  // =============================================================================
+  // ACCESS VALIDATION
+  // =============================================================================
   useEffect(() => {
-    async function validateAccess() {
+    const validateAccess = async () => {
       try {
         const { data: { user }, error: userError } = await supabase.auth.getUser()
-        if (userError || !user) {
-          setHasAccess(false); setLoading(false); return;
-        }
+        if (userError || !user) { setHasAccess(false); setLoading(false); return }
 
-        if (user.email === 'christchilde@gmail.com') {
-          setHasAccess(true); setLoading(false); return;
-        }
+        // Dev bypass — remove before production
+        if (user.email === 'christchilde@gmail.com') { setHasAccess(true); setLoading(false); return }
 
         const { data: subscription, error: subError } = await supabase
           .from('subscriptions')
@@ -56,147 +113,180 @@ export default function RoomAudit() {
           .eq('user_id', user.id)
           .single()
 
-        if (
-          !subError && subscription && subscription.plan === 'premium' &&
-          subscription.status === 'active' && new Date(subscription.current_period_end) >= new Date()
-        ) {
-          setHasAccess(true)
-        } else {
-          setHasAccess(false)
-        }
+        setHasAccess(
+          !subError &&
+          subscription?.plan === 'premium' &&
+          subscription?.status === 'active' &&
+          new Date(subscription.current_period_end) >= new Date()
+        )
+      } catch {
+        setHasAccess(false)
+      } finally {
         setLoading(false)
-      } catch (err) {
-        console.error('Premium validation failed', err)
-        setHasAccess(false); setLoading(false)
       }
     }
     validateAccess()
   }, [supabase])
 
+  // =============================================================================
+  // FILE SELECTION
+  // =============================================================================
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!hasAccess) return
-    if (e.target.files && e.target.files[0]) {
-      const selectedFile = e.target.files[0]
-      setFile(selectedFile)
-      setPreviewUrl(URL.createObjectURL(selectedFile))
-      setResult(null)
-      setStatus('idle')
-      setErrorMsg(null)
-    }
+    const selectedFile = e.target.files?.[0]
+    if (!selectedFile) return
+    setFile(selectedFile)
+    setPreviewUrl(URL.createObjectURL(selectedFile))
+    setResult(null)
+    setStatus('idle')
+    setErrorMsg(null)
   }
 
+  // =============================================================================
+  // ANALYSIS PIPELINE
+  // Upload → /api/analyze (Vision + scoring + GPT-4o + DB)
+  // =============================================================================
   const handleRunAnalysis = async () => {
     if (!file || !hasAccess) return
-    
-    setStatus('validating')
+
+    setStatus('uploading')
     setErrorMsg(null)
-    setLoadingText("Validating Priority Room Allocation...")
+    setLoadingText("Uploading room image securely...")
 
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Not logged in')
+      if (!user) throw new Error('Session expired. Please log in again.')
 
-      const fileName = `${user.id}/${Date.now()}_${selectedRoom.replace(' ', '_')}.jpg`
-      const { error: uploadError } = await supabase.storage.from('room-photos').upload(fileName, file)
-      if (uploadError) throw uploadError
+      // FIX: bucket name aligned to actual Supabase storage bucket
+      const fileName = `${user.id}/${Date.now()}_${selectedRoom.replace(/\s+/g, '_')}.jpg`
+      const { error: uploadError } = await supabase.storage
+        .from('room_audits')
+        .upload(fileName, file)
 
-      const { data: { publicUrl } } = supabase.storage.from('room-photos').getPublicUrl(fileName)
+      if (uploadError) throw new Error(`Upload failed: ${uploadError.message}`)
 
+      const { data: { publicUrl } } = supabase.storage
+        .from('room_audits')
+        .getPublicUrl(fileName)
+
+      // Start orchestration stage cycling
       setStatus('processing')
       let stageIndex = 0
       setLoadingText(orchestrationStages[0])
-      
+
       const stageInterval = setInterval(() => {
-        stageIndex++
-        if (stageIndex < orchestrationStages.length) {
-          setLoadingText(orchestrationStages[stageIndex])
-        }
-      }, 2500)
+        stageIndex = Math.min(stageIndex + 1, orchestrationStages.length - 1)
+        setLoadingText(orchestrationStages[stageIndex])
+      }, 3500)
 
       const response = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ roomName: selectedRoom, imageUrl: publicUrl, measuredLux: manualLux ? parseInt(manualLux) : null })
+        body: JSON.stringify({
+          roomName:       selectedRoom,
+          imageUrl:       publicUrl,
+          measuredLux:    manualLux ? parseInt(manualLux) : null,
+          acousticContext: acousticContext || null
+        })
       })
-      
+
       clearInterval(stageInterval)
-      
+
       const analysis = await response.json()
-      
-      if (!analysis.success) throw new Error(analysis.error || 'Analysis failed')
+      if (!analysis.success) throw new Error(analysis.error || 'Analysis failed.')
 
       setResult(analysis.data)
       setStatus('success')
-      
+
     } catch (err: any) {
-      console.error('Analysis Error:', err)
+      console.error('[RoomAudit] Error:', err.message)
       setErrorMsg(err.message)
       setStatus('idle')
     }
   }
 
-  if (loading) return <div className="min-h-screen bg-[#1b270e] flex items-center justify-center"><Loader2 className="animate-spin text-[#b5a642]" /></div>
+  // =============================================================================
+  // LOADING + ACCESS GATE
+  // =============================================================================
+  if (loading) return (
+    <div className="min-h-screen bg-[#1b270e] flex items-center justify-center">
+      <Loader2 className="animate-spin text-[#b5a642]" size={32} />
+    </div>
+  )
 
-  if (!hasAccess) {
-    return (
-      <div className="min-h-screen bg-[#1b270e] font-sans flex flex-col items-center justify-center text-center p-12">
-        <Lock size={48} className="text-[#b5a642] mb-4" />
-        <h2 className="text-xl font-serif text-[#c9ccbb] mb-2">Your Home Is About To Level Up</h2>
-        <p className="text-[#c9ccbb]/60 mb-6 max-w-sm">
-          Become a foundation member and see in real time what is working in your room, what isn't, and make realtime changes your nervous system will thank you for.
-        </p>
-        <Link href="/upgrade" className="px-8 py-3 bg-[#b5a642] text-[#1b270e] rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-[#d4c55e]">
-          Upgrade to Premium
-        </Link>
-      </div>
-    )
-  }
+  if (!hasAccess) return (
+    <div className="min-h-screen bg-[#1b270e] font-sans flex flex-col items-center justify-center text-center p-12">
+      <Lock size={48} className="text-[#b5a642] mb-6" />
+      <h2 className="text-2xl font-serif text-[#c9ccbb] mb-3">Your Home Is About To Level Up</h2>
+      <p className="text-[#c9ccbb]/60 mb-8 max-w-sm leading-relaxed text-sm">
+        Become a foundation member. See in real time what is working in your room, what is not,
+        and make changes your nervous system will thank you for.
+      </p>
+      <Link href="/upgrade" className="px-8 py-3 bg-[#b5a642] text-[#1b270e] rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-[#d4c55e] transition-all">
+        Upgrade to Premium
+      </Link>
+    </div>
+  )
 
+  const isAnalysing = status === 'uploading' || status === 'processing'
+
+  // =============================================================================
+  // MAIN RENDER
+  // =============================================================================
   return (
     <div className="min-h-screen bg-[#1b270e] font-sans selection:bg-[#b5a642] selection:text-[#1b270e]">
       <Sidebar />
+
       <div className="md:ml-64 min-h-screen p-6 md:p-12">
         <div className="max-w-4xl mx-auto">
 
-          <div className="mb-12 flex justify-between items-start">
+          {/* PAGE HEADER */}
+          <div className="mb-10 flex justify-between items-start">
             <div>
-              <h1 className="text-4xl font-serif text-[#c9ccbb] mb-4 flex items-center gap-4">
+              <h1 className="text-4xl font-serif text-[#c9ccbb] mb-2 flex items-center gap-4">
                 Environmental Audit
-                {/* 🟢 NEW: Manual Trigger Icon */}
-                <button 
-                  onClick={() => setIsManualOpen(true)} 
+                <button
+                  onClick={() => setIsManualOpen(true)}
                   className="text-[#b5a642]/60 hover:text-[#b5a642] transition-colors p-2 rounded-full hover:bg-[#b5a642]/10"
                 >
-                  <HelpCircle size={24} />
+                  <HelpCircle size={22} />
                 </button>
               </h1>
-              <p className="text-[#c9ccbb]/60 max-w-lg">NeuroDesign Analysis Engine</p>
+              <p className="text-[#c9ccbb]/50 text-sm">NeuroDesign Analysis Engine — Six Neural System Evaluation</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-            {/* ---------------- UPLOAD & VALIDATION PANEL ---------------- */}
-            <div className="glass-panel p-8 rounded-3xl border border-[#c9ccbb]/10 bg-[#000]/20 relative overflow-hidden h-fit flex flex-col">
-              
-              <div className="mb-6 p-4 bg-[#b5a642]/10 border border-[#b5a642]/20 rounded-xl flex items-start gap-3">
-                <Info size={16} className="text-[#b5a642] shrink-0 mt-0.5" />
+            {/* ================================================================
+                UPLOAD & INPUT PANEL
+            ================================================================ */}
+            <div className="glass-panel p-8 rounded-3xl border border-[#c9ccbb]/10 bg-[#000]/20 flex flex-col gap-6">
+
+              {/* Protocol notice */}
+              <div className="p-4 bg-[#b5a642]/10 border border-[#b5a642]/20 rounded-xl flex items-start gap-3">
+                <Info size={15} className="text-[#b5a642] shrink-0 mt-0.5" />
                 <div>
                   <span className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest block mb-1">Audit Protocol</span>
                   <p className="text-[#c9ccbb]/70 text-xs leading-relaxed">
-                    To ensure longitudinal accuracy, you are allocated <strong>2 scans per month</strong>. These must be applied to <strong>1 Priority Room</strong>.
+                    2 scans per month, allocated to <strong>1 Priority Room</strong> for longitudinal baseline accuracy.
                   </p>
                 </div>
               </div>
 
-              <div className="flex justify-center mb-6">
+              {/* Room selector */}
+              <div className="flex justify-center">
                 <div className="inline-flex bg-[#000]/40 rounded-full p-1 border border-[#c9ccbb]/10 flex-wrap justify-center gap-1">
                   {rooms.map(room => (
                     <button
                       key={room}
                       onClick={() => setSelectedRoom(room)}
-                      disabled={status === 'validating' || status === 'processing'}
-                      className={`px-3 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${selectedRoom === room ? 'bg-[#b5a642] text-[#1b270e]' : 'text-[#c9ccbb]/40 hover:text-[#c9ccbb]'}`}
+                      disabled={isAnalysing}
+                      className={`px-3 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${
+                        selectedRoom === room
+                          ? 'bg-[#b5a642] text-[#1b270e]'
+                          : 'text-[#c9ccbb]/40 hover:text-[#c9ccbb]'
+                      }`}
                     >
                       {room}
                     </button>
@@ -204,118 +294,205 @@ export default function RoomAudit() {
                 </div>
               </div>
 
-              <div onClick={() => (status === 'idle' || status === 'success') && fileInputRef.current?.click()}
-                   className={`w-full flex-1 min-h-[250px] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center relative transition-all
-                   ${status === 'processing' || status === 'validating' ? 'border-[#b5a642]/50 opacity-50 cursor-not-allowed' : previewUrl ? 'border-[#b5a642] bg-black cursor-pointer' : 'border-[#c9ccbb]/20 hover:border-[#b5a642]/50 cursor-pointer'}`}>
-                <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept="image/*" className="hidden" />
-                {previewUrl ? <img src={previewUrl} className="absolute inset-0 w-full h-full object-cover opacity-60 rounded-2xl" /> : (
-                  <div className="flex flex-col items-center gap-4 text-[#c9ccbb]/40">
-                    <Camera size={32} />
-                    <span className="text-xs font-bold uppercase tracking-widest">Tap to Capture</span>
+              {/* Image upload */}
+              <div
+                onClick={() => !isAnalysing && fileInputRef.current?.click()}
+                className={`w-full min-h-[220px] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center relative transition-all
+                  ${isAnalysing ? 'border-[#b5a642]/30 opacity-50 cursor-not-allowed'
+                    : previewUrl ? 'border-[#b5a642] cursor-pointer'
+                    : 'border-[#c9ccbb]/20 hover:border-[#b5a642]/50 cursor-pointer'}`}
+              >
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileSelect}
+                  accept="image/*"
+                  className="hidden"
+                  disabled={isAnalysing}
+                />
+                {previewUrl ? (
+                  <img
+                    src={previewUrl}
+                    className="absolute inset-0 w-full h-full object-cover opacity-60 rounded-2xl"
+                    alt="Room preview"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center gap-3 text-[#c9ccbb]/40">
+                    <Camera size={28} />
+                    <span className="text-xs font-bold uppercase tracking-widest">Tap to Upload Room Photo</span>
                   </div>
                 )}
               </div>
 
-              <div className="mt-6">
-                <label className="flex items-center gap-2 text-[#c9ccbb]/60 text-[10px] font-bold uppercase tracking-widest mb-2">
-                  <Zap size={12} className="text-[#b5a642]" /> Add Light Meter Reading (Optional)
-                </label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    value={manualLux}
-                    onChange={e => setManualLux(e.target.value)}
-                    placeholder="e.g. 350"
-                    disabled={status === 'validating' || status === 'processing'}
-                    className="w-full bg-[#1b270e] border border-[#c9ccbb]/20 rounded-xl px-4 py-3 text-[#c9ccbb] text-sm focus:outline-none focus:border-[#b5a642]"
-                  />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#c9ccbb]/30 text-[10px] font-bold">LUX</span>
+              {/* Optional inputs row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                {/* Lux reading */}
+                <div>
+                  <label className="flex items-center gap-1.5 text-[#c9ccbb]/60 text-[10px] font-bold uppercase tracking-widest mb-2">
+                    <Zap size={11} className="text-[#b5a642]" /> Light Level (Optional)
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={manualLux}
+                      onChange={e => setManualLux(e.target.value)}
+                      placeholder="e.g. 350"
+                      disabled={isAnalysing}
+                      className="w-full bg-[#1b270e] border border-[#c9ccbb]/20 rounded-xl px-4 py-3 text-[#c9ccbb] text-sm focus:outline-none focus:border-[#b5a642] transition-colors"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[#c9ccbb]/30 text-[10px] font-bold">LUX</span>
+                  </div>
+                </div>
+
+                {/* Acoustic context — user-declared */}
+                <div>
+                  <label className="flex items-center gap-1.5 text-[#c9ccbb]/60 text-[10px] font-bold uppercase tracking-widest mb-2">
+                    <Volume2 size={11} className="text-[#b5a642]" /> Surface Type (Optional)
+                  </label>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {(['hard', 'mixed', 'soft'] as const).map(type => (
+                      <button
+                        key={type}
+                        type="button"
+                        disabled={isAnalysing}
+                        onClick={() => setAcousticContext(acousticContext === type ? '' : type)}
+                        className={`py-2.5 rounded-xl border text-[10px] font-bold uppercase tracking-widest transition-all capitalize ${
+                          acousticContext === type
+                            ? 'border-[#b5a642]/60 bg-[#b5a642]/10 text-[#b5a642]'
+                            : 'border-[#c9ccbb]/10 text-[#c9ccbb]/40 hover:border-[#c9ccbb]/25'
+                        }`}
+                      >
+                        {type}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-[#c9ccbb]/30 text-[9px] mt-1.5 leading-relaxed">
+                    Dominant surface material. Helps calibrate acoustic safety when surfaces are not visible.
+                  </p>
                 </div>
               </div>
 
-              <div className="mt-6 flex flex-col items-center">
+              {/* Run button */}
+              <div className="flex flex-col items-center gap-3">
                 <button
-                  disabled={!file || status === 'validating' || status === 'processing'}
+                  disabled={!file || isAnalysing}
                   onClick={handleRunAnalysis}
-                  className={`w-full py-4 rounded-xl font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-lg ${!file ? 'bg-[#c9ccbb]/10 text-[#c9ccbb]/20' : 'bg-[#b5a642] text-[#1b270e] hover:bg-white shadow-[#b5a642]/20'}`}
+                  className={`w-full py-4 rounded-xl font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-lg ${
+                    !file
+                      ? 'bg-[#c9ccbb]/10 text-[#c9ccbb]/20 cursor-not-allowed'
+                      : isAnalysing
+                      ? 'bg-[#b5a642]/60 text-[#1b270e] cursor-wait'
+                      : 'bg-[#b5a642] text-[#1b270e] hover:bg-[#d4c55e] shadow-[#b5a642]/20'
+                  }`}
                 >
-                  {status === 'validating' ? <><ShieldCheck size={16} className="animate-pulse" /> Authorising</> : 
-                   status === 'processing' ? <><Loader2 size={16} className="animate-spin" /> Processing</> : 
-                   <>Run Diagnosis <Brain size={16} /></>}
+                  {status === 'uploading' ? <><Loader2 size={15} className="animate-spin" /> Uploading</>
+                  : status === 'processing' ? <><Loader2 size={15} className="animate-spin" /> Analysing</>
+                  : <><Brain size={15} /> Run Neural Audit</>}
                 </button>
-                
+
                 {errorMsg && (
-                  <div className="mt-4 text-red-400 text-xs font-medium bg-red-900/20 px-4 py-3 rounded-xl border border-red-900/50 w-full text-center">
+                  <div className="w-full text-red-400 text-xs bg-red-900/20 px-4 py-3 rounded-xl border border-red-900/40 text-center leading-relaxed">
                     {errorMsg}
                   </div>
                 )}
               </div>
             </div>
 
-            {/* ---------------- ORCHESTRATION & DASHBOARD PANEL ---------------- */}
-            <div className="relative h-full min-h-[500px]">
-              {status === 'validating' || status === 'processing' ? (
-                <div className="h-full border-2 border-dashed border-[#b5a642]/30 rounded-3xl flex flex-col items-center justify-center p-12 text-center bg-[#b5a642]/5 transition-all">
-                   <div className="relative mb-8">
-                     <div className="absolute inset-0 border-4 border-[#b5a642]/20 rounded-full animate-ping"></div>
-                     <div className="w-16 h-16 bg-[#b5a642]/20 rounded-full flex items-center justify-center border border-[#b5a642]/50 relative z-10">
-                       <ScanEye size={24} className="text-[#b5a642]" />
-                     </div>
-                   </div>
-                   <p className="text-[#b5a642] text-xs uppercase font-bold tracking-widest animate-pulse">{loadingText}</p>
+            {/* ================================================================
+                RESULTS PANEL
+            ================================================================ */}
+            <div className="relative min-h-[560px]">
+
+              {/* Processing state */}
+              {isAnalysing && (
+                <div className="h-full border-2 border-dashed border-[#b5a642]/30 rounded-3xl flex flex-col items-center justify-center p-12 text-center bg-[#b5a642]/5">
+                  <div className="relative mb-8">
+                    <div className="absolute inset-0 border-4 border-[#b5a642]/20 rounded-full animate-ping" />
+                    <div className="w-16 h-16 bg-[#b5a642]/20 rounded-full flex items-center justify-center border border-[#b5a642]/40 relative z-10">
+                      <ScanEye size={24} className="text-[#b5a642]" />
+                    </div>
+                  </div>
+                  <p className="text-[#b5a642] text-xs uppercase font-bold tracking-widest animate-pulse max-w-[240px] leading-relaxed">
+                    {loadingText}
+                  </p>
                 </div>
-              ) : status === 'success' && result ? (
-                <div className="glass-panel p-8 rounded-3xl border border-[#b5a642]/40 bg-[#1b270e] h-full shadow-2xl shadow-[#b5a642]/5 animate-fade-in-up">
-                  
-                  {/* ALIGNMENT INDEX HERO */}
-                  <div className="text-center mb-8 p-8 bg-gradient-to-b from-[#b5a642]/10 to-transparent rounded-2xl border border-[#b5a642]/20 relative overflow-hidden">
-                    <span className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest block mb-2">NeuroDesign Alignment Score</span>
-                    <div className="text-7xl font-serif text-[#c9ccbb] drop-shadow-md">{result.alignment_index}<span className="text-3xl text-[#c9ccbb]/30">/100</span></div>
+              )}
+
+              {/* Success state */}
+              {status === 'success' && result && (
+                <div className="glass-panel p-8 rounded-3xl border border-[#b5a642]/30 bg-[#1b270e] shadow-2xl shadow-[#b5a642]/5 space-y-8">
+
+                  {/* Alignment index hero */}
+                  <div className="text-center p-8 bg-gradient-to-b from-[#b5a642]/10 to-transparent rounded-2xl border border-[#b5a642]/15 relative overflow-hidden">
+                    <span className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest block mb-2">
+                      NeuroDesign Alignment Score
+                    </span>
+                    <div className="text-7xl font-serif text-[#c9ccbb] drop-shadow-md">
+                      {result.alignment_index}
+                      <span className="text-2xl text-[#c9ccbb]/30">/100</span>
+                    </div>
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-[#b5a642]/8 rounded-full blur-3xl pointer-events-none" />
                   </div>
 
-                  {/* OBJECTIVE METRICS */}
-                  <div className="grid grid-cols-2 gap-4 mb-8">
-                    <div className="p-4 bg-[#000]/30 rounded-xl border border-[#c9ccbb]/10 flex flex-col justify-between">
-                      <span className="text-[#c9ccbb]/40 text-[10px] font-bold uppercase tracking-widest block mb-1">Visual Entropy</span>
-                      <span className="text-2xl font-serif text-[#c9ccbb]">{result.entropy_score} <span className="text-sm font-sans text-[#c9ccbb]/30">/ 10</span></span>
+                  {/* Surface metrics row */}
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="p-4 bg-[#000]/30 rounded-xl border border-[#c9ccbb]/8 text-center">
+                      <span className="text-[#c9ccbb]/40 text-[9px] font-bold uppercase tracking-widest block mb-1">Visual Entropy</span>
+                      <span className="text-2xl font-serif text-[#c9ccbb]">{result.entropy_score}</span>
+                      <span className="text-[#c9ccbb]/30 text-[10px]"> /10</span>
                     </div>
-                    <div className="p-4 bg-[#000]/30 rounded-xl border border-[#c9ccbb]/10 flex flex-col justify-between">
-                      <span className="text-[#c9ccbb]/40 text-[10px] font-bold uppercase tracking-widest block mb-1">Biophilic Index</span>
-                      <span className="text-xl font-serif text-[#c9ccbb] mt-1">{result.biophilic_rating}</span>
+                    <div className="p-4 bg-[#000]/30 rounded-xl border border-[#c9ccbb]/8 text-center">
+                      <span className="text-[#c9ccbb]/40 text-[9px] font-bold uppercase tracking-widest block mb-1">Colour Temp</span>
+                      <span className="text-lg font-serif text-[#c9ccbb]">{result.lighting_kelvin}K</span>
+                    </div>
+                    <div className="p-4 bg-[#000]/30 rounded-xl border border-[#c9ccbb]/8 text-center">
+                      <span className="text-[#c9ccbb]/40 text-[9px] font-bold uppercase tracking-widest block mb-1">Biophilic</span>
+                      <span className="text-lg font-serif text-[#c9ccbb]">{result.biophilic_rating}</span>
                     </div>
                   </div>
 
-                  
-                  
-                  {/* THE 5 DOMAINS */}
-                  <div className="mb-10 p-6 bg-[#000]/20 rounded-2xl border border-[#c9ccbb]/5">
-                     <h4 className="text-[#b5a642] text-xs font-bold uppercase tracking-widest mb-6 flex items-center gap-2">
-                       <Activity size={14} /> Somatic Domains
-                     </h4>
-                     <div className="space-y-5">
-                       {Object.entries(result.domains).map(([key, val]: [string, any]) => (
-                          <div key={key}>
-                            <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-[#c9ccbb]/80 mb-2">
-                              <span>{key}</span>
-                              <span className="text-[#b5a642]">{val}/100</span>
+                  {/* Six neural domains */}
+                  <div className="p-6 bg-[#000]/20 rounded-2xl border border-[#c9ccbb]/5 space-y-5">
+                    <h4 className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
+                      <Activity size={13} /> Six Neural System Scores
+                    </h4>
+                    {Object.entries(result.domains).map(([key, val]: [string, any]) => {
+                      const meta = DOMAIN_META[key]
+                      const band = getScoreBand(val)
+                      return (
+                        <div key={key}>
+                          <div className="flex justify-between items-end mb-1.5">
+                            <div>
+                              <span className="text-[#c9ccbb]/90 text-xs font-bold block">
+                                {meta?.label || key}
+                              </span>
+                              <span className="text-[#c9ccbb]/40 text-[10px]">
+                                {meta?.description}
+                              </span>
                             </div>
-                            <div className="w-full h-1.5 bg-[#1b270e] border border-[#c9ccbb]/10 rounded-full overflow-hidden">
-                              <div className="h-full bg-gradient-to-r from-[#b5a642]/50 to-[#b5a642] rounded-full transition-all duration-1000 ease-out" style={{ width: `${val}%` }} />
-                            </div>
+                            <span className="text-[#b5a642] text-xs font-bold ml-4 flex-shrink-0">{val}/100</span>
                           </div>
-                       ))}
-                     </div>
+                          <div className="w-full h-1.5 bg-[#000]/30 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full bg-gradient-to-r ${BAND_COLORS[band]} rounded-full transition-all duration-1000 ease-out`}
+                              style={{ width: `${val}%` }}
+                            />
+                          </div>
+                        </div>
+                      )
+                    })}
                   </div>
 
-                  {/* STRESS TRIGGERS */}
-                  {result.triggers && result.triggers.length > 0 && (
-                    <div className="mb-8">
+                  {/* Stress triggers */}
+                  {result.triggers?.length > 0 && (
+                    <div>
                       <h4 className="text-red-400/90 text-[10px] font-bold uppercase tracking-widest mb-3 flex items-center gap-2">
-                        <AlertCircle size={14} /> Identified Friction Points
+                        <AlertCircle size={13} /> Identified Friction Points
                       </h4>
                       <div className="flex flex-wrap gap-2">
                         {result.triggers.map((trigger: string, i: number) => (
-                          <span key={i} className="px-3 py-2 bg-red-950/30 border border-red-900/40 text-red-300/90 text-xs rounded-lg leading-relaxed">
+                          <span key={i} className="px-3 py-2 bg-red-950/30 border border-red-900/30 text-red-300/90 text-xs rounded-xl leading-relaxed">
                             {trigger}
                           </span>
                         ))}
@@ -323,10 +500,10 @@ export default function RoomAudit() {
                     </div>
                   )}
 
-                  {/* CLINICAL INSIGHT */}
-                  <div className="mb-10">
+                  {/* Clinical insight */}
+                  <div>
                     <h4 className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-3 flex items-center gap-2">
-                      <Brain size={14} /> Diagnostic Translation
+                      <Brain size={13} /> Neurodesign Translation
                     </h4>
                     <div className="p-5 bg-[#b5a642]/5 rounded-xl border border-[#b5a642]/10">
                       <p className="text-[#c9ccbb] text-sm leading-relaxed italic">
@@ -335,15 +512,15 @@ export default function RoomAudit() {
                     </div>
                   </div>
 
-                  {/* PRESCRIPTIONS */}
+                  {/* Structural directives */}
                   <div>
                     <h4 className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
-                      <Lightbulb size={14} /> Structural Directives
+                      <Lightbulb size={13} /> Structural Directives
                     </h4>
-                    <ul className="space-y-4">
+                    <ul className="space-y-3">
                       {result.prescriptions?.map((item: string, i: number) => (
                         <li key={i} className="flex gap-4 text-sm text-[#c9ccbb]/90 p-4 bg-[#000]/30 rounded-xl border border-[#c9ccbb]/5">
-                          <CheckCircle size={18} className="text-[#b5a642] shrink-0 mt-0.5" />
+                          <CheckCircle size={16} className="text-[#b5a642] shrink-0 mt-0.5" />
                           <span className="leading-relaxed">{item}</span>
                         </li>
                       ))}
@@ -351,10 +528,18 @@ export default function RoomAudit() {
                   </div>
 
                 </div>
-              ) : (
+              )}
+
+              {/* Idle state */}
+              {status === 'idle' && (
                 <div className="h-full border-2 border-dashed border-[#c9ccbb]/5 rounded-3xl flex flex-col items-center justify-center p-12 text-center opacity-50 bg-[#000]/10">
-                  <ScanEye size={48} className="text-[#c9ccbb]/20 mb-4" />
-                  <p className="text-[#c9ccbb]/40 text-sm uppercase tracking-widest">Awaiting Scan Data...</p>
+                  <ScanEye size={40} className="text-[#c9ccbb]/20 mb-4" />
+                  <p className="text-[#c9ccbb]/40 text-sm uppercase tracking-widest">
+                    Awaiting Scan Input
+                  </p>
+                  <p className="text-[#c9ccbb]/20 text-xs mt-2">
+                    Upload a photo of your priority room to begin.
+                  </p>
                 </div>
               )}
             </div>
@@ -363,56 +548,77 @@ export default function RoomAudit() {
         </div>
       </div>
 
+      {/* ================================================================
+          ROOM AUDIT MANUAL MODAL
+      ================================================================ */}
       <AnimatePresence>
-        {/* 🟢 NEW: Room Audit Manual Modal */}
         {isManualOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#000]/80 backdrop-blur-sm p-4">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
-              className="w-full max-w-2xl max-h-[85vh] overflow-y-auto hide-scrollbar bg-[#1b270e] border border-[#b5a642]/30 rounded-3xl shadow-2xl relative p-8 md:p-12"
+              className="w-full max-w-2xl max-h-[85vh] overflow-y-auto bg-[#1b270e] border border-[#b5a642]/30 rounded-3xl shadow-2xl relative p-8 md:p-12"
             >
-              <button 
-                onClick={() => setIsManualOpen(false)} 
-                className="absolute top-6 right-6 text-[#c9ccbb]/50 hover:text-[#b5a642] z-10 transition-colors bg-[#000]/20 p-2 rounded-full"
+              <button
+                onClick={() => setIsManualOpen(false)}
+                className="absolute top-6 right-6 text-[#c9ccbb]/50 hover:text-[#b5a642] transition-colors bg-[#000]/20 p-2 rounded-full z-10"
               >
-                <X size={20} />
+                <X size={18} />
               </button>
 
-              <h2 className="text-3xl font-serif text-[#c9ccbb] mb-8 border-b border-[#c9ccbb]/10 pb-6">Room Audit Manual</h2>
+              <h2 className="text-3xl font-serif text-[#c9ccbb] mb-2">Room Audit Manual</h2>
+              <p className="text-[#c9ccbb]/40 text-xs uppercase tracking-widest mb-8 border-b border-[#c9ccbb]/10 pb-6">
+                NeuroDesign Analysis Engine
+              </p>
 
-              <div className="space-y-8 text-[#c9ccbb]/80 text-sm leading-relaxed font-light">
+              <div className="space-y-8 text-[#c9ccbb]/80 text-sm leading-relaxed">
+
                 <section>
-                  <h3 className="text-lg font-serif text-[#b5a642] mb-2">The Engine's Perspective</h3>
-                  <p>The NeuroDesign Analysis Engine does not evaluate your room for aesthetics or style. It scans the architecture to determine how much biological work your system is required to do to exist within it. It translates spatial geometry into sensory load.</p>
+                  <h3 className="text-base font-serif text-[#b5a642] mb-2">What the Engine Measures</h3>
+                  <p>The NeuroDesign Analysis Engine does not evaluate a room for aesthetics or style. It reads the spatial architecture to determine how much biological work your nervous system must perform to exist within it, and translates that into six measurable neural system loads.</p>
                 </section>
 
                 <section>
-                  <h3 className="text-lg font-serif text-[#b5a642] mb-2">NeuroDesign Alignment Score</h3>
-                  <p>A holistic rating (0-100) of how well the room supports nervous system regulation. A high score means the room acts as a restorative container; a low score indicates the space is extracting cognitive capacity.</p>
+                  <h3 className="text-base font-serif text-[#b5a642] mb-3">The Six Neural Systems</h3>
+                  <div className="space-y-4">
+                    {Object.values(DOMAIN_META).map((meta, i) => (
+                      <div key={i} className="flex gap-3">
+                        <div className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0" style={{ backgroundColor: meta.color }} />
+                        <div>
+                          <span className="text-[#c9ccbb] font-bold text-xs block mb-0.5">{meta.label}</span>
+                          <span className="text-[#c9ccbb]/60 text-xs">{meta.description}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </section>
 
                 <section>
-                  <h3 className="text-lg font-serif text-[#b5a642] mb-2">Visual Entropy (0-10)</h3>
-                  <p>Measures visual noise and clutter. The brain must unconsciously map every object in a room. High visual entropy (a score closer to 10) creates a sustained, low-grade cognitive tax that quietly erodes focus and rest.</p>
+                  <h3 className="text-base font-serif text-[#b5a642] mb-2">NeuroDesign Alignment Score</h3>
+                  <p>A holistic 0–100 rating of how well the room supports nervous system regulation across all six domains. Scores are weighted by room function — circadian alignment matters more in a bedroom; prefrontal buffering matters more in an office. A score above 70 indicates a regulating environment. Below 45 signals sustained depletion risk.</p>
                 </section>
 
                 <section>
-                  <h3 className="text-lg font-serif text-[#b5a642] mb-2">Biophilic Index</h3>
-                  <p>Evaluates the presence of natural elements (light, organic textures, plant life). Biophilic markers act as automatic parasympathetic triggers, signaling safety to the autonomic nervous system without requiring conscious thought.</p>
+                  <h3 className="text-base font-serif text-[#b5a642] mb-2">Light Level Input (Lux)</h3>
+                  <p>Measured with a light meter or phone sensor app. Improves the accuracy of your Circadian Alignment score by replacing the engine's estimated Kelvin with calibrated luminance data.</p>
                 </section>
 
                 <section>
-                  <h3 className="text-lg font-serif text-[#b5a642] mb-2">Somatic Domains</h3>
-                  <p>The engine breaks the room down into specific friction points (e.g., Circadian Friction from poor lighting, or Acoustic Load from hard surfaces) so you know exactly which structural element is draining your energy.</p>
+                  <h3 className="text-base font-serif text-[#b5a642] mb-2">Surface Type Input</h3>
+                  <p>Select the dominant surface material in the room. Hard surfaces (tile, concrete, bare wood) increase reverberation and unpredictable noise peaks, activating the amygdala. Soft surfaces (rugs, curtains, upholstery) absorb and buffer acoustic load. Use this when the image does not clearly show floor and wall materials.</p>
                 </section>
+
+                <section>
+                  <h3 className="text-base font-serif text-[#b5a642] mb-2">The Science</h3>
+                  <p>Carefully designed biophilic exposures — natural materials, views of nature, plant life — produce measurable improvements in attention and memory tasks. The research (Attention Restoration Theory, Kaplan 1995) reports approximately 20% improvements in directed attention after nature exposure. The engine weights Vagal Coherence to reflect this. Low biophilic coherence in your report is a clinically significant finding, not an aesthetic preference.</p>
+                </section>
+
               </div>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
-
     </div>
   )
 }
