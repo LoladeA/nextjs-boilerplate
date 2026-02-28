@@ -64,46 +64,49 @@ const articles: Record<string, any> = {
     title: "Circadian Anchors in the Home",
     category: "Light",
     readTime: "4 min read",
-    date: "Jan 20, 2026",
+    date: "Jan 28, 2026",
     content: `
       <p class="text-xl text-[#c9ccbb] leading-relaxed mb-8">
-        This article explores how lighting cues in the home can either reinforce or disrupt the body’s internal clock.
+        Do you know that every evening, your bedroom lighting quietly negotiates with your hormones? The wrong light level, warmth and intensity creates states in your nervous system that either tells it to stay alert, or encourages it to wind down for the night. Either choice would lead to delayed melatonin production and sleep onset, or an easy transition into sleep, and that great quality, restorative sleep that prepares us for the demands of the next day. We are going to explore how simple, repeatable lighting rituals can act as circadian anchors, providing reliable environmental cues to your nervous system to signal when it is time to wind down or get ready for the day.
       </p>
 
       <h3 class="text-2xl font-serif text-[#b5a642] mb-4">Light as a Biological Signal</h3>
       <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
-         Light is the most powerful regulator of the human circadian rhythm. Specialised photoreceptors in the eye send direct signals to the brain’s master clock, informing the body when to release cortisol to promote alertness and when to produce melatonin to encourage rest. When lighting patterns are inconsistent or biologically mismatched, circadian timing becomes unstable.
+         For 300,000 years, our biology has been synchronised with the sun’s daily movement across the sky. Specialised retinal cells (ipRGCs) send direct signals to the brain’s master clock, instructing it to release cortisol to promote alertness and melatonin to encourage rest. However, modern interiors often flood rooms with the same cool, bright light from breakfast to bedtime, creating a biological misalignment that we easily recognise as feeling wired but tired.
       </p>
 
       <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
-         Modern interiors often rely on static, uniform lighting that does not take the time of day into account. This 'flat' lighting can confuse the nervous system, reducing natural cortisol peaks in the morning and delaying melatonin release at night.
+         Real-world studies confirm the cost: adults with poor exposure to daylight during the day show delayed melatonin onset, shorter sleep and lower vitality. One crossover trial found that increasing circadian-effective daylight in homes advanced sleep onset by 22 minutes and improved sleep regularity, without altering bedtime routines.
       </p>
 
-      <h3 class="text-2xl font-serif text-[#b5a642] mb-4">Circadian Anchors and Predictability</h3>
+      <h3 class="text-2xl font-serif text-[#b5a642] mb-4">The Power of Predictable Transitions</h3>
       <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
-        The brain relies on repeated environmental cues—known as <em>zeitgebers</em>—to keep circadian rhythms aligned. In the home, consistent lighting transitions act as these anchors, reinforcing temporal predictability and helping the nervous system to anticipate rest or activity.
+        The brain loves predictability. Repeated lighting cues act as zeitgebers, or 'time-givers', that strengthen circadian amplitude. Bright morning light (ideally within 30–60 minutes of waking) spikes cortisol at the right moment, while warm, dim evening light (below 50 lux and complete darkness for sleep) creates the perfect environment for melatonin production. When you keep this up, over time the brain comes to pre-empt your sleep schedule and sleep onset becomes much easier. That is the power of neuroplasticity!
       </p>
 
       <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
-        <strong>What the nervous system detects:</strong> As evening approaches, we see warmth, dimming, and reduced visual contrast.<br />
-        <strong>Associated response:</strong> Decreased cortisol signalling and gradual melatonin onset.<br />
+        <strong>What the nervous system detects:</strong> A consistent sunset protocol, involving the switching on of amber lamps, the dimming of overhead lights and the switching off of screens, signals safety to the brain.<br />
+        <strong>Associated response:</strong> Reduced sympathetic arousal, smoother melatonin onset, and deeper sleep architecture.<br />
         <strong>Why it matters:</strong> Clear temporal cues can reduce physiological confusion and support sleep quality, mood regulation and metabolic health.
       </p>
 
-      <h3 class="text-2xl font-serif text-[#b5a642] mb-4">The Sunset Protocol</h3>
-      <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
-        Evening light that mimics sunset conditions helps the brain to transition out of alert mode. Warm, localised lighting creates a sensory environment associated with safety and rest, signalling that vigilance is no longer required.
-      </p>
+      <h3 class="text-2xl font-serif text-[#b5a642] mb-4">The Sunset Protocol in Practice</h3>
+       <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+      Create two distinct lighting states:
+    </p>
+    <ul class="list-disc pl-6 mb-6 text-[#c9ccbb]/80 leading-relaxed">
+      <li><strong>Day Mode</strong> (up to 2–3 hours before sunset): Aim for 1,000 lux or above near a window; 250 lux is a minimum, not a target.</li>
+      <li><strong>Evening Mode</strong> (sunset onward): Use only warm, low-intensity, localised lighting such as table lamps, wall sconces and candles. Avoid bright, blue-rich overhead fixtures.</li>
+    </ul>
+    <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
+      Add one non-negotiable anchor: switching off the last overhead light becomes your body’s cue that the day is officially over. Within weeks, many people notice an earlier natural onset of sleep and clearer mornings, which is a reliable signal that your biology is responding.
+    </p>
+    <p class="text-[#c9ccbb]/80 leading-relaxed">
+      Lighting is the most potent, cost-free instrument you have to synchronise your biology with the planet's cadence. Use it consistently and your home will stop working against your nervous system and start working with it.
+    </p>
+  `
+},
 
-      <p class="text-[#c9ccbb]/80 leading-relaxed mb-6">
-        <strong>Action:</strong> Establish circadian 'anchors' — specific, consistent light cues that appear only at sunset to reinforce the brain's expectation of evening and recovery.
-      </p>
-
-      <p class="text-[#c9ccbb]/80 leading-relaxed">
-        Over time, these anchors can stabilise circadian rhythms, enabling cortisol and melatonin to follow their natural cycles instead of competing for dominance.
-      </p>
-    `
-  },
 
   "silent-stressor-reverberation": {
     title: "The Silent Stressor: Reverberation",
