@@ -10,7 +10,9 @@ export default function Coaching() {
   const supabase = createClientComponentClient()
   const [loading, setLoading] = useState(true)
   
-  const [currentModule, setCurrentModule] = useState(2) 
+  // 🟢 STATE: Tracks progress AND payment status
+  const [currentModule, setCurrentModule] = useState(1) 
+  const [hasSubscription, setHasSubscription] = useState(false)
 
   useEffect(() => {
     async function fetchUserProgress() {
@@ -18,14 +20,18 @@ export default function Coaching() {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return
 
-        const { data: profile } = await supabase
-          .from('users')
-          .select('current_module')
-          .eq('id', user.id)
-          .single()
+        // 🟢 DUAL-FETCH: Progress and active subscription concurrently
+        const [profileRes, subRes] = await Promise.all([
+          supabase.from('users').select('current_module').eq('id', user.id).single(),
+          supabase.from('subscriptions').select('status').eq('user_id', user.id).eq('status', 'active').maybeSingle()
+        ])
 
-        if (profile?.current_module) {
-          setCurrentModule(profile.current_module)
+        if (profileRes.data?.current_module) {
+          setCurrentModule(profileRes.data.current_module)
+        }
+
+        if (subRes.data) {
+          setHasSubscription(true)
         }
       } catch (err) {
         console.error('Failed to fetch progression', err)
@@ -41,7 +47,7 @@ export default function Coaching() {
       id: 1,
       title: "Foundations of Neuropsychology in Interior Design",
       subtitle: "The Home as a Second Skin for the Nervous System.",
-      weeks: ["Neuro Load Scoring", "ACC & Theta Activity", "Hormonal Health"]
+      weeks: ["Introduction"]
     },
     {
       id: 2,
@@ -139,7 +145,6 @@ export default function Coaching() {
       <div className="md:ml-64 min-h-screen p-6 md:p-12">
         <div className="max-w-6xl mx-auto">
           
-          {/* 🟢 THE CORRECTED HEADER SECTION */}
           <div className="mb-12">
             <h1 className="text-4xl font-serif text-[#c9ccbb] mb-6">Your Sensory Coaching</h1>
             
@@ -158,14 +163,19 @@ export default function Coaching() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {modules.map((mod) => {
-              const isUnlocked = mod.id <= currentModule
+              // 🟢 THE BUSINESS LOGIC ENGINE
+              const isModuleOne = mod.id === 1
+              const hasSequentialAccess = mod.id <= currentModule
+              
+              // Module 1 is always free. Subsequent modules require BOTH progression AND payment.
+              const isUnlocked = isModuleOne || (hasSequentialAccess && hasSubscription)
               
               return (
                 <div 
                   key={mod.id} 
                   className={`glass-panel p-8 rounded-3xl border flex flex-col h-full transition-all duration-300 ${
                     isUnlocked 
-                      ? 'border-[#c9ccbb]/20 bg-[#000]/20 hover:border-[#b5a642]/50' 
+                      ? 'border-[#c9ccbb]/20 bg-[#000]/30 hover:border-[#b5a642]/50' // 🟢 A bit more background color for contrast on unlocked cards
                       : 'border-[#c9ccbb]/5 bg-[#000]/10 opacity-70 cursor-default'
                   }`}
                 >
@@ -193,12 +203,18 @@ export default function Coaching() {
 
                   <div className="pt-6 border-t border-[#c9ccbb]/10 mt-auto">
                     {isUnlocked ? (
-                      <Link href={`/coaching/module-${mod.id}`} className="group flex items-center gap-2 text-[#c9ccbb] hover:text-[#b5a642] text-[10px] font-bold uppercase tracking-widest transition-colors w-fit">
+                      // 🟢 THE ROUTING FIX: Direct Module 1 to /foundations
+                      <Link 
+                        href={isModuleOne ? "/coaching/foundations" : `/coaching/module-${mod.id}`} 
+                        className="group flex items-center gap-2 text-[#c9ccbb] hover:text-[#b5a642] text-[10px] font-bold uppercase tracking-widest transition-colors w-fit"
+                      >
                         {mod.id < currentModule ? "Review Module" : "Continue Module"} <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
                       </Link>
                     ) : (
                       <div className="flex items-center gap-2 text-[#c9ccbb]/40 text-[10px] font-bold uppercase tracking-widest">
-                        <Lock size={12} className="text-[#b5a642]/50" /> Complete Module {mod.id - 1} to Unlock
+                        <Lock size={12} className="text-[#b5a642]/50" /> 
+                        {/* 🟢 ADAPTIVE UX: Directs them to pay vs. directs them to complete previous work */}
+                        {!hasSubscription ? "Sentient Membership Required" : `Complete Module ${mod.id - 1} to Unlock`}
                       </div>
                     )}
                   </div>
