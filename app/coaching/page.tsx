@@ -175,7 +175,7 @@ export default function Coaching() {
                   key={mod.id} 
                   className={`glass-panel p-8 rounded-3xl border flex flex-col h-full transition-all duration-300 ${
                     isUnlocked 
-                      ? 'border-[#c9ccbb]/20 bg-[#000]/30 hover:border-[#b5a642]/50' // 🟢 A bit more background color for contrast on unlocked cards
+                      ? 'border-[#c9ccbb]/20 bg-gradient-to-br from-[#b5a642]/15 via-[#000]/20 to-[#000]/40 shadow-[inset_0_1px_0_rgba(181,166,66,0.1)] hover:border-[#b5a642]/50 hover:shadow-[0_0_30px_rgba(181,166,66,0.05)]'
                       : 'border-[#c9ccbb]/5 bg-[#000]/10 opacity-70 cursor-default'
                   }`}
                 >
