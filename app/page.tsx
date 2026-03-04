@@ -16,13 +16,7 @@ export default function Home() {
         </div>
         
         <div className="flex gap-4">
-           {/* LOGIN BUTTON */}
-           <Link 
-            href="/login" 
-            className="hidden md:flex items-center gap-2 px-6 py-2 border border-[#c9ccbb]/20 rounded-full hover:bg-[#c9ccbb]/10 transition-all text-xs uppercase tracking-widest font-bold"
-          >
-            <LogIn size={14} /> Sign In
-          </Link>
+          
           
           {/* "Get Started" Button Removed Here */}
         </div>
@@ -50,7 +44,7 @@ export default function Home() {
             href="/assessments/step0" 
             className="px-8 py-4 bg-[#b5a642] text-[#1b270e] rounded-xl font-bold text-sm uppercase tracking-widest hover:scale-105 transition-transform flex items-center gap-2"
           >
-            Take Assessment <ArrowRight size={16} />
+            Begin Your Assessment <ArrowRight size={16} />
           </Link>
           
           <Link 
@@ -64,7 +58,7 @@ export default function Home() {
 
       {/* SECTION: WHAT IT IS (Glass Cards) */}
       <section className="py-20 px-6 max-w-7xl mx-auto">
-        <h2 className="text-3xl font-serif text-center mb-16 text-[#b5a642]">What It Is</h2>
+        <h2 className="text-3xl font-serif text-center mb-16 text-[#b5a642]">What Is The Sentient Home?</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           
@@ -73,8 +67,8 @@ export default function Home() {
             <Brain className="text-[#b5a642] mb-4" size={32} />
             <h3 className="text-xl font-serif text-[#c9ccbb] mb-3">Neuropsychology-Informed</h3>
             <ul className="text-[#c9ccbb]/80 text-sm space-y-2">
-              <li>Designed around how your brain actually processes space.</li>
-              <li>Built from neuroscience, environmental psychology, circadian biology, and stress physiology.</li>
+              <li>Designed with how the brain actually processes the spaces it lives in.</li>
+              <li>Grounded in neuroscience, environmental psychology, circadian biology, and stress physiology, and translated into changes you can make today</li>
             </ul>
           </div>
 
@@ -83,7 +77,7 @@ export default function Home() {
             <Activity className="text-[#b5a642] mb-4" size={32} />
             <h3 className="text-xl font-serif text-[#c9ccbb] mb-3">Precision Scoring</h3>
             <ul className="text-[#c9ccbb]/80 text-sm space-y-2">
-              <li>Measures how safe your environment feels to your nervous system.</li>
+              <li>A score that measures how much your home environment is asking of your nervous system, not just how it looks.</li>
               <li>Scores predictability, sensory coherence, autonomic load, attention, and circadian alignment.</li>
             </ul>
           </div>
@@ -91,10 +85,10 @@ export default function Home() {
           {/* Card 3 */}
           <div className="p-8 rounded-3xl bg-[#000]/20 border border-[#c9ccbb]/10 hover:border-[#b5a642]/30 transition-all backdrop-blur-sm">
             <BarChart3 className="text-[#b5a642] mb-4" size={32} />
-            <h3 className="text-xl font-serif text-[#c9ccbb] mb-3">Precision Diagnostics</h3>
+            <h3 className="text-xl font-serif text-[#c9ccbb] mb-3">The Invisible Becomes Visible</h3>
             <ul className="text-[#c9ccbb]/80 text-sm space-y-2">
-              <li>Turns invisible stress cues into measurable signals.</li>
-              <li>Weighted algorithms across lighting, acoustics, spatial flow, texture, and colour.</li>
+              <li>Turns those invisible stress cues that are quietly draining you [lighting at the wrong time, cluttered spaces, a visually and acoustically noisy environment]into signals that are nameable, measurable and addressable</li>
+              <li>Eliminates the guesswork: We find out what your space needs and recommend actions tailored to your unique spatial requirements.</li>
             </ul>
           </div>
 
@@ -103,8 +97,8 @@ export default function Home() {
             <Lightbulb className="text-[#b5a642] mb-4" size={32} />
             <h3 className="text-xl font-serif text-[#c9ccbb] mb-3">Actionable Insights</h3>
             <ul className="text-[#c9ccbb]/80 text-sm space-y-2">
-              <li>Small changes. System-level impact.</li>
-              <li>Personalised environmental adjustments that reduce cognitive load and support recovery.</li>
+              <li>Small, incremental changes leading to big changes in nervous system regulation.</li>
+              <li>Personalised environmental adjustments that reduce cognitive load and support recovery - because the right change in the right place shifts everything around it.</li>
             </ul>
           </div>
 
@@ -113,8 +107,8 @@ export default function Home() {
             <Sparkles className="text-[#b5a642] mb-4" size={32} />
             <h3 className="text-xl font-serif text-[#c9ccbb] mb-3">Sensory Intelligence Coaching™</h3>
             <ul className="text-[#c9ccbb]/80 text-sm space-y-2">
-              <li className="font-bold text-[#b5a642]">Your environment learns with you.</li>
-              <li>Self-paced guidance that layers insight onto your scores, teaching you how to read your space, anticipate overload, and make high-signal adjustments with confidence.</li>
+              <li className="font-bold text-[#b5a642]">Insight compounds over time.</li>
+              <li>Self-paced guided coaching so you learn to read your space, anticipate what drains you, and make changes with confidence rather than guesswork.</li>
             </ul>
           </div>
 
@@ -134,7 +128,7 @@ export default function Home() {
                </div>
                <h3 className="text-xl font-serif text-[#c9ccbb] mb-3">Complete the Assessment</h3>
                <p className="text-[#c9ccbb]/80 text-sm leading-relaxed">
-                 Answer questions about your space's lighting, acoustics, layout, textures, and colours. The assessment takes about 10 minutes.
+                 Answer questions about your space's lighting, acoustics, layout, textures, and colours. No design knowledge needed. Just honest answers about how your space feels to live in. The assessment takes about 10 minutes.
                </p>
             </div>
 
@@ -144,7 +138,7 @@ export default function Home() {
                </div>
                <h3 className="text-xl font-serif text-[#c9ccbb] mb-3">Receive Personalised Insights</h3>
                <p className="text-[#c9ccbb]/80 text-sm leading-relaxed">
-                 Get detailed scores for each sensory category and discover how your environment impacts your wellbeing based on NeuroDesign principles.
+                 Receive a clear breakdown of where your space is supporting you and where it is quietly working against you.
                </p>
             </div>
 
@@ -154,7 +148,7 @@ export default function Home() {
                </div>
                <h3 className="text-xl font-serif text-[#c9ccbb] mb-3">Implement Recommendations</h3>
                <p className="text-[#c9ccbb]/80 text-sm leading-relaxed">
-                 Follow step-by-step action plans to improve your space. Track your progress with photos and well-being metrics over time.
+                 Each Recommendation is specific to you with step-by-step action plans to improve your space. Start with one. Track how you feel over time. The data accumulates into a picture of what your home is actually doing for you.
                </p>
             </div>
 
@@ -168,11 +162,11 @@ export default function Home() {
            <h2 className="text-3xl font-serif mb-8 text-center md:text-left">What You’ll Learn Here</h2>
            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
              {[
-               "Which sensory inputs cost you the most energy",
-               "Which rooms support regulation, and which erode it",
-               "How light, sound, materials, and spatial flow affect your sleep and focus",
-               "Why certain environments feel off even when they look fine",
-               "How your nervous system responds over time, not just in moments"
+               "Why certain rooms leave you tired even after you have rested",
+               "Which parts of your home are quietly draining your focus and mood",
+               "How light and sound at the wrong time affect your ability to rest and focus, and what to do about it",
+               "Why certain rooms in your home look fine but feel off",
+               "How small, specific changes compound into a home that genuinely restores you"
              ].map((item, i) => (
                <div key={i} className="flex gap-4">
                  <CheckCircle className="text-[#b5a642] shrink-0" size={20} />
@@ -188,14 +182,15 @@ export default function Home() {
         <h2 className="text-sm font-bold uppercase tracking-widest text-[#b5a642] mb-8">How to Use The Sentient Home</h2>
         
         <div className="text-lg md:text-2xl font-serif text-[#c9ccbb] leading-relaxed max-w-3xl mx-auto space-y-2 mb-12">
-          <p>Start small.</p>
-          <p>Notice patterns.</p>
+          <p>Begin with one honest assessment.</p>
+          <p>Notice the patterns.</p>
           <p>Track how you feel, not how you should feel.</p>
           <p>Let the data accumulate without judgment.</p>
+          <p>Make one change at a time and notice what shifts.</p>
         </div>
         
         <p className="text-[#c9ccbb]/80 text-sm max-w-xl mx-auto mb-8">
-          This tool is designed to be used daily: like a sleep or nutrition tracker, but for your home environment.
+          Used daily, this becomes a record of your home's effect on you, and a clear map of what to change next.
         </p>
 
         <div className="inline-block px-8 py-4 border-l-2 border-[#b5a642] bg-[#b5a642]/5 text-[#c9ccbb] italic">
@@ -208,14 +203,14 @@ export default function Home() {
       <section className="py-32 border-t border-[#c9ccbb]/10 text-center bg-gradient-to-t from-[#000]/40 to-transparent">
         <h2 className="text-4xl font-serif mb-6">Ready to Transform Your Space?</h2>
         <p className="text-[#c9ccbb]/80 mb-10 max-w-xl mx-auto">
-          Join others who are creating healthier, more productive home environments through evidence-based design.
+          Join others who are creating supportive homes that encourage rest, recovery, focus and connection through evidence-based design.
         </p>
         {/* UPDATED: Points to Guest Assessment (Step 0) */}
         <Link 
           href="/assessments/step0" 
           className="inline-flex items-center gap-2 px-10 py-5 bg-[#b5a642] text-[#1b270e] rounded-full font-bold uppercase tracking-widest hover:bg-[#d4c55e] transition-all"
         >
-          Start Your Assessment <ArrowRight size={18} />
+          Begin Your Assessment <ArrowRight size={18} />
         </Link>
       </section>
 
