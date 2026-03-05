@@ -16,7 +16,8 @@ export default function Progress() {
   const [activeTab, setActiveTab] = useState<'morning' | 'evening'>('morning')
 
   // --- ACCESS CONTROL ---
-  const [isPremium, setIsPremium] = useState(false)
+  // tier: null = free, 'core' = €29/month, 'blueprint' = €99/month
+  const [tier, setTier] = useState<'core' | 'blueprint' | null>(null)
   const [godMode, setGodMode] = useState(false)
 
   // --- LOGGING STATE ---
@@ -87,21 +88,39 @@ export default function Progress() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
+    // God mode — full Blueprint access for internal testing
     if (user.email === 'christchilde@gmail.com') {
       setGodMode(true)
       return
     }
 
-    const { data: profile } = await supabase
-      .from('profiles') 
-      .select('is_premium')
-      .eq('user_id', user.id)
-      .single()
-
-    if (profile?.is_premium) setIsPremium(true)
+    // Read tier from the subscription-status API which resolves against
+    // the subscriptions table (populated by the Stripe webhook).
+    // tier: 'core' | 'blueprint' | null
+    try {
+      const res = await fetch('/api/subscription-status')
+      if (res.ok) {
+        const data = await res.json()
+        if (data.tier === 'core' || data.tier === 'blueprint') {
+          setTier(data.tier)
+        }
+      }
+    } catch (err) {
+      console.error('Access check error:', err)
+    }
   }
 
-  const hasAccess = isPremium || godMode
+  // ---------------------------------------------------------------------------
+  // ACCESS HELPERS
+  //
+  // hasAccess  — any paying subscriber (Core or Blueprint) or god mode
+  //              Gates: daily reframes, 14-day pattern synthesis
+  //
+  // isBlueprint — Blueprint tier or god mode only
+  //              Gates: room audit, coaching modules, practitioner Q&A
+  // ---------------------------------------------------------------------------
+  const hasAccess  = tier !== null || godMode
+  const isBlueprint = tier === 'blueprint' || godMode
 
   // ---------------------------------------------------------------------------
   // CIRCADIAN COHERENCE SCORE (lux_score) — 0 to 100
@@ -1049,7 +1068,7 @@ export default function Progress() {
                             className="w-full accent-[#b5a642] h-1 bg-[#000]/50 rounded-lg appearance-none cursor-pointer"
                           />
                           <div className="flex justify-between mt-1">
-                            <span className="text-[#c9ccbb]/30 text-[9px]">Wired but Tired</span>
+                            <span className="text-[#c9ccbb]/30 text-[9px]">Wired</span>
                             <span className="text-[#c9ccbb]/30 text-[9px]">Ready to Sleep</span>
                           </div>
                         </div>
@@ -1097,7 +1116,7 @@ export default function Progress() {
                               </button>
                             </div>
                             <p className="text-[#c9ccbb]/30 text-[10px] mb-2">
-                              Measure your bedroom light just before sleep. Target: below 10 lux for melatonin onset and complete darkness for sleep.
+                              Measure bedroom light just before sleep. Target: below 10 lux for melatonin onset.
                             </p>
                             <input
                               type="number"
@@ -1292,7 +1311,7 @@ export default function Progress() {
             ) : (
                <div className="mt-6 pt-6 border-t border-[#c9ccbb]/10 flex flex-col md:flex-row md:items-center justify-between gap-6 w-full relative z-10">
                  <p className="text-sm text-[#c9ccbb]/80 leading-relaxed max-w-xl">
-                   14 days of data collected. Your home's friction pattern is ready. Unlock to see what it means for you.
+                   14 days of data collected. Your home's friction pattern is ready. Unlock now to see what it means for you.
                  </p>
                  <Link href="/upgrade" className="shrink-0 w-full md:w-auto">
                    <button className="w-full md:w-auto px-8 py-3 bg-[#b5a642] text-[#1b270e] text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-white transition-all shadow-lg shadow-[#b5a642]/20">
@@ -1408,4 +1427,4 @@ export default function Progress() {
       </AnimatePresence>
     </div>
   )
-}  
+}
