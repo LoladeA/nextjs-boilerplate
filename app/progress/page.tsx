@@ -2,7 +2,7 @@
 
 import Sidebar from '../components/Sidebar'
 import { useState, useEffect } from 'react'
-import { Heart, Wind, Sun, Volume2, CheckCircle, TrendingUp, Activity, Zap, Loader2, Moon, Sunrise, Brain, Fingerprint, ChevronDown, ChevronUp, Lock, AlertCircle, HelpCircle, X } from 'lucide-react'
+import { Heart, Wind, Sun, Volume2, CheckCircle, TrendingUp, Activity, Zap, Loader2, Moon, Sunrise, Brain, Fingerprint, ChevronDown, ChevronUp, Lock, AlertCircle, HelpCircle, X, BedDouble } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import Link from 'next/link'
@@ -26,14 +26,20 @@ export default function Progress() {
   
   // --- TEMPORAL ENVIRONMENTAL INPUTS ---
   const [morningLux, setMorningLux] = useState<string>('') 
-  const [nighttimeDb, setNighttimeDb] = useState<string>('')
-  const [eveningLux, setEveningLux] = useState<string>('')
   const [daytimeDb, setDaytimeDb] = useState<string>('')
+  const [eveningLux, setEveningLux] = useState<string>('')
+
+  // --- PRE-SLEEP INPUTS ---
+  // Measured at bedtime, not overnight. Feeds Recovery Disruption domain.
+  const [bedtimeDb, setBedtimeDb] = useState<string>('')       // bedroom dB at bedtime
+  const [bedtimeLux, setBedtimeLux] = useState<string>('')     // bedroom lux at bedtime
+  const [sleepReadiness, setSleepReadiness] = useState<number>(3) // 1–5: Wired → Ready
+  const [isPreSleepOpen, setIsPreSleepOpen] = useState(false)
 
   // --- METER MODAL STATES ---
   const [isLightMeterOpen, setIsLightMeterOpen] = useState(false)
   const [isAcousticMeterOpen, setIsAcousticMeterOpen] = useState(false)
-  const [activeMeterTarget, setActiveMeterTarget] = useState<'morningLux' | 'eveningLux' | 'daytimeDb' | 'nighttimeDb' | null>(null)
+  const [activeMeterTarget, setActiveMeterTarget] = useState<'morningLux' | 'eveningLux' | 'daytimeDb' | 'bedtimeDb' | 'bedtimeLux' | null>(null)
   
   // --- MANUAL STATE ---
   const [isManualOpen, setIsManualOpen] = useState(false)
@@ -54,6 +60,7 @@ export default function Progress() {
   const [showAccuracyWarning, setShowAccuracyWarning] = useState(false)
 
   // --- BSFI STATE ---
+  // dominant_domain: sanitised before storage — Predictive Legibility is excluded from daily panel
   const [bsfiData, setBsfiData] = useState<{ total_score: number, dominant_domain: string, is_internal_driver: boolean } | null>(null)
   const [bsfiLoading, setBsfiLoading] = useState(true)
 
@@ -98,20 +105,6 @@ export default function Progress() {
 
   // ---------------------------------------------------------------------------
   // CIRCADIAN COHERENCE SCORE (lux_score) — 0 to 100
-  //
-  // Encodes the full circadian light curve as a single composite score.
-  // High score = correct polarity: strong morning anchor + low evening lux.
-  // Neither reading alone can produce a high score — both must be correct.
-  //
-  // morning component = morning_lux clamped 0–1000, scaled to 0–50
-  // evening component = (1 - evening_lux clamped 0–800 / 800) × 50
-  //
-  // Null handling:
-  //   Both absent  → null (no data to score)
-  //   Morning only → 0 anchor points assumed (unlogged = no activation)
-  //   Evening only → 50 points assumed safe (no data = no penalty)
-  //
-  // Sources: Zeitzer et al. 2000, Gooley et al. 2011, Cajochen et al. 2011
   // ---------------------------------------------------------------------------
   const deriveLuxScore = (morningLux: string, eveningLux: string): number | null => {
     const morning = morningLux !== null && morningLux !== '' ? parseInt(morningLux) : null
@@ -121,35 +114,21 @@ export default function Progress() {
 
     const morningComponent = morning !== null
       ? Math.min(morning, 1000) / 1000 * 50
-      : 0   // absent morning = no circadian anchor assumed
+      : 0
 
     const eveningComponent = evening !== null
       ? (1 - Math.min(evening, 800) / 800) * 50
-      : 50  // absent evening = assumed safe (no penalty)
+      : 50
 
     return Math.round(morningComponent + eveningComponent)
   }
 
   // ---------------------------------------------------------------------------
   // THRESHOLD-NORMALISED ACOUSTIC COMPOSITE (db_score) — 0 to 100
-  //
-  // Scores acoustic load against WHO-validated thresholds independently
-  // for each time window, then averages present readings.
-  //
-  // Daytime threshold:  55dB (WHO occupational noise guideline)
-  // Nighttime threshold: 40dB (WHO Environmental Noise Guidelines 2018)
-  //   — 15dB lower because noise travels faster at night and autonomic
-  //     arousal threshold drops during sleep.
-  //
-  // Readings below threshold contribute 0 — no false friction.
-  //   45dB daytime  = 0  (10dB below threshold)
-  //   45dB nighttime = 8  (5dB above threshold)
-  //
-  // Sources: WHO Environmental Noise Guidelines 2018, Basner et al. 2014
   // ---------------------------------------------------------------------------
-  const deriveDbScore = (daytimeDb: string, nighttimeDb: string): number | null => {
-    const d = daytimeDb  !== null && daytimeDb  !== '' ? parseInt(daytimeDb)  : null
-    const n = nighttimeDb !== null && nighttimeDb !== '' ? parseInt(nighttimeDb) : null
+  const deriveDbScore = (daytimeDb: string, bedtimeDb: string): number | null => {
+    const d = daytimeDb !== null && daytimeDb !== '' ? parseInt(daytimeDb) : null
+    const n = bedtimeDb !== null && bedtimeDb !== '' ? parseInt(bedtimeDb) : null
 
     if (d === null && n === null) return null
 
@@ -167,6 +146,45 @@ export default function Progress() {
     }
 
     return Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
+  }
+
+  // ---------------------------------------------------------------------------
+  // DOMAIN PLAIN-LANGUAGE LABELS
+  //
+  // Only four domains have direct daily log inputs and are valid here:
+  //
+  //   Recovery Disruption  ← wakeScore, bedtimeDb, bedtimeLux, sleepReadiness
+  //   Circadian Rhythm     ← morningLux, eveningLux  (via deriveLuxScore)
+  //   Autonomic Load       ← tensionScore, morningMood
+  //   Sensory Load         ← daytimeDb, morningLux, tags
+  //
+  // Predictive Legibility is intentionally absent. It has no daily log inputs
+  // — it is derived from room audit data — and must never surface as a
+  // dominant domain in the daily friction panel.
+  //
+  // sanitiseDomain() guards against the BSFI API returning an audit-only
+  // domain as dominant. If it does, the panel degrades to null and hides the
+  // friction source chip rather than displaying a label the user cannot
+  // trace back to anything they logged today.
+  // ---------------------------------------------------------------------------
+  const DAILY_DOMAINS = new Set([
+    'Recovery Disruption',
+    'Circadian Rhythm Index',
+    'Autonomic Load Index',
+    'Sensory Load',
+  ])
+
+  const sanitiseDomain = (domain: string): string | null =>
+    DAILY_DOMAINS.has(domain) ? domain : null
+
+  const getDomainDisplay = (domain: string): { label: string, driver: string } => {
+    const map: Record<string, { label: string, driver: string }> = {
+      'Recovery Disruption':    { label: 'Overnight Recovery',   driver: 'Sleep interruptions, bedtime sound level, and sleep readiness' },
+      'Circadian Rhythm Index': { label: 'Light & Sleep Timing', driver: 'Morning and evening light readings' },
+      'Autonomic Load Index':   { label: 'Stress & Tension',     driver: 'Body tension and mood on waking' },
+      'Sensory Load':           { label: 'Sound & Visual Load',  driver: 'Sound levels, light readings, and daily environment tags' },
+    }
+    return map[domain] ?? { label: 'Environmental Load', driver: 'Environmental readings today' }
   }
 
   // --- FEEDBACK ENGINE LOGIC ---
@@ -274,11 +292,11 @@ export default function Progress() {
         if (score <= 60) { 
           return {
             ready: true,
-            title: `Moderate Friction: ${domain} Is The Primary Source`,
+            title: `Moderate Friction: ${getDomainDisplay(domain).label} Is The Primary Source`,
             paragraphs: [
-              `Over the last fourteen days, your home environment has been introducing a moderate but consistent level of friction. Your BSFI total indicates that your body is absorbing friction across several areas, but ${domain} is the source generating the greatest sustained demand. This is where the leverage is.`,
+              `Over the last fourteen days, your home environment has been introducing a moderate but consistent level of friction. Your body is absorbing friction across several areas, but ${getDomainDisplay(domain).label} is the source generating the greatest sustained demand. This is where the leverage is.`,
               "The output you are producing is beginning to happen against environmental resistance rather than from regulated reserves. At moderate friction levels, this distinction is easy to miss. Performance remains intact while the underlying cost accumulates via reduced stamina, elevated baseline tension, and a slightly narrower emotional margin.",
-              `Address ${domain} this week as a priority. A targeted change in your highest-friction area will produce a disproportionate return, reducing the load on every other area simultaneously, because your body will no longer need to compensate for it.`
+              `Address ${getDomainDisplay(domain).label} this week as a priority. A targeted change in your highest-friction area will produce a disproportionate return, reducing the load on every other area simultaneously, because your body will no longer need to compensate for it.`
             ]
           }
         }
@@ -288,7 +306,7 @@ export default function Progress() {
           ready: true,
           title: "High Friction Across The Board. Your Environment Needs Attention",
           paragraphs: [
-             "Your fourteen-day BSFI indicates a high-load, dysregulated environmental pattern. Across circadian, acoustic, spatial, and recovery domains, your home is generating friction that arrives before your day begins, draining your capacity at the point when it should be restoring it. You are not starting each day from a recovered place. You are starting your day already managing unresolved tension from the day before.",
+             "Your fourteen-day pattern indicates a high-load, dysregulated environmental pattern. Across light timing, sound, spatial clarity, and overnight recovery, your home is generating friction that arrives before your day begins, draining your capacity at the point when it should be restoring it. You are not starting each day from a recovered place. You are starting your day already managing unresolved tension from the day before.",
              "Sustained multi-domain environmental friction at this level carries a specific physiological signature: your body shifts into a low-level stress state, running on stress-fuelled performance rather than restored capacity. Output may remain present. But it is being borrowed, not generated. The reserves that sustain that borrowing are finite.",
              "Stop optimising for output. Start optimising for environmental recovery. Here are your top three priorities in order: close and soften your sleep environment acoustically, enforce a warm dim light boundary after 8pm, and clear one low-stimulation space you can access easily during the day. These improvements are the minimum your body needs to begin recovering."
           ]
@@ -414,7 +432,6 @@ export default function Progress() {
         let autoMorningLux = ''
         let autoEveningLux = ''
         let autoDaytimeDb = ''
-        let autoNighttimeDb = ''
 
         if (scanData && scanData.length > 0) {
           scanData.forEach(scan => {
@@ -427,7 +444,6 @@ export default function Progress() {
             
             if (scan.metric_type === 'db') {
               if (scanHour >= 8 && scanHour < 18) autoDaytimeDb = scan.value.toString()
-              if (scanHour < 6 || scanHour >= 22) autoNighttimeDb = scan.value.toString()
             }
           })
         }
@@ -440,7 +456,9 @@ export default function Progress() {
           setMorningLux(logData.morning_lux !== null ? logData.morning_lux.toString() : autoMorningLux)
           setEveningLux(logData.evening_lux !== null ? logData.evening_lux.toString() : autoEveningLux)
           setDaytimeDb(logData.daytime_db !== null ? logData.daytime_db.toString() : autoDaytimeDb)
-          setNighttimeDb(logData.nighttime_db !== null ? logData.nighttime_db.toString() : autoNighttimeDb)
+          setBedtimeDb(logData.bedtime_db !== null ? logData.bedtime_db.toString() : '')
+          setBedtimeLux(logData.bedtime_lux !== null ? logData.bedtime_lux.toString() : '')
+          if (logData.sleep_readiness !== null) setSleepReadiness(logData.sleep_readiness)
 
           if (logData.focus_hours !== null) setFocusScore(logData.focus_hours)
           if (logData.morning_tension !== null) setTensionScore(logData.morning_tension)
@@ -453,7 +471,6 @@ export default function Progress() {
           setMorningLux(autoMorningLux)
           setEveningLux(autoEveningLux)
           setDaytimeDb(autoDaytimeDb)
-          setNighttimeDb(autoNighttimeDb)
         }
     } catch (err) {
         console.error('fetchTodayLog failed:', err)
@@ -505,7 +522,7 @@ export default function Progress() {
   const handleSave = async (isForced = false) => {
     const criticalFields = activeTab === 'morning' 
         ? [morningLux, daytimeDb]
-        : [eveningLux, nighttimeDb];
+        : [eveningLux, bedtimeDb];
 
     const isMissing = criticalFields.some(val => val === null || val === '');
 
@@ -527,41 +544,22 @@ export default function Progress() {
         const payload = {
           user_id:  user.id,
           date:     today,
-
-          // --- SOMATIC BASELINE ---
           mood_score:       morningMood,
-          tags:             morningTags,      // 'tags' column = morning tags (confirmed schema)
+          tags:             morningTags,
           note:             morningNote,
           morning_tension:  tensionScore,
           sleep_wakes:      wakeScore,
-
-          // --- GRANULAR ENVIRONMENTAL READINGS ---
-          // Primary BSFI engine inputs — always stored at full resolution.
           morning_lux:  morningLux  ? parseInt(morningLux)  : null,
           evening_lux:  eveningLux  ? parseInt(eveningLux)  : null,
           daytime_db:   daytimeDb   ? parseInt(daytimeDb)   : null,
-          nighttime_db: nighttimeDb ? parseInt(nighttimeDb) : null,
-
-          // --- DERIVED COMPOSITE SCORES ---
-          // Computed from granular readings on every save.
-          // Written independently of the BSFI engine.
-          //
-          // lux_score:   Circadian Coherence Score (0–100)
-          //              Rewards high morning lux AND low evening lux together.
-          //
-          // db_score:    Threshold-Normalised Acoustic Composite (0–100)
-          //              Each reading scored against its WHO threshold independently.
-          //              Daytime: 55dB | Nighttime: 40dB
-          //
-          // readiness_score: null — reserved for Oura ring integration.
+          // Pre-sleep environmental readings — bedtime conditions, not overnight monitoring
+          bedtime_db:       bedtimeDb  ? parseInt(bedtimeDb)  : null,
+          bedtime_lux:      bedtimeLux ? parseInt(bedtimeLux) : null,
+          sleep_readiness:  sleepReadiness,
           lux_score:        deriveLuxScore(morningLux, eveningLux),
-          db_score:         deriveDbScore(daytimeDb, nighttimeDb),
+          db_score:         deriveDbScore(daytimeDb, bedtimeDb),
           readiness_score:  null,
-
-          // --- COGNITIVE OUTPUT ---
           focus_hours: Math.round(focusScore),
-
-          // --- EVENING ---
           evening_mood_score: eveningMood,
           evening_tags:       eveningTags,
           evening_note:       eveningNote,
@@ -747,42 +745,45 @@ export default function Progress() {
                                         transition={{ duration: 0.3, ease: "easeInOut" }}
                                         className="overflow-hidden relative"
                                     >
-                                        {hasAccess ? (
-                                            <div className="p-4 pt-0 space-y-3">
+                                        <div className="pt-0 space-y-0">
+                                            <div className="w-full h-px bg-[#b5a642]/10" />
+
+                                            {/* DIRECTION — free for all users */}
+                                            <div className="p-4 space-y-1">
+                                              <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
+                                                <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Direction:</strong>
+                                                {morningInsight.direction}
+                                              </p>
+                                            </div>
+
+                                            {/* REFRAME — premium only */}
+                                            {hasAccess ? (
+                                              <div className="px-4 pb-4">
                                                 <div className="w-full h-px bg-[#b5a642]/10 mb-4" />
                                                 <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
-                                                    <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Reframe:</strong> 
-                                                    {morningInsight.reframe}
+                                                  <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Why this is happening:</strong>
+                                                  {morningInsight.reframe}
                                                 </p>
-                                                <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
-                                                    <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Direction:</strong> 
-                                                    {morningInsight.direction}
-                                                </p>
-                                            </div>
-                                        ) : (
-                                            <div className="relative p-4 pt-0">
+                                              </div>
+                                            ) : (
+                                              <div className="relative px-4 pb-4">
                                                 <div className="w-full h-px bg-[#b5a642]/10 mb-4" />
-                                                <div className="filter blur-[3px] opacity-30 select-none space-y-3 pointer-events-none">
-                                                    <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
-                                                        <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Reframe:</strong> 
-                                                        Waking through the night is less often a sign of dysregulation than a sign of thermoregulatory shift. Your environment may not be matching its needs.
-                                                    </p>
-                                                    <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
-                                                        <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Direction:</strong> 
-                                                        Focus on the recovery envelope: breathable organic sleepwear, a cooler ambient temperature, and complete darkness.
-                                                    </p>
+                                                <div className="filter blur-[3px] opacity-30 select-none pointer-events-none text-xs leading-relaxed text-[#c9ccbb]/80">
+                                                  <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Why this is happening:</strong>
+                                                  {morningInsight.reframe}
                                                 </div>
-                                                <div className="absolute inset-0 flex flex-col items-center justify-center z-10 p-4">
-                                                    <Lock size={16} className="text-[#b5a642] mb-2" />
-                                                    <span className="text-[10px] font-bold text-[#c9ccbb] uppercase tracking-widest mb-3 text-center">Unlock Somatic Reframes</span>
-                                                    <Link href="/upgrade">
-                                                        <button className="px-6 py-2 bg-[#b5a642] text-[#1b270e] text-[10px] font-bold uppercase tracking-widest rounded-full hover:bg-white transition-all">
-                                                            Upgrade
-                                                        </button>
-                                                    </Link>
+                                                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 z-10">
+                                                  <Lock size={14} className="text-[#b5a642]" />
+                                                  <span className="text-[9px] font-bold text-[#c9ccbb]/70 uppercase tracking-widest text-center">Understand the why from the lens of NeuroPsychology</span>
+                                                  <Link href="/upgrade">
+                                                    <button className="px-5 py-1.5 bg-[#b5a642] text-[#1b270e] text-[9px] font-bold uppercase tracking-widest rounded-full hover:bg-white transition-all">
+                                                      Unlock Now
+                                                    </button>
+                                                  </Link>
                                                 </div>
-                                            </div>
-                                        )}
+                                              </div>
+                                            )}
+                                        </div>
                                     </motion.div>
                                 )}
                             </AnimatePresence>
@@ -836,42 +837,45 @@ export default function Progress() {
                                         transition={{ duration: 0.3, ease: "easeInOut" }}
                                         className="overflow-hidden relative"
                                     >
-                                        {hasAccess ? (
-                                            <div className="p-4 pt-0 space-y-3">
+                                        <div className="pt-0 space-y-0">
+                                            <div className="w-full h-px bg-[#b5a642]/10" />
+
+                                            {/* DIRECTION — free for all users */}
+                                            <div className="p-4 space-y-1">
+                                              <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
+                                                <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Direction:</strong>
+                                                {eveningInsight.direction}
+                                              </p>
+                                            </div>
+
+                                            {/* REFRAME — premium only */}
+                                            {hasAccess ? (
+                                              <div className="px-4 pb-4">
                                                 <div className="w-full h-px bg-[#b5a642]/10 mb-4" />
                                                 <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
-                                                    <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Reframe:</strong> 
-                                                    {eveningInsight.reframe}
+                                                  <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Why this is happening:</strong>
+                                                  {eveningInsight.reframe}
                                                 </p>
-                                                <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
-                                                    <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Direction:</strong> 
-                                                    {eveningInsight.direction}
-                                                </p>
-                                            </div>
-                                        ) : (
-                                            <div className="relative p-4 pt-0">
+                                              </div>
+                                            ) : (
+                                              <div className="relative px-4 pb-4">
                                                 <div className="w-full h-px bg-[#b5a642]/10 mb-4" />
-                                                <div className="filter blur-[3px] opacity-30 select-none space-y-3 pointer-events-none">
-                                                    <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
-                                                        <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Reframe:</strong> 
-                                                        Extended time in high-beta execution mode is a central nervous system stressor. The day was productive.
-                                                    </p>
-                                                    <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
-                                                        <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Direction:</strong> 
-                                                        Tonight's environment must match today's demand. Transition strictly to warm, low-level lighting.
-                                                    </p>
+                                                <div className="filter blur-[3px] opacity-30 select-none pointer-events-none text-xs leading-relaxed text-[#c9ccbb]/80">
+                                                  <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Why this is happening:</strong>
+                                                  {eveningInsight.reframe}
                                                 </div>
-                                                <div className="absolute inset-0 flex flex-col items-center justify-center z-10 p-4">
-                                                    <Lock size={16} className="text-[#b5a642] mb-2" />
-                                                    <span className="text-[10px] font-bold text-[#c9ccbb] uppercase tracking-widest mb-3 text-center">Unlock Your Daily Insights</span>
-                                                    <Link href="/upgrade">
-                                                        <button className="px-6 py-2 bg-[#b5a642] text-[#1b270e] text-[10px] font-bold uppercase tracking-widest rounded-full hover:bg-white transition-all">
-                                                            Upgrade
-                                                        </button>
-                                                    </Link>
+                                                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 z-10">
+                                                  <Lock size={14} className="text-[#b5a642]" />
+                                                  <span className="text-[9px] font-bold text-[#c9ccbb]/70 uppercase tracking-widest text-center">Understand the why from the lens of NeuroPsychology</span>
+                                                  <Link href="/upgrade">
+                                                    <button className="px-5 py-1.5 bg-[#b5a642] text-[#1b270e] text-[9px] font-bold uppercase tracking-widest rounded-full hover:bg-white transition-all">
+                                                      Unlock Now
+                                                    </button>
+                                                  </Link>
                                                 </div>
-                                            </div>
-                                        )}
+                                              </div>
+                                            )}
+                                        </div>
                                     </motion.div>
                                 )}
                             </AnimatePresence>
@@ -954,26 +958,6 @@ export default function Progress() {
                                 className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
                             />
                         </div>
-                        <div>
-                            <div className="flex items-center justify-between mb-2">
-                                <div className="flex items-center gap-2 text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest">
-                                    <Moon size={14} className="text-blue-400" /> Nighttime Sound Level
-                                </div>
-                                <button 
-                                    onClick={() => { setActiveMeterTarget('nighttimeDb'); setIsAcousticMeterOpen(true); }}
-                                    className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest hover:text-white transition-colors flex items-center gap-1 bg-[#b5a642]/10 px-2 py-1 rounded-md border border-[#b5a642]/20"
-                                >
-                                    <Activity size={12} /> Measure
-                                </button>
-                            </div>
-                            <input 
-                                type="number" 
-                                placeholder="e.g. 35 (Quiet) or 55 (Loud)"
-                                value={nighttimeDb}
-                                onChange={(e) => setNighttimeDb(e.target.value)}
-                                className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
-                            />
-                        </div>
                     </div>
                 )}
             </div>
@@ -1003,6 +987,135 @@ export default function Progress() {
                 className="w-full h-24 bg-[#000]/20 border border-[#c9ccbb]/10 rounded-xl p-4 text-[#c9ccbb] text-sm placeholder:text-[#c9ccbb]/50 focus:outline-none focus:border-[#b5a642]/50 resize-none font-sans"
               />
             </div>
+
+
+            {/* ---------------------------------------------------------------- */}
+            {/* PRE-SLEEP CHECK-IN                                               */}
+            {/* Only shown in evening tab. Feeds Recovery Disruption domain.     */}
+            {/* Three inputs: bedtime dB, bedtime lux, sleep readiness.          */}
+            {/* ---------------------------------------------------------------- */}
+            {activeTab === 'evening' && (
+              <div className="mb-8">
+                <button
+                  onClick={() => setIsPreSleepOpen(!isPreSleepOpen)}
+                  className="w-full flex items-center justify-between p-5 rounded-2xl border border-[#c9ccbb]/10 bg-[#000]/20 hover:border-[#b5a642]/30 hover:bg-[#b5a642]/5 transition-all group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-[#b5a642]/10 flex items-center justify-center text-[#b5a642] shrink-0">
+                      <BedDouble size={15} />
+                    </div>
+                    <div className="text-left">
+                      <span className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest block">
+                        Pre-Sleep Conditions
+                      </span>
+                      <span className="text-[#c9ccbb]/50 text-xs">
+                        Optional — log when you're ready for bed
+                      </span>
+                    </div>
+                  </div>
+                  <motion.div animate={{ rotate: isPreSleepOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                    <ChevronDown size={16} className="text-[#c9ccbb]/40 group-hover:text-[#b5a642] transition-colors" />
+                  </motion.div>
+                </button>
+
+                <AnimatePresence>
+                  {isPreSleepOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3, ease: 'easeInOut' }}
+                      className="overflow-hidden"
+                    >
+                      <div className="pt-4 space-y-6 p-5 rounded-b-2xl border border-t-0 border-[#c9ccbb]/10 bg-[#000]/10">
+
+                        {/* Sleep Readiness slider */}
+                        <div>
+                          <div className="flex justify-between mb-2">
+                            <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb]">
+                              <BedDouble size={14} className="text-[#b5a642]" /> Sleep Readiness
+                            </label>
+                            <span className="text-[#b5a642] font-mono text-xs">
+                              {['', 'Wired', 'Restless', 'Neutral', 'Winding Down', 'Ready to Sleep'][sleepReadiness]}
+                            </span>
+                          </div>
+                          <p className="text-[#c9ccbb]/40 text-[10px] mb-3">
+                            How settled does your body feel right now?
+                          </p>
+                          <input
+                            type="range" min="1" max="5" step="1"
+                            value={sleepReadiness}
+                            onChange={(e) => setSleepReadiness(parseInt(e.target.value))}
+                            className="w-full accent-[#b5a642] h-1 bg-[#000]/50 rounded-lg appearance-none cursor-pointer"
+                          />
+                          <div className="flex justify-between mt-1">
+                            <span className="text-[#c9ccbb]/30 text-[9px]">Wired but Tired</span>
+                            <span className="text-[#c9ccbb]/30 text-[9px]">Ready to Sleep</span>
+                          </div>
+                        </div>
+
+                        {/* Bedtime environmental readings */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                          {/* Bedroom sound at bedtime */}
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center gap-2 text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest">
+                                <Volume2 size={14} className="text-blue-400" /> Bedroom Sound at Bedtime
+                              </div>
+                              <button
+                                onClick={() => { setActiveMeterTarget('bedtimeDb'); setIsAcousticMeterOpen(true); }}
+                                className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest hover:text-white transition-colors flex items-center gap-1 bg-[#b5a642]/10 px-2 py-1 rounded-md border border-[#b5a642]/20"
+                              >
+                                <Activity size={12} /> Measure
+                              </button>
+                            </div>
+                            <p className="text-[#c9ccbb]/30 text-[10px] mb-2">
+                              Measure the acoustic level in your bedroom right before sleep. Target: below 35 dB.
+                            </p>
+                            <input
+                              type="number"
+                              min="0" max="140"
+                              placeholder="e.g. 30 (Quiet) or 48 (Audible)"
+                              value={bedtimeDb}
+                              onChange={(e) => setBedtimeDb(e.target.value)}
+                              className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
+                            />
+                          </div>
+
+                          {/* Bedroom light at bedtime */}
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center gap-2 text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest">
+                                <Moon size={14} className="text-orange-400" /> Bedroom Light at Bedtime
+                              </div>
+                              <button
+                                onClick={() => { setActiveMeterTarget('bedtimeLux'); setIsLightMeterOpen(true); }}
+                                className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest hover:text-white transition-colors flex items-center gap-1 bg-[#b5a642]/10 px-2 py-1 rounded-md border border-[#b5a642]/20"
+                              >
+                                <Activity size={12} /> Measure
+                              </button>
+                            </div>
+                            <p className="text-[#c9ccbb]/30 text-[10px] mb-2">
+                              Measure your bedroom light just before sleep. Target: below 10 lux for melatonin onset and complete darkness for sleep.
+                            </p>
+                            <input
+                              type="number"
+                              min="0" max="10000"
+                              placeholder="e.g. 5 (Dark) or 80 (Lamp on)"
+                              value={bedtimeLux}
+                              onChange={(e) => setBedtimeLux(e.target.value)}
+                              className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
+                            />
+                          </div>
+
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
 
             <div className="flex flex-col gap-4 pt-6 border-t border-[#c9ccbb]/10">
               <AnimatePresence>
@@ -1057,6 +1170,11 @@ export default function Progress() {
             </div>
           </div>
 
+          {/* ------------------------------------------------------------------ */}
+          {/* BSFI DAILY SCORE PANEL                                              */}
+          {/* Shows today's score and today's primary friction source only.       */}
+          {/* 14-day attribution removed — belongs to the pattern panel below.   */}
+          {/* ------------------------------------------------------------------ */}
           <AnimatePresence>
             {bsfiData && (
               <motion.div
@@ -1064,8 +1182,8 @@ export default function Progress() {
                 animate={{ opacity: 1, height: 'auto' }}
                 className="glass-panel p-6 rounded-3xl mb-8 border border-[#b5a642]/30 relative overflow-hidden bg-gradient-to-br from-[#b5a642]/10 to-transparent"
               >
-                <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
-                  <div className="flex items-center gap-6">
+                <div className="flex flex-col md:flex-row items-center gap-6 relative z-10">
+                  <div className="flex items-center gap-6 flex-1">
                     <div className={`w-24 h-24 rounded-full border-4 ${getBsfiLabel(bsfiData.total_score).border} flex flex-col items-center justify-center bg-[#1b270e] shrink-0 shadow-xl shadow-[#b5a642]/10`}>
                       <span className={`text-3xl font-serif ${getBsfiLabel(bsfiData.total_score).color}`}>
                         {bsfiData.total_score}
@@ -1076,31 +1194,45 @@ export default function Progress() {
                       <span className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-1 block">
                         Today's Home Friction Score
                       </span>
-                      <h3 className="text-xl font-serif text-[#c9ccbb] mb-1">
+                      <h3 className="text-xl font-serif text-[#c9ccbb] mb-2">
                         {getBsfiLabel(bsfiData.total_score).label}
                       </h3>
                       {bsfiData.is_internal_driver ? (
-                         <p className="text-[#c9ccbb]/80 text-xs max-w-md leading-relaxed mt-2">
+                         <p className="text-[#c9ccbb]/80 text-xs max-w-md leading-relaxed">
                            <strong className="text-[#b5a642] uppercase tracking-widest text-[10px] block mb-1">The friction looks internal right now:</strong> 
                            Your space reads stable. What you're feeling is more likely coming from inside: hormonal shifts, a demanding period, or accumulated stress. Ask your home to do less right now, not more.
                          </p>
-                      ) : (
-                         <p className="text-[#c9ccbb]/80 text-xs mt-2">
-                           Where the friction is coming from: <strong className="text-white bg-[#000]/30 px-2 py-1 rounded ml-1">{bsfiData.dominant_domain}</strong>
-                         </p>
-                      )}
+                      ) : (() => {
+                        // sanitiseDomain guards against audit-only domains (e.g. Predictive Legibility)
+                        // surfacing here. If the API returns one, suppress the chip entirely.
+                        const safeDomain = sanitiseDomain(bsfiData.dominant_domain)
+                        return safeDomain ? (
+                          <div>
+                            <p className="text-[#c9ccbb]/60 text-[10px] uppercase tracking-widest font-bold mb-2">
+                              Today's primary friction source
+                            </p>
+                            <div className="flex flex-col gap-1">
+                              <span className="text-white bg-[#000]/30 px-3 py-1.5 rounded text-xs font-bold inline-block w-fit">
+                                {getDomainDisplay(safeDomain).label}
+                              </span>
+                              <span className="text-[#c9ccbb]/40 text-[10px] leading-relaxed">
+                                Driven by: {getDomainDisplay(safeDomain).driver}
+                              </span>
+                            </div>
+                          </div>
+                        ) : null
+                      })()}
                     </div>
-                  </div>
-                  <div className="text-right md:text-left self-start md:self-center">
-                    <p className="text-[10px] text-[#c9ccbb]/50 uppercase tracking-widest max-w-[150px] leading-relaxed">
-                      Based on your last 14 days of logs
-                    </p>
                   </div>
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
 
+          {/* ------------------------------------------------------------------ */}
+          {/* 14-DAY PATTERN PANEL                                                */}
+          {/* This is where the 14-day attribution belongs.                       */}
+          {/* ------------------------------------------------------------------ */}
           <div className={`glass-panel p-6 rounded-3xl mb-8 border relative overflow-hidden transition-all ${!macroSynthesis.ready || hasAccess ? 'bg-gradient-to-r from-[#b5a642]/10 to-transparent border-[#b5a642]/20' : 'bg-[#b5a642]/10 border-[#b5a642]/40 shadow-lg shadow-[#b5a642]/5'}`}>
             <div 
               className={`flex items-center justify-between w-full relative z-10 ${hasAccess && macroSynthesis.ready ? 'cursor-pointer group' : ''}`}
@@ -1114,7 +1246,7 @@ export default function Progress() {
                 </div>
                 <div>
                   <span className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-1 block">
-                    {macroSynthesis.ready ? "Your 14-Day Pattern" : "Building Your Picture"}
+                    {macroSynthesis.ready ? "Your 14-Day Pattern · Based on your last 14 days of logs" : "Building Your Picture"}
                   </span>
                   <h4 className="text-xl font-serif text-[#c9ccbb]">{macroSynthesis.title}</h4>
                 </div>
@@ -1160,7 +1292,7 @@ export default function Progress() {
             ) : (
                <div className="mt-6 pt-6 border-t border-[#c9ccbb]/10 flex flex-col md:flex-row md:items-center justify-between gap-6 w-full relative z-10">
                  <p className="text-sm text-[#c9ccbb]/80 leading-relaxed max-w-xl">
-                   14 days of data collected. Your home's friction pattern is ready. Upgrade to see what it means for you.
+                   14 days of data collected. Your home's friction pattern is ready. Unlock to see what it means for you.
                  </p>
                  <Link href="/upgrade" className="shrink-0 w-full md:w-auto">
                    <button className="w-full md:w-auto px-8 py-3 bg-[#b5a642] text-[#1b270e] text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-white transition-all shadow-lg shadow-[#b5a642]/20">
@@ -1265,8 +1397,8 @@ export default function Progress() {
               <NoiseSensorModal 
                 onClose={() => setIsAcousticMeterOpen(false)}
                 onSave={(db) => {
-                  if (activeMeterTarget === 'nighttimeDb') setNighttimeDb(db.toString());
                   if (activeMeterTarget === 'daytimeDb') setDaytimeDb(db.toString());
+                  if (activeMeterTarget === 'bedtimeDb') setBedtimeDb(db.toString());
                   setIsAcousticMeterOpen(false);
                 }} 
               />
@@ -1276,4 +1408,4 @@ export default function Progress() {
       </AnimatePresence>
     </div>
   )
-}
+}  
