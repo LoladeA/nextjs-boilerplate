@@ -46,7 +46,7 @@ export const neuroInsights: NeuroInsight[] = [
     title: "Heightened Sensory Sensitivity",
     free: {
       sciencefact: "When the nervous system is overloaded, it struggles to filter background input, making ordinary sounds or light flicker feel amplified.",
-      whyitmatters: "If your brain cannot filter out background noise, it creates an 'energy leak' caused by constantly filtering out background hums."
+      whyitmatters: "If your brain cannot filter out background noise, it creates an energy leak caused by constantly filtering out background hums."
     },
     paid: {
       protocol: "Acoustic Buffering Protocol",
@@ -114,7 +114,7 @@ export const neuroInsights: NeuroInsight[] = [
     title: "Predictability & Hierarchy",
     free: {
       sciencefact: "The brain conserves energy when environments are predictable. Inconsistent lighting, unclear visual pathways, unpredictable shadows or erratic noise increase cognitive effort.",
-      whyitmatters: "Spatial order acts as an 'external brain,' reducing the cognitive load required to navigate your day."
+      whyitmatters: "Spatial order acts as an external brain, reducing the cognitive load required to navigate your day."
     },
     paid: {
       protocol: "Spatial Order Protocol",
@@ -182,15 +182,15 @@ export const neuroInsights: NeuroInsight[] = [
     category: "Psychological Safety",
     title: "Identity & Safety",
     free: {
-      sciencefact: "A home that feels misaligned with your identity acts as a constant 'second skin' irritant, undermining emotional safety.",
-      whyitmatters: "Environmental resonance signals to the nervous system that 'this is my territory,' enabling deep rest."
+      sciencefact: "A home that feels misaligned with your identity acts as a constant second skin irritant, undermining emotional safety.",
+      whyitmatters: "Environmental resonance signals to the nervous system that this is my territory, enabling deep rest."
     },
     paid: {
       protocol: "Atmosphere Architecture Protocol",
       primaryadjustment: "Align visual anchors with personal identity markers.",
       refinement: [
         "Identify one visible object that reflects a past version of you and remove or replace it.",
-        "Remove decor that feels 'performative' or obligatory.",
+        "Remove decor that feels performative or obligatory.",
         "Introduce one authentic identity anchor (art, material, colour, scent) that reflects who you are now.",
         "If removal feels difficult, relocate outdated objects to a transitional storage zone."
       ],
@@ -254,7 +254,7 @@ export const neuroInsights: NeuroInsight[] = [
       protocol: "NeuroDesign Protocol",
       primaryadjustment: "Store active projects in opaque containers at the end of each day.",
       refinement: [
-        "Designate one “active project zone” to prevent visual spillover.",
+        "Designate one active project zone to prevent visual spillover.",
         "If storage is limited: Use a single fabric bin or closed folder."
       ],
       whyitWorks: "Reduced visual exposure reduces mental rehearsal.",
@@ -279,7 +279,7 @@ export const neuroInsights: NeuroInsight[] = [
         "If replacement isn’t possible: Relocate patterned items away from your direct line of sight."
       ],
       whyitWorks: "Lower visual contrast reduces metabolic demand on attention systems.",
-      integrationcue: "Your eyes feel less “busy” and settle more quickly."
+      integrationcue: "Your eyes feel less busy and settle more quickly."
     }
   },
 
@@ -300,7 +300,7 @@ export const neuroInsights: NeuroInsight[] = [
         "If space is tight: Use a single drawer with dividers."
       ],
       whyitWorks: "Containment reduces background cognitive noise.",
-      integrationcue: "You know exactly where unfinished admin lives — and nowhere else."
+      integrationcue: "You know exactly where unfinished admin lives, and nowhere else."
     }
   },
 
@@ -394,16 +394,16 @@ export const neuroInsights: NeuroInsight[] = [
     category: "Workflow Friction",
     title: "The Kitchen Triangle",
     free: {
-      sciencefact: "Illogical spatial sequencing forces the brain to constantly engage in 'Motor Planning,' rather than relying on muscle memory. This turns cooking from a flow state into a cognitive task.",
-      whyitmatters: "Do you feel physically clumsy or obstructed when moving between the sink, stove, and fridge?"
+      sciencefact: "Illogical spatial sequencing forces the brain to constantly engage in motor planning, rather than relying on muscle memory. This turns cooking from a flow state into a cognitive task.",
+      whyitmatters: "When the sink, stove, and refrigerator are poorly sequenced, the brain cannot rely on automatic movement patterns. Instead, it must constantly re-plan each step using executive control. This increases cognitive load, slows task flow, and turns a routine activity like cooking into a mentally draining task."
     },
     paid: {
       protocol: "NeuroDesign Protocol",
-      primaryadjustment: "Establish an unobstructed 'Work Triangle.' Ensure the path between major appliances is clear of islands or bin placements.",
+      primaryadjustment: "Establish an unobstructed work triangle. Ensure the path between major appliances is clear of islands or bin placements.",
       refinement: [
-        "Tool: Use the Flow Mapper to trace your cooking path."
+        "Place tools and surfaces in the order you naturally cook: fridge → prep area → stove → sink. When the space mirrors the task sequence, your brain relies on automatic movement instead of constant planning."
       ],
-      whyitWorks: "Reduces micro-decisions during task execution.",
+      whyitWorks: "This reduces micro-decisions during task execution.",
       integrationcue: "Movement becomes automatic and rhythmic."
     }
   },
@@ -414,14 +414,14 @@ export const neuroInsights: NeuroInsight[] = [
     category: "Spatial Psychology",
     title: "The 'Command Position'",
     free: {
-      sciencefact: "Evolutionarily, humans feel safest when they have a view of the entry point without being directly in line with it. This satisfies the 'Prospect and Refuge' instinct.",
-      whyitmatters: "Do you feel a subtle unease or need to constantly turn your head when sitting at your desk or sofa?"
+      sciencefact: "Evolutionarily, humans feel safest when they have a view of the entry point without being directly in line with it. This satisfies the prospect and refuge instinct.",
+      whyitmatters: "When the brain cannot see the point of entry, it increases background vigilance. This keeps the amygdala subtly active, prompting unconscious scanning and preventing full relaxation."
     },
     paid: {
       protocol: "NeuroDesign Protocol",
       primaryadjustment: "Position primary seating (bed, desk, sofa) so you can see the door without turning, but are not directly in the doorway's path.",
       refinement: [
-        "Tool: Consultation Trigger: Structural layout constraints."
+        "Angle your seating so the door remains within your peripheral vision while your body stays protected by a wall or solid surface behind you. This restores prospect (visibility) and refuge (protection) simultaneously."
       ],
       whyitWorks: "Visual control of the entry lowers background amygdala activation.",
       integrationcue: "You feel physically settled without needing to scan the room."
@@ -435,13 +435,13 @@ export const neuroInsights: NeuroInsight[] = [
     title: "Door Swing Conflict",
     free: {
       sciencefact: "Doors that open into high-traffic paths or block cabinetry create 'Micro-Frictions'—tiny moments of hesitation that accumulate into frustration.",
-      whyitmatters: "Do you have to 'dance' around a door to access a cupboard or enter a room?"
+      whyitmatters: "Repeated micro-hesitations during movement increase motor planning demand. These interruptions accumulate as low-level irritation and spatial fatigue throughout the day."
     },
     paid: {
       protocol: "NeuroDesign Protocol",
       primaryadjustment: "Rehang doors to swing against a wall (opening the view) or install sliding pocket doors in tight corridors.",
       refinement: [
-        "Tool: Use the Flow Mapper to identify swing conflicts."
+        "Keep door arcs completely clear and ensure that no object or cabinet sits within the swing radius. When doors open cleanly against a wall, movement becomes continuous rather than interrupted."
       ],
       whyitWorks: "Eliminating physical barriers creates a sense of spatial fluidity.",
       integrationcue: "Navigation feels effortless and unobstructed."
@@ -454,14 +454,14 @@ export const neuroInsights: NeuroInsight[] = [
     category: "Spatial Entropy",
     title: "The 'Dead Corner' Stagnation",
     free: {
-      sciencefact: "Undefined spaces accumulate entropy (clutter). The brain reads these stagnant areas as 'unresolved,' keeping a background tab open.",
-      whyitmatters: "Is there a corner of your room that collects piles of items simply because it has no clear purpose?"
+      sciencefact: "Undefined spaces accumulate entropy (clutter). The brain reads these stagnant areas as unresolved, keeping a background tab open.",
+      whyitmatters: "Undefined spaces create open cognitive loops. Your brain continues monitoring them as unfinished, increasing background mental load and visual entropy."
     },
     paid: {
       protocol: "NeuroDesign Protocol",
       primaryadjustment: "Assign a specific function (a plant, a floor lamp) or leave it intentionally, flawlessly empty. Do not use it for storage.",
       refinement: [
-        "Tool: Rate your 'Visual Clarity'."
+        "Give every corner a clear identity. Either anchor it with a single intentional element (plant, lamp, sculpture) or leave it deliberately empty and visually resolved."
       ],
       whyitWorks: "Defining space closes the cognitive loop of 'what goes here?'",
       integrationcue: "The room feels complete rather than unfinished."
@@ -474,14 +474,14 @@ export const neuroInsights: NeuroInsight[] = [
     category: "Proprioception",
     title: "Hallway Compression",
     free: {
-      sciencefact: "Narrow corridors invade 'Peripersonal Space,' triggering a subconscious defensive posture (hunched shoulders) as you traverse them.",
-      whyitmatters: "Do you feel the need to speed up or hold your breath when walking through your hallway?"
+      sciencefact: "Narrow corridors invade peripersonal space, triggering a subconscious defensive posture (hunched shoulders) as you traverse them.",
+      whyitmatters: "When walkways intrude into peripersonal space (the protective zone around the body), the brain activates subtle defensive responses—shoulder tension, shallow breathing, and faster walking."
     },
     paid: {
       protocol: "NeuroDesign Protocol",
       primaryadjustment: "Maintain a minimum 1-metre clearance. Remove console tables or hooks if the width falls below this threshold.",
       refinement: [
-        "Tool: Log your 'Movement Ease'."
+        "Maintain a clear walking corridor with nothing protruding into shoulder width. Even small intrusions like coat hooks or narrow tables can trigger defensive movement patterns."
       ],
       whyitWorks: "Adequate clearance signals physical safety to the brain stem.",
       integrationcue: "You walk through the hall with relaxed shoulders."
@@ -495,13 +495,13 @@ export const neuroInsights: NeuroInsight[] = [
     title: "Vertical Oppression",
     free: {
       sciencefact: "Low vertical boundaries correlate with confined, analytical thinking, whereas height promotes abstraction and relational thinking.",
-      whyitmatters: "Does the room feel like it is 'pressing down' on you, making deep breathing difficult?"
+      whyitmatters: "Low ceilings and compressed vertical sightlines can restrict expansive breathing and abstract thinking, while taller visual fields encourage cognitive openness and mental flexibility."
     },
     paid: {
       protocol: "NeuroDesign Protocol",
       primaryadjustment: "Install curtain tracks directly at the ceiling line (not the window frame) to visually elongate the wall height.",
       refinement: [
-        "Tool: Use the Visual Noise Filter."
+        "Draw the eye upward using vertical lines, ceiling-mounted curtains, or tall elements. This increases perceived spatial volume without structural renovation."
       ],
       whyitWorks: "Drawing the eye upward creates a perception of volume and breath.",
       integrationcue: "You intuitively take deeper breaths in the room."
@@ -515,14 +515,14 @@ export const neuroInsights: NeuroInsight[] = [
     title: "Fractal Fluency",
     free: {
       sciencefact: "The human eye is designed to process natural, self-repeating patterns (fractals). Looking at wood grain or stone reduces physiological stress by up to 60%.",
-      whyitmatters: "Does your home feel 'flat' or 'plastic,' lacking the visual texture that holds your gaze?"
+      whyitmatters: "The visual cortex processes mid-range fractal patterns (common in nature) with minimal effort. Exposure to these patterns has been shown to reduce physiological stress responses and stabilise eye movement patterns."
     },
     paid: {
       protocol: "NeuroDesign Protocol",
       primaryadjustment: "Introduce high-fidelity natural textures (unpainted wood, marble, wool) into your immediate sightline.",
       refinement: [
         "Avoid repetitive geometric wallpapers.",
-        "Tool: Log 'Minutes of Nature Exposure' in the Biophilic Tracker."
+        "Introduce authentic natural materials within your primary sightline such as wood grain, stone, linen, wool. These provide the visual complexity the brain evolved to process efficiently."
       ],
       whyitWorks: "Fractal patterns engage the visual cortex effortlessly (Alpha state).",
       integrationcue: "Your gaze lingers on surfaces without fatigue."
@@ -535,14 +535,14 @@ export const neuroInsights: NeuroInsight[] = [
     category: "Visual Balance",
     title: "Bilateral Symmetry",
     free: {
-      sciencefact: "The brain processes symmetrical images faster than asymmetrical ones. This 'Processing Fluency' is interpreted as calmness and safety.",
-      whyitmatters: "Does your shelving or furniture arrangement feel 'lopsided,' creating a sense of visual imbalance?"
+      sciencefact: "The brain processes symmetrical images faster than asymmetrical ones. This processing fluency is interpreted as calmness and safety.",
+      whyitmatters: "Symmetrical arrangements reduce the computational effort required for visual processing. The brain interprets high processing fluency as stability and safety."
     },
     paid: {
       protocol: "NeuroDesign Protocol",
       primaryadjustment: "Frame a focal point (e.g., a bed or fireplace) with matching pairs (lamps, side tables) to signal stability.",
       refinement: [
-        "Tool: Rate your 'Visual Calm' score."
+        "Anchor key areas with balanced visual pairs such as lamps, chairs, artwork, or side tables around a central focal point. This signals structural order to the visual system."
       ],
       whyitWorks: "Symmetry reduces the computational load of processing the room.",
       integrationcue: "The room feels stable and grounded."
@@ -556,13 +556,13 @@ export const neuroInsights: NeuroInsight[] = [
     title: "The Threshold Pause",
     free: {
       sciencefact: "Crossing a threshold requires a 'Context Switch.' Without a physical zone to decompress, external stress is carried into the sanctuary.",
-      whyitmatters: "Do you walk straight from the chaotic street into your living room without a moment to reset?"
+      whyitmatters: "Crossing environments requires a context switch in the brain. Without a physical transition zone, external stress signals are carried directly into the home, preventing psychological decompression."
     },
     paid: {
       protocol: "NeuroDesign Protocol",
       primaryadjustment: "Create a 'Pause Point' (a bench or shelf) immediately inside the door to physically separate 'Outside' from 'Inside.'",
       refinement: [
-        "Tool: Log your 'Entry Mood' in the Daily Check-in."
+        "Create a small entry ritual space—a place to pause, set down belongings, or change shoes. This physical pause helps the brain mark the shift from external demand → internal recovery."
       ],
       whyitWorks: "Physical separation allows for psychological gear-shifting.",
       integrationcue: "You feel a distinct shift in energy upon entering."
@@ -575,14 +575,14 @@ export const neuroInsights: NeuroInsight[] = [
     category: "Ergonomics",
     title: "Ergonomic Reach Zones",
     free: {
-      sciencefact: "Frequent bending or over-reaching increases physical cortisol. 'Convenience' is biological energy conservation.",
-      whyitmatters: "Do you avoid using certain items because retrieving them feels like too much physical effort?"
+      sciencefact: "Frequent bending or over-reaching increases physical cortisol. Convenience is biological energy conservation.",
+      whyitmatters: "Frequent bending, stretching, or searching activates unnecessary motor planning and physical effort, increasing the metabolic cost of routine tasks. Over time this creates task avoidance and cognitive friction."
     },
     paid: {
       protocol: "NeuroDesign Protocol",
-      primaryadjustment: "Store daily-use items in the Golden Zone (between waist and shoulder height). Relegate monthly items to high/low shelves.",
+      primaryadjustment: "Store daily-use items in the Golden Zone (between waist and shoulder height).",
       refinement: [
-        "Tool: Complete the Zone Audit."
+        "Reserve high and low storage only for infrequently used items."
       ],
       whyitWorks: "Reducing physical friction lowers the activation energy for tasks.",
       integrationcue: "Daily routines feel frictionless and light."
@@ -1431,6 +1431,366 @@ export const neuroInsights: NeuroInsight[] = [
       ],
       whyitWorks: "Shared focus on a tangible object facilitates Neural Entrainment, a state where individuals' physiological rhythms (heart rate, breathing) begin to align, fostering deep connection.",
       integrationcue: "You notice family interactions feel smoother and a greater sense of social connection in your daily check-ins."
+    }
+  },
+  {
+    id: 71,
+    category: "Acoustic Balance",
+    title: "Shared Wall Awareness",
+    free: {
+      sciencefact: "Knowing your neighbours can hear you creates Evaluation Apprehension, preventing full relaxation in your own home.",
+      whyitmatters: "You may find yourself whispering in your own living room to avoid being heard by neighbours. This chronic lack of acoustic privacy keeps your autonomic nervous system on guard, preventing a true parasympathetic state."
+    },
+    paid: {
+      protocol: "The Privacy Barrier",
+      primaryadjustment: "Place heavy furniture like bookshelves or wardrobes full of dense items against the shared party wall to act as mass.",
+      refinement: [
+        "Rate your Privacy Perception before and after the intervention to measure the somatic shift."
+      ],
+      whyitWorks: "Adding physical mass to a shared wall dampens acoustic transmission, signaling to the survival brain that you are no longer being monitored.",
+      integrationcue: "You will notice you no longer subconsciously moderate your voice volume or physical movements within your own living space."
+    }
+  },
+  {
+    id: 72,
+    category: "Acoustic Balance",
+    title: "Water Sound Psychology",
+    free: {
+      sciencefact: "The sound of running water reduces cortisol levels, but the sound of draining or dripping pipes triggers anxiety related to waste and loss aversion.",
+      whyitmatters: "A dripping tap or a noisy drain can make it impossible for you to concentrate. The brain interprets these specific acoustic signatures as unresolved maintenance threats, creating continuous cognitive friction."
+    },
+    paid: {
+      protocol: "Acoustic Leak Mitigation",
+      primaryadjustment: "Fix all leaks immediately and insulate waste pipes if they run through living areas to silence the draining sounds.",
+      refinement: [
+        "Log Maintenance Frictions in your tracking tool to isolate which specific plumbing sounds cause the highest spikes in irritation."
+      ],
+      whyitWorks: "Eliminating the sound of dripping or draining removes the subconscious cue of resource loss, allowing the auditory cortex to return to a baseline state of safety.",
+      integrationcue: "Your environment will feel immediately more stable, and the low-level urgency to fix something will dissipate."
+    }
+  },
+  {
+    id: 73,
+    category: "Acoustic Balance",
+    title: "The BPM Sync",
+    free: {
+      sciencefact: "The heart rate tends to synchronise with the rhythm of the auditory environment through entrainment, meaning chaotic rhythms lead to arrhythmic heart rates.",
+      whyitmatters: "Fast-paced music may make you feel anxious when you are trying to cook or clean calmly. Your cardiovascular system is being forced to match an elevated tempo that contradicts your desired physical state."
+    },
+    paid: {
+      protocol: "Auditory Entrainment",
+      primaryadjustment: "Match the BPM of your background music to your desired state, using 60 BPM for rest and 120 BPM for active tasks.",
+      refinement: [
+        "Use a targeted Focus Playlist to consciously engineer your heart rate rather than leaving it to algorithmic chance."
+      ],
+      whyitWorks: "Deliberate auditory pacing leverages the somatic entrainment response, using sound to physically down-regulate or up-regulate the cardiovascular system with precision.",
+      integrationcue: "You will experience a sense of flow during tasks, with your physical movements feeling naturally supported by the acoustic environment."
+    }
+  },
+  {
+    id: 74,
+    category: "Acoustic Balance",
+    title: "Mechanical Ventilation",
+    free: {
+      sciencefact: "Constant mechanical whirring at the wrong frequency can trigger Low-Frequency Fatigue.",
+      whyitmatters: "You may feel a sudden sense of relief when you leave your house simply because the background noise stops. This indicates that your home is placing a continuous, invisible acoustic load on your nervous system."
+    },
+    paid: {
+      protocol: "Mechanical Silence Audit",
+      primaryadjustment: "Ensure all vents are clean to reduce whistling and schedule maintenance to check fan balance.",
+      refinement: [
+        "Measure the Ambient Noise Floor to identify hidden low-frequency hums that your brain is filtering but your body is enduring."
+      ],
+      whyitWorks: "Removing low-frequency mechanical noise eliminates a persistent environmental stressor, freeing up the cognitive bandwidth previously used to filter the hum.",
+      integrationcue: "The air in your home will feel lighter, and the subtle tension at the base of your skull will begin to release."
+    }
+  },
+  {
+    id: 75,
+    category: "Acoustic Balance",
+    title: "The Quiet Hour Ritual",
+    free: {
+      sciencefact: "The brain needs a period of Auditory Rest before sleep to process the day's intake.",
+      whyitmatters: "Keeping your home loud with television, talking, or music right up until the moment you get into bed prevents the auditory cortex from powering down, leading to delayed sleep onset."
+    },
+    paid: {
+      protocol: "The Zero Audio Transition",
+      primaryadjustment: "Institute a Zero Audio hour 60 minutes before sleep where no artificial inputs are allowed, leaving only ambient house sounds.",
+      refinement: [
+        "Set a Quiet Hour reminder to build the habit of auditory down-regulation before physical exhaustion hits."
+      ],
+      whyitWorks: "A definitive cessation of auditory input signals to the circadian system that the stimulation phase of the day is over, initiating the neurochemical cascade required for deep sleep.",
+      integrationcue: "You will find yourself falling asleep faster and experiencing less racing thoughts the moment your head hits the pillow."
+    }
+  },
+  {
+    id: 76,
+    category: "Tactile and Thermal",
+    title: "Thermal Sleep Triggers",
+    free: {
+      sciencefact: "To initiate sleep, the body core temperature must drop by approximately 1°C. A warm room prevents this drop, delaying sleep onset.",
+      whyitmatters: "You may find yourself tossing and turning, constantly flipping the pillow to the cool side. Your biological system is actively fighting the environmental temperature, creating somatic resistance instead of surrender."
+    },
+    paid: {
+      protocol: "The Ambient Thermal Drop",
+      primaryadjustment: "Keep the bedroom between 16 and 18°C and use breathable layers rather than one heavy duvet to allow for micro-adjustments.",
+      refinement: [
+        "Track your Sleep Onset speed to correlate the room temperature with how fast your nervous system powers down."
+      ],
+      whyitWorks: "Lowering ambient temperature facilitates the mandatory biological thermal drop required for sleep, shifting the body from thermoregulation into deep cellular repair.",
+      integrationcue: "You will stop fighting your bedding and experience a faster, heavier transition into the first sleep cycle."
+    }
+  },
+  {
+    id: 77,
+    category: "Tactile and Thermal",
+    title: "The Cold Vigilance",
+    free: {
+      sciencefact: "Being physically cold activates the sympathetic nervous system to generate heat. You cannot achieve true relaxation if you are shivering.",
+      whyitmatters: "You might catch yourself hunching your shoulders or sitting on your hands when watching television in the evening. This physical contraction is a survival response that actively blocks parasympathetic recovery."
+    },
+    paid: {
+      protocol: "Targeted Somatic Warming",
+      primaryadjustment: "Use Spot Heating like a hot water bottle or electric throw to warm the person directly, rather than attempting to heat the entire room.",
+      refinement: [
+        "Apply the heat source directly to the torso or feet for immediate parasympathetic release."
+      ],
+      whyitWorks: "Direct conductive heat immediately signals safety to the autonomic nervous system, shutting down the sympathetic thermal-defense cascade and allowing muscles to unbrace.",
+      integrationcue: "You will feel your shoulders naturally drop away from your ears and your breathing deepen within minutes of application."
+    }
+  },
+  {
+    id: 78,
+    category: "Tactile and Thermal",
+    title: "Synthetic Static",
+    free: {
+      sciencefact: "Synthetic fabrics trap heat and moisture, creating a humid micro-climate against the skin that causes subtle neurological restlessness.",
+      whyitmatters: "Waking up sweaty but cold, or feeling like your clothes are clingy and static-charged, is a sign that your sensory boundaries are being irritated. This micro-friction interrupts deep rest."
+    },
+    paid: {
+      protocol: "The Breathable Boundary",
+      primaryadjustment: "Eliminate polyester from direct skin contact in sheets and pyjamas, switching entirely to 100% Cotton, Linen, or Tencel.",
+      refinement: [
+        "Check all bedding labels, as many premium brands blend synthetics for wrinkle resistance at the cost of biological comfort."
+      ],
+      whyitWorks: "Natural fibers allow for efficient moisture evaporation and thermal regulation, preventing the sensory alarms triggered by trapped humidity and static discharge.",
+      integrationcue: "You will wake up feeling thermally neutral and physically untethered from your bedding."
+    }
+  },
+  {
+    id: 79,
+    category: "Tactile and Thermal",
+    title: "Proprioceptive Weighting",
+    free: {
+      sciencefact: "Deep Pressure Stimulation increases dopamine and serotonin while simultaneously reducing cortisol. Weight feels like a physical container for a dysregulated system.",
+      whyitmatters: "If you feel calmer when wearing a heavy coat or sleeping under a dense pile of blankets, your nervous system is actively seeking proprioceptive grounding to offset environmental anxiety."
+    },
+    paid: {
+      protocol: "Strategic Mass Application",
+      primaryadjustment: "Incorporate a weighted blanket that is approximately 10% of your body weight into your designated rest zone or Crisis Corner.",
+      refinement: [
+        "Ensure the weight is evenly distributed and the fabric is breathable to prevent thermal overload while applying pressure."
+      ],
+      whyitWorks: "Deep pressure mimics the somatic sensation of being held, which stimulates the vagus nerve and shifts the nervous system from a state of vigilance into one of contained safety.",
+      integrationcue: "You will feel an immediate physical anchoring, as if the scattered energy in your body is being pressed back into your core."
+    }
+  },
+  {
+    id: 80,
+    category: "Tactile and Thermal",
+    title: "Tactile Defensiveness",
+    free: {
+      sciencefact: "For sensitive neurotypes, certain textures like unfinished wood, velvet, or coarse wool register as actual pain signals in the brain.",
+      whyitmatters: "You may instinctively pull your hand away from certain upholstery or surfaces in your home. This tactile rejection is not a preference; it is your nervous system actively defending itself against abrasive inputs."
+    },
+    paid: {
+      protocol: "The Frictionless Surface Audit",
+      primaryadjustment: "Perform a Touch Audit to remove or cover any texture that triggers a withdrawal response, replacing them with High-Glide textures like silk or smooth cotton.",
+      refinement: [
+        "Rate your Seating Comfort objectively, identifying zones where you hesitate to rest your bare arms or legs."
+      ],
+      whyitWorks: "Replacing abrasive textures with high-glide surfaces removes the subconscious threat of micro-abrasions, allowing the tactile processing centers of the brain to power down.",
+      integrationcue: "You will navigate your furniture fluidly, without the subconscious bracing or avoidance behaviors previously required."
+    }
+    ,
+  {
+    id: 81,
+    category: "Tactile and Thermal",
+    title: "Thermal Shock",
+    free: {
+      sciencefact: "Stepping onto a cold floor shocks the system, instantly spiking alertness. This is jarring during night-time bathroom trips.",
+      whyitmatters: "You may walk on tiptoes in your bathroom or kitchen to avoid touching the floor. This physical bracing creates an immediate sympathetic nervous system spike, jarring you out of a restorative state during night-time wakings."
+    },
+    paid: {
+      protocol: "The Barefoot Path",
+      primaryadjustment: "Place runners or rugs in high-traffic barefoot zones, specifically targeting the bed-to-bathroom path.",
+      refinement: [
+        "Log Morning Comfort to track how thermal grounding impacts your baseline stress levels upon waking."
+      ],
+      whyitWorks: "Providing a thermally neutral surface prevents the sudden physiological shock of heat loss through the soles of the feet, keeping the autonomic nervous system in a regulated state.",
+      integrationcue: "You will navigate your home seamlessly during the night without the subconscious tension of anticipating a cold shock."
+    }
+  },
+  {
+    id: 82,
+    category: "Tactile and Thermal",
+    title: "Rug Zoning",
+    free: {
+      sciencefact: "A rug creates a Tactile Island. Stepping from hard floor to soft rug signals the brain to shift from Movement to Rest.",
+      whyitmatters: "If your furniture feels like it is floating in a sea of hard floor, the room will inherently feel cold and unanchored to your nervous system. This lack of clear spatial boundaries prevents your brain from fully transitioning into a rest state."
+    },
+    paid: {
+      protocol: "The Tactile Island",
+      primaryadjustment: "Ensure your rug is large enough that all furniture legs sit firmly on it, creating a single, cohesive tactile zone.",
+      refinement: [
+        "Apply the Visual Noise Filter to observe how anchoring the furniture instantly reduces the chaotic, floating energy of the space."
+      ],
+      whyitWorks: "Defining a clear, soft boundary underneath resting areas provides a subconscious somatic cue that movement has ceased, signaling the brain to down-regulate.",
+      integrationcue: "The space will instantly feel deliberate and grounded, pulling you into a state of physical settling the moment you step onto the textile."
+    }
+  },
+  {
+    id: 83,
+    category: "Tactile and Thermal",
+    title: "The Sink Factor",
+    free: {
+      sciencefact: "Soft sofas that you sink into can cause physical anxiety because they restrict movement and make standing up difficult.",
+      whyitmatters: "Grunting or struggling to get out of your sofa, or avoiding it entirely for short breaks, indicates somatic entrapment. Deep, overly soft seating restricts your physical agency, causing subconscious panic in the mammalian brain."
+    },
+    paid: {
+      protocol: "Somatic Support Baseline",
+      primaryadjustment: "Choose seating with firm structural support and a seat height that allows your knees to rest comfortably at exactly 90 degrees.",
+      refinement: [
+        "Rate your Posture Support over a 7-day period to measure the decrease in physical fatigue after long periods of sitting."
+      ],
+      whyitWorks: "Firm, biomechanically aligned seating removes the physical effort required to hold the body upright or escape the structure, reassuring the nervous system that mobility is always available.",
+      integrationcue: "Sitting down will feel like being actively supported rather than swallowed, and standing up will require zero preparatory bracing."
+    }
+  },
+  {
+    id: 84,
+    category: "Tactile and Thermal",
+    title: "Humidity and Stickiness",
+    free: {
+      sciencefact: "High humidity reduces the evaporation of sweat, leading to a sensation of air heaviness and claustrophobia.",
+      whyitmatters: "When the air in your home feels thick or difficult to breathe deeply, you are experiencing the biological stress of impaired thermoregulation. The inability of sweat to evaporate efficiently triggers a low-grade claustrophobic response."
+    },
+    paid: {
+      protocol: "The Crisp Air Baseline",
+      primaryadjustment: "Deploy a dehumidifier to strictly maintain ambient humidity between 40 and 50 percent across all primary living spaces.",
+      refinement: [
+        "Continuously Track Humidity Levels to ensure the environment remains in the optimal biological window, regardless of external weather."
+      ],
+      whyitWorks: "Maintaining optimal humidity restores the skin's ability to efficiently offload heat, removing the persistent sensation of environmental heaviness and oppression.",
+      integrationcue: "The air will feel immediately lighter in the lungs, and your skin will remain cool and dry even during mild physical activity within the home."
+    }
+  },
+  {
+    id: 85,
+    category: "Tactile and Thermal",
+    title: "Air Movement",
+    free: {
+      sciencefact: "Still, stagnant air allows CO2 and VOCs to pool around the user. Air movement stimulates skin receptors, keeping alertness fresh.",
+      whyitmatters: "Feeling inexplicably sleepy and lethargic after sitting in the same spot for an hour is a symptom of localized atmospheric stagnation. Pooling CO2 and the lack of tactile stimulation on the skin signal the brain to power down prematurely."
+    },
+    paid: {
+      protocol: "Invisible Circulation",
+      primaryadjustment: "Position a low-velocity fan to create gentle, continuous air movement throughout the room, focusing on circulation rather than a direct draft.",
+      refinement: [
+        "Log Focus Stamina to correlate the introduction of air movement with your ability to sustain cognitive tasks without chemical stimulants."
+      ],
+      whyitWorks: "Gentle air currents constantly refresh the oxygen boundary layer around your face while providing subtle tactile stimulation that keeps the neurological arousal system engaged.",
+      integrationcue: "You will maintain a steady, clear-headed focus for extended periods without experiencing the typical mid-afternoon environmental crash."
+    }
+  },
+  {
+    id: 86,
+    category: "Habits Routines and WFH",
+    title: "Habit Salience",
+    free: {
+      sciencefact: "The brains Salience Network prioritises processing objects that are visually prominent. Hidden tools lead to failure.",
+      whyitmatters: "Constantly forgetting to take vitamins or journal simply because the items are hidden in a drawer is not a lack of discipline; it is an architectural failure. The brain requires high-visibility cues to trigger low-motivation behaviors."
+    },
+    paid: {
+      protocol: "The Unavoidable Trigger",
+      primaryadjustment: "Place the physical tool for your desired habit directly in your primary path of travel, ensuring it is visually unmissable.",
+      refinement: [
+        "Use the Habit Stacking tracker to link this newly visible tool to an existing, non-negotiable daily action."
+      ],
+      whyitWorks: "Placing a cue in your direct visual field leverages the brains automatic salience network, eliminating the cognitive load required to remember or initiate the task.",
+      integrationcue: "Desired behaviors will begin happening automatically, triggered by the environment itself rather than requiring internal willpower."
+    }
+  },
+  {
+    id: 87,
+    category: "Habits Routines and WFH",
+    title: "The Work Wrap",
+    free: {
+      sciencefact: "Context-Dependent Memory means the brain struggles to switch off Work Mode if the sensory environment remains identical to Rest Mode.",
+      whyitmatters: "Feeling anxious sitting on your sofa in the evening because it is the exact same location you took a stressful call earlier is a result of contextual blending. Your nervous system cannot differentiate between the space of labor and the space of recovery."
+    },
+    paid: {
+      protocol: "Sensory Demarcation",
+      primaryadjustment: "Introduce a specific sensory variable, such as a dedicated work blanket or a rosemary scent, strictly during labor hours, and physically remove it the moment the workday concludes.",
+      refinement: [
+        "Log your Evening Detachment to track how quickly your heart rate normalizes once the work-specific sensory cues are removed."
+      ],
+      whyitWorks: "By deliberately altering the sensory data of a room, you provide the brain with a definitive off switch, breaking the contextual memory loop and allowing the nervous system to transition to rest.",
+      integrationcue: "The space will feel fundamentally different in the evening, granting you permission to mentally clock out without lingering residual stress."
+    }
+  },
+  {
+    id: 88,
+    category: "Habits Routines and WFH",
+    title: "The Activation Barrier",
+    free: {
+      sciencefact: "Increasing the physical effort required to execute a bad habit by just 20 seconds drastically reduces its frequency through the Friction Hypothesis.",
+      whyitmatters: "Finding yourself mindlessly scrolling on your phone simply because it was physically within reach highlights how the environment exploits your baseline dopamine-seeking loops. Proximity dictates behavior more than intent."
+    },
+    paid: {
+      protocol: "The Friction Hypothesis",
+      primaryadjustment: "Store high-dopamine triggers like screens or specific foods inside opaque, latched containers or in entirely different rooms to artificially inflate the activation energy required.",
+      refinement: [
+        "Rate your Impulse Control periodically to witness how physical friction dramatically reduces the frequency of compulsive behaviors."
+      ],
+      whyitWorks: "Introducing even a 20-second delay forces the brain to shift from automatic, limbic-driven impulsivity to conscious, prefrontal evaluation, breaking the mindless loop.",
+      integrationcue: "You will experience a quiet reclamation of your time and attention, as the physical effort required simply is not worth the momentary dopamine hit."
+    }
+  },
+  {
+    id: 89,
+    category: "Habits Routines and WFH",
+    title: "The Drop Zone",
+    free: {
+      sciencefact: "Entering a home with keys or mail in hand creates an Open Loop, keeping the brain in a task-switching state rather than a recovery state.",
+      whyitmatters: "Carrying clutter further into the house and leaving a trail of micro-tasks behind you creates open neurological loops. This ensures you remain in a heightened state of vigilance long after you have crossed the threshold."
+    },
+    paid: {
+      protocol: "The Empty Hand Threshold",
+      primaryadjustment: "Install a designated console or bowl within one metre of the front door, enforcing a strict rule that nothing passes this boundary until your hands are entirely empty.",
+      refinement: [
+        "Log Entry Mood in the Daily Check-in to observe the psychological relief of establishing a hard boundary against external chaos."
+      ],
+      whyitWorks: "Creating a dedicated offloading zone at the point of entry immediately closes open cognitive loops, signaling to the nervous system that the transition from external threat to internal safety is complete.",
+      integrationcue: "The deeper interior of your home will remain pristine and unregulated by outside artifacts, allowing you to enter a state of immediate decompression."
+    }
+  },
+  {
+    id: 90,
+    category: "Habits Routines and WFH",
+    title: "Vertical Scanning",
+    free: {
+      sciencefact: "Environments that force a downward gaze encourage a kyphotic posture, which is linked to lower serotonin levels and depressive states.",
+      whyitmatters: "If your home feels heavy, with all visual anchors located below eye level, you are being physically forced into a chronic downward gaze. This structural kyphosis compresses the chest and biochemically mirrors a state of submission or defeat."
+    },
+    paid: {
+      protocol: "The Upward Gaze Vector",
+      primaryadjustment: "Relocate striking artwork or architectural shelving high on the walls to naturally draw the eye upward and expand the chest cavity.",
+      refinement: [
+        "Trigger a structural joinery design consultation to permanently integrate high-level visual anchors into the architecture of the space."
+      ],
+      whyitWorks: "Forcing the chin up and opening the posture signals confidence and alertness to the brain, directly stimulating serotonin production and countering the somatic loop of lethargy.",
+      integrationcue: "You will naturally walk taller through your space, experiencing a subtle but persistent lift in baseline energy and mood."
     }
   }
 ]
