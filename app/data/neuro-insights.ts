@@ -1611,7 +1611,8 @@ export const neuroInsights: NeuroInsight[] = [
       ],
       whyitWorks: "Replacing abrasive textures with high-glide surfaces removes the subconscious threat of micro-abrasions, allowing the tactile processing centers of the brain to power down.",
       integrationcue: "You will navigate your furniture fluidly, without the subconscious bracing or avoidance behaviors previously required."
-    },
+    }
+  },
   {
     id: 81,
     category: "Tactile and Thermal",
