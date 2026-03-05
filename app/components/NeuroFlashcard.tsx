@@ -176,7 +176,7 @@ export default function NeuroFlashcard({ isPremium = false, scores }: Props) {
                     <div className="p-4 bg-[#b5a642]/5 rounded-xl border border-[#b5a642]/10 space-y-4">
                       <div>
                         <span className="text-[#b5a642] text-[10px] uppercase font-bold block mb-1">Why It Works</span>
-                        <p className="text-xs text-[#c9ccbb]/60">{currentCard.paid.whyitWorks}</p>
+                        <p className="text-xs text-[#c9ccbb]/70">{currentCard.paid.whyitWorks}</p>
                       </div>
                       <div>
                         <span className="text-[#b5a642] text-[10px] uppercase font-bold block mb-1">Integration Cue</span>
