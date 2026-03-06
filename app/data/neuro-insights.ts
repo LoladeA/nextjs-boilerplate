@@ -1471,19 +1471,19 @@ export const neuroInsights: NeuroInsight[] = [
     category: "Social Dynamics & Small Spaces",
     title: "The Primary Territory Imperative",
     free: {
-      sciencefact: "Altman's territorial model (1975) identifies Primary Territory — space exclusively controlled by one individual — as a non-negotiable regulatory need. In shared homes without defined primary zones, salivary cortisol is measurably elevated even during periods of interpersonal harmony.",
-      whyitmatters: "Feeling chronically on edge in your own home despite no obvious conflict is frequently a territorial signal, not a relational one. The nervous system requires at least one zone of complete environmental control to maintain baseline regulation. Without it, low-level social vigilance runs continuously."
+      sciencefact: "According to Altman's territorial model (1975), primary territory [an area exclusively controlled by one individual] is a non-negotiable regulatory need. In homes where primary zones are not clearly defined, salivary cortisol levels are measurably higher, even during periods of interpersonal harmony.",
+      whyitmatters: "If you feel chronically on edge in your own home despite there being no obvious conflict, this is often a territorial signal rather than a relational one. The nervous system requires at least one area over which you have complete control of your environment to maintain baseline regulation. Without this, low-level social vigilance runs continuously."
     },
     paid: {
       protocol: "The Sovereign Zone",
-      primaryadjustment: "Identify and physically demarcate one zone — a shelf, a chair, a corner of a room — as exclusively yours. This must be non-negotiable to all other occupants and must contain items that are yours alone to arrange, move, or change.",
+      primaryadjustment: "Identify and physically demarcate one zone, such as a shelf, a chair or a corner of a room, as exclusively yours. This must be non-negotiable to all other occupants and must contain items that you alone arrange, move or change.",
       refinement: [
-        "The zone does not need to be large — Altman's research shows the regulatory effect is produced by exclusivity of control, not size. A dedicated chair and side table is neurologically sufficient if its boundaries are genuinely respected.",
-        "Maintain this zone actively: rearrange it occasionally, make deliberate choices about what it contains. The regulatory effect comes from exercising control, not just possessing space.",
-        "Log your morning tension score against days when the zone was and was not respected — most people see a direct correlation within two weeks that makes the need for spatial boundaries empirically undeniable."
+        "The zone does not need to be large. Altman's research shows that the regulatory effect is produced by exclusivity of control, not size. A dedicated chair and side table is neurologically sufficient if its boundaries are genuinely respected.",
+        "Maintain this zone actively: rearrange it occasionally and make deliberate choices about what it contains. The regulatory effect comes from exercising control, not just possessing space.",
+        "Log your morning tension score against days when the zone was and was not respected. Most people see a direct correlation within two weeks that makes the need for spatial boundaries empirically undeniable."
       ],
-      whyitWorks: "The hypothalamic-pituitary-adrenal axis responds to perceived loss of environmental control as a threat, maintaining elevated cortisol as long as the control deficit persists. Primary territory satisfies the prefrontal cortex's regulatory demand for at least one domain of predictable, self-directed agency — suppressing the HPA threat response that unpredictability in all shared zones sustains.",
-      integrationcue: "Occupying a genuine primary territory — not just a claimed one — produces a qualitatively different bodily state: a reduction in postural guardedness that is most noticeable in the first few minutes of being there."
+      whyitWorks: "The hypothalamic–pituitary–adrenal axis responds to perceived loss of environmental control as a threat, maintaining elevated cortisol levels for as long as the control deficit persists. Primary territory satisfies the prefrontal cortex's regulatory demand for at least one domain of predictable, self-directed agency, suppressing the HPA threat response that unpredictability in all shared zones sustains.",
+      integrationcue: "Occupying a genuine primary territory, not just a claimed one, produces a qualitatively different bodily state: a reduction in postural guardedness that is most noticeable in the first few minutes of being there."
     }
   },
 
@@ -1492,19 +1492,19 @@ export const neuroInsights: NeuroInsight[] = [
     category: "Social Dynamics & Small Spaces",
     title: "The Acoustic Boundary",
     free: {
-      sciencefact: "A closed interior door with a 10mm gap at the base provides less than 15 dB of sound reduction — insufficient to mask conversational speech, which sits at 60–65 dB. Effective acoustic separation requires a sealed gap and a door mass above 25 kg/m².",
-      whyitmatters: "A door you can hear through is a psychological boundary without a neurological one. The brain continues auditory monitoring of household sounds regardless of the door's position — the closed door signals privacy while the acoustic leakage defeats it, creating a physiological double bind."
+      sciencefact: "A closed interior door with a 10 mm gap at the base provides less than 15 dB of sound reduction, which is insufficient to mask conversational speech at 60–65 dB. Effective acoustic separation requires a sealed gap and a door with a mass of over 25 kg/m².",
+      whyitmatters: "A door you can hear through is a physical and psychological boundary; not a neurological one. The brain continues to monitor household sounds aurally, regardless of the door's position. A closed door signals privacy, but acoustic leakage defeats this, creating a physiological double bind."
     },
     paid: {
       protocol: "The Acoustic Seal",
-      primaryadjustment: "Install compression acoustic seals on bedroom and work room door frames — top, sides, and bottom — and add a solid-core door sweep at the base. This combination achieves 30–35 dB reduction, sufficient to mask conversational speech from adjacent rooms.",
+      primaryadjustment: "Install compression acoustic seals on bedroom and work room door frames. These should be on the top, sides and bottom. Add a solid-core door sweep at the base. This combination achieves a reduction of 30–35 dB, which is sufficient to mask conversational speech from adjacent rooms.",
       refinement: [
-        "Test the existing seal by standing outside a closed door during normal household activity — if you can identify words being spoken, the acoustic boundary is insufficient for genuine cognitive privacy.",
-        "Where door replacement is not possible, a heavy textile draped over the door interior adds mass and reduces high-frequency leakage — the most disruptive component of speech intelligibility.",
-        "White or pink noise played at 50–55 dB inside the work or sleep zone masks residual sound leakage and is neurologically superior to silence in acoustically imperfect rooms — it removes the auditory contrast that makes intrusive sounds salient."
+        "Test the existing seal by standing outside a closed door during normal household activity. If you can make out what is being said, the acoustic boundary is insufficient for genuine cognitive privacy.",
+        "Where replacing the door is not possible, draping a heavy textile over the interior of the door adds mass and reduces high-frequency leakage, which is the most disruptive component of speech intelligibility.",
+        "Playing white or pink noise at 50–55 dB inside the work or sleep zone masks residual sound leakage. This is neurologically superior to silence in acoustically imperfect rooms as it removes the auditory contrast that makes intrusive sounds salient."
       ],
-      whyitWorks: "The auditory cortex performs continuous background monitoring even during focused work or sleep. When speech or footstep patterns penetrate a supposedly private space, the superior temporal gyrus flags the intrusion and the orientation network interrupts the current cognitive state. A genuine acoustic seal removes the signal entirely, allowing the auditory cortex to cease monitoring and freeing the attention network for sustained focus.",
-      integrationcue: "A properly sealed room produces an immediately audible difference — the specific quality of contained silence that distinguishes genuine acoustic privacy from the illusion of it. Most people describe the room feeling larger and further away from the household."
+      whyitWorks: "The auditory cortex carries out continuous background monitoring, even when we are focused on a task or asleep. When speech or footsteps penetrate an area that is supposed to be private, the superior temporal gyrus flags the intrusion and the orientation network interrupts the current cognitive state. A genuine acoustic seal blocks the sound entirely, allowing the auditory cortex to stop monitoring and freeing up the attention network for sustained focus.",
+      integrationcue: "A properly sealed room produces an immediately audible difference: the specific quality of contained silence that distinguishes genuine acoustic privacy from an illusion of it. Most people describe feeling as if the room is larger and further away from the rest of the house."
     }
   },
 
@@ -1513,19 +1513,19 @@ export const neuroInsights: NeuroInsight[] = [
     category: "Social Dynamics & Small Spaces",
     title: "Evaluation Apprehension",
     free: {
-      sciencefact: "Nickolas Cottrell's Evaluation Apprehension theory (1972) demonstrates that performance anxiety and cortisol elevation occur specifically when others can observe you — not merely when others are present. Direct sightline exposure to another person's gaze is the activating condition.",
-      whyitmatters: "Feeling unable to fully relax or concentrate when housemates are in the same open-plan space is not a social preference — it is an autonomic response to perceived evaluation. You are not inhibited by their presence but by their potential to see you."
+      sciencefact: "Nickolas Cottrell's Evaluation Apprehension Theory demonstrates that performance anxiety and elevated cortisol levels occur specifically when you are being observed by others, rather than when others are merely present. Direct exposure to another person's gaze is the activating condition.",
+      whyitmatters: "Being unable to relax or concentrate when your housemates are in the same open-plan space is not a social preference; it is an autonomic response to the fear of being evaluated. It is not their presence that inhibits you, but their potential to see you."
     },
     paid: {
       protocol: "The Sightline Break",
-      primaryadjustment: "Introduce a physical sightline break at the specific point where your gaze and a housemate's gaze intersect in shared open-plan space — a tall plant cluster, open shelving, or a translucent screen positioned at that exact intersection.",
+      primaryadjustment: "Introduce a physical sightline break at the specific point where your gaze and a housemate's gaze intersect in shared open-plan space such as a tall plant cluster, open shelving, or a translucent screen positioned at that exact intersection.",
       refinement: [
         "Identify the sightline precisely: sit in your normal position and note exactly where another person would need to be to see your face directly. The barrier needs to interrupt that specific vector, not fill space generally.",
-        "Translucent screens and open shelving are preferable to solid dividers — they block direct sightlines without eliminating awareness of shared occupancy, which maintains the social regulation benefit of co-presence without the evaluative cost.",
-        "If open shelving is the barrier, ensure the objects on it are non-textual and visually quiet — the barrier should reduce stimulation, not add to it."
+        "Translucent screens and open shelving are preferable to solid dividers as they block direct sightlines without eliminating awareness of shared occupancy. This maintains the social regulation benefits of co-presence without incurring the evaluative costs.",
+        "If open shelving is used as a barrier, ensure that the objects on it are non-textual and visually unobtrusive. The barrier should reduce stimulation, not increase it."
       ],
-      whyitWorks: "The fusiform face area and superior temporal sulcus continuously monitor for directed gaze — a hardwired social surveillance mechanism. When gaze contact is possible but intermittent, the system remains on partial alert, producing chronic low-level cortisol elevation. Removing the structural possibility of gaze contact deactivates this monitoring system and allows the prefrontal cortex to redirect those resources to the current task.",
-      integrationcue: "The relief produced by a genuine sightline break in a shared space is typically immediate — the quality of focus changes within the first session, and sustained work becomes accessible without the preceding level of conscious effort."
+      whyitWorks: "The fusiform face area and the superior temporal sulcus continuously monitor directed gaze, forming a hardwired social surveillance mechanism. When gaze contact is possible but intermittent, the system remains partially alert, resulting in chronic, low-level cortisol elevation. Removing the structural possibility of gaze contact deactivates this monitoring system, allowing the prefrontal cortex to redirect its resources to the current task.",
+      integrationcue: "The relief produced by a genuine sightline break in a shared space is typically immediate. The quality of focus changes within the first session, and sustained work becomes accessible without the previous level of conscious effort."
     }
   },
 
