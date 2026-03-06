@@ -2234,6 +2234,876 @@ export const neuroInsights: NeuroInsight[] = [
       whyitWorks: "The nasal epithelium is the primary filtration barrier between environmental air and the cerebral circulation. When mucosal membranes dry below 30% RH, ciliary function that clears particulates and pathogens is impaired, increasing the total inflammatory load reaching the systemic circulation. Neuroinflammation from this pathway presents as cognitive slowing, mood disruption, and fatigue — symptoms that resolve when humidity is restored to the functional range.",
       integrationcue: "Humidity correction in a chronically dry environment produces a noticeable shift in respiratory comfort within the first 24 hours. The cognitive and energy changes accumulate over the following week as the mucosal barrier restores function."
     }
+  },
+
+  // ─── POLYVAGAL DESIGN ────────────────────────────────────────────────────────
+
+  {
+    id: 101,
+    category: "Polyvagal Design",
+    title: "The Three Circuits and What They Need From a Room",
+    free: {
+      sciencefact: "Stephen Porges's Polyvagal Theory, published in 1994 and expanded in 2011, identifies three distinct autonomic states governed by separate neural circuits: the ventral vagal state, which supports social engagement, creativity, and genuine rest; the sympathetic state, which governs mobilisation and fight or flight; and the dorsal vagal state, which produces collapse, shutdown, and dissociation. Each state requires a different sensory environment to sustain or shift.",
+      whyitmatters: "Most homes are designed without knowing which circuit they are activating. A room that keeps you in sympathetic activation makes rest biologically impossible. A room that tips you into dorsal vagal shutdown makes connection and motivation equally impossible. Understanding which circuit a space is currently speaking to is the starting point for designing a home that actually works."
+    },
+    paid: {
+      protocol: "The Three Circuit Audit",
+      primaryadjustment: "Walk through each main room in your home and identify which state it most reliably produces: alert and slightly on edge, flat and unmotivated, or calm and available. Match what you find to the sensory features driving that response before changing anything.",
+      refinement: [
+        "Sympathetic cues to look for include overhead bright lighting, unpredictable sounds, cluttered sightlines, furniture that faces doorways without wall support behind it, and hard parallel acoustic surfaces. These are activation signals the body cannot voluntarily override.",
+        "Dorsal vagal cues include dim, poorly distributed lighting with no contrast, monotonous acoustic environments, spaces with no focal point, heavy furniture that imposes a single seated position, and rooms that have not been personally claimed or arranged. These read to the nervous system as low-resource environments associated with conserving energy rather than engaging.",
+        "Ventral vagal cues include warm light at face level, soft irregular acoustic texture, at least one natural element in the sightline, seating with back support and a view of the room, and evidence of personal agency in the arrangement. When these elements are present together, the social engagement system activates and genuine rest becomes available."
+      ],
+      whyitWorks: "The autonomic nervous system does not wait for conscious evaluation before responding to environmental input. It runs a continuous process that Porges calls neuroception, scanning for signals of safety or threat below the level of awareness. The ventral vagal circuit is the most recently evolved and the most sensitive to contextual cues. When the environment provides the correct combination of signals, this circuit activates without effort, and the qualities associated with it, creativity, connection, and genuine rest, become available as a natural consequence of being in the space rather than as an act of will.",
+      integrationcue: "You begin to notice which rooms in your home reliably shift you toward a particular state within the first few minutes of entering, and which ones you unconsciously avoid or rush through without knowing why."
+    }
+  },
+
+  {
+    id: 102,
+    category: "Polyvagal Design",
+    title: "Neuroception and Hidden Safety Signals",
+    free: {
+      sciencefact: "Polyvagal Theory establishes that the nervous system evaluates environmental safety through neuroception, a process described by Stephen Porges as detection without awareness. The body responds to safety and threat cues in the environment before any conscious assessment occurs, which means the felt sense of a room is a physiological reading, not a judgement.",
+      whyitmatters: "The inexplicable feeling that a room is not quite right, that something is off even when everything looks fine, is neuroception at work. The body has detected a safety-threat signal that the conscious mind has not yet identified. This is not anxiety; it is accurate sensory information that deserves investigation rather than override."
+    },
+    paid: {
+      protocol: "The Neuroception Scan",
+      primaryadjustment: "Sit in your primary rest position and close your eyes for 60 seconds. Note the first physical sensation you become aware of: a tightening in the chest, a held breath, a scanning quality in the eyes. That sensation is the body's neuroceptive readout of the current space. Then open your eyes and identify the specific environmental feature that most likely produced it.",
+      refinement: [
+        "The most common hidden safety threats are: a door or window behind the seated position that is not visible, an asymmetrical light source creating unpredictable shadow movement, a low-level mechanical hum that the auditory system registers as a potential threat, and furniture height that leaves the seated person lower than the room's primary sightline.",
+        "Once the source is identified, the intervention is almost always small. Moving a chair 30 centimetres, covering a window with a sheer layer, or placing a lamp to eliminate a shadow zone resolves the neuroceptive signal without architectural change.",
+        "Repeat the scan monthly rather than as a one-time audit. Neuroceptive triggers shift with season, with life circumstances, and with the occupant's current baseline stress level. A room that felt safe in summer may register differently in winter as light angles change and thermal conditions shift."
+      ],
+      whyitWorks: "Neuroception operates through the limbic system's evaluation of environmental geometry, acoustic pattern, and movement. When the evaluation returns a safety signal, the ventral vagal circuit activates and the body physiologically relaxes. When it returns a threat signal, regardless of how minor, the sympathetic circuit stays partially engaged and full rest is not available. Identifying and resolving the specific trigger removes the signal entirely rather than managing its effects. You notice this as the room suddenly feeling different after a minor change that seemed too small to matter.",
+      integrationcue: "After resolving a neuroceptive trigger, the room feels qualitatively different rather than simply better. The change is physical rather than evaluative: a specific release in the body on entering the space that was not there before."
+    }
+  },
+
+  {
+    id: 103,
+    category: "Polyvagal Design",
+    title: "Prosodic Acoustics and the Social Engagement Room",
+    free: {
+      sciencefact: "Research by Stephen Porges on the acoustic vagus established that the middle ear muscles, which are regulated by the vagus nerve, are tuned to the frequency range of human prosodic speech, approximately 500 to 3,000 hertz. Rooms that enhance the clarity and warmth of voices within this range activate the social engagement system, while rooms that suppress it or introduce competing frequencies in this range produce social withdrawal and fatigue.",
+      whyitmatters: "The reason some rooms make conversation feel effortless and others leave you exhausted after an hour of talking is largely acoustic. When a room enhances the prosodic range of human speech, the nervous system reads it as a safe social environment and the social engagement circuit stays active. When it suppresses this range through hard-surface reverberation or low-frequency mechanical noise, the system reads it as a less safe acoustic environment and begins to conserve resources."
+    },
+    paid: {
+      protocol: "The Prosodic Clarity Protocol",
+      primaryadjustment: "In your primary social space, ensure that soft materials at ear height, specifically between 1.2 and 1.8 metres from the floor, cover at least two of the four walls. This is the zone where the prosodic frequency range bounces most directly between people in conversation.",
+      refinement: [
+        "Upholstered furniture, heavy curtains, and textile wall hangings are the most accessible interventions at this height. The material needs sufficient mass to absorb rather than reflect the prosodic frequency range. Thin curtains are insufficient; heavy interlined fabric, upholstered panels, or a densely filled bookshelf are all effective.",
+        "Remove or isolate any mechanical sound source producing frequencies between 300 and 600 hertz from social spaces. This range directly overlaps with the fundamental frequency of the male speaking voice and the lowest prosodic tones of female speech, creating acoustic competition that the nervous system registers as interference rather than background noise.",
+        "Test the acoustic quality of a social room by having a short conversation and noting whether you lean forward to hear more clearly or can remain physically relaxed while listening. Leaning forward is the body's compensation for insufficient prosodic clarity in the acoustic environment."
+      ],
+      whyitWorks: "The stapedius and tensor tympani muscles of the middle ear are directly innervated by branches of the vagus nerve and the facial nerve. When these muscles tighten in response to low-frequency noise or reverberant acoustics, they reduce the middle ear's sensitivity to the prosodic range and the social engagement system partially withdraws. When the acoustic environment is rich in the prosodic range without competing frequencies, these muscles relax, the social engagement circuit fully activates, and conversation feels genuinely easy rather than managed. You notice this as the specific quality of a room where you forget to check the time.",
+      integrationcue: "The acoustic quality of a prosodically enhanced room makes itself known through conversation rather than observation. You notice it as the ease with which you listen, the absence of effort in following what is being said, and the specific physical relaxation of a chest that is not braced against acoustic strain."
+    }
+  },
+
+  {
+    id: 104,
+    category: "Polyvagal Design",
+    title: "Facial Lighting and the Social Engagement System",
+    free: {
+      sciencefact: "Polyvagal research establishes that the social engagement system is activated by facial cues, particularly the ability to read another person's facial expression clearly and to feel readable oneself. Lighting that falls from above, such as overhead downlights, casts shadows in the eye sockets and under the nose and mouth, suppressing the facial cues the social engagement system depends on for safety assessment.",
+      whyitmatters: "Difficulty relaxing into genuine connection in a social space, despite liking the people present, is sometimes a lighting problem rather than a relational one. When facial cues are obscured by unflattering light angles, the social engagement system cannot complete its safety assessment and remains in a partial state of vigilance that prevents the ease and openness it is designed to produce."
+    },
+    paid: {
+      protocol: "The Facial Light Protocol",
+      primaryadjustment: "In all primary social spaces, ensure the dominant light source is positioned at seated eye level or slightly above it, directed toward the face rather than the top of the head. Eliminate any single overhead source as the dominant light in spaces used for social connection.",
+      refinement: [
+        "Wall sconces positioned at 1.6 to 1.8 metres from floor level are the most effective architectural solution. Table lamps and floor lamps positioned beside or slightly in front of seating achieve the same angle with less structural intervention.",
+        "Warm light temperature between 2,700 and 3,000 Kelvin is essential alongside the angle correction. Cool-toned light at the correct angle still activates the alertness pathway and partially suppresses the social engagement response. The combination of warmth and low angle is the complete social engagement lighting formula.",
+        "Apply the same principle to video call spaces specifically. The facial lighting in a home office during calls affects the felt sense of safety for everyone on the call, not just the person in the room. A ring light or a window to the side of the screen rather than behind it transforms the neuroceptive quality of remote social connection."
+      ],
+      whyitWorks: "The brain reads facial expressions primarily through the movement and shadow of the eyes, the middle lower face, and the corners of the mouth. Overhead lighting produces shadows in precisely these zones, flattening the emotional information available and triggering the same social uncertainty that a partially obscured face produces. Warm light at face level reverses this entirely, illuminating the exact zones the social engagement system monitors, completing the safety assessment rapidly, and allowing the ventral vagal circuit to activate. You feel this as conversation becoming effortless and the quality of your own expression feeling more available to the people around you.",
+      integrationcue: "The shift to facial lighting in a social space makes itself felt most clearly in the first evening it is in place. Conversation feels different in quality: more relaxed, less performed, and with a specific physical ease in the face and jaw that overhead lighting consistently prevents."
+    }
+  },
+
+  {
+    id: 105,
+    category: "Polyvagal Design",
+    title: "The Shutdown Room and Dorsal Vagal Recovery",
+    free: {
+      sciencefact: "The dorsal vagal state, the most evolutionarily ancient of Porges's three circuits, produces physiological conservation responses including reduced heart rate, flattened affect, cognitive slowing, and a sense of heaviness or collapse. Research in Polyvagal Theory identifies this state as the body's response to perceived inescapable threat, but also as a response to chronic under-stimulation in environments that provide insufficient safety or engagement signals.",
+      whyitmatters: "The specific quality of flatness in certain rooms, the heaviness that makes you want to lie down but not sleep, the blank feeling that makes motivation impossible, is often the dorsal vagal circuit activating in response to a space that is neither threatening nor safe enough to fully engage. This is not depression; it is an environmental response that changes with the space."
+    },
+    paid: {
+      protocol: "The Reactivation Protocol",
+      primaryadjustment: "Identify the room in your home that most reliably produces flatness or demotivation, and introduce three simultaneous changes: raise the light level by at least 200 lux, introduce one living element such as a plant or moving water into the sightline, and add one mild aromatic such as citrus or rosemary to the space.",
+      refinement: [
+        "Temperature is a significant dorsal vagal trigger. A room that is consistently below 19 degrees Celsius during sedentary activity produces the same physiological conservation response as a threatening environment. Addressing temperature before any other intervention is the highest-leverage single change for shutdown-prone spaces.",
+        "Introduce mild complexity into the acoustic environment. Genuine silence in a flat, poorly lit space amplifies the dorsal vagal response. A low level of ambient sound between 35 and 45 decibels, such as birdsong, low-level cafe noise, or soft music, provides sufficient acoustic engagement to prevent the shutdown circuit from completing.",
+        "Review whether the furniture in the room allows an upright, active posture. Rooms furnished exclusively with deep, low seating physically place the body in a posture associated with rest and submission, which reinforces the dorsal vagal state through the same postural feedback loop that connects upright posture to serotonin. Adding one chair with firm upright support changes the available posture options without removing the rest option."
+      ],
+      whyitWorks: "The dorsal vagal circuit activates when the nervous system's ongoing assessment of the environment finds insufficient signals of either safety or productive engagement. The three simultaneous changes address this from three different sensory channels: light increases the circadian alerting signal, a living element satisfies the biophilic safety requirement, and mild aromatic stimulation activates the limbic system through the direct olfactory pathway. Together they provide enough varied input to shift the nervous system's assessment from conservation to engagement. You notice this as a lift in the quality of being in the room, not dramatic, but the specific absence of the heaviness that was there before.",
+      integrationcue: "Within 20 to 30 minutes of the three-change intervention, the flat quality of the space begins to shift. The body becomes slightly more available: easier to initiate movement, less physically heavy in the chair, and more willing to begin a task that felt impossible before entering."
+    }
+  },
+
+  {
+    id: 106,
+    category: "Polyvagal Design",
+    title: "Co-regulation and Shared Space Design",
+    free: {
+      sciencefact: "Polyvagal Theory describes co-regulation as the process by which two nervous systems mutually influence each other's autonomic state through proximity, facial expression, voice quality, and shared physical environment. Research by Porges and colleagues established that co-regulation is not a metaphor but a measurable physiological synchrony, including heart rate variability alignment, that occurs in environments designed to support social engagement.",
+      whyitmatters: "The specific warmth and ease of certain shared spaces, and the specific tension and disconnection of others, is partly a function of whether the physical environment supports or suppresses co-regulation. Families and couples who feel more connected in some rooms than others are not imagining the difference; the rooms are producing different autonomic conditions for the nervous systems trying to synchronise within them."
+    },
+    paid: {
+      protocol: "The Co-regulation Environment Protocol",
+      primaryadjustment: "In your primary shared space, arrange seating so that occupants face each other or share a forward-facing orientation toward a common focal point, with no screen competing for attention as the dominant attractor. Facial and vocal access is the structural requirement for co-regulation.",
+      refinement: [
+        "Reduce the acoustic noise floor below 40 decibels in shared social spaces during connection time. Co-regulation depends on the prosodic range of voice being clear to both parties. A room above 45 decibels ambient noise requires raised voices, which shifts the vocal tone away from the prosodic warmth that drives ventral vagal activation and toward the higher-frequency stress-tone that activates vigilance instead.",
+        "Introduce a shared tactile anchor in the co-regulation space: a shared blanket, a bowl of objects to handle, or a table surface that both parties naturally touch during conversation. Physical proximity and shared tactile context amplify the physiological synchrony that co-regulation produces.",
+        "Ensure the room temperature is within the thermal comfort range for both occupants. Thermal discomfort in either person activates the sympathetic circuit and interrupts co-regulation by routing autonomic resources toward thermoregulation rather than social engagement."
+      ],
+      whyitWorks: "Co-regulation occurs through the bidirectional exchange of social engagement cues: facial expression, vocal prosody, and physical orientation. The environment either facilitates or obstructs this exchange by determining whether faces are visible, voices are clear, and physical proximity is comfortable. When the environment removes these obstacles, the ventral vagal circuits of both people activate together and the synchrony of co-regulation occurs naturally. You feel this as the specific quality of a conversation where you genuinely land in the same place, where the other person's state becomes available to you and yours to them, without either of you having worked to produce it.",
+      integrationcue: "The quality of connection in a co-regulation-designed space is noticeable as a physical difference in the felt sense of the other person. They seem closer, more readable, and more present than they do in the same conversation held in a less designed space."
+    }
+  },
+
+  {
+    id: 107,
+    category: "Polyvagal Design",
+    title: "The Mobilisation Zone",
+    free: {
+      sciencefact: "The sympathetic nervous system's mobilisation circuit is not pathological when properly supported; it is the circuit responsible for productive energy, exercise, play, and motivated action. Polyvagal Theory distinguishes between sympathetic activation within a context of safety, which produces healthy mobilisation, and sympathetic activation within a context of threat, which produces fight or flight. The design of exercise, play, and active work spaces determines which of these two qualities the mobilisation circuit produces.",
+      whyitmatters: "A home gym or active workspace that feels oppressive rather than energising, that produces anxiety rather than motivation, is activating the sympathetic circuit without providing the safety cues that allow it to express as healthy mobilisation. The energy is there but it has no safe channel because the environment is speaking threat rather than challenge."
+    },
+    paid: {
+      protocol: "The Healthy Activation Protocol",
+      primaryadjustment: "Design active zones, including exercise spaces, standing desks, and cooking areas, with bright, cool light above 500 lux, clear sightlines to at least one exit or open space, and acoustic conditions that support the energy level of the activity rather than contrasting with it.",
+      refinement: [
+        "Music tempo between 120 and 140 beats per minute sustains the sympathetic mobilisation circuit in a productive rather than anxious state. This is the auditory equivalent of safe challenge. Silence in an active space removes the contextual signal that mobilisation is expected and appropriate, leaving the sympathetic activation without social-environmental permission.",
+        "Ensure active spaces have sufficient visual space overhead. Low ceilings in exercise or high-activity areas amplify the enclosure signal that tips sympathetic activation from mobilisation toward threat. A minimum ceiling height of 2.6 metres is the practical threshold for most physical activity zones.",
+        "Add one visual connection to natural light or a natural view in any active zone. The combination of sympathetic activation with a natural safety signal, even a window with a garden view, produces the state of energised ease that characterises healthy mobilisation. Without the safety signal, the same activation level reads as stress."
+      ],
+      whyitWorks: "The sympathetic circuit operates on a continuum between engaged curiosity at one end and full fight or flight at the other. The position on that continuum is determined not by the level of activation but by the accompanying safety context. An environment with bright light, clear sight lines, natural connection, and appropriate acoustic energy provides the safety context that allows the sympathetic system to produce motivated, engaged action rather than defensive arousal. You feel this as the difference between exercise that energises and exercise that depletes, both using identical physical effort.",
+      integrationcue: "In a correctly designed activation space, the body engages with the activity rather than monitoring the environment simultaneously. The attention available for the task itself increases, and the fatigue at the end of the session has a clean, satisfying quality rather than the depleted quality of activity performed in a defensive state."
+    }
+  },
+
+  {
+    id: 108,
+    category: "Polyvagal Design",
+    title: "The Vagal Tone Room",
+    free: {
+      sciencefact: "Heart rate variability, the variation in time between consecutive heartbeats, is the most widely used measure of vagal tone, or the strength of the vagus nerve's regulatory influence on the heart. Research by Julian Thayer and colleagues, published in Neuroscience and Biobehavioural Reviews in 2009, established that higher vagal tone is associated with greater emotional regulation, cognitive flexibility, and resilience to stress. Environmental conditions directly influence vagal tone across minutes of exposure.",
+      whyitmatters: "A room designed to support high vagal tone is not a luxury; it is the physiological foundation for every quality associated with a high-functioning, emotionally regulated life. Creativity, patience, perspective, and genuine rest all require vagal tone that the environment can actively support or systematically erode."
+    },
+    paid: {
+      protocol: "The Vagal Support Protocol",
+      primaryadjustment: "Design one room in your home specifically for vagal recovery: natural light or warm artificial light below 80 lux, natural textures within arm's reach, soft irregular acoustic input such as rain, birdsong, or moving water, and seating that supports a relaxed upright posture with both feet on the floor.",
+      refinement: [
+        "The combination of slow breathing and a view of natural movement, such as trees, water, or clouds, is the most reliably documented environmental stimulus for increasing heart rate variability within a single session. If a natural view is not available, a high-resolution nature video produces a measurable portion of the same effect through the same visual pathway.",
+        "Eliminate all notification-capable devices from this room during its use for vagal recovery. The anticipation of a notification, even when none arrives, measurably reduces heart rate variability by maintaining a partial sympathetic preparedness response. Physical absence of the device is more effective than the device being silenced.",
+        "Use this room at a consistent time each day, ideally in the afternoon when vagal tone naturally reaches its daily low point. The consistency allows the hippocampus to build a contextual association between the space and the vagal recovery state, so that entering the room begins triggering the physiological shift before the full sensory protocol has been experienced."
+      ],
+      whyitWorks: "Vagal tone is increased by any stimulus that activates the parasympathetic branch of the autonomic nervous system while simultaneously providing the nervous system with reliable safety signals. Natural light, organic textures, slow irregular sound, and a physically grounded posture each address a different sensory pathway through which the vagus nerve receives input. Together they create an environment that makes sustained parasympathetic activation the path of least resistance rather than an effortful achievement. You notice improved vagal tone as a greater sense of inner stability that persists beyond the room and into the rest of the day.",
+      integrationcue: "Time spent in the vagal support room produces a specific quality of post-session calm that is distinct from simple relaxation. Problems encountered immediately after the session feel more manageable, irritability triggered by the same events is lower, and the capacity to choose a response rather than react automatically is measurably increased."
+    }
+  },
+
+  {
+    id: 109,
+    category: "Polyvagal Design",
+    title: "Acoustic Safety and the Low-Frequency Threat",
+    free: {
+      sciencefact: "Porges's Polyvagal Theory identifies low-frequency sounds as activating the oldest and most primitive defensive circuit in the nervous system. Research on acoustic threat detection shows that the dorsal vagal and sympathetic circuits are specifically sensitised to low-frequency sounds below 500 hertz because these frequencies historically signalled predator proximity or environmental danger.",
+      whyitmatters: "The unease produced by certain bass-heavy sounds, including traffic rumble, ventilation drone, or neighbour music with a prominent bass line, is not merely an aesthetic preference. It is a threat-detection circuit activating in response to a frequency profile that the nervous system associates with danger at a level below conscious processing."
+    },
+    paid: {
+      protocol: "The Low-Frequency Clearance Protocol",
+      primaryadjustment: "Identify all sources of continuous low-frequency sound below 200 hertz in your primary rest and sleep spaces and address the strongest source first through vibration isolation, relocation, or structural dampening.",
+      refinement: [
+        "Low-frequency sound travels through building structure, not just through air. Vibration-dampening pads under washing machines, refrigerators, and boilers address the structural transmission pathway that wall insulation does not. Anti-vibration mounts for these appliances are widely available and require no installation expertise.",
+        "Traffic low-frequency rumble requires mass for attenuation. A solid bookshelf filled with books against the wall facing a road adds acoustic mass that reduces the amplitude of bass frequencies passing through the wall. This is the most accessible structural intervention for traffic noise in a rented property.",
+        "If the low-frequency source cannot be attenuated, introduce a competing broadband sound at a level slightly above the low-frequency content. Pink noise contains energy across all frequencies and raises the acoustic floor, reducing the relative salience of the low-frequency component. The nervous system responds to the ratio of threat frequency to background noise, not to the absolute level of the threat frequency."
+      ],
+      whyitWorks: "The olivocochlear bundle, which regulates the ear's sensitivity to specific frequencies under vagal control, attenuates high-frequency sensitivity and enhances low-frequency detection when the threat-detection circuit is active. This means that in a space with sustained low-frequency input, the nervous system literally tunes itself to hear threat-range frequencies more clearly, amplifying the very signal it is trying to monitor. Removing the low-frequency source breaks this cycle. You notice this as the room becoming acoustically lighter, not simply quieter, as though the specific weight of the low-frequency content had been physical.",
+      integrationcue: "After addressing the dominant low-frequency source in a rest space, the first night's sleep in that room typically has a noticeably different quality. The body releases a level of muscular preparedness during sleep that the low-frequency content had been preventing from releasing."
+    }
+  },
+
+  {
+    id: 110,
+    category: "Polyvagal Design",
+    title: "The Safe Space Signal",
+    free: {
+      sciencefact: "Porges identified a specific cluster of environmental conditions that the nervous system reads as unambiguous safety: visual access to the surrounding environment, protection at the back, the presence of familiar objects, soft irregular acoustic texture, warm light at face level, and the auditory or olfactory presence of at least one known individual. When these conditions are collectively present, neuroception returns a safety signal and the ventral vagal circuit fully activates.",
+      whyitmatters: "Safety is not the absence of threat. It is the presence of specific positive signals that the nervous system requires before the ventral vagal circuit will fully engage. A room can be perfectly comfortable by every conventional measure and still not feel safe because it is missing one of these specific positive inputs."
+    },
+    paid: {
+      protocol: "The Safety Signal Installation",
+      primaryadjustment: "Audit your primary rest room against the six conditions of neuroceptive safety: sightline to the entrance, solid surface behind the seating, at least one personally familiar object in the field of view, soft irregular acoustic texture, warm light between 2,200 and 2,700 Kelvin at face level, and the scent of something personally associated with safety or comfort. Address any missing condition.",
+      refinement: [
+        "The personally familiar object condition is frequently overlooked in interior design literature but is one of the most powerful single inputs in the safety signal cluster. An object associated with a person, a time, or a place of genuine felt safety produces a rapid ventral vagal activation through the olfactory, visual, and tactile pathways simultaneously. This does not need to be aesthetically beautiful; it needs to be genuinely personally meaningful.",
+        "Soft irregular acoustic texture can be introduced without acoustic treatment. The sound of rain on a window, a small water feature, or a recording of natural ambient sound provides the irregular broadband input that signals an environment without predators or mechanical threats. Regularity in acoustic texture, such as a single repeated mechanical sound, maintains partial vigilance. Irregular natural sounds do not.",
+        "The scent condition works through conditioned association rather than chemical pharmacology. A scent that has been present during genuinely felt safety in the past, whether a specific perfume, a wood fire, a particular food, or a natural material, triggers the associated autonomic state through the direct olfactory-limbic pathway. Identifying and deliberately placing this scent in the safety space accelerates the ventral vagal activation each time the room is entered."
+      ],
+      whyitWorks: "Neuroception assembles a safety assessment from multiple simultaneous sensory inputs. No single input is sufficient to override a missing safety signal elsewhere in the cluster. The assessment is holistic: the nervous system requires the full cluster to return a confident safety verdict. When all six conditions are present, the assessment is unambiguous and the ventral vagal circuit activates completely and rapidly rather than partially and slowly. You experience this as the specific physical quality of fully arriving in a space rather than simply entering it.",
+      integrationcue: "A room that completes the full safety signal cluster produces an arrival experience that is physically distinct from simply entering a pleasant space. There is a specific moment of release on crossing the threshold, a quality of the body deciding the environment is genuinely safe, that is unmistakable once experienced."
+    }
+  },
+
+  // ─── NEURODIVERGENT ENVIRONMENTS ─────────────────────────────────────────────
+
+  {
+    id: 111,
+    category: "Neurodivergent Environments",
+    title: "ADHD and the Stimulation Threshold",
+    free: {
+      sciencefact: "Research on dopamine regulation in ADHD, including work by Nora Volkow and colleagues at the National Institutes of Health, established that the ADHD brain operates at a lower baseline level of dopaminergic activation than the neurotypical brain. This means the ADHD nervous system actively seeks environmental stimulation to reach a functional arousal level, rather than seeking to reduce stimulation as most neurotypical design guidance assumes.",
+      whyitmatters: "An environment designed for maximum quiet and minimal visual interest, which represents optimal conditions for most neurotypical cognitive work, is actively uncomfortable and counterproductive for an ADHD brain. The restlessness, the fidgeting, the constant need to move or add sound, is the nervous system attempting to self-stimulate to a functional level. The environment is the problem, not the person."
+    },
+    paid: {
+      protocol: "The ADHD Stimulation Calibration",
+      primaryadjustment: "Design ADHD work environments with background stimulation that is predictable, controllable, and approximately 20 to 30 percent more visually and acoustically active than the neurotypical standard. The key is that the stimulation is controlled by the person, not imposed by the environment.",
+      refinement: [
+        "Provide a background noise source that the person can adjust rather than a fixed acoustic environment. Brown noise, lo-fi music, or cafe soundscapes all provide the acoustic stimulation that helps an ADHD brain reach functional arousal without the unpredictable peaks that trigger distraction. The ability to control the level is as important as the level itself.",
+        "Allow one area of intentional visual interest within the work zone, such as a collection of objects, a mood board, or a view. The ADHD brain's tendency to scan for novelty is served by a designated area for this scanning, which reduces the impulse to scan the broader environment and interrupt the task at hand.",
+        "Introduce movement options within the workspace: a standing desk option, a balance board, a fidget tool within reach of the primary work position. Movement that is available and low-effort satisfies the ADHD need for sensorimotor input without requiring the person to leave the task context entirely."
+      ],
+      whyitWorks: "The ADHD brain's dopamine system responds to novelty and stimulation by releasing dopamine, which elevates functional arousal to the level required for sustained attention. In an understimulating environment, the dopamine release is insufficient for task engagement and the brain begins seeking stimulation elsewhere, which is experienced as distraction. Providing calibrated background stimulation brings the arousal level up without creating the unpredictable novelty peaks that hijack attention. You notice this as the ability to stay in a task longer, with less physical restlessness and fewer impulses to change environment or activity.",
+      integrationcue: "In a correctly calibrated ADHD work environment, the body settles into the task more quickly and with less of the preliminary fidgeting and environmental adjustment that characterises work in an understimulating space. The stimulation is already there; the brain does not need to go looking for it."
+    }
+  },
+
+  {
+    id: 112,
+    category: "Neurodivergent Environments",
+    title: "ADHD and Task Initiation Design",
+    free: {
+      sciencefact: "Executive function research on ADHD, including studies by Russell Barkley published in 2012, identifies task initiation as one of the most impaired functions in ADHD. The difficulty is not motivational but neurological: the prefrontal-striatal circuit that converts intention into action requires a significantly higher activation threshold than the neurotypical brain, making the transition from rest to task genuinely more effortful.",
+      whyitmatters: "The procrastination pattern associated with ADHD is not a character trait. It is a consistent neurological gap between knowing what needs to be done and the brain being able to initiate the action sequence. Environmental design can bridge this gap by reducing the number of steps between the person and the task start, which is a direct intervention in the activation threshold problem."
+    },
+    paid: {
+      protocol: "The Zero-Friction Setup",
+      primaryadjustment: "Design the ADHD work environment so that the task is visually present, physically accessible, and requires no setup actions to begin. The materials, the surface, the tools, and the starting point of the task should all be immediately visible and within reach when the person arrives at the space.",
+      refinement: [
+        "Apply the path-of-travel principle specifically to ADHD task initiation. The physical object that represents the task start, whether a notebook open to the current page, a document visible on screen, or a project in progress on the desk surface, should be the first thing encountered when entering the workspace. This uses the salience network's automatic response to visible objects to bridge the initiation gap.",
+        "Reduce the number of decisions required before work can begin to zero. A workspace that requires the person to decide where to sit, what to work on, how to arrange the materials, and which tool to use first has four barriers to entry before any task work has occurred. Pre-deciding all of these and encoding them physically in the environment removes those barriers entirely.",
+        "Use time-based environmental cues rather than intention-based ones. A lamp that automatically turns on at the work start time, a playlist that begins at a specific hour, or a consistent aromatic that is present only during work hours provides an external initiation trigger that bypasses the broken internal one."
+      ],
+      whyitWorks: "The prefrontal-striatal circuit that initiates action requires a sufficient activation signal to overcome inertia. For ADHD brains, this threshold is higher than neurotypical and is rarely reached through intention alone. Environmental design reduces the height of this threshold by providing external activation signals, visual task cues, and a setup that requires no additional decisions, each of which provides a small portion of the activation required to begin. Cumulatively they can bridge the gap that intention cannot cross alone. You notice this as sitting down at the workspace and finding yourself already beginning rather than still deciding.",
+      integrationcue: "The first time the zero-friction setup is fully implemented, the quality of arrival at the workspace changes. There is a moment of the task simply being already underway, rather than being something that still needs to be started."
+    }
+  },
+
+  {
+    id: 113,
+    category: "Neurodivergent Environments",
+    title: "ADHD and the Movement Imperative",
+    free: {
+      sciencefact: "Research by John Ratey at Harvard Medical School, published in his 2008 book Spark: The Revolutionary New Science of Exercise and the Brain, established that physical movement directly increases dopamine, norepinephrine, and serotonin in the prefrontal cortex. For ADHD brains, movement is not a distraction from cognitive work; it is a neurochemical prerequisite for it.",
+      whyitmatters: "The impulse to get up, walk around, pace, or move during cognitive tasks in an ADHD brain is the brain's attempt to generate the neurochemical conditions it needs to function. Sitting still is not discipline; for an ADHD brain it is actively counterproductive, removing the very neurotransmitter delivery that makes sustained attention possible."
+    },
+    paid: {
+      protocol: "The Movement Integration Protocol",
+      primaryadjustment: "Design the ADHD work environment with multiple physically distinct positions and movement options within the same space: a standing configuration, a seated configuration, a pacing loop of at least six metres, and a fidget option at the primary work position.",
+      refinement: [
+        "A standing desk or height-adjustable desk is the single most effective structural investment for ADHD work environments. The ability to shift between sitting and standing every 20 to 30 minutes provides a regular movement input and a postural change that refreshes the dopaminergic activation available for the next work block.",
+        "Define a pacing loop within or adjacent to the work zone. ADHD pacing during thinking is not avoidance; it is productive cognitive processing using embodied cognition. A clear, unobstructed path of six to ten metres, indoors or immediately accessible outdoors, allows this processing to occur without leaving the work context entirely.",
+        "Place a whiteboard or writing surface on a wall within the work zone. Standing writing and the physical act of externalising thought onto a vertical surface combines movement, visual processing, and cognitive work in a way that keeps dopaminergic activation consistently higher than sedentary writing over an extended work period."
+      ],
+      whyitWorks: "Movement increases dopamine and norepinephrine availability in the prefrontal cortex through a direct neurochemical pathway that bypasses the prefrontal-striatal bottleneck that makes sustained seated attention difficult for ADHD brains. When movement is integrated into the work environment rather than treated as a departure from it, the neurochemical conditions for focus are continuously refreshed. You notice this as the ability to sustain attention for longer blocks and the specific quality of returning to a task after a movement break feeling genuinely re-engaged rather than merely relocated.",
+      integrationcue: "In a movement-integrated work environment, the restlessness that characterises ADHD cognitive work in a static space is replaced by a different quality: purposeful physical engagement that accompanies rather than interrupts the thinking."
+    }
+  },
+
+  {
+    id: 114,
+    category: "Neurodivergent Environments",
+    title: "Autism and Spatial Predictability",
+    free: {
+      sciencefact: "Research on sensory processing in autism, including studies by Marco and colleagues published in Neuron in 2011, found that the autistic brain maintains a stronger reliance on prior expectations, rather than immediate sensory input, to navigate the environment. This means unexpected changes to spatial arrangement, object location, or environmental conditions produce a disproportionately strong prediction error response, experienced as genuine distress rather than mild annoyance.",
+      whyitmatters: "The resistance to environmental change in autism is not rigidity for its own sake. It is an accurate physiological response to the significantly higher prediction error cost that unexpected change imposes on a nervous system that depends on environmental predictability to maintain regulation. The predictable environment is not a preference; it is a regulatory requirement."
+    },
+    paid: {
+      protocol: "The High-Predictability Environment Protocol",
+      primaryadjustment: "Establish and maintain completely fixed spatial arrangements for all primary living and working areas, including furniture position, object location, and room lighting levels. Changes to these arrangements should be introduced gradually over days, not implemented abruptly.",
+      refinement: [
+        "Apply predictability not just to spatial arrangement but to sensory conditions. Consistent temperature, consistent light level at specific times of day, and consistent acoustic conditions reduce the prediction error load that variable sensory environments impose. A smart home system that automates lighting, temperature, and acoustic settings to a consistent daily schedule is a meaningful regulatory intervention, not an indulgence.",
+        "Create a visual map of the primary living space that makes the arrangement explicit and shareable. For households with multiple occupants, a shared understanding of what belongs where eliminates the ambient uncertainty of not knowing whether something has been moved. This is not controlling behaviour; it is environmental communication.",
+        "When change is necessary, introduce a preview. Walking through a planned rearrangement verbally or visually before it happens allows the predictive system to update its model in advance, dramatically reducing the prediction error response when the physical change occurs."
+      ],
+      whyitWorks: "The autistic nervous system uses spatial predictability as a regulatory scaffold. When the environment behaves as expected, the predictive processing system confirms its model without error, which requires minimal neural resources and leaves attention and energy available for the demands of the day. When the environment deviates from the model, the error correction process consumes significant resources and produces the physiological stress response associated with prediction failure. Maintaining high environmental predictability removes this error cost from the daily resource budget. You notice this as a baseline ease in your own home that is contingent on nothing having changed.",
+      integrationcue: "In a high-predictability environment, the body moves through the space with a quality of automaticity that is available nowhere else. The cognitive freedom that comes from not having to monitor the environment for unexpected changes is experienced as a specific kind of availability that makes everything else less effortful."
+    }
+  },
+
+  {
+    id: 115,
+    category: "Neurodivergent Environments",
+    title: "The Sensory Refuge",
+    free: {
+      sciencefact: "Research on sensory overload and recovery in neurodivergent populations, including work by Bogdashina and Clarkson published in Sensory Perceptual Issues in Autism, established that the autistic and hypersensitive nervous system requires regular access to a genuinely low-input environment to discharge the accumulated sensory load of daily life. This need is physiological rather than preferential, in the same way that sleep discharges cognitive load rather than being a preference for unconsciousness.",
+      whyitmatters: "The meltdown or shutdown that follows a day of high sensory input is not a failure of management or a behavioural issue. It is the end-point of a sensory overload curve that has been building since the first sensory input of the day. A genuine sensory refuge interrupts this curve before the end-point is reached."
+    },
+    paid: {
+      protocol: "The Genuine Refuge Protocol",
+      primaryadjustment: "Designate one space in the home as a sensory refuge with strictly enforced low-input conditions: no artificial lighting brighter than 20 lux, no sounds above 30 decibels, only natural materials in direct contact zones, blackout capability, and complete control over entry by the person using it.",
+      refinement: [
+        "The refuge must be available on demand rather than scheduled. The point of a sensory refuge is to intercept the overload curve before the threshold is reached, which requires the ability to enter it as soon as early overload signals appear rather than waiting for a convenient time. This is as non-negotiable as a sleep schedule.",
+        "Darkness is the most powerful single variable in a sensory refuge. The visual system is the highest-bandwidth sensory channel, and blackout conditions provide more sensory input reduction than any other single environmental change. Heavy blackout curtains or a blackout blind, combined with no active light sources, achieves this without structural modification.",
+        "Include a proprioceptive input option in the refuge: a weighted blanket, a beanbag that wraps around the body, or a wall-mounted resistance band. Proprioceptive input is one of the most effective discharge mechanisms for accumulated sensory overload because it provides the nervous system with a clear, reliable, self-generated input that interrupts the incoming sensory processing loop."
+      ],
+      whyitWorks: "Sensory overload accumulates when the rate of incoming sensory processing exceeds the nervous system's current capacity for integrating and filing that processing. The sensory refuge removes the incoming load entirely, which allows the processing backlog to clear without adding new items to it. The proprioceptive input option adds a different mechanism: a strong, clear sensory signal that effectively resets the sensory processing baseline in the same way that a full breath resets a breathing pattern that has become rapid and shallow. You notice recovery in the refuge as a literal physical quieting, a dropping of the sensory noise that had been building without the person necessarily being consciously aware of its accumulation.",
+      integrationcue: "Time in a genuine sensory refuge has a recovery quality that is measurably different from time in a merely pleasant room. The specific quiet of genuine low-input conditions, rather than low-demand ones, produces a nervous system reset that becomes identifiable through its contrast with the state on entry."
+    }
+  },
+
+  {
+    id: 116,
+    category: "Neurodivergent Environments",
+    title: "Autistic Lighting Sensitivity",
+    free: {
+      sciencefact: "Research on visual processing in autism, including studies by Dakin and Frith published in Current Biology in 2005, found that the autistic visual system processes light intensity with greater sensitivity and less habituation than the neurotypical one. Fluorescent flicker, overhead brightness, and high colour temperature all produce physiological stress responses in autistic individuals at levels that register as merely uncomfortable for neurotypical people.",
+      whyitmatters: "The specific distress of fluorescent lighting, the need to avoid certain retail or institutional spaces, and the preference for dim or natural lighting in autistic individuals is not sensory preference. It is a measurably more intense physiological response to light inputs that the neurotypical system can habituate to but the autistic system cannot."
+    },
+    paid: {
+      protocol: "The Autistic Lighting Design Protocol",
+      primaryadjustment: "Replace all fluorescent and cool-white LED sources in primary living areas with warm, flicker-free LED alternatives rated at 2,700 Kelvin or lower and a flicker index below 0.1. Install full dimming capability on all lighting circuits.",
+      refinement: [
+        "Eliminate overhead lighting as the primary light source in all spaces used for rest or focus. For autistic individuals, overhead lighting produces both the intensity and angle that the autistic visual system processes as aversive. Floor and table lamps below eye level with warm bulbs provide the light required for function without the sensory cost of overhead sources.",
+        "Introduce dimmer switches or scene-setting smart bulbs that allow immediate adjustment without the need to leave the current position. The ability to adjust lighting instantly is more important than the current setting, because sensory thresholds fluctuate with fatigue, stress, and time of day, and a fixed lighting level that worked in the morning may become aversive by the afternoon.",
+        "Create a blackout capability in the bedroom that operates without requiring multiple steps. A single action, one switch, one pull cord, should achieve complete darkness. The complexity of a multi-step blackout process is a significant barrier when the sensory overload that makes darkness necessary is already consuming cognitive resources."
+      ],
+      whyitWorks: "The autistic visual system's reduced habituation to light intensity means that the physiological stress response to an uncomfortable light source does not diminish with exposure the way it does in a neurotypical system. The response remains at the same level for the entire duration of the exposure, which means that the cumulative stress cost of an unsuitable lighting environment continues to accumulate for hours rather than reducing after the initial adjustment period. Replacing unsuitable sources removes this accumulation entirely. You notice the difference immediately on entering a correctly lit space: the specific relief of a visual field that does not require active management.",
+      integrationcue: "In a correctly lit environment for an autistic visual system, the eyes settle rather than scan. The ongoing low-level effort of managing a visually uncomfortable environment stops, and the attention and energy previously directed toward that management becomes available for the person's actual purposes."
+    }
+  },
+
+  {
+    id: 117,
+    category: "Neurodivergent Environments",
+    title: "Hypersensitivity and the Adjustable Environment",
+    free: {
+      sciencefact: "Research on sensory processing sensitivity, developed by Elaine Aron and published across multiple studies between 1996 and 2010, found that approximately 15 to 20 percent of the population processes sensory information with greater depth and intensity than the majority. This is a normal variation in nervous system design, not a disorder, but it requires environments with a substantially higher degree of sensory adjustability than standard design provides.",
+      whyitmatters: "For highly sensitive people, the inability to adjust the sensory conditions of their own home is one of the most significant and least recognised sources of daily stress. A home with fixed, non-adjustable lighting, temperature, acoustic conditions, and textiles is experienced very differently by a highly sensitive nervous system than by one with lower processing depth."
+    },
+    paid: {
+      protocol: "The Adjustability Architecture Protocol",
+      primaryadjustment: "Audit your home for the number of sensory variables you can independently adjust within each primary room without leaving it. The target for a highly sensitive occupant is a minimum of four independently adjustable variables per primary space: lighting level, acoustic environment, temperature, and tactile access.",
+      refinement: [
+        "Install dimmer switches rather than on-off switches in all primary living areas if they are not already present. This is the highest-leverage single investment for a highly sensitive household because lighting is the most frequently aversive sensory variable and the most frequently encountered throughout the day.",
+        "Introduce a layered acoustic system: a white or pink noise machine for auditory masking, over-ear headphones for complete acoustic isolation, and the ability to close internal doors for intermediate acoustic separation. Having all three options available allows for precise adjustment to the current sensory threshold rather than a binary all-or-nothing response.",
+        "Design seating areas with immediate access to adjustable thermal layers: a lightweight throw for mild coolness, a heavier option for significant cold, and a fan or airflow source for warmth. Highly sensitive individuals experience thermal discomfort at a lower threshold than the standard, and the ability to self-regulate without the entire room's temperature changing is both practically necessary and psychologically important."
+      ],
+      whyitWorks: "For a highly sensitive nervous system, the stress of sensory input that exceeds the current threshold is real and physiological. What makes the stress significantly worse is the absence of agency: being unable to adjust the environment when it becomes aversive adds a layer of helplessness to the sensory stress that is neurologically distinct from the sensory stress itself. Providing multiple adjustable variables gives the nervous system the agency to keep sensory input within the functional range, which reduces not just the frequency of aversive episodes but the background anxiety of knowing the environment might become aversive without recourse.",
+      integrationcue: "The presence of multiple adjustable sensory variables in a room produces a quality of environmental safety that is independent of the current setting. The knowledge that adjustment is available reduces the monitoring effort directed toward sensory conditions even when no adjustment is needed."
+    }
+  },
+
+  {
+    id: 118,
+    category: "Neurodivergent Environments",
+    title: "The Demand-Free Zone",
+    free: {
+      sciencefact: "Research on pathological demand avoidance, a profile associated with autism described by Elizabeth Newson and colleagues, and on demand sensitivity more broadly in neurodivergent populations, identifies the experience of implicit demands in the environment as a significant source of autonomic activation. Objects with obvious functions, incomplete tasks in view, and spaces designed for productivity all generate implicit performance demands that the neurodivergent nervous system registers and responds to even without a human making an explicit request.",
+      whyitmatters: "The inability to rest in any space in the home because every room communicates something that needs doing, including even leisure spaces that contain work materials or self-improvement equipment, is a demand-exposure problem, not a motivation problem. The environment is speaking demands that the nervous system cannot ignore."
+    },
+    paid: {
+      protocol: "The Demand Clearance Protocol",
+      primaryadjustment: "Designate one room or area as a completely demand-free zone by removing all objects with functional implications: no work materials, no exercise equipment, no books with spines facing outward and generating reading demands, no incomplete projects, and no screens that imply interaction.",
+      refinement: [
+        "Review the demand-free zone for objects that carry implicit messages about what should be done or who someone should be. Motivational art, self-help books, vision boards, and aspirational imagery all communicate demands even when no one is verbally requesting action. The demand-free zone contains only objects chosen for sensory comfort, personal meaning, or aesthetic pleasure with no functional expectation attached.",
+        "Apply the demand-free principle temporally as well as spatially. If a fully demand-free physical space is not available, establish a daily period when the primary living space is actively cleared of demand-generating objects and designated for demand-free time. The temporal boundary is less effective than the spatial one but meaningfully reduces demand exposure.",
+        "Ensure the demand-free zone has a clear, low-effort entry and exit process. A complicated threshold ritual, such as having to clear items away before entering the space, adds a demand to the demand-free space and partially defeats its purpose. The space should be immediately accessible as found."
+      ],
+      whyitWorks: "The neurodivergent nervous system cannot easily filter implicit environmental demands the way a lower-sensitivity system can. Each object with a functional implication represents an ongoing background process that registers the object, evaluates the associated demand, and either performs or suppresses the action. In a home full of functional objects, this process runs continuously and consumes a significant portion of the regulatory resources available. A genuinely demand-free zone gives the nervous system a space where this process can stop entirely. You notice this as a specific quality of permission: the feeling of being allowed to simply be, rather than managing the gap between what is and what should be done.",
+      integrationcue: "The first time the demand-free zone is experienced as genuinely demand-free, the body's response is often disproportionate to the simplicity of the change. The specific relief of a space that wants nothing from you is one of the most immediately recognisable sensory experiences the home can provide."
+    }
+  },
+
+  {
+    id: 119,
+    category: "Neurodivergent Environments",
+    title: "Masking and the Home as a No-Performance Space",
+    free: {
+      sciencefact: "Research on autistic masking, including studies by Hull and colleagues published in Autism in 2017, found that the sustained effort of suppressing natural neurological responses in social environments produces significant cognitive fatigue, increased anxiety, and reduced access to authentic emotional experience. The home is the only environment where the masking effort can fully stop, but only if the home does not also communicate social performance expectations.",
+      whyitmatters: "If the home contains spaces where the occupant instinctively manages their presentation, organises their behaviour for appearance rather than function, or feels the need to perform normalcy, the masking process does not stop at the front door. The recovery that the home should provide is unavailable because the environment is still generating performance demands."
+    },
+    paid: {
+      protocol: "The Authentic Environment Protocol",
+      primaryadjustment: "Remove from primary living spaces any objects, arrangements, or design choices maintained for the impression they create on others rather than the function they serve for the occupant. Distinguish between design choices that feel good to inhabit and design choices that feel good to display.",
+      refinement: [
+        "Identify any area of the home that you tidy or adjust before others see it but that you would not maintain that way for yourself. This asymmetry is the marker of a performance space. Converting it to a genuine inhabitation space requires making the decisions that serve the occupant rather than the audience.",
+        "Introduce objects, arrangements, and sensory elements that are associated with the occupant's authentic preferences even where those preferences are atypical. Unusual textures, unconventional arrangements, objects associated with specific interests without apology, and sensory elements chosen for felt comfort rather than aesthetic convention are all markers of an unmasked environment.",
+        "Assess whether the home has a space where stimming, repetitive movement, vocalisation, or other self-regulatory behaviours that are suppressed in public can occur without self-consciousness. This is not a minor comfort consideration; it is the most direct recovery mechanism available for autistic masking fatigue and the absence of it extends masking energy expenditure continuously."
+      ],
+      whyitWorks: "Masking requires ongoing prefrontal suppression of automatic neurodivergent responses and the simultaneous generation of neurotypical substitute responses. This dual process consumes executive function resources continuously and produces a specific fatigue that is distinct from physical tiredness and that does not resolve with rest unless the suppression process also stops. A home that does not generate performance demands allows the suppression to stop completely. The energy previously directed toward masking becomes available for recovery, creativity, connection, and genuine rest. You notice this as a quality of physical relaxation in spaces where nothing is being managed for another person's perception.",
+      integrationcue: "In an unmasked home environment, the body adopts different postures, uses different vocal qualities, and engages in different activities than it does in performance spaces. These differences are not chosen; they are what happens when the performance demand is absent and the authentic regulatory system is allowed to operate."
+    }
+  },
+
+  {
+    id: 120,
+    category: "Neurodivergent Environments",
+    title: "Executive Function and Environmental Scaffolding",
+    free: {
+      sciencefact: "Research by Adele Diamond on executive function development, published in Annual Review of Psychology in 2013, established that executive function, which covers planning, initiation, working memory, and cognitive flexibility, can be supported by external environmental structures that reduce the demand on internal executive resources. For individuals with ADHD, autism, or executive function difficulties, environmental scaffolding is not a workaround; it is a legitimate and effective regulatory technology.",
+      whyitmatters: "Forgetting items, missing transitions, losing track of time, and struggling to move between activities are frequently described as personal failings but are better understood as symptoms of an executive function system operating without sufficient external support. The environment can carry much of the executive function load that the internal system struggles to manage alone."
+    },
+    paid: {
+      protocol: "The Environmental Scaffolding Protocol",
+      primaryadjustment: "Externalise all time-sensitive transitions, task sequences, and location-dependent reminders into the physical environment using visual cues at the point of action, timers with non-intrusive audio cues, and object placement that makes the next step in any sequence physically obvious.",
+      refinement: [
+        "Place visual transition cues at the literal physical location where each transition occurs. A medication reminder lives at the coffee machine, not on a phone. An umbrella reminder lives at the front door, not in a calendar. Keys live on the same hook immediately inside the door, not in a pocket or a bag. Each cue at its point of action reduces the executive function demand of the transition by one complete step.",
+        "Use analogue rather than digital timers for time management in the home. A visible, physical timer whose remaining time can be seen at a glance without a screen interaction provides continuous passive temporal information to a brain that struggles with the subjective experience of time. The ticking and the visible countdown replace the internal time-tracking demand with an external one.",
+        "Create a consistent visual sequence for complex routines such as morning preparation and evening wind-down. A physical card or whiteboard in the relevant space listing the sequence in order reduces the working memory demand of generating and tracking the sequence internally. Once the external scaffold is in place, the sequence becomes automatic, at which point the scaffold can be removed if desired."
+      ],
+      whyitWorks: "Executive function is a finite resource that the brain allocates across competing demands. When environmental scaffolding handles time-tracking, sequence management, and transition cueing, the executive function resources previously consumed by these tasks are available for higher-order demands. The environment becomes a cognitive prosthetic that extends the effective executive function capacity beyond what the internal system alone can provide. You notice this as tasks that previously required significant effortful management beginning to run on automatic, guided by the environment rather than by deliberate cognitive effort.",
+      integrationcue: "With environmental scaffolding in place, the feeling of managing the day shifts from active cognitive labour to something closer to following a well-designed path. The cognitive headspace previously occupied by tracking and remembering becomes available for thinking, which is what it was designed for."
+    }
+  },
+
+  {
+    id: 121,
+    category: "Neurodivergent Environments",
+    title: "The Sensory Diet and Spatial Design",
+    free: {
+      sciencefact: "Occupational therapist Patricia Wilbarger introduced the concept of a sensory diet in 1984 to describe the individual, structured pattern of sensory activities required to maintain an optimal arousal level throughout the day. Research by Ayres and Tickle-Degnen on sensory integration established that specific sensory inputs, delivered at appropriate intervals, maintain the arousal level within the functional window and prevent both the understimulation and the overstimulation that produce dysregulation.",
+      whyitmatters: "A sensory diet is not a therapeutic intervention reserved for children in clinical settings. It is a universal neurological need that most neurotypical people meet unconsciously through daily variation. For sensory-sensitive individuals, the home environment must be designed to make every element of the sensory diet accessible, predictable, and low-effort to access throughout the day."
+    },
+    paid: {
+      protocol: "The Home Sensory Diet Protocol",
+      primaryadjustment: "Map your current daily sensory inputs across the five domains most relevant to arousal regulation: proprioceptive, vestibular, tactile, visual, and auditory. Identify which domains are currently under-served and design physical access to those inputs into the home environment in the spaces and at the times they are most needed.",
+      refinement: [
+        "Proprioceptive needs are served by heavy work: carrying, pushing, pulling, and resistance. Design these inputs into daily domestic activities by using heavier objects, stairs rather than elevators where available, and physical tasks that provide joint and muscle feedback. A wall-mounted pull-up bar, resistance bands at the desk, or carrying laundry as a structured daily activity all meet proprioceptive needs without requiring additional time.",
+        "Vestibular needs are served by rhythmic movement: rocking, swinging, bouncing, and rotation. A rocking chair, a standing balance board, a garden swing, or a yoga ball chair all provide vestibular input within the home environment. For individuals whose vestibular system is undersensitive, this input has a significant calming and focusing effect that sitting still cannot replicate.",
+        "Visual sensory diet needs vary significantly: some individuals need visual rest periods in low-input environments, while others need access to visually rich, detailed environments to maintain arousal. Designing distinct visual zones, one high-complexity and one low-complexity, within the home allows the individual to choose the visual input their nervous system requires at any given time rather than being fixed in a single visual environment."
+      ],
+      whyitWorks: "The sensory diet maintains arousal within the functional window by providing the nervous system with a predictable, varied sequence of inputs that meet each domain's regulatory needs throughout the day. When inputs are absent or inaccessible, the nervous system moves outside the functional window in the direction of the deficit: toward understimulation and flatness if proprioceptive and vestibular inputs are missing, or toward overstimulation and overload if visual and auditory inputs cannot be reduced. Designing the home around the sensory diet converts regulatory needs from a problem to be managed into a design brief to be met. You notice this as a greater stability across the day, fewer spikes into overload, and fewer valleys into flatness.",
+      integrationcue: "When the home provides consistent, accessible sensory diet inputs across all five domains, the quality of the day changes from a series of regulatory crises to a sustained, adjusted baseline. The arousal level remains within reach of the functional window more consistently, and the effort required to return to regulation after dysregulation is significantly reduced."
+    }
+  },
+
+  {
+    id: 122,
+    category: "Neurodivergent Environments",
+    title: "Interoceptive Design and Body Signal Access",
+    free: {
+      sciencefact: "Research on interoception in autism by Price and Hooven, published in Frontiers in Psychology in 2018, found that autistic individuals frequently show reduced accuracy in reading internal body signals including hunger, thirst, fatigue, and pain. This interoceptive difference is associated with the sensory processing differences of autism and contributes to difficulty with self-regulation because the internal signals that guide neurotypical regulation are less reliably available.",
+      whyitmatters: "Forgetting to eat, missing tiredness signals until they become acute, and struggling to identify emotional states before they reach crisis level are all downstream consequences of reduced interoceptive access. The environment can support interoceptive awareness by providing external cues that mirror and reinforce the internal signals the person is less reliably receiving."
+    },
+    paid: {
+      protocol: "The Interoceptive Support Protocol",
+      primaryadjustment: "Install environmental cues for the three most frequently missed interoceptive signals in your specific pattern: visual reminders for hunger and hydration at fixed times, structured rest cues for fatigue before it becomes acute, and a daily body-check practice with a fixed location and minimal setup.",
+      refinement: [
+        "Place a glass of water at your primary work position at the start of each day. The visibility of the glass provides a continuous passive hydration cue that bypasses the need to notice thirst. For interoceptive differences that make thirst unreliable, this environmental substitution is more effective than any intention to drink more water.",
+        "Designate a specific, consistent time each day for a somatic check-in practice and associate it with a fixed environmental cue such as a specific location, a scent, or a tactile object. The fixed environmental cue reduces the executive function demand of initiating the practice and provides an external prompt for the internal awareness that interoceptive differences make less automatic.",
+        "Use a comfortable, supported seating position for the check-in practice that allows the body to be fully felt without distraction. A body scan in a chair that is too firm, too cold, or poorly positioned is competing with tactile discomfort for the same interoceptive attention it is trying to cultivate. The physical comfort of the practice location directly affects the quality of interoceptive access it provides."
+      ],
+      whyitWorks: "Interoceptive awareness is a skill that improves with practice and degrades with neglect, but it is also genuinely more difficult for some nervous systems than others regardless of practice. Environmental interoceptive supports work by providing external representations of internal states that can be read and acted upon when the internal signal itself is absent or unreliable. Over time, consistent use of environmental cues alongside deliberate interoceptive practice strengthens the internal signal through the same associative learning that builds any other perceptual skill. You notice this as a gradually increasing accuracy in reading what the body needs, alongside a reduced frequency of the acute dysregulation episodes that occur when needs go unrecognised until they become urgent.",
+      integrationcue: "With consistent interoceptive support in place, the relationship with the body's signals shifts from reactive to anticipatory. Needs are met before they become demands, and the emotional and physiological stability that comes from consistently meeting basic needs becomes the baseline rather than an occasional achievement."
+    }
+  },
+
+  {
+    id: 123,
+    category: "Neurodivergent Environments",
+    title: "Monotropism and Deep Focus Design",
+    free: {
+      sciencefact: "The monotropism theory of autism, developed by Dinah Murray, Mike Lesser, and Wendy Lawson and published in Autism in 2005, proposes that the autistic cognitive style is characterised by a tendency to focus attention deeply on a small number of subjects rather than distributing attention broadly. This produces the flow states associated with autistic hyperfocus but also creates significant costs when the environment demands frequent attention switching.",
+      whyitmatters: "Designing for monotropic attention means creating conditions where deep, uninterrupted engagement with a single subject is possible for extended periods. This is the opposite of the open-plan, interruption-tolerant, multitasking-capable environments that most homes are designed for, and the mismatch produces significant regulatory cost for monotropic thinkers."
+    },
+    paid: {
+      protocol: "The Deep Focus Environment Protocol",
+      primaryadjustment: "Designate a primary focus space where transitions, interruptions, and task switches are structurally prevented rather than just discouraged. This means a closed door, notification silence on all devices, acoustic isolation sufficient to mask conversational speech, and a visual environment that supports extended engagement with one subject.",
+      refinement: [
+        "Design the focus space for a single primary activity rather than general purpose use. A reading space designed specifically for reading, with appropriate lighting, comfortable supported seating, and everything related to reading within reach, produces a fundamentally different quality of deep engagement than a general-purpose room that happens to contain a chair and books.",
+        "Remove all materials related to other subjects or tasks from the primary sightline of the focus space. For a monotropic attention system, visible materials from other domains generate a switching cost even when the materials are not being engaged. Their presence is sufficient to partially activate the attention circuit associated with them.",
+        "Establish a transition ritual for entering and exiting the focus space that is consistent and requires a deliberate action. The entry ritual signals to the monotropic attention system that deep engagement mode is appropriate, which reduces the transition cost of establishing focus. The exit ritual prevents the abrupt switching cost that comes from being interrupted mid-focus."
+      ],
+      whyitWorks: "The monotropic attention system produces its most productive and satisfying states when it can engage deeply with a single subject without the resource cost of maintaining peripheral awareness. An environment that structurally prevents interruption and switching removes the ongoing split-attention demand that the monotropic system finds particularly costly, allowing full cognitive resources to be directed to the primary subject. The result is the specific quality of engaged flow that characterises autistic hyperfocus when the conditions for it are right: time disappears, the subject becomes fully three-dimensional, and the quality of engagement is unlike anything produced by distributed attention.",
+      integrationcue: "In a correctly designed deep focus environment, the transition into focused engagement takes fewer minutes and requires less effortful self-direction than in an interruption-tolerant space. The moment of full engagement arrives rather than being achieved, and the duration of the engaged state extends naturally without requiring continuous reinitiation."
+    }
+  },
+
+  {
+    id: 124,
+    category: "Neurodivergent Environments",
+    title: "Proprioceptive Grounding and Regulation",
+    free: {
+      sciencefact: "Research on sensory integration by Jean Ayres and subsequent clinical work by occupational therapists established that proprioceptive input, specifically heavy work and joint compression, produces a regulatory effect on the nervous system that is more sustained and more broadly effective than any other single sensory input. It is the only sensory channel that directly downregulates both hyperarousal and hypoarousal states.",
+      whyitmatters: "The urge to squeeze, press, push, or carry heavy objects during periods of emotional dysregulation is the body's accurate self-prescription for the one sensory input that reliably shifts the nervous system back toward baseline. Environments that provide easy access to proprioceptive inputs support regulation; environments that do not provide this access require the person to manage dysregulation with cognitive tools alone, which is significantly less effective."
+    },
+    paid: {
+      protocol: "The Proprioceptive Access Protocol",
+      primaryadjustment: "Install at least one proprioceptive input option in each primary room: a weighted object to carry or hold, a resistance point to push or pull against, or a physical activity that provides joint compression and muscle loading within the normal flow of activity in that space.",
+      refinement: [
+        "The kitchen provides natural proprioceptive input through kneading, stirring, lifting, and carrying. Designing the kitchen to include these activities in regular meal preparation, rather than optimising them out through appliances, preserves a valuable daily regulatory resource, particularly for children and adults who need proprioceptive input to maintain regulation across the day.",
+        "Place a resistance band or a grip strengthener within arm's reach of the primary work position. These require no space, no setup, and no departure from the work context, but provide immediate proprioceptive input at the first sign of regulatory difficulty. The accessibility of the input matters as much as its effectiveness.",
+        "Carry load as a deliberate daily practice rather than minimising it. A heavy bag to the kitchen, stairs instead of elevators, carrying laundry as a mindful activity rather than delegating it, are all proprioceptive opportunities that cost nothing and produce measurable regulatory benefit when incorporated consistently into the daily movement pattern."
+      ],
+      whyitWorks: "Proprioceptive input from muscles and joints travels to the cerebellum and the reticular formation, structures involved in arousal regulation that receive sensory input from the entire body simultaneously. The regulatory effect of heavy work and joint compression is rapid and not mediated by cognitive processing, which means it is effective even when emotional dysregulation has already reduced the effectiveness of cognitive regulation strategies. The body regulates through sensation in a way it cannot regulate through thought alone, and the environment determines whether the most effective regulatory input is available when it is needed. You notice this as the ability to return to baseline after dysregulation happening faster and with less effortful management when proprioceptive input is accessible.",
+      integrationcue: "With proprioceptive input reliably available throughout the day, the frequency and intensity of dysregulation episodes reduces not through better management but through earlier interruption. The body self-regulates before the dysregulation curve reaches the level at which cognitive strategies are required."
+    }
+  },
+
+
+  // ─── ATTENTION RESTORATION THEORY ───────────────────────────────────────────
+
+  {
+    id: 125,
+    category: "Attention Restoration",
+    title: "Directed Attention Fatigue and the Home",
+    free: {
+      sciencefact: "Rachel and Stephen Kaplan at the University of Michigan developed Attention Restoration Theory across research published between 1989 and 1995, establishing that directed attention, the focused, effortful concentration required for cognitive work, depletes a finite neural resource. When this resource is exhausted, concentration degrades, errors increase, irritability rises, and the ability to inhibit impulses decreases measurably.",
+      whyitmatters: "The specific quality of end-of-day cognitive depletion, when everything feels harder than it should, when small frustrations produce large reactions, and when even simple decisions feel effortful, is directed attention fatigue. It is not tiredness. It is the exhaustion of a specific neural resource that rest alone does not restore. The environment determines how quickly it is restored."
+    },
+    paid: {
+      protocol: "The Restoration Audit",
+      primaryadjustment: "Identify the primary space in your home where you spend the first hour after work or the most cognitively demanding part of your day. Assess whether that space is designed to restore directed attention or to continue depleting it through visual demands, acoustic load, and functional reminders.",
+      refinement: [
+        "A restoration space must meet four criteria identified by the Kaplans: it must hold attention effortlessly through fascination rather than effort, it must feel separate from the demands of daily life, it must be large enough in scope, physical or psychological, to allow the mind to rest from its daily preoccupations, and it must be compatible with the person's current needs and preferred mode of recovery. Most domestic rest spaces meet one or two of these criteria rather than all four.",
+        "The most common restoration failure in domestic spaces is the presence of functional reminders. A living room with visible work materials, incomplete tasks, administrative items, or improvement-oriented objects such as exercise equipment and self-help books continues to activate the directed attention system during what should be restoration time.",
+        "Assess the cognitive demand of your primary rest space using this test: after 20 minutes in it, do you feel more or less mentally available than when you entered? A genuinely restorative space produces a measurable increase in availability; a space that is merely pleasant but not restorative produces no change or a gradual further depletion."
+      ],
+      whyitWorks: "Directed attention is governed by the prefrontal cortex's inhibitory control system, which suppresses competing stimuli and maintains focus on the current task. This system operates on a metabolic budget and depletes with use. Restoration requires the inhibitory system to rest completely, which only occurs when attention is held effortlessly rather than directed deliberately. The Kaplans' research established that natural environments, and designed spaces that mimic their properties, are the most efficient restorative contexts because they hold attention through fascination without requiring effortful direction. The home is the primary restorative environment available and its design determines whether restoration occurs.",
+      integrationcue: "A genuinely restorative space produces a quality of mental availability after 20 to 30 minutes that is noticeably different from simply having been off-task. Thoughts arise more freely, small frustrations produce smaller reactions, and the sense of cognitive traction, the ability to engage with something and follow it through, returns."
+    }
+  },
+
+  {
+    id: 126,
+    category: "Attention Restoration",
+    title: "Fascination and the Effortless Gaze",
+    free: {
+      sciencefact: "The Kaplans identified fascination as the primary mechanism of attention restoration: stimuli that hold attention effortlessly, without requiring inhibitory control, allow the directed attention system to rest while the mind remains engaged. They distinguished between hard fascination, which involves strong emotional engagement such as action films and social media, and soft fascination, which involves gentle, effortless engagement such as watching clouds, fire, water, and natural movement.",
+      whyitmatters: "Hard fascination feels like rest because it is absorbing but does not restore directed attention because the inhibitory system remains active managing competing thoughts and stimuli. Only soft fascination provides the specific quality of effortless engagement that allows the directed attention resource to replenish. Most modern domestic environments are designed for hard fascination rather than soft."
+    },
+    paid: {
+      protocol: "The Soft Fascination Protocol",
+      primaryadjustment: "Introduce one soft fascination element into your primary rest space: a view of moving natural elements such as trees, sky, or water; a small indoor water feature; a fire or candle flame; or a living plant cluster in the sightline from the primary rest position.",
+      refinement: [
+        "The movement quality of the fascination element matters. Soft fascination is produced by irregular, unpredictable, gentle movement: the quality of natural phenomena. A rotating fan does not produce soft fascination; a candle flame or moving water does. The irregularity is the mechanism, not the movement alone.",
+        "Remove competing hard fascination sources from the soft fascination sightline. A screen that is visible but off, a device that might produce a notification, or a stack of reading that could be engaged with all compete for attention during soft fascination time and prevent the inhibitory system from fully resting.",
+        "Allow soft fascination to be genuinely purposeless. The tendency to bring a phone, open a book, or use soft fascination time productively defeats its restorative function. The Kaplans specifically identified the reflective mental state that accompanies soft fascination, where the mind wanders without task direction, as the mechanism of restoration. Task direction during this time prevents restoration even if the task is mild."
+      ],
+      whyitWorks: "Soft fascination holds the mind's attention with sufficient engagement to prevent rumination and problem-cycling, but without requiring the inhibitory effort that directed attention demands. This creates the specific neural condition in which the prefrontal inhibitory system is off-duty while the default mode network, associated with rest, self-reflection, and memory consolidation, operates freely. The Kaplans' research demonstrated that this state produces measurable recovery in directed attention capacity across sessions of 20 minutes or more. You notice this as the mind feeling quieter and more available after soft fascination time, in a way that screen time specifically does not produce.",
+      integrationcue: "After 20 minutes of genuine soft fascination, the mental quality is of having been somewhere slightly away from the day. Thoughts that felt urgent before the session are still there afterward but carry less weight, and the capacity to engage with the next task feels renewed rather than continued."
+    }
+  },
+
+  {
+    id: 127,
+    category: "Attention Restoration",
+    title: "Being Away and Psychological Distance",
+    free: {
+      sciencefact: "The Kaplans identified being away as the first of four properties required for a restorative environment. Being away is not a physical distance but a psychological one: the experience of being in a context that is conceptually separate from the demands, pressures, and preoccupations of daily life. Research on restorative environments confirms that physical environments can produce this experience without physical travel when they are sufficiently distinct from everyday functional spaces.",
+      whyitmatters: "A room that looks different from the rest of the house but contains the same functional objects, faces the same demands, and communicates the same contextual cues as the rest of the living environment does not produce the being away experience regardless of how pleasant it is. Psychological distance is produced by context, not by decoration."
+    },
+    paid: {
+      protocol: "The Psychological Distance Protocol",
+      primaryadjustment: "Design your primary rest space to be sensorially and contextually distinct from all functional spaces in the home: different light quality, different dominant scent, different acoustic character, and zero objects associated with work, administration, or self-improvement.",
+      refinement: [
+        "The most reliable single mechanism for producing psychological distance is a scent that exists exclusively in the rest space and nowhere else in the home. The olfactory system's direct access to the limbic and hippocampal systems makes scent the fastest available contextual switch. Within two weeks of consistent use, entering the scented rest space begins producing the psychological distance experience before any other sensory input has been processed.",
+        "Change the floor surface or footwear in the rest space. Bare feet on a different surface, or a specific pair of slippers worn only in this space, provides a proprioceptive contextual cue that the daily functional context has ended. The physical difference is small; the contextual signal it provides is significant.",
+        "Review whether the rest space is visible from any functional space. Visual access between the rest zone and the work or administrative zone maintains a partial contextual connection that reduces the depth of the being away experience. Physical separation, even a corridor or a closed door, substantially deepens the psychological distance the rest space provides."
+      ],
+      whyitWorks: "Psychological distance works through the hippocampus's context-dependent state retrieval: entering a space that reliably signals a different context triggers the associated autonomic and cognitive state automatically. When the rest space is sensorially and contextually distinct from functional spaces, the hippocampus retrieves the rest context cleanly rather than maintaining a blended state. The directed attention system receives an unambiguous signal that the operational context has changed and the inhibitory demand has ended. You notice this as the day genuinely ending rather than continuing at a lower volume.",
+      integrationcue: "A rest space that successfully produces psychological distance has an arrival quality that is perceptibly different from simply moving to a more comfortable room. The day stops being present in the same way, and the mental loosening of the contextual grip is a physical sensation in the jaw, the shoulders, and the quality of breathing."
+    }
+  },
+
+  {
+    id: 128,
+    category: "Attention Restoration",
+    title: "Extent and the Scope of Rest",
+    free: {
+      sciencefact: "The Kaplans identified extent as the property of a restorative environment that gives the mind sufficient scope to wander and explore without reaching a boundary that returns attention to the everyday context. In natural environments, extent is provided by landscape depth. In domestic environments, it must be designed through visual depth, layered sightlines, and the suggestion of space beyond the immediate frame.",
+      whyitmatters: "A small room with no visual depth, no sightline beyond the immediate walls, and no reference to anything outside the domestic context provides insufficient extent for full attention restoration. The mind reaches the boundary of the space and returns to the familiar preoccupations of daily life rather than continuing to wander. Extent is what turns a pleasant room into a genuinely restorative one."
+    },
+    paid: {
+      protocol: "The Visual Depth Protocol",
+      primaryadjustment: "From your primary rest position, ensure there is at least one sightline that extends beyond the immediate room, either through a window with a view, a mirror that reflects depth into the space, or a long internal sightline that suggests distance. The mind requires somewhere to go.",
+      refinement: [
+        "A window view does not need to include a dramatic landscape to provide extent. The ability to see sky, tree movement, or the depth of a garden or street is sufficient for the mind to use as a departure point for the wandering attention that produces restoration. Even a narrow window with a small sky view provides meaningfully more extent than a windowless room.",
+        "In rooms without access to outdoor views, create internal extent by arranging the room so that the sightline from the primary rest position passes through a doorway into another room, or reflects a longer distance in a large mirror. The visual suggestion of space beyond the immediate frame is sufficient for the extent experience even when the physical extent is not present.",
+        "Avoid closing off visual depth with furniture placed directly in sightlines from the rest position. A sofa placed against the wall opposite a window reduces the visual depth of the room to the distance between the seat and the back of the sofa. Pulling furniture away from walls and allowing sightlines to pass between and around pieces restores the visual depth that wall-hugging arrangements eliminate."
+      ],
+      whyitWorks: "The mind's wandering during restoration requires a conceptual and visual environment that is large enough to explore without immediately returning to the starting point. When visual depth is present, the attention follows the sightline outward and continues wandering through association and reflection. When the sightline terminates at a close wall, the wandering attention bounces back and returns to the room's familiar context. The depth does not need to be physical; it needs to be perceptual. A correctly designed visual depth satisfies the extent requirement and allows the mind's wandering to continue long enough for genuine restoration to occur.",
+      integrationcue: "In a space with adequate visual extent, the mind wanders naturally without effort and without looping back to the day's preoccupations. The quality of thought during this wandering is distinctly different from rumination: it moves forward rather than cycling, and arrives at places the directed mind could not have predicted."
+    }
+  },
+
+  {
+    id: 129,
+    category: "Attention Restoration",
+    title: "Compatibility and the Right Kind of Rest",
+    free: {
+      sciencefact: "The fourth property in the Kaplans' restorative environment framework is compatibility: the degree to which the environment supports the person's current inclinations and preferred mode of recovery. Research on restorative environments shows that compatibility is individually variable and that an environment which is highly restorative for one person may produce no restoration for another because their recovery mode requires a different kind of engagement.",
+      whyitmatters: "Designing a restoration space based on general principles without accounting for the specific person's inclinations produces a space that looks restorative but does not function as one for that individual. An introvert who restores through solitary contemplation and an extravert who restores through social engagement require fundamentally different environments to achieve the same neurological outcome."
+    },
+    paid: {
+      protocol: "The Compatibility Audit",
+      primaryadjustment: "Identify your primary restorative mode: solitary and quiet, physically active but non-competitive, socially connected but low-demand, or creatively engaged but without performance pressure. Design your primary rest space specifically for this mode rather than for a generalised concept of rest.",
+      refinement: [
+        "Solitary contemplative restoration requires: acoustic privacy, low visual demand, no social performance cues, and access to soft fascination elements. The space should communicate that no one is expected and nothing is required. Any object that implies a social audience or an evaluative observer is incompatible with this restoration mode.",
+        "Active restoration requires: sufficient clear space for movement, acoustic conditions that support energy rather than quiet, appropriate temperature for mild physical activity, and visual stimulation that matches the energy level of the activity. A movement-based rest space designed to look calm will feel incompatible with the person using it for active recovery.",
+        "Social restoration requires: co-regulation-supportive design including face-level lighting, acoustic prosody conditions, comfortable face-to-face seating arrangement, and the deliberate absence of competing attractor screens. Social restoration in a room dominated by a television is incompatible because the screen consistently wins the attention competition."
+      ],
+      whyitWorks: "Compatibility works through the match between environmental affordances and the person's current regulatory requirements. When the environment supports the specific activity through which the person restores, the cognitive resources required to manage the mismatch between environment and inclination are freed. This mismatch-management cost is rarely recognised but is significant: a person trying to restore in an environment that does not support their mode is using directed attention to override the incompatibility rather than resting the directed attention system. Compatibility removes this cost entirely. You notice this as rest that actually works: you enter the space in a depleted state and leave it with genuine capacity restored.",
+      integrationcue: "A compatible rest space produces a quality of restoration that is immediately recognisable as different from time spent in a merely pleasant but incompatible environment. The defining quality is an arrival at something rather than a departure from something: genuine restoration has a destination, not just a stopping point."
+    }
+  },
+
+  {
+    id: 130,
+    category: "Attention Restoration",
+    title: "The Garden and Nearby Nature",
+    free: {
+      sciencefact: "The Kaplans' research on nearby nature, published in the journal Environment and Behavior in 1998, found that regular access to views of nature, even from indoor positions, produces sustained improvements in directed attention capacity, reported concentration, and tolerance for frustration. The effect was measurable with as little as a daily view of trees and sky from a window.",
+      whyitmatters: "Access to a garden or a natural view is not an aesthetic luxury but a measurable cognitive performance intervention. People who work near windows with natural views consistently outperform those without on sustained attention tasks and report lower fatigue at equivalent cognitive loads. The view is doing neurological work."
+    },
+    paid: {
+      protocol: "The Nearby Nature Protocol",
+      primaryadjustment: "Reorient the furniture in your primary work and rest spaces to maximise access to natural views, even partial ones. If no natural view is available, introduce a cluster of living plants in the primary sightline and ensure they are cared for sufficiently to maintain their visual health.",
+      refinement: [
+        "The restorative benefit of a natural view is cumulative across multiple brief exposures rather than requiring sustained attention. Looking at a garden or sky view for 40 seconds every 20 minutes produces the same directed attention recovery as a longer single exposure. Design the work environment so that a natural view is available in the peripheral visual field without requiring a deliberate reorientation.",
+        "Introduce natural movement into any indoor view that is fixed. A mobile hanging near a window creates movement in the natural light. A trailing plant that moves in air currents introduces the irregular movement that soft fascination requires. A bird feeder outside a window converts a static view into a source of unpredictable, gentle natural activity.",
+        "In dense urban environments without garden access, a window box with growing plants at windowsill level provides genuine nearby nature at the point where the gaze naturally rests during work. The proximity and the living quality of the plant matter more than the scale of the natural view."
+      ],
+      whyitWorks: "Natural views hold attention through the effortless fascination mechanism of soft fascination: the irregular movement, fractal complexity, and living quality of natural elements engage the visual system without requiring inhibitory effort. Each brief exposure allows the directed attention system a short recovery period that compounds across the day into measurable protection against afternoon fatigue. The cumulative effect of consistent nearby nature access is a maintained directed attention reserve that produces both better afternoon performance and faster evening restoration. You notice this most clearly on days when the natural view is obstructed: the day feels qualitatively harder without being able to identify why.",
+      integrationcue: "The restorative effect of a natural view makes itself known gradually rather than immediately. After two weeks of consistent nearby nature access, the quality of mid-afternoon cognitive availability is noticeably higher than before, and the specific depletion of late afternoon, when directed attention fatigue is typically at its peak, arrives later or with less intensity."
+    }
+  },
+
+  {
+    id: 131,
+    category: "Attention Restoration",
+    title: "The Restorative Walk and Return",
+    free: {
+      sciencefact: "A landmark study by Berman, Jonides, and Kaplan published in Psychological Science in 2008 found that a 50-minute walk in a natural environment improved directed attention performance by 20 percent compared to an equivalent walk in an urban environment. The study was specifically designed to test the Kaplans' claim that natural environments restore directed attention through fascination rather than through physical exercise.",
+      whyitmatters: "The restorative walk is not primarily about physical health, although the physical benefits are real. It is about providing the directed attention system with a sustained period of soft fascination outside the domestic environment. The return from a natural walk is the moment the home's restorative capacity can build on a foundation that has already begun."
+    },
+    paid: {
+      protocol: "The Return Architecture Protocol",
+      primaryadjustment: "Design the arrival home from a restorative walk as a deliberate extension of the restoration rather than a transition back to function. The entry zone should be low-demand, sensorially gentle, and free of the functional cues that immediately reactivate the directed attention system.",
+      refinement: [
+        "Remove all administrative and functional objects from the entry zone and the first room encountered on returning from a walk. The transition from a natural environment back into a domestic functional space is the point at which the restorative state is most vulnerable to disruption. Protecting the first five minutes after return preserves the restoration already built by the walk.",
+        "Have a specific restorative object or activity waiting at the return point: a warm drink already prepared, a comfortable seat positioned toward the best natural view in the house, or a soft fascination element such as a candle or water feature already active. The ease of moving into continued restoration reduces the activation energy required to maintain it.",
+        "Avoid checking a device in the first ten minutes after returning from a natural walk. The directed attention system has just restored its capacity and a notification feed or email inbox is a maximum-demand directed attention input that consumes the restoration capital immediately. Protecting the post-walk window produces a significantly larger net restorative gain than the walk alone."
+      ],
+      whyitWorks: "The 20 percent directed attention improvement documented in the Berman study begins declining immediately on re-exposure to high-demand environments. The home's design determines the rate of this decline. An arrival environment that continues the low-demand, sensorially gentle conditions of the natural walk extends the restoration window and allows more of the cognitive capital built during the walk to be available for use. The walk fills the restoration reservoir; the home's design determines whether it drains immediately or holds the level long enough to matter. You notice this as the specific quality of late-afternoon cognitive clarity that follows a well-structured restorative walk and return.",
+      integrationcue: "A walk followed by a well-designed return produces a cognitive state that is measurably different from either a walk with an unprotected return or an unstructured rest period. The particular quality of refreshed availability that characterises genuine directed attention restoration is present and accessible for the tasks that follow."
+    }
+  },
+
+  {
+    id: 132,
+    category: "Attention Restoration",
+    title: "Rumination and the Wandering Mind Trap",
+    free: {
+      sciencefact: "Research by Berman and colleagues distinguishes between the mind wandering in a restorative context, which produces directed attention recovery and is associated with the default mode network, and the mind cycling through anxious thoughts or unresolved problems, which produces the opposite effect. The same apparent absence of directed focus produces restoration in one case and further depletion in the other, depending on the emotional valence and directionality of the wandering.",
+      whyitmatters: "Sitting in a room without doing anything is not the same as restoring directed attention. If the unoccupied mind defaults to problem-cycling, self-criticism, or worry, the directed attention system is actively engaged in suppressing these thoughts throughout the rest period, which depletes rather than restores its capacity. The environment determines which type of mind-wandering occurs."
+    },
+    paid: {
+      protocol: "The Wandering Direction Protocol",
+      primaryadjustment: "Design rest periods to include one gentle orientation anchor that provides enough soft engagement to prevent the mind from defaulting to problem-cycling without providing enough demand to require directed attention. Natural view, gentle music at low volume, a slow manual activity, or a soft fascination element all provide the minimal engagement that keeps the wandering mind moving forward rather than circling.",
+      refinement: [
+        "Identify your personal rumination triggers and ensure the rest environment eliminates their visual representatives. If unfinished work generates rumination, no work materials should be visible from the rest position. If social conflict generates rumination, no devices capable of delivering social messages should be within reach. If aspirational pressure generates rumination, no improvement-oriented objects should be in the sightline. The rest environment must be specifically designed for your specific rumination pattern.",
+        "A low-demand manual activity such as knitting, drawing, walking slowly, or tending plants provides sufficient gentle engagement to redirect the wandering mind toward observation and away from self-referential cycling. The activity must be genuinely low-demand: one that has been practised sufficiently that it requires no directed attention and produces no performance pressure.",
+        "Outdoor rest environments reliably produce more forward-wandering and less problem-cycling than indoor ones, even controlling for all other variables. If indoor rest consistently produces rumination despite environmental modifications, incorporating the restorative period into an outdoor or nature-adjacent context is a more effective solution than further indoor modification."
+      ],
+      whyitWorks: "The default mode network, which activates during mind-wandering, has two primary modes: one oriented toward future planning and creative association and one oriented toward self-referential processing and threat evaluation. The environmental context determines which mode dominates. A sensorially impoverished or demand-laden environment activates the threat-evaluation mode. A sensorially gentle, demand-free environment with soft fascination present activates the creative association mode, which produces the restoration the Kaplans documented. Designing the rest environment to support the correct mode of default network activation converts an unreliable rest period into a reliable restoration intervention.",
+      integrationcue: "In a correctly designed rest environment, the mind's wandering produces a quality of forward movement rather than circular return. Thoughts arrive and depart without being followed or suppressed, and the session ends with a sense of having been somewhere the directed mind did not plan to go, which is the marker of genuine default mode activation."
+    }
+  },
+
+  {
+    id: 133,
+    category: "Attention Restoration",
+    title: "The Recovery Sequence and Restoration Architecture",
+    free: {
+      sciencefact: "Research by Laumann, Garling, and Stormark published in the Journal of Environmental Psychology in 2001 found that attention restoration is not a single event but a sequence with four stages: clearing, which involves the reduction of immediate cognitive load; restoration of directed attention capacity; reflection, in which the person reconnects with long-term goals and values; and preparation for future directed activity. Environments that support only the first stage produce incomplete restoration.",
+      whyitmatters: "Most domestic rest environments are designed to support the first stage of restoration, the clearing of immediate load, without supporting the later stages that complete the recovery sequence. This produces a state that is less depleted but not genuinely restored: the capacity for quality engagement the following day depends on all four stages completing, and most home environments support only one."
+    },
+    paid: {
+      protocol: "The Four-Stage Recovery Protocol",
+      primaryadjustment: "Design a daily restoration sequence that moves deliberately through all four stages: an initial 20-minute period of genuine low-demand rest to clear cognitive load, followed by 20 minutes of soft fascination or nature contact to restore directed attention capacity, followed by 10 minutes of unstructured reflective time without any input, and a brief intentional close that orients toward the following day.",
+      refinement: [
+        "The clearing stage requires the removal of all cognitive load inputs rather than their reduction. A room that is quieter than the workplace but still contains functional reminders, devices, and decision-requiring objects does not produce clearing; it produces a slower form of the same depletion. Clearing requires a space that genuinely places no demands.",
+        "The reflection stage is the most frequently skipped and the most important for long-term wellbeing. It is the stage at which the default mode network reconnects the person with their values, long-term relationships, and sense of identity beyond the demands of the working day. A rest sequence that ends after directed attention restoration without reaching the reflection stage is cognitively effective but personally incomplete.",
+        "The intentional close does not need to be elaborate. A brief physical action, closing a notebook, lighting a candle, or stating one specific intention for the following morning, provides the preparatory orientation that the fourth stage requires. The physical action matters because it gives the hippocampus a concrete contextual marker that the restoration sequence has completed and the evening context has begun."
+      ],
+      whyitWorks: "The four-stage sequence works because each stage creates the neural conditions required for the next. Clearing reduces the acute cognitive load that would prevent soft fascination from holding attention. Soft fascination restores the directed attention capacity required for quality reflection. Reflection reconnects the default mode network with long-term self-structures rather than immediate task demands. And the intentional close provides the contextual closure that allows the hippocampus to end the day's schema cleanly rather than leaving it open and active during sleep. You notice the difference between a partial restoration sequence and a complete one most clearly the following morning: the quality of fresh engagement available at the start of the day is substantially higher when all four stages completed.",
+      integrationcue: "A complete four-stage restoration sequence produces a quality of morning readiness that is qualitatively distinct from simply having slept. There is a specific sense of having genuinely arrived at a new day rather than continuing the previous one at a lower intensity."
+    }
+  },
+
+  // ─── HORMONAL CYCLES AND SENSORY FLUCTUATION ─────────────────────────────────
+
+  {
+    id: 134,
+    category: "Hormonal Cycles & Sensory Fluctuation",
+    title: "The Oestrogen Effect on Sensory Thresholds",
+    free: {
+      sciencefact: "Research on hormonal modulation of sensory processing, including work by Craft and colleagues published in Pain in 2004, established that oestrogen directly influences the sensitivity of pain and sensory receptors throughout the nervous system. Higher oestrogen levels are associated with lower sensory thresholds, meaning greater sensitivity to sound, light, smell, and touch. As oestrogen fluctuates across the menstrual cycle and declines during perimenopause, sensory thresholds shift in a predictable and measurable pattern.",
+      whyitmatters: "The experience of the same home feeling completely manageable on some days and acutely overwhelming on others is not a psychological instability. It is a measurable physiological reality: the nervous system's sensitivity to environmental input is genuinely higher at specific hormonal phases, and the environment that worked last week is not the same environment this week from the body's perspective."
+    },
+    paid: {
+      protocol: "The Threshold Awareness Protocol",
+      primaryadjustment: "Track your sensory tolerance across the menstrual cycle or across your monthly hormonal pattern for one complete cycle, noting the days when light feels brighter, sound feels louder, and textures feel more irritating than usual. Use this map to anticipate high-sensitivity days and adjust the home environment proactively rather than reactively.",
+      refinement: [
+        "The late luteal phase, the 5 to 7 days before menstruation, typically represents peak sensory sensitivity for most people with menstrual cycles. During this phase, reduce the default light level in primary spaces by 30 percent, introduce additional acoustic softening if possible, and ensure natural fibre textiles are available at all direct skin contact points.",
+        "The follicular phase, from menstruation through ovulation, is typically associated with rising oestrogen and falling sensory thresholds, meaning this is when the standard environment feels most manageable and when environmental changes that involve new inputs or adjustments are best introduced. Schedule home improvements, reorganisations, and sensory experiments during this phase.",
+        "Create a simple daily rating system for sensory tolerance, scoring it from one to five each morning. After two cycles, the pattern becomes visible and predictable enough to use as a forward planning tool rather than a reactive one. The home environment shifts from something that is done to you to something you navigate with awareness."
+      ],
+      whyitWorks: "Oestrogen modulates the sensitivity of TRPV1 and TRPA1 receptors, which are involved in pain and temperature sensation, as well as influencing the serotonergic and dopaminergic systems that regulate emotional responses to sensory input. When oestrogen is high, the sensory nervous system is more finely tuned and the emotional response to sensory input is more amplified. This is a feature of the hormonal system rather than a malfunction, but it requires the environment to adapt accordingly. Proactive environmental adjustment during high-sensitivity phases removes the daily cost of managing an environment that exceeds the current sensory threshold. You notice this as the specific relief of a space that already accommodates what your body needs today rather than requiring you to compensate.",
+      integrationcue: "After tracking for two complete cycles and making proactive adjustments, the high-sensitivity days shift from the most difficult days of the month to simply the days when the environment is slightly more curated. The acute quality of overwhelm on these days reduces significantly because the environment has already met the body partway."
+    }
+  },
+
+  {
+    id: 135,
+    category: "Hormonal Cycles & Sensory Fluctuation",
+    title: "Progesterone and the Need for Stillness",
+    free: {
+      sciencefact: "Progesterone has a neurologically sedating effect mediated through its conversion to allopregnanolone, a potent positive modulator of GABA-A receptors, as established in research by Majewska and colleagues published in Science in 1986. The rise in progesterone following ovulation produces a measurable shift toward the need for lower stimulation, physical warmth, and reduced social demand. When progesterone then drops sharply before menstruation, the withdrawal from this sedating effect can produce a brief period of heightened reactivity.",
+      whyitmatters: "The post-ovulation desire for warmth, quiet, and less social engagement is not a withdrawal of motivation or a mood problem. It is a neurological response to a genuinely sedating hormone that the environment should support rather than override. Designing against progesterone's influence by maintaining high stimulation, social demand, and cool temperatures during the luteal phase creates a physiological conflict that depletes regulatory resources daily."
+    },
+    paid: {
+      protocol: "The Luteal Phase Environment Protocol",
+      primaryadjustment: "During the luteal phase, from ovulation to menstruation, increase the warmth, acoustic softness, and tactile comfort of your primary rest environment while reducing social and functional demands on shared spaces. The environment should support rather than resist the body's neurological drive toward restoration.",
+      refinement: [
+        "Increase ambient temperature in rest spaces by one to two degrees during the luteal phase. Progesterone raises the basal body temperature by approximately 0.3 degrees Celsius, which means the thermal neutrality range shifts slightly upward. What felt thermally comfortable before ovulation may feel mildly cool afterward, and this thermal slight discomfort adds to the regulatory load of an already higher-demand hormonal phase.",
+        "Introduce additional weighted or warm tactile layers into the primary rest position during the luteal phase. The combination of progesterone's GABA-enhancing effect and deep pressure stimulation produces a compounded calming response that is specifically available during this phase. A heavier blanket in the luteal phase is not an indulgence but a targeted neurological support.",
+        "Reduce the acoustic demand of shared spaces in the evening during the luteal phase by establishing an earlier quiet hour and reducing the number of competing sound sources. Progesterone's GABA enhancement makes the nervous system more sensitive to acoustic disruption during this phase, and the sharp drop in progesterone in the premenstrual days makes this sensitivity acutest just before menstruation."
+      ],
+      whyitWorks: "Allopregnanolone's GABA-A receptor modulation shifts the nervous system's baseline toward a lower arousal state, which means the sensory and social inputs that are manageable at lower baseline arousal in the follicular phase register more intensely during the luteal phase. The environment that was calibrated for the follicular phase is effectively too stimulating for the luteal phase neurological baseline. Reducing stimulation, increasing warmth, and adding tactile comfort aligns the environment with the neurological reality rather than requiring the person to compensate through effort. You notice this as the specific quality of a luteal phase evening that feels genuinely restful rather than merely less demanding than the day.",
+      integrationcue: "During luteal-phase-adjusted evenings, the transition to sleep is noticeably smoother and the quality of sleep is deeper. The premenstrual insomnia and difficulty winding down that many people experience is partly an environmental mismatch problem, and addressing it with appropriate environmental adjustment produces measurable sleep quality improvement."
+    }
+  },
+
+  {
+    id: 136,
+    category: "Hormonal Cycles & Sensory Fluctuation",
+    title: "Perimenopause and the Shifting Baseline",
+    free: {
+      sciencefact: "Research by Prior and colleagues on perimenopause documents the progressive irregularity of oestrogen and progesterone production during the perimenopausal transition, typically beginning in the mid-to-late forties. Unlike the cyclical fluctuation of a regular menstrual cycle, perimenopausal hormonal changes are unpredictable in both timing and magnitude, producing sensory threshold shifts that cannot be anticipated through a regular monthly pattern.",
+      whyitmatters: "The experience of the home environment becoming unpredictably overwhelming during perimenopause, on days when there is no obvious external cause, is an accurate physiological reading of unpredictable oestrogen withdrawal. The home has not changed but the nervous system's sensitivity to it has shifted without warning. Designing for adjustability rather than a fixed standard is the appropriate architectural response to a hormonal phase characterised by unpredictability."
+    },
+    paid: {
+      protocol: "The Perimenopausal Adjustability Protocol",
+      primaryadjustment: "During the perimenopausal transition, redesign all primary living spaces for maximum sensory adjustability rather than optimal fixed settings. Every sensory variable that can be made adjustable should be, because the unpredictability of hormonal fluctuation means no fixed setting remains appropriate for more than a few days at a time.",
+      refinement: [
+        "Install independent lighting control in every primary room, including the kitchen and bathroom, if not already present. During perimenopause, light sensitivity can change from one day to the next, and the ability to adjust instantly and independently in each space without a whole-house change is the single most important environmental modification available.",
+        "Introduce layered thermal control beyond whole-room temperature. A personal fan on the desk, a small heated throw for cold phases, and natural fibre bedding with individually adjustable layers address the rapid thermal threshold shifts of perimenopause at the personal level rather than the architectural one. The goal is thermal self-regulation that does not require negotiation with the heating system.",
+        "Create a sensory refuge specifically calibrated to perimenopausal high-sensitivity episodes: a dark, acoustically soft, thermally neutral space with a weighted blanket available that can be occupied within two minutes of a sudden sensitivity spike. The speed of access matters because perimenopausal sensory overwhelm can escalate quickly and the most effective intervention is environmental withdrawal at the earliest sign."
+      ],
+      whyitWorks: "The perimenopausal nervous system is operating with a fluctuating and often rapidly changing hormonal baseline that shifts sensory thresholds unpredictably. Fixed environmental settings calibrated for an average threshold will repeatedly exceed or fall below the current requirement. Maximum adjustability converts this from a chronic mismatch problem into a daily calibration practice. The person retains agency over their sensory environment at a time when hormonal agency has been partially removed. You notice this as the acute quality of perimenopausal home overwhelm reducing not because the hormonal situation has improved but because the environment can now follow the body's current needs rather than imposing a fixed standard that periodically conflicts with them.",
+      integrationcue: "With a fully adjustable environment in place, perimenopausal high-sensitivity episodes change in character. The specific helplessness of being in an environment that is currently too much for the body to manage, without the ability to change it, is replaced by the agency of knowing that the adjustment is available and effective."
+    }
+  },
+
+  {
+    id: 137,
+    category: "Hormonal Cycles & Sensory Fluctuation",
+    title: "Vasomotor Symptoms and the Thermal Environment",
+    free: {
+      sciencefact: "Vasomotor symptoms including hot flushes and night sweats affect approximately 75 percent of women during perimenopause and menopause, according to research by Freeman and Sherif published in Current Psychiatry Reports in 2007. These are caused by dysfunction of the hypothalamic thermoregulatory centre, which narrows the thermoneutral zone within which the body tolerates temperature without triggering cooling or warming responses, making the perimenopausal person acutely sensitive to even minor ambient temperature changes.",
+      whyitmatters: "A bedroom or work environment that keeps a neurotypical person thermally comfortable may be too warm for the narrowed thermoregulatory window of perimenopause by two or three degrees. This difference, which is invisible to others in the shared space, is sufficient to trigger vasomotor responses that produce significant sleep disruption, daytime discomfort, and the specific emotional dysregulation that follows persistent thermal stress."
+    },
+    paid: {
+      protocol: "The Thermal Architecture for Vasomotor Regulation",
+      primaryadjustment: "Reduce the baseline temperature in sleeping environments to 16 to 17 degrees Celsius and introduce individually controllable cooling at the sleeping position through a personal fan, a cooling mattress topper, or individually zoned bedding. The shared thermal environment should default to the lower temperature, with warming options available for those who need them.",
+      refinement: [
+        "Install a ceiling fan rather than relying solely on an air conditioning system. A ceiling fan provides consistent, gentle air movement that assists the body's natural evaporative cooling during and after a flush without the abrupt thermal change of air conditioning. The movement of air across the skin is the specific cooling mechanism required during vasomotor episodes and a fan provides this more efficiently and more gently than a lower ambient temperature alone.",
+        "Use natural fibre bedding in layers that can be individually removed and replaced during the night without full waking. Wool is the optimal choice because it actively regulates temperature in both directions, wicking moisture during sweats and insulating during the cool phase that follows. A wool duvet with a lightweight cotton layer beneath allows fine-grained adjustment across the thermal swings of a night with vasomotor symptoms.",
+        "Keep a change of nightwear and a cool, damp flannel within arm's reach of the sleeping position. The ability to address a night sweat episode without leaving the bed or turning on a light preserves the sleep architecture by minimising the duration and intensity of the arousal required to manage the episode."
+      ],
+      whyitWorks: "The narrowed thermoneutral zone of perimenopause means that the hypothalamic thermoregulatory centre triggers cooling responses at temperatures that would be well within the normal tolerance range at other hormonal stages. Designing the sleeping environment for the narrowed window rather than the standard window removes the environmental triggers for vasomotor episodes by maintaining ambient conditions within the range the thermoregulatory centre can currently manage without a flush response. You notice this as a measurable reduction in the frequency and intensity of night sweats and a corresponding improvement in sleep continuity when the thermal environment is aligned with the current thermoregulatory requirement.",
+      integrationcue: "In a thermally calibrated sleeping environment, the quality of sleep during perimenopausal nights improves not because the hormonal situation has changed but because the environment is no longer repeatedly triggering the vasomotor response by slightly exceeding the narrowed thermoneutral window."
+    }
+  },
+
+  {
+    id: 138,
+    category: "Hormonal Cycles & Sensory Fluctuation",
+    title: "Oestrogen Decline and Acoustic Sensitivity",
+    free: {
+      sciencefact: "Research on the auditory system and hormonal fluctuation, including work by Guimaraes and colleagues published in Hearing Research in 2006, found that oestrogen has a protective effect on the cochlear hair cells responsible for high-frequency sound processing. Oestrogen decline during menopause is associated with increased hyperacusis risk, or heightened sensitivity to everyday sounds, and with changes in auditory processing speed that can make noisy environments more cognitively demanding.",
+      whyitmatters: "The increasing intolerance of background noise, the disproportionate distress produced by everyday sounds such as cutlery, television noise, and overlapping conversations that develops during and after menopause, is rooted in measurable auditory processing changes rather than an emotional response. The home's acoustic environment needs to adapt to this changed auditory baseline rather than expect the person to habituate to it."
+    },
+    paid: {
+      protocol: "The Post-Menopausal Acoustic Protocol",
+      primaryadjustment: "Audit and reduce all sources of high-frequency, irregular, and simultaneous competing sound in primary living and working spaces, with particular attention to hard surface reverberation, appliance noise, and background media as competing acoustic layers.",
+      refinement: [
+        "Address hard surface reverberation as the first priority. Post-menopausal acoustic sensitivity is most acutely affected by reverberation in the speech frequency range, which makes conversations in hard-surfaced kitchens and dining rooms particularly fatiguing. Adding one large textile element, whether a rug, heavy curtains, or an upholstered piece, to each hard-surfaced room provides meaningful reverberation reduction.",
+        "Reduce the number of simultaneous competing audio sources in shared spaces. A television in the background while a conversation is occurring is particularly demanding for post-menopausal auditory processing because the brain must separate speech streams with reduced cochlear efficiency. A household rule of one active audio source at a time in shared spaces is a direct acoustic load management intervention.",
+        "Consider installing sound-absorbing panels in the kitchen, which is typically the hardest-surfaced and most acoustically demanding room in the home. Fabric-covered acoustic panels, a ceiling-mounted soft material, or a textile wall hanging in a kitchen used regularly for meals and conversation provides a measurable reduction in the cumulative acoustic load that post-menopausal hyperacusis makes most costly."
+      ],
+      whyitWorks: "Oestrogen's protective effect on cochlear hair cells means that post-menopausal auditory processing has reduced resilience to acoustic challenges: louder perceived sounds, longer recovery from acoustic exposure, and greater cognitive cost for speech separation in noisy environments. Reducing the acoustic load of the home does not compensate for this changed biology but it does reduce the frequency and intensity with which the changed auditory system is pushed beyond its current capacity. The cognitive resources previously consumed by managing acoustic overload become available for other things. You notice this as a quieter quality of the home that is not merely the absence of sound but the specific relief of an acoustic environment within current management capacity.",
+      integrationcue: "In an acoustically adjusted home, mealtimes, family gatherings, and daily shared living feel qualitatively less fatiguing. The specific acoustic exhaustion of a postmenopausal nervous system navigating an unchanged hard-surfaced home begins to lift as each reverberation source is addressed."
+    }
+  },
+
+  {
+    id: 139,
+    category: "Hormonal Cycles & Sensory Fluctuation",
+    title: "Sleep Architecture and Hormonal Disruption",
+    free: {
+      sciencefact: "Research by Moline and colleagues published in CNS Drugs in 2004 documented the specific disruption that declining oestrogen and progesterone produce in sleep architecture during perimenopause: reduced slow-wave sleep depth, increased REM sleep fragmentation, more frequent micro-arousals, and a reduced homeostatic sleep drive. These changes mean that sleep in the perimenopausal and postmenopausal period is architecturally different from earlier life and requires a different environmental approach.",
+      whyitmatters: "Applying the sleep environment guidance designed for reproductive-age sleep architecture to perimenopausal sleep produces partial results at best. The sleep that is achievable with optimised conditions during this phase is genuinely different from pre-menopausal sleep, and the environment needs to be designed for the sleep that is currently available rather than the sleep that was previously normal."
+    },
+    paid: {
+      protocol: "The Hormonal Sleep Environment Protocol",
+      primaryadjustment: "Optimise the sleeping environment for the specific vulnerabilities of hormonally disrupted sleep: reduced micro-arousal triggers, thermal control for vasomotor episodes, minimal light pollution for maintained melatonin despite reduced sensitivity, and acoustic conditions that prevent the lighter sleep phases from becoming full waking.",
+      refinement: [
+        "Reduce all light to absolute zero during sleep hours, including standby LEDs, street light leakage, and any light from devices. Perimenopausal and postmenopausal sleep is architecturally lighter, spending more time in stages vulnerable to light-triggered micro-arousals. The zero-lux standard that is beneficial for all sleepers is particularly critical when the sleep architecture is already fragmented.",
+        "Install a white noise source that produces consistent broadband sound at 45 to 50 decibels in the sleeping environment. The lighter sleep stages characteristic of hormonal disruption are more vulnerable to intermittent acoustic triggers such as partner movement, household sounds, and external noise. Consistent masking sound raises the acoustic floor and reduces the likelihood of intermittent sounds reaching the threshold for full arousal.",
+        "Prepare for the night before it begins rather than managing it reactively. A pre-sleep thermal preparation, cool bedroom, lightweight natural bedding, and a fan on low, combined with a consistent wind-down sequence that begins the melatonin rise as early as possible, creates the best available conditions for the sleep architecture that is currently possible rather than the one that used to be normal."
+      ],
+      whyitWorks: "Hormonally disrupted sleep is more vulnerable to environmental interference because it spends more time in lighter architectural stages where external inputs can more easily trigger micro-arousals and prevent the return to deeper stages. Reducing micro-arousal triggers, which is the primary function of the zero-lux and acoustic masking interventions, does not restore the sleep architecture but it does protect the sleep that is available from the additional fragmentation that an unoptimised environment imposes. You notice this as the difference between perimenopausal sleep in an optimised environment and in an unoptimised one: the depth is similar but the continuity is markedly better, and the morning functioning that follows improved continuity is measurably different.",
+      integrationcue: "In a hormonal sleep environment, the number of recalled night-time wakings reduces and the return to sleep after vasomotor episodes is faster. The sleep remains architecturally different from pre-menopausal sleep but becomes the best version of what is currently available rather than a compromised version further degraded by an unsuitable environment."
+    }
+  },
+
+  {
+    id: 140,
+    category: "Hormonal Cycles & Sensory Fluctuation",
+    title: "Cortisol Dysregulation and the Morning Environment",
+    free: {
+      sciencefact: "Research by Kumari and colleagues on cortisol patterns in perimenopausal women, published in Psychoneuroendocrinology in 2009, found that the cortisol awakening response, which provides the hormonal foundation for morning alertness and daily energy regulation, becomes blunted and irregular during the perimenopausal transition. This produces the characteristic perimenopausal morning experience of waking without the normal mobilisation of energy that cortisol provides.",
+      whyitmatters: "The perimenopausal experience of waking feeling unready, not simply tired but flat and without the sense that the body is preparing to engage with the day, is a blunted cortisol awakening response rather than insufficient sleep. The environmental conditions that amplify the cortisol response, particularly morning light, are more important during perimenopause than at any other life stage precisely because the hormonal system is producing the response less reliably."
+    },
+    paid: {
+      protocol: "The Cortisol Amplification Protocol",
+      primaryadjustment: "Maximise morning light exposure within the first 20 minutes of waking through immediate blackout removal, outdoor light access, or a 10,000 lux light therapy lamp. During perimenopause, this environmental amplification of the cortisol awakening response is not a preference but a compensatory necessity.",
+      refinement: [
+        "Use a sunrise alarm clock that begins light exposure 30 minutes before the target wake time. For a blunted cortisol awakening response, beginning the light signal before waking allows the cortisol response to build from a longer cue duration, partially compensating for the reduced hormonal amplitude. The gradual light increase also reduces the abrupt transition from sleep to waking that makes morning regulation more difficult when the cortisol response is unreliable.",
+        "Combine morning light with one form of mild physical activation within the first 30 minutes of waking: a brief walk, five minutes of movement, or a cold water face wash. Physical activation supplements the cortisol signal through a direct sympathetic pathway that does not depend on the hormonal response, providing a secondary mobilisation mechanism when the primary hormonal one is insufficient.",
+        "Establish a consistent wake time even on days when sleep was disrupted. The cortisol awakening response is triggered by the transition from sleep to waking and is amplified by light, but it is also entrained by consistent timing. Maintaining a fixed wake time, even after a difficult night, preserves the timing entrainment that helps regularise the blunted response over weeks rather than losing it to variable schedules."
+      ],
+      whyitWorks: "The cortisol awakening response is amplified by light through the melanopsin system's direct projection to the suprachiasmatic nucleus, which stimulates the HPA axis to produce the cortisol surge. When the HPA axis response is blunted by hormonal change, providing a stronger and longer light signal partially compensates by giving the axis more input to work with. This is not a complete solution but it is the most effective environmental intervention available for the blunted CAR, and its effects are measurable within a week of consistent implementation. You notice this as the morning transition feeling slightly more available than without the intervention: not fully restored, but meaningfully less flat.",
+      integrationcue: "With consistent morning light amplification in place, the perimenopausal morning transition changes in quality over two to three weeks of regular use. The specific flatness of a blunted cortisol response does not disappear but becomes a baseline that the environmental intervention lifts noticeably, and the first productive hour of the day arrives earlier in the morning than it did without it."
+    }
+  },
+
+  {
+    id: 141,
+    category: "Hormonal Cycles & Sensory Fluctuation",
+    title: "Premenstrual Sensory Amplification",
+    free: {
+      sciencefact: "Research on premenstrual syndrome and premenstrual dysphoric disorder, including work by Schmidt and colleagues at the National Institute of Mental Health, established that the late luteal phase produces a state of heightened limbic reactivity in susceptible individuals, in which emotional and sensory stimuli are processed with greater intensity and less cortical modulation than at other phases. This is not a psychological vulnerability but a measurable neurobiological state driven by progesterone withdrawal.",
+      whyitmatters: "The premenstrual experience of everything being too loud, too bright, and too much, of normally tolerable sensory inputs becoming genuinely overwhelming, is an accurate report of a neurobiologically heightened sensory processing state. Managing this state with environmental adjustment rather than cognitive suppression is both more effective and significantly less depleting."
+    },
+    paid: {
+      protocol: "The Premenstrual Sensory Protocol",
+      primaryadjustment: "In the five to seven days before menstruation, proactively reduce the sensory baseline of your primary living environment by 20 to 30 percent across all modifiable variables: light level, acoustic complexity, thermal demand, and social engagement requirement. Treat the premenstrual phase as a planned high-sensitivity period requiring environmental accommodation rather than an unpredictable disruption requiring management.",
+      refinement: [
+        "Prepare the premenstrual environment in advance rather than adjusting reactively once overwhelm has already begun. Dimming lamps the night before, removing functional clutter from the primary rest space, and ensuring natural fibre textiles are at all contact points before the phase begins allows the environment to support the heightened sensitivity from the first day of the phase rather than catching up to it.",
+        "Reduce social complexity in shared living spaces during premenstrual days. The limbic reactivity of the late luteal phase amplifies the evaluation apprehension and social monitoring costs of shared living. Creating more acoustic and visual privacy during this period is a direct regulatory intervention, not an avoidance behaviour.",
+        "Introduce proprioceptive and deep pressure inputs as the primary regulatory tools during premenstrual high-sensitivity periods. The combination of progesterone withdrawal and heightened limbic reactivity responds well to the grounding, quieting effect of deep pressure, weighted blankets, and heavy proprioceptive work because these inputs provide a direct and immediate counterregulatory signal through the nervous system's oldest and most reliable calming pathway."
+      ],
+      whyitWorks: "Progesterone withdrawal in the late luteal phase reduces GABA-A receptor modulation, which is the system that cortical circuits use to down-regulate limbic reactivity. With reduced cortical inhibition available, sensory and emotional stimuli reach the limbic system with less filtering and produce proportionally larger responses. Reducing the amplitude of environmental inputs during this phase means that stimuli arrive at the limbic system at a level that the reduced cortical inhibition can still manage. You notice this as the premenstrual days becoming less acute in their worst moments, not because the hormonal state has changed but because the environment is not adding its own load to the neurobiological one that is already present.",
+      integrationcue: "With a proactively adjusted premenstrual environment in place, the five days before menstruation shift from the most dysregulated period of the month to simply the period when the environment is most curated. The specific quality of premenstrual overwhelm, that everything is too much at once, reduces noticeably when the environment has already reduced its contribution to that everything."
+    }
   }
 
 ]
