@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { FileText, RefreshCw, Brain, Activity, AlertTriangle, Fingerprint, TrendingDown, TrendingUp, Minus } from 'lucide-react'
+import { FileText, RefreshCw, Brain, Activity, AlertTriangle, Fingerprint, TrendingDown, TrendingUp, Minus, Sparkles } from 'lucide-react'
 
 import SensoryTools from '../components/SensoryTools'
 import SensoryRadar from '../components/SensoryRadar'
@@ -30,7 +30,6 @@ export default function DashboardUI({
   
   const [isGuideOpen, setIsGuideOpen] = useState(false)
   const [greeting, setGreeting] = useState('Welcome back')
-
   const [hasAccess, setHasAccess] = useState(false)
 
   useEffect(() => {
@@ -83,10 +82,7 @@ export default function DashboardUI({
   if (sensoryRaw > 60) sensoryLabel = 'High'
   else if (sensoryRaw < 40) sensoryLabel = 'Low'
 
-  // ── Delta display helpers ──────────────────
-  // loadDelta is null until the user completes their first update check-in.
-  // Only rendered once a delta exists.
-  const hasDelta       = loadDelta !== null && loadDelta !== undefined
+  const hasDelta        = loadDelta !== null && loadDelta !== undefined
   const deltaImproved  = hasDelta && loadDelta < 0
   const deltaWorsened  = hasDelta && loadDelta > 0
   const deltaStable    = hasDelta && loadDelta === 0
@@ -114,24 +110,30 @@ export default function DashboardUI({
               {greeting}, <span className="text-[#c9ccbb] font-normal">{displayName}</span>.
             </p>
           </div>
-          <div className="flex gap-4">
-            <Link href="/assessments/report" className="flex items-center gap-2 px-6 py-3 glass-panel hover:bg-[#c9ccbb]/10 text-[#c9ccbb] rounded-lg text-sm font-medium transition-all">
+          
+          <div className="flex flex-wrap gap-3">
+            {/* DIRECT CALL TO ACTION */}
+            <Link 
+              href="/assessments/step0" 
+              className="flex items-center gap-2 px-4 py-3 bg-[#b5a642] text-[#1b270e] rounded-lg text-xs font-bold uppercase tracking-widest transition-all hover:bg-[#c9ccbb] shadow-lg shadow-[#b5a642]/10"
+            >
+              <Sparkles size={14} />
+              Take Assessment to Build Your Sensory Profile
+            </Link>
+
+            <Link href="/assessments/report" className="flex items-center gap-2 px-6 py-3 glass-panel hover:bg-[#c9ccbb]/10 text-[#c9ccbb] rounded-lg text-sm font-medium transition-all border border-[#c9ccbb]/10">
               <FileText size={16} className="text-[#b5a642]" />
               View Detailed Report
             </Link>
           </div>
         </div>
 
-        {/* ── UPDATE NUDGE BANNER ──────────────────────────────────────────
-            Renders only when nudge.show is true (≥14 days since baseline).
-            Dismissible per session. Invisible to new users until day 14.
-        ────────────────────────────────────────────────────────────────── */}
+        {/* ── UPDATE NUDGE BANNER ── */}
         {nudge && <UpdateNudgeBanner nudge={nudge} />}
 
         {/* ROW 1: CORE METRICS */}
         <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 -mx-6 px-6 md:grid md:grid-cols-2 lg:grid-cols-4 md:overflow-visible md:pb-0 md:mx-0 md:px-0 mb-8 scrollbar-hide">
           
-          {/* ── NeuroLoad card — now shows delta when available ── */}
           <div className="snap-center shrink-0 w-[85vw] md:w-auto glass-panel p-6 rounded-3xl border border-[#c9ccbb]/10 flex flex-col justify-between min-h-[180px] relative overflow-hidden">
             <div className="flex justify-between items-start z-10 relative">
               <h3 className="text-[#c9ccbb] font-serif text-xl">NeuroLoad</h3>
@@ -141,7 +143,6 @@ export default function DashboardUI({
               <div className="text-5xl font-serif text-[#c9ccbb] mb-1">{totalLoad}</div>
               <div className="text-xs text-[#c9ccbb]/60 uppercase tracking-widest">Cumulative Strain</div>
 
-              {/* Delta callout — only visible after first check-in */}
               {hasDelta && (
                 <div className={`
                   flex items-center gap-1.5 mt-2 text-[10px] font-bold uppercase tracking-widest
@@ -183,7 +184,6 @@ export default function DashboardUI({
             <div className="absolute bottom-0 right-0 w-32 h-32 bg-[#b5a642]/10 rounded-full blur-2xl pointer-events-none" />
           </div>
 
-          {/* ── Sensory Profile card — Update Baseline now routes to /assessment/update ── */}
           <div className="snap-center shrink-0 w-[85vw] md:w-auto glass-panel p-6 rounded-3xl border border-[#c9ccbb]/10 flex flex-col justify-between min-h-[180px] relative overflow-hidden group">
             <div className="flex justify-between items-start z-10 relative">
               <h3 className="text-[#c9ccbb] font-serif text-xl">Sensory Profile</h3>
@@ -191,10 +191,6 @@ export default function DashboardUI({
             </div>
             <div className="z-10 relative">
               <div className="text-4xl font-serif text-[#c9ccbb] mb-2">The {identityLabel}</div>
-              {/* 
-                CHANGED: was /assessments/step0 (full reassessment)
-                NOW:      /assessment/update (14-question check-in)
-              */}
               <Link
                 href="/assessment/update"
                 className="inline-flex items-center gap-2 text-[10px] text-[#b5a642] uppercase tracking-widest hover:text-[#b5a642]/80 transition-colors border border-[#b5a642]/20 px-3 py-1.5 rounded-full hover:bg-[#b5a642]/10"
@@ -226,7 +222,6 @@ export default function DashboardUI({
             </div>
           </div>
 
-          {/* ── Current Baseline card — shows system state transition when available ── */}
           <div className="glass-panel p-6 rounded-3xl flex flex-col justify-center items-center text-center relative overflow-hidden border-l-4 border-[#b5a642] min-h-[250px]">
             <div className="relative z-10">
               <div className="text-[10px] text-[#b5a642] font-bold uppercase tracking-widest mb-2">Current Baseline</div>
@@ -234,7 +229,6 @@ export default function DashboardUI({
               <div className="text-lg text-[#c9ccbb]/80 mb-4">{systemState}</div>
               <div className="text-[10px] text-[#c9ccbb]/80 uppercase tracking-widest">NeuroLoad Score™</div>
 
-              {/* System state transition — only visible after first check-in */}
               {hasDelta && (
                 <div className={`
                   mt-4 text-[10px] font-bold uppercase tracking-widest
