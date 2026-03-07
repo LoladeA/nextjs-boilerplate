@@ -61,7 +61,7 @@ export default function EmptyStateBanner() {
         {/* Right — CTA */}
         <div className="shrink-0 flex flex-col items-start md:items-end gap-3">
           <button
-            onClick={() => router.push('/assessment')}
+            onClick={() => router.push('/assessments/step0')}
             className="flex items-center gap-3 px-8 py-4 bg-[#b5a642] text-[#1b270e] rounded-full font-bold text-sm uppercase tracking-widest hover:bg-[#c9b84e] transition-all active:scale-[0.98] whitespace-nowrap"
           >
             Begin Assessment <ArrowRight size={14} />
