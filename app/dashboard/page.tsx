@@ -5,7 +5,8 @@ import { Activity } from 'lucide-react'
 import DashboardUI from './DashboardUI'
 import GuestSync from '../components/GuestSync'
 import { calculateNeuroLoad } from '../utils/scoring-engine' 
-import { mapEngineToDashboard } from '@/app/lib/neuro-mapper' 
+import { mapEngineToDashboard } from '@/app/lib/neuro-mapper'
+import { shouldShowNudge } from '@/app/lib/baseline-delta-engine'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -14,26 +15,62 @@ export default async function Dashboard() {
   const cookieStore = cookies()
   const supabase = createServerComponentClient({ cookies: () => cookieStore })
 
-  // --- AUTH LOGIC ---
+  // --- AUTH ---
   const { data: { user }, error } = await supabase.auth.getUser()
   if (error || !user) redirect('/login')
+
   const displayName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Member'
 
-  // --- FETCH DATA ---
-  const [responsesRes, logsRes] = await Promise.all([
-    supabase.from('current_user_responses').select('*').eq('user_id', user.id),
-    supabase.from('daily_logs').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(30)
-  ])
-  const safeResponses = responsesRes.data || []
-  const recentLogs = logsRes.data || []
+  // --- FETCH ALL DATA IN PARALLEL ---
+  // Two new queries added alongside existing ones:
+  //   baselineSnapshotRes — the user's original baseline (first snapshot)
+  //   latestSnapshotRes   — their most recent snapshot (baseline or update)
+  // These are lightweight single-row queries — negligible performance cost.
 
-  // 🟢 THE PLG SHIELD: Prevent the server crash & allow GuestSync to run
+  const [responsesRes, logsRes, baselineSnapshotRes, latestSnapshotRes] = await Promise.all([
+
+    supabase
+      .from('current_user_responses')
+      .select('*')
+      .eq('user_id', user.id),
+
+    supabase
+      .from('daily_logs')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(30),
+
+    // First snapshot ever — original baseline
+    supabase
+      .from('assessment_snapshots')
+      .select('id, neuro_load, created_at, snapshot_type')
+      .eq('user_id', user.id)
+      .eq('snapshot_type', 'baseline')
+      .order('created_at', { ascending: true })
+      .limit(1)
+      .single(),
+
+    // Most recent snapshot — could be baseline or update
+    supabase
+      .from('assessment_snapshots')
+      .select('id, neuro_load, created_at, snapshot_type')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single()
+  ])
+
+  const safeResponses  = responsesRes.data      || []
+  const recentLogs     = logsRes.data            || []
+  const baselineSnap   = baselineSnapshotRes.data || null
+  const latestSnap     = latestSnapshotRes.data   || null
+
+  // --- PLG SHIELD: no responses yet ---
   if (safeResponses.length === 0) {
     return (
       <div className="min-h-screen bg-[#1b270e] flex flex-col items-center justify-center p-6 text-center">
-        {/* GuestSync mounts, finds localStorage, pushes to Supabase, and forces a router.refresh() */}
         <GuestSync /> 
-        
         <Activity className="text-[#b5a642] animate-pulse mb-6" size={48} />
         <h1 className="text-3xl font-serif text-[#c9ccbb] mb-3">Calibrating Your Baseline...</h1>
         <p className="text-[#c9ccbb]/70 text-sm max-w-md mx-auto">
@@ -43,10 +80,9 @@ export default async function Dashboard() {
     )
   }
 
-  // 🟢 1. EXTRACT NEURO LENS
+  // --- SCORING ENGINE ---
   const neuroLensAnswer = safeResponses.find((r: any) => r.question_key === 'neuro_lens')?.answer_value || 'None'
   
-  // 🟢 2. RUN THE NEW SCORING ENGINE
   const engineResult = calculateNeuroLoad(
     safeResponses.map((r: any) => ({
       question_key: r.question_key,
@@ -55,18 +91,40 @@ export default async function Dashboard() {
     neuroLensAnswer 
   )
 
-  // 🟢 3. MAP TO DASHBOARD IDENTITY
   const dashboardProfile = mapEngineToDashboard(engineResult.sensoryProfile)
   
-  // 🟢 4. MAP RADAR DATA
   const { finalNeuroLoad, systemState, percentIndices, rawIndices } = engineResult
+
   const radarData = [
-    { subject: 'Circadian', A: Math.round(percentIndices.cii), fullMark: 100 },
-    { subject: 'Autonomic', A: Math.round(percentIndices.ali), fullMark: 100 },
+    { subject: 'Circadian',  A: Math.round(percentIndices.cii), fullMark: 100 },
+    { subject: 'Autonomic',  A: Math.round(percentIndices.ali), fullMark: 100 },
     { subject: 'Predictive', A: Math.round(percentIndices.pli), fullMark: 100 },
-    { subject: 'Sensory', A: Math.round(percentIndices.stl), fullMark: 100 },
-    { subject: 'Recovery', A: Math.round(percentIndices.rci), fullMark: 100 }
+    { subject: 'Sensory',    A: Math.round(percentIndices.stl), fullMark: 100 },
+    { subject: 'Recovery',   A: Math.round(percentIndices.rci), fullMark: 100 }
   ]
+
+  // --- NUDGE CHECK ---
+  // Runs on every dashboard load. No CRON. No email.
+  // shouldShowNudge checks days elapsed since baseline (or last update).
+  // Returns { show: false } until day 14 — invisible to new users.
+  const nudge = shouldShowNudge(
+    baselineSnap?.created_at    ?? null,
+    latestSnap?.snapshot_type === 'update'
+      ? latestSnap.created_at
+      : null
+  )
+
+  // --- LOAD DELTA ---
+  // null until the user completes their first update check-in.
+  // Calculated as: latest update neuro_load - original baseline neuro_load.
+  // Negative = improved (less friction). Positive = worsened.
+  const loadDelta = (
+    latestSnap &&
+    baselineSnap &&
+    latestSnap.snapshot_type === 'update'
+  )
+    ? latestSnap.neuro_load - baselineSnap.neuro_load
+    : null
 
   return (
     <div className="min-h-screen bg-[#1b270e]"> 
@@ -79,7 +137,9 @@ export default async function Dashboard() {
         systemState={systemState}
         radarData={radarData}      
         circadianLoad={rawIndices?.cii || 0}
-        profile={dashboardProfile} 
+        profile={dashboardProfile}
+        nudge={nudge}
+        loadDelta={loadDelta}
       />
     </div>
   )
