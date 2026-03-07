@@ -5,31 +5,41 @@
 // app/components/GuestSync.tsx
 // =============================================================================
 //
-// FIXES APPLIED:
+// PURPOSE:
+//   When a guest completes the assessment and then signs up or signs in,
+//   this component transfers their localStorage answers into user_responses
+//   in Supabase so the scoring engine can read them.
 //
-//  1. SCHEMA MISMATCH
-//     Was writing: { user_id, assessment_step, question_key, answer: { response: value } }
-//     user_responses expects: { user_id, question_key, answer_value: String }
-//     The engine reads answer_value (text). Writing to 'answer' (jsonb) meant
-//     upserts succeeded but data was invisible to the scoring engine.
+// FIXES IN THIS VERSION:
 //
-//  2. sessionStorage FLAG
-//     Without a flag, the sync check re-ran on every dashboard mount.
-//     If router.refresh() triggered a remount before clearGuestData() completed,
-//     a second sync attempt would fire against already-cleared storage.
-//     Flag is now set on success — one attempt per browser session.
+//   FIX 1 — CORRECT COLUMN FORMAT
+//     user_responses stores answers as JSONB in the 'answer' column.
+//     The view (current_user_responses) extracts answer->>'response' as
+//     answer_value. GuestSync must write to 'answer' not 'answer_value'.
+//     Format: { answer: { response: String(value) } }
 //
-//  3. onConflict EXPLICIT
-//     Now that user_responses has a unique constraint on (user_id, question_key),
-//     onConflict is specified explicitly. Guarantees idempotent upsert behaviour
-//     regardless of how Supabase infers the conflict target from the primary key.
+//   FIX 2 — REMOVED router.push('/assessment') ON NO GUEST DATA
+//     The new dashboard renders EmptyStateBanner when no data exists.
+//     Pushing to /assessment from GuestSync created a redirect loop:
+//     assessment → dashboard → GuestSync → assessment → ...
+//     GuestSync now exits silently when there is no guest data to sync.
 //
-//  4. RACE CONDITION / SETTLING BUFFER
-//     Added a settling buffer and recovery ping to ensure Next.js Server 
-//     Components do not re-render before the Supabase view has materialized.
+//   FIX 3 — RECOVERY PING LOOP ELIMINATED
+//     The previous recovery ping fired router.refresh() on every mount
+//     when the flag was set — including after a successful sync while
+//     GuestSync was still mounted. This caused an infinite refresh loop.
+//     The ping is now removed entirely. The settling buffer (1 second)
+//     before router.refresh() is sufficient for the Supabase view to
+//     materialise. If the view is slow, the empty dashboard renders
+//     briefly then updates — which is acceptable UX.
+//
+//   FIX 4 — SETTLED FLAG CHECK PREVENTS RE-RUNS
+//     A useRef variable prevents the effect from re-running if GuestSync
+//     remounts during a router.refresh() cycle within the same page session.
+//
 // =============================================================================
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useRouter } from 'next/navigation'
 import { getGuestData, clearGuestData } from '../utils/guest-storage'
@@ -38,72 +48,66 @@ import { Save } from 'lucide-react'
 const SYNC_FLAG = 'sentient_guest_sync_done'
 
 export default function GuestSync() {
-  const supabase  = createClientComponentClient()
-  const router    = useRouter()
+  const supabase              = createClientComponentClient()
+  const router                = useRouter()
   const [syncing, setSyncing] = useState(false)
+  const hasSynced             = useRef(false)
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout
 
     const syncData = async () => {
 
-      // FIX 4: The Recovery Ping
-      // If the flag is true, but this component is STILL mounted, 
-      // the server refreshed too quickly and missed the data. 
-      // We wait 1.5 seconds and ask the server to check again.
+      // Already synced in this page session — exit silently.
+      // Prevents infinite refresh loop on remount.
+      if (hasSynced.current) return
       if (sessionStorage.getItem(SYNC_FLAG)) {
-        timeoutId = setTimeout(() => {
-          router.refresh()
-        }, 1500)
+        hasSynced.current = true
         return
       }
 
-      // No authenticated session — nothing to do
+      // No authenticated session — nothing to do.
+      // Small delay added for email verification redirects where the
+      // Supabase session token may not be immediately available in
+      // the client after the OAuth/email callback completes.
+      await new Promise(resolve => setTimeout(resolve, 300))
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) return
 
-      // No guest data in localStorage — nothing to transfer
+      // No guest data in localStorage — exit silently.
+      // EmptyStateBanner on the dashboard handles directing the user
+      // to /assessment. GuestSync no longer redirects.
       const guestData = getGuestData()
-      if (!guestData || Object.keys(guestData.answers).length === 0) {
-      sessionStorage.setItem(SYNC_FLAG, 'true')
-      // If they are on the dashboard but have no data, 
-      // push them to the assessment to build their baseline.
-      router.push('/assessment') 
-      return
-      }
+      if (!guestData || Object.keys(guestData.answers).length === 0) return
 
       setSyncing(true)
 
-      // FIX 1: Write to answer_value (text) not answer (jsonb)
-      // This is what calculateNeuroLoad reads via current_user_responses view
+      // FIX 1: Write to 'answer' (JSONB) — not 'answer_value' (view alias).
+      // user_responses real column: answer jsonb
+      // View extracts: answer->>'response' AS answer_value
+      // Scoring engine reads via view — must match { response: value } format.
       const updates = Object.entries(guestData.answers).map(([question_key, value]) => ({
         user_id:      session.user.id,
         question_key,
-        answer_value: String(value),  // engine expects a text string
+        answer:       { response: String(value) }
       }))
 
-      // FIX 3: onConflict explicit — relies on unique constraint added in migration
-      // alter table public.user_responses
-      //   add constraint user_responses_user_question_unique
-      //   unique (user_id, question_key);
       const { error } = await supabase
         .from('user_responses')
         .upsert(updates, { onConflict: 'user_id,question_key' })
 
       if (!error) {
-        // Clear guest storage only after confirmed write
         clearGuestData()
 
-        // FIX 2: Set flag before refresh — prevents re-run if remount fires
-        // before clearGuestData() propagates
+        hasSynced.current = true
         sessionStorage.setItem(SYNC_FLAG, 'true')
 
-        // FIX 4: The Settling Buffer
-        // Wait 1 second before asking the server to refresh 
-        // to ensure the Supabase view has materialized the new rows.
+        // 1-second settling buffer before refresh so the Supabase view
+        // has time to materialise the new rows before the server re-renders.
         timeoutId = setTimeout(() => {
           router.refresh()
         }, 1000)
+
       } else {
         // Do not set flag on failure — preserves guest data for retry
         console.error('[GuestSync] Sync failed:', error.message)
@@ -114,13 +118,11 @@ export default function GuestSync() {
 
     syncData()
 
-    // Cleanup function to prevent memory leaks if the component unmounts
     return () => {
       if (timeoutId) clearTimeout(timeoutId)
     }
   }, [supabase, router])
 
-  // Only visible during active sync — silent otherwise
   if (!syncing) return null
 
   return (
