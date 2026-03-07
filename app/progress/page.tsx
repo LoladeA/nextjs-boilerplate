@@ -645,7 +645,7 @@ export default function Progress() {
                 </button>
               </h1>
               <p className="text-[#c9ccbb]/80">
-                Track how your home is affecting your nervous system you each day and reveal patterns over time.
+                Track how your home affecs your nervous system each day to reveal patterns over time.
               </p>
             </div>
           </div>
