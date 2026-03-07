@@ -397,7 +397,7 @@ export default function UpdateResultsUI({
             Back to Dashboard <ArrowRight size={13} />
           </Link>
           <Link
-            href="/assessments/step0"
+            href="/assessment/update"
             className="flex-1 flex items-center justify-center gap-2 py-4 bg-transparent border border-[#c9ccbb]/20 text-[#c9ccbb]/60 rounded-full font-bold text-sm uppercase tracking-widest hover:border-[#c9ccbb]/40 hover:text-[#c9ccbb] transition-colors"
           >
             Full Assessment
