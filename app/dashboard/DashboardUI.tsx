@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { FileText, RefreshCw, Brain, Activity, AlertTriangle, Fingerprint, TrendingDown, TrendingUp, Minus, Sparkles } from 'lucide-react'
+import { FileText, RefreshCw, Brain, Activity, AlertTriangle, Fingerprint, TrendingDown, TrendingUp, Minus, Sparkles, Lock } from 'lucide-react'
 
 import SensoryTools from '../components/SensoryTools'
 import SensoryRadar from '../components/SensoryRadar'
@@ -13,14 +13,13 @@ import RitualsInterface from '../components/RitualsInterface'
 import HowItWorksModal from '../components/HowItWorksModal'
 import Sidebar from '../components/Sidebar'
 import UpdateNudgeBanner from '../components/UpdateNudgeBanner'
-import type { NudgeConfig } from '../components/UpdateNudgeBanner'
 
 export default function DashboardUI({ 
   user, 
   displayName, 
   recentLogs, 
-  totalLoad, 
-  systemState, 
+  totalLoad = 0, // Default to 0 for new users
+  systemState = "Awaiting Baseline", 
   radarData = [], 
   circadianLoad,
   profile = 'anchor',
@@ -31,6 +30,9 @@ export default function DashboardUI({
   const [isGuideOpen, setIsGuideOpen] = useState(false)
   const [greeting, setGreeting] = useState('Welcome back')
   const [hasAccess, setHasAccess] = useState(false)
+
+  // Determine if this is a "Zero State" (New User)
+  const isNewUser = totalLoad === 0 || !radarData || radarData.length === 0;
 
   useEffect(() => {
     const hour = new Date().getHours()
@@ -69,23 +71,12 @@ export default function DashboardUI({
   }
   const identityLabel = profileLabels[profile] || 'Anchor'
   
-  const recoveryRaw  = radarData?.find((d: any) => d.subject === 'Recovery')?.A  || 50
-  const sensoryRaw   = radarData?.find((d: any) => d.subject === 'Sensory')?.A   || 50
-  const autonomicRaw = radarData?.find((d: any) => d.subject === 'Autonomic')?.A || 50
+  const recoveryRaw  = radarData?.find((d: any) => d.subject === 'Recovery')?.A  || 0
+  const sensoryRaw   = radarData?.find((d: any) => d.subject === 'Sensory')?.A   || 0
+  const autonomicRaw = radarData?.find((d: any) => d.subject === 'Autonomic')?.A || 0
 
   const recoveryCapacity = 100 - recoveryRaw
-  let recoveryLabel = 'Moderate'
-  if (recoveryCapacity > 60) recoveryLabel = 'High'
-  else if (recoveryCapacity < 30) recoveryLabel = 'Low'
-
-  let sensoryLabel = 'Moderate'
-  if (sensoryRaw > 60) sensoryLabel = 'High'
-  else if (sensoryRaw < 40) sensoryLabel = 'Low'
-
-  const hasDelta        = loadDelta !== null && loadDelta !== undefined
-  const deltaImproved  = hasDelta && loadDelta < 0
-  const deltaWorsened  = hasDelta && loadDelta > 0
-  const deltaStable    = hasDelta && loadDelta === 0
+  const hasDelta = loadDelta !== null && loadDelta !== undefined
 
   return (
     <div className="min-h-screen bg-[#1b270e] font-sans selection:bg-[#b5a642] selection:text-[#1b270e]">
@@ -93,7 +84,7 @@ export default function DashboardUI({
       <Sidebar onOpenGuide={() => setIsGuideOpen(true)} />
       <HowItWorksModal isOpen={isGuideOpen} onClose={() => setIsGuideOpen(false)} />
 
-      <div className="md:ml-64 min-h-screen p-6 md:p-12">
+      <div className="md:ml-64 min-h-screen p-6 md:p-12 relative">
         
         {/* HEADER */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
@@ -112,13 +103,12 @@ export default function DashboardUI({
           </div>
           
           <div className="flex items-center gap-6">
-            {/* MINIMALIST CTA */}
             <Link 
               href="/assessments/step0" 
               className="text-xs font-medium tracking-widest uppercase text-[#b5a642] hover:text-[#c9ccbb] transition-colors flex items-center gap-2"
             >
               <Sparkles size={12} />
-              New? Take Assessment
+              {isNewUser ? "Begin Foundation" : "New? Take Assessment"}
             </Link>
 
             <Link href="/assessments/report" className="flex items-center gap-2 px-5 py-2.5 glass-panel hover:bg-[#c9ccbb]/10 text-[#c9ccbb] rounded-lg text-xs font-medium transition-all border border-[#c9ccbb]/10">
@@ -128,159 +118,90 @@ export default function DashboardUI({
           </div>
         </div>
 
-        {/* ── UPDATE NUDGE BANNER ── */}
         {nudge && <UpdateNudgeBanner nudge={nudge} />}
 
-        {/* ROW 1: CORE METRICS */}
-        <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 -mx-6 px-6 md:grid md:grid-cols-2 lg:grid-cols-4 md:overflow-visible md:pb-0 md:mx-0 md:px-0 mb-8 scrollbar-hide">
-          
-          <div className="snap-center shrink-0 w-[85vw] md:w-auto glass-panel p-6 rounded-3xl border border-[#c9ccbb]/10 flex flex-col justify-between min-h-[180px] relative overflow-hidden">
-            <div className="flex justify-between items-start z-10 relative">
-              <h3 className="text-[#c9ccbb] font-serif text-xl">NeuroLoad</h3>
-              <Brain className="text-[#b5a642]" size={20} />
-            </div>
-            <div className="z-10 relative">
-              <div className="text-5xl font-serif text-[#c9ccbb] mb-1">{totalLoad}</div>
-              <div className="text-xs text-[#c9ccbb]/60 uppercase tracking-widest">Cumulative Strain</div>
-
-              {hasDelta && (
-                <div className={`
-                  flex items-center gap-1.5 mt-2 text-[10px] font-bold uppercase tracking-widest
-                  ${deltaImproved ? 'text-emerald-400' : deltaWorsened ? 'text-orange-400' : 'text-[#c9ccbb]/30'}
-                `}>
-                  {deltaImproved && <TrendingDown size={11} />}
-                  {deltaWorsened && <TrendingUp   size={11} />}
-                  {deltaStable   && <Minus        size={11} />}
-                  {deltaImproved && `↓ ${Math.abs(loadDelta)} pts since baseline`}
-                  {deltaWorsened && `↑ ${Math.abs(loadDelta)} pts since baseline`}
-                  {deltaStable   && 'Stable since baseline'}
-                </div>
-              )}
-            </div>
-            <div className="absolute bottom-0 right-0 w-32 h-32 bg-[#b5a642]/10 rounded-full blur-2xl pointer-events-none" />
-          </div>
-
-          <div className="snap-center shrink-0 w-[85vw] md:w-auto glass-panel p-6 rounded-3xl border border-[#c9ccbb]/10 flex flex-col justify-between min-h-[180px] relative overflow-hidden">
-            <div className="flex justify-between items-start z-10 relative">
-              <h3 className="text-[#c9ccbb] font-serif text-xl">Recovery Capacity</h3>
-              <Activity className="text-[#b5a642]" size={20} />
-            </div>
-            <div className="z-10 relative">
-              <div className="text-5xl font-serif text-[#c9ccbb] mb-1">{recoveryCapacity}%</div>
-              <div className="text-xs text-[#c9ccbb]/60 uppercase tracking-widest">{recoveryLabel} Potential</div>
-            </div>
-            <div className="absolute bottom-0 right-0 w-32 h-32 bg-[#b5a642]/10 rounded-full blur-2xl pointer-events-none" />
-          </div>
-
-          <div className="snap-center shrink-0 w-[85vw] md:w-auto glass-panel p-6 rounded-3xl border border-[#c9ccbb]/10 flex flex-col justify-between min-h-[180px] relative overflow-hidden">
-            <div className="flex justify-between items-start z-10 relative">
-              <h3 className="text-[#c9ccbb] font-serif text-xl">Sensory Load</h3>
-              <AlertTriangle className="text-[#b5a642]" size={20} />
-            </div>
-            <div className="z-10 relative">
-              <div className="text-5xl font-serif text-[#c9ccbb] mb-1 capitalize">{sensoryLabel}</div>
-              <div className="text-xs text-[#c9ccbb]/60 uppercase tracking-widest">Current Stress Load</div>
-            </div>
-            <div className="absolute bottom-0 right-0 w-32 h-32 bg-[#b5a642]/10 rounded-full blur-2xl pointer-events-none" />
-          </div>
-
-          <div className="snap-center shrink-0 w-[85vw] md:w-auto glass-panel p-6 rounded-3xl border border-[#c9ccbb]/10 flex flex-col justify-between min-h-[180px] relative overflow-hidden group">
-            <div className="flex justify-between items-start z-10 relative">
-              <h3 className="text-[#c9ccbb] font-serif text-xl">Sensory Profile</h3>
-              <Fingerprint className="text-[#b5a642]" size={20} />
-            </div>
-            <div className="z-10 relative">
-              <div className="text-4xl font-serif text-[#c9ccbb] mb-2">The {identityLabel}</div>
-              <Link
-                href="/assessment/update"
-                className="inline-flex items-center gap-2 text-[10px] text-[#b5a642] uppercase tracking-widest hover:text-[#b5a642]/80 transition-colors border border-[#b5a642]/20 px-3 py-1.5 rounded-full hover:bg-[#b5a642]/10"
-              >
-                <RefreshCw size={10} /> Update Baseline
-              </Link>
-            </div>
-            <div className="absolute bottom-0 right-0 w-32 h-32 bg-[#b5a642]/10 rounded-full blur-2xl pointer-events-none" />
-          </div>
-        </div>
-
-        {/* ROW 2: RHYTHM & BASELINE */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="md:col-span-2 glass-panel p-6 rounded-3xl relative overflow-hidden flex flex-col justify-between min-h-[250px] border border-[#c9ccbb]/10">
-            <div className="relative z-10 flex justify-between items-start mb-4">
-              <div>
-                <h3 className="text-[#c9ccbb] font-serif text-xl">Nervous System Rhythm</h3>
-                <p className="text-[#c9ccbb]/80 text-xs uppercase tracking-widest mt-1">14-Day Rhythm</p>
+        {/* MAIN DASHBOARD CONTENT */}
+        <div className={`transition-all duration-700 ${isNewUser ? 'blur-md pointer-events-none opacity-40 select-none' : 'opacity-100'}`}>
+          {/* ROW 1: CORE METRICS */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div className="glass-panel p-6 rounded-3xl border border-[#c9ccbb]/10 flex flex-col justify-between min-h-[180px] relative overflow-hidden">
+              <div className="flex justify-between items-start z-10 relative">
+                <h3 className="text-[#c9ccbb] font-serif text-xl">NeuroLoad</h3>
+                <Brain className="text-[#b5a642]" size={20} />
               </div>
-              {recentLogs && recentLogs.length > 0 && (
-                <div className="text-right">
-                  <div className="text-2xl font-serif text-[#c9ccbb]">{recentLogs[0].mood_score}<span className="text-sm text-[#c9ccbb]/40">/5</span></div>
-                  <div className="text-[10px] text-[#c9ccbb]/80 uppercase tracking-widest">Latest Log</div>
-                </div>
-              )}
+              <div className="z-10 relative">
+                <div className="text-5xl font-serif text-[#c9ccbb] mb-1">{totalLoad}</div>
+                <div className="text-xs text-[#c9ccbb]/60 uppercase tracking-widest">Cumulative Strain</div>
+              </div>
             </div>
-            <div className="absolute bottom-0 left-0 right-0 h-48 opacity-80 pointer-events-none">
+
+            <div className="glass-panel p-6 rounded-3xl border border-[#c9ccbb]/10 flex flex-col justify-between min-h-[180px] relative overflow-hidden">
+              <div className="flex justify-between items-start z-10 relative">
+                <h3 className="text-[#c9ccbb] font-serif text-xl">Recovery Capacity</h3>
+                <Activity className="text-[#b5a642]" size={20} />
+              </div>
+              <div className="z-10 relative">
+                <div className="text-5xl font-serif text-[#c9ccbb] mb-1">{recoveryCapacity}%</div>
+                <div className="text-xs text-[#c9ccbb]/60 uppercase tracking-widest">Potential</div>
+              </div>
+            </div>
+
+            <div className="glass-panel p-6 rounded-3xl border border-[#c9ccbb]/10 flex flex-col justify-between min-h-[180px] relative overflow-hidden">
+              <div className="flex justify-between items-start z-10 relative">
+                <h3 className="text-[#c9ccbb] font-serif text-xl">Sensory Load</h3>
+                <AlertTriangle className="text-[#b5a642]" size={20} />
+              </div>
+              <div className="z-10 relative">
+                <div className="text-5xl font-serif text-[#c9ccbb] mb-1 capitalize">---</div>
+                <div className="text-xs text-[#c9ccbb]/60 uppercase tracking-widest">Current Stress</div>
+              </div>
+            </div>
+
+            <div className="glass-panel p-6 rounded-3xl border border-[#c9ccbb]/10 flex flex-col justify-between min-h-[180px] relative overflow-hidden group">
+              <div className="flex justify-between items-start z-10 relative">
+                <h3 className="text-[#c9ccbb] font-serif text-xl">Sensory Profile</h3>
+                <Fingerprint className="text-[#b5a642]" size={20} />
+              </div>
+              <div className="z-10 relative">
+                <div className="text-4xl font-serif text-[#c9ccbb] mb-2">The {identityLabel}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* ROW 2: RHYTHM & BASELINE */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="md:col-span-2 glass-panel p-6 rounded-3xl border border-[#c9ccbb]/10 min-h-[250px]">
+              <h3 className="text-[#c9ccbb] font-serif text-xl">Nervous System Rhythm</h3>
               <DashboardPulse logs={recentLogs || []} />
             </div>
-          </div>
-
-          <div className="glass-panel p-6 rounded-3xl flex flex-col justify-center items-center text-center relative overflow-hidden border-l-4 border-[#b5a642] min-h-[250px]">
-            <div className="relative z-10">
+            <div className="glass-panel p-6 rounded-3xl flex flex-col justify-center items-center text-center border-l-4 border-[#b5a642] min-h-[250px]">
               <div className="text-[10px] text-[#b5a642] font-bold uppercase tracking-widest mb-2">Current Baseline</div>
               <div className="text-6xl font-serif text-[#c9ccbb] mb-2">{totalLoad}</div>
-              <div className="text-lg text-[#c9ccbb]/80 mb-4">{systemState}</div>
-              <div className="text-[10px] text-[#c9ccbb]/80 uppercase tracking-widest">NeuroLoad Score™</div>
-
-              {hasDelta && (
-                <div className={`
-                  mt-4 text-[10px] font-bold uppercase tracking-widest
-                  ${deltaImproved ? 'text-emerald-400' : deltaWorsened ? 'text-orange-400' : 'text-[#c9ccbb]/30'}
-                `}>
-                  {deltaImproved && `↓ ${Math.abs(loadDelta)} pts from original`}
-                  {deltaWorsened && `↑ ${Math.abs(loadDelta)} pts from original`}
-                  {deltaStable   && 'No change from original'}
-                </div>
-              )}
+              <div className="text-lg text-[#c9ccbb]/80">{systemState}</div>
             </div>
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-[#b5a642]/10 rounded-full blur-3xl" />
           </div>
         </div>
 
-        {/* ROW 3: SENSORY PROFILE + NEURO INSIGHTS */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <div className="lg:col-span-2 glass-panel p-8 rounded-3xl relative overflow-hidden border border-[#c9ccbb]/10 min-h-[400px]">
-            <div className="flex justify-between items-start mb-6">
-              <div>
-                <h3 className="font-serif text-[#c9ccbb] text-xl mb-1">Your Sensory Profile</h3>
-                <p className="text-sm text-[#c9ccbb]/80">Circadian • Autonomic • Predictive • Sensory • Recovery</p>
+        {/* ZERO STATE OVERLAY: The "Agency over Adaptation" Guardrail */}
+        {isNewUser && (
+          <div className="absolute inset-0 z-50 flex flex-col items-center justify-center pt-32">
+            <div className="glass-panel p-10 rounded-3xl border border-[#b5a642]/30 text-center max-w-md shadow-2xl bg-[#1b270e]/80 backdrop-blur-sm">
+              <div className="w-16 h-16 bg-[#b5a642]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Lock className="text-[#b5a642]" size={32} />
               </div>
-            </div>
-            <div className="h-[300px] w-full">
-              <SensoryRadar data={radarData || []} />
+              <h2 className="font-serif text-2xl text-[#c9ccbb] mb-4">Intelligence Baseline Required</h2>
+              <p className="text-[#c9ccbb]/70 text-sm mb-8 leading-relaxed">
+                Your sentient environment cannot adapt without data. Complete your initial sensory assessment to unlock your profile and personalized protocols.
+              </p>
+              <Link 
+                href="/assessments/step0" 
+                className="inline-block w-full py-4 bg-[#b5a642] text-[#1b270e] rounded-xl font-bold uppercase tracking-widest hover:bg-[#c9ccbb] transition-all"
+              >
+                Build Your Profile
+              </Link>
             </div>
           </div>
-
-          <div className="h-full min-h-[400px]">
-            <NeuroFlashcard 
-              isPremium={hasAccess}
-              scores={{
-                light:    circadianLoad > 15 ? 40 : 80,
-                visual:   100 - sensoryRaw,
-                acoustic: 100 - autonomicRaw
-              }}
-            />
-          </div>
-        </div>
-
-        {/* ROW 4: PROTOCOLS */}
-        <div className="mb-8">
-          <RitualsInterface neuroLoadScore={totalLoad} profile={profile} />
-        </div>
-
-        {/* ROW 5: TOOLKIT */}
-        <div className="mb-8">
-          <h3 className="text-[#c9ccbb]/80 text-xs font-bold uppercase tracking-widest mb-6">Toolkit</h3>
-          <SensoryTools />
-        </div>
-      
+        )}
       </div>
     </div>
   )
