@@ -1,6 +1,7 @@
 import './globals.css'
 import type { Metadata } from 'next'
 import { Playfair_Display, Lato } from 'next/font/google'
+import { Analytics } from '@vercel/analytics/next'
 
 // We load your brand fonts here
 const playfair = Playfair_Display({ 
@@ -31,6 +32,7 @@ export default function RootLayout({
       <body className={`${playfair.variable} ${lato.variable} font-sans min-h-screen text-[#c9ccbb] antialiased`}>
         {/* We removed any 'bg-white' class here so the global CSS green takes over */}
         {children}
+        <Analytics />
       </body>
     </html>
   )
