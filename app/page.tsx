@@ -68,7 +68,7 @@ export default function Home() {
             <h3 className="text-xl font-serif text-[#c9ccbb] mb-3">Neuropsychology-Informed</h3>
             <ul className="text-[#c9ccbb]/80 text-sm space-y-2">
               <li>Designed with how the brain actually processes the spaces it lives in.</li>
-              <li>Grounded in neuroscience, environmental psychology, circadian biology, and stress physiology, and translated into changes you can make today</li>
+              <li>Grounded in neuroscience, environmental psychology, circadian biology, and stress physiology, and translated into changes you can make today.</li>
             </ul>
           </div>
 
