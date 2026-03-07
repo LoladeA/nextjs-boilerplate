@@ -243,7 +243,7 @@ export default function DashboardUI({
                 <>
                   <div className="text-4xl font-serif text-[#c9ccbb]/20 mb-2">—</div>
                   <Link
-                    href="/assessment"
+                    href="/assessments/step0"
                     className="inline-flex items-center gap-2 text-[10px] text-[#b5a642] uppercase tracking-widest hover:text-[#b5a642]/80 transition-colors border border-[#b5a642]/20 px-3 py-1.5 rounded-full hover:bg-[#b5a642]/10"
                   >
                     Begin Assessment
