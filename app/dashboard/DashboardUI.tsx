@@ -111,18 +111,18 @@ export default function DashboardUI({
             </p>
           </div>
           
-          <div className="flex flex-wrap gap-3">
-            {/* DIRECT CALL TO ACTION */}
+          <div className="flex items-center gap-6">
+            {/* MINIMALIST CTA */}
             <Link 
               href="/assessments/step0" 
-              className="flex items-center gap-2 px-4 py-3 bg-[#b5a642] text-[#1b270e] rounded-lg text-xs font-bold uppercase tracking-widest transition-all hover:bg-[#c9ccbb] shadow-lg shadow-[#b5a642]/10"
+              className="text-xs font-medium tracking-widest uppercase text-[#b5a642] hover:text-[#c9ccbb] transition-colors flex items-center gap-2"
             >
-              <Sparkles size={14} />
-              Take Assessment to Build Your Sensory Profile
+              <Sparkles size={12} />
+              New? Take Assessment
             </Link>
 
-            <Link href="/assessments/report" className="flex items-center gap-2 px-6 py-3 glass-panel hover:bg-[#c9ccbb]/10 text-[#c9ccbb] rounded-lg text-sm font-medium transition-all border border-[#c9ccbb]/10">
-              <FileText size={16} className="text-[#b5a642]" />
+            <Link href="/assessments/report" className="flex items-center gap-2 px-5 py-2.5 glass-panel hover:bg-[#c9ccbb]/10 text-[#c9ccbb] rounded-lg text-xs font-medium transition-all border border-[#c9ccbb]/10">
+              <FileText size={14} className="text-[#b5a642]" />
               View Detailed Report
             </Link>
           </div>
