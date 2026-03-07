@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { FileText, RefreshCw, Brain, Activity, AlertTriangle, Fingerprint } from 'lucide-react'
+import { FileText, RefreshCw, Brain, Activity, AlertTriangle, Fingerprint, TrendingDown, TrendingUp, Minus } from 'lucide-react'
 
 import SensoryTools from '../components/SensoryTools'
 import SensoryRadar from '../components/SensoryRadar'
@@ -12,6 +12,8 @@ import DashboardPulse from '../components/DashboardPulse'
 import RitualsInterface from '../components/RitualsInterface'
 import HowItWorksModal from '../components/HowItWorksModal'
 import Sidebar from '../components/Sidebar'
+import UpdateNudgeBanner from '../components/UpdateNudgeBanner'
+import type { NudgeConfig } from '../components/UpdateNudgeBanner'
 
 export default function DashboardUI({ 
   user, 
@@ -21,19 +23,14 @@ export default function DashboardUI({
   systemState, 
   radarData = [], 
   circadianLoad,
-  profile = 'anchor'
+  profile = 'anchor',
+  nudge,
+  loadDelta
 }: any) {
   
   const [isGuideOpen, setIsGuideOpen] = useState(false)
   const [greeting, setGreeting] = useState('Welcome back')
 
-  // ---------------------------------------------------------------------------
-  // ACCESS CONTROL
-  //
-  // Neuro Insights (NeuroFlashcard) is a Core feature.
-  // Any paying subscriber — Core or Blueprint — sees it.
-  // hasAccess: tier !== null (Core or Blueprint) or god mode email.
-  // ---------------------------------------------------------------------------
   const [hasAccess, setHasAccess] = useState(false)
 
   useEffect(() => {
@@ -48,10 +45,8 @@ export default function DashboardUI({
       localStorage.setItem('hasSeenGuide', 'true')
     }
 
-    // Check subscription tier — Neuro Insights unlocks at Core and above
     const checkAccess = async () => {
       try {
-        // God mode shortcut — check against the user prop passed from server
         if (user?.email === 'christchilde@gmail.com') {
           setHasAccess(true)
           return
@@ -59,7 +54,6 @@ export default function DashboardUI({
         const res = await fetch('/api/subscription-status')
         if (res.ok) {
           const data = await res.json()
-          // Core or Blueprint both unlock Neuro Insights
           setHasAccess(data.tier === 'core' || data.tier === 'blueprint')
         }
       } catch {
@@ -69,7 +63,6 @@ export default function DashboardUI({
     checkAccess()
   }, [user])
 
-  // Identity Translation Map
   const profileLabels: Record<string, string> = {
     anchor: 'Anchor',
     seeker: 'Seeker',
@@ -77,7 +70,6 @@ export default function DashboardUI({
   }
   const identityLabel = profileLabels[profile] || 'Anchor'
   
-  // Data extraction
   const recoveryRaw  = radarData?.find((d: any) => d.subject === 'Recovery')?.A  || 50
   const sensoryRaw   = radarData?.find((d: any) => d.subject === 'Sensory')?.A   || 50
   const autonomicRaw = radarData?.find((d: any) => d.subject === 'Autonomic')?.A || 50
@@ -90,6 +82,14 @@ export default function DashboardUI({
   let sensoryLabel = 'Moderate'
   if (sensoryRaw > 60) sensoryLabel = 'High'
   else if (sensoryRaw < 40) sensoryLabel = 'Low'
+
+  // ── Delta display helpers ──────────────────
+  // loadDelta is null until the user completes their first update check-in.
+  // Only rendered once a delta exists.
+  const hasDelta       = loadDelta !== null && loadDelta !== undefined
+  const deltaImproved  = hasDelta && loadDelta < 0
+  const deltaWorsened  = hasDelta && loadDelta > 0
+  const deltaStable    = hasDelta && loadDelta === 0
 
   return (
     <div className="min-h-screen bg-[#1b270e] font-sans selection:bg-[#b5a642] selection:text-[#1b270e]">
@@ -122,9 +122,16 @@ export default function DashboardUI({
           </div>
         </div>
 
+        {/* ── UPDATE NUDGE BANNER ──────────────────────────────────────────
+            Renders only when nudge.show is true (≥14 days since baseline).
+            Dismissible per session. Invisible to new users until day 14.
+        ────────────────────────────────────────────────────────────────── */}
+        {nudge && <UpdateNudgeBanner nudge={nudge} />}
+
         {/* ROW 1: CORE METRICS */}
         <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 -mx-6 px-6 md:grid md:grid-cols-2 lg:grid-cols-4 md:overflow-visible md:pb-0 md:mx-0 md:px-0 mb-8 scrollbar-hide">
           
+          {/* ── NeuroLoad card — now shows delta when available ── */}
           <div className="snap-center shrink-0 w-[85vw] md:w-auto glass-panel p-6 rounded-3xl border border-[#c9ccbb]/10 flex flex-col justify-between min-h-[180px] relative overflow-hidden">
             <div className="flex justify-between items-start z-10 relative">
               <h3 className="text-[#c9ccbb] font-serif text-xl">NeuroLoad</h3>
@@ -133,6 +140,21 @@ export default function DashboardUI({
             <div className="z-10 relative">
               <div className="text-5xl font-serif text-[#c9ccbb] mb-1">{totalLoad}</div>
               <div className="text-xs text-[#c9ccbb]/60 uppercase tracking-widest">Cumulative Strain</div>
+
+              {/* Delta callout — only visible after first check-in */}
+              {hasDelta && (
+                <div className={`
+                  flex items-center gap-1.5 mt-2 text-[10px] font-bold uppercase tracking-widest
+                  ${deltaImproved ? 'text-emerald-400' : deltaWorsened ? 'text-orange-400' : 'text-[#c9ccbb]/30'}
+                `}>
+                  {deltaImproved && <TrendingDown size={11} />}
+                  {deltaWorsened && <TrendingUp   size={11} />}
+                  {deltaStable   && <Minus        size={11} />}
+                  {deltaImproved && `↓ ${Math.abs(loadDelta)} pts since baseline`}
+                  {deltaWorsened && `↑ ${Math.abs(loadDelta)} pts since baseline`}
+                  {deltaStable   && 'Stable since baseline'}
+                </div>
+              )}
             </div>
             <div className="absolute bottom-0 right-0 w-32 h-32 bg-[#b5a642]/10 rounded-full blur-2xl pointer-events-none" />
           </div>
@@ -161,6 +183,7 @@ export default function DashboardUI({
             <div className="absolute bottom-0 right-0 w-32 h-32 bg-[#b5a642]/10 rounded-full blur-2xl pointer-events-none" />
           </div>
 
+          {/* ── Sensory Profile card — Update Baseline now routes to /assessment/update ── */}
           <div className="snap-center shrink-0 w-[85vw] md:w-auto glass-panel p-6 rounded-3xl border border-[#c9ccbb]/10 flex flex-col justify-between min-h-[180px] relative overflow-hidden group">
             <div className="flex justify-between items-start z-10 relative">
               <h3 className="text-[#c9ccbb] font-serif text-xl">Sensory Profile</h3>
@@ -168,7 +191,14 @@ export default function DashboardUI({
             </div>
             <div className="z-10 relative">
               <div className="text-4xl font-serif text-[#c9ccbb] mb-2">The {identityLabel}</div>
-              <Link href="/assessments/step0" className="inline-flex items-center gap-2 text-[10px] text-[#b5a642] uppercase tracking-widest hover:text-[#b5a642]/80 transition-colors border border-[#b5a642]/20 px-3 py-1.5 rounded-full hover:bg-[#b5a642]/10">
+              {/* 
+                CHANGED: was /assessments/step0 (full reassessment)
+                NOW:      /assessment/update (14-question check-in)
+              */}
+              <Link
+                href="/assessment/update"
+                className="inline-flex items-center gap-2 text-[10px] text-[#b5a642] uppercase tracking-widest hover:text-[#b5a642]/80 transition-colors border border-[#b5a642]/20 px-3 py-1.5 rounded-full hover:bg-[#b5a642]/10"
+              >
                 <RefreshCw size={10} /> Update Baseline
               </Link>
             </div>
@@ -196,12 +226,25 @@ export default function DashboardUI({
             </div>
           </div>
 
+          {/* ── Current Baseline card — shows system state transition when available ── */}
           <div className="glass-panel p-6 rounded-3xl flex flex-col justify-center items-center text-center relative overflow-hidden border-l-4 border-[#b5a642] min-h-[250px]">
             <div className="relative z-10">
               <div className="text-[10px] text-[#b5a642] font-bold uppercase tracking-widest mb-2">Current Baseline</div>
               <div className="text-6xl font-serif text-[#c9ccbb] mb-2">{totalLoad}</div>
               <div className="text-lg text-[#c9ccbb]/80 mb-4">{systemState}</div>
               <div className="text-[10px] text-[#c9ccbb]/80 uppercase tracking-widest">NeuroLoad Score™</div>
+
+              {/* System state transition — only visible after first check-in */}
+              {hasDelta && (
+                <div className={`
+                  mt-4 text-[10px] font-bold uppercase tracking-widest
+                  ${deltaImproved ? 'text-emerald-400' : deltaWorsened ? 'text-orange-400' : 'text-[#c9ccbb]/30'}
+                `}>
+                  {deltaImproved && `↓ ${Math.abs(loadDelta)} pts from original`}
+                  {deltaWorsened && `↑ ${Math.abs(loadDelta)} pts from original`}
+                  {deltaStable   && 'No change from original'}
+                </div>
+              )}
             </div>
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-[#b5a642]/10 rounded-full blur-3xl" />
           </div>
@@ -221,12 +264,6 @@ export default function DashboardUI({
             </div>
           </div>
 
-          {/* ----------------------------------------------------------------
-              NEURO INSIGHTS — Core feature
-              isPremium now reflects the live subscription-status API check.
-              Free users see the locked state inside NeuroFlashcard.
-              Core and Blueprint subscribers see full insights.
-          ---------------------------------------------------------------- */}
           <div className="h-full min-h-[400px]">
             <NeuroFlashcard 
               isPremium={hasAccess}
