@@ -83,19 +83,19 @@ const PROGRESS_CONFIG: Record<string, {
   },
   felt_progress: {
     label:    'Felt Improvement',
-    sublabel: 'You feel better at home. The data has not fully caught up yet. This often reflects changes not yet captured in the assessment.',
+    sublabel: 'You feel better at home. The data has not fully caught up yet — this often reflects changes not yet captured in the assessment.',
     color:    'text-[#b5a642]',
     icon:     'up'
   },
   stable: {
     label:    'Holding Steady',
-    sublabel: 'No significant change in either direction. This is not neutral. Stability after a period of friction is a meaningful outcome.',
+    sublabel: 'No significant change in either direction. This is not neutral — stability after a period of friction is a meaningful outcome.',
     color:    'text-[#c9ccbb]/60',
     icon:     'neutral'
   },
   under_external_pressure: {
     label:    'External Pressure Detected',
-    sublabel: 'Scores have shifted, but your context flags suggest life circumstances are the primary driver, not your environment.',
+    sublabel: 'Scores have shifted, but your context flags suggest life circumstances are the primary driver — not your environment.',
     color:    'text-orange-400',
     icon:     'warn'
   },
@@ -277,7 +277,7 @@ export default function UpdateResultsUI({
             <p className="text-sm text-[#c9ccbb]/60 leading-relaxed">
               {deltaReport.subjective_matches_data
                 ? 'What your nervous system is registering matches what the data is showing. That alignment is itself a signal of progress.'
-                : 'Your environment scores and your felt experience are pointing in different directions. This is the most useful finding in your check-in. It means there is a friction source worth investigating that the assessment questions have not yet named.'
+                : 'Your environment scores and your felt experience are pointing in different directions. This is the most useful finding in your check-in — it means there is a friction source worth investigating that the assessment questions have not yet named.'
               }
             </p>
           </div>
@@ -397,7 +397,7 @@ export default function UpdateResultsUI({
             Back to Dashboard <ArrowRight size={13} />
           </Link>
           <Link
-            href="/assessment"
+            href="/assessments/step0"
             className="flex-1 flex items-center justify-center gap-2 py-4 bg-transparent border border-[#c9ccbb]/20 text-[#c9ccbb]/60 rounded-full font-bold text-sm uppercase tracking-widest hover:border-[#c9ccbb]/40 hover:text-[#c9ccbb] transition-colors"
           >
             Full Assessment
