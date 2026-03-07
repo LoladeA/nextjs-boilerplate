@@ -30,7 +30,7 @@ export default async function Dashboard() {
   const [responsesRes, logsRes, baselineSnapshotRes, latestSnapshotRes] = await Promise.all([
 
     supabase
-      .from('user_responses')
+      .from('current_user_responses')
       .select('*')
       .eq('user_id', user.id),
 
