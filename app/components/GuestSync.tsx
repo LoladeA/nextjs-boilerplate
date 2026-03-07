@@ -23,6 +23,10 @@
 //     Now that user_responses has a unique constraint on (user_id, question_key),
 //     onConflict is specified explicitly. Guarantees idempotent upsert behaviour
 //     regardless of how Supabase infers the conflict target from the primary key.
+//
+//  4. RACE CONDITION / SETTLING BUFFER
+//     Added a settling buffer and recovery ping to ensure Next.js Server 
+//     Components do not re-render before the Supabase view has materialized.
 // =============================================================================
 
 import { useEffect, useState } from 'react'
@@ -39,10 +43,20 @@ export default function GuestSync() {
   const [syncing, setSyncing] = useState(false)
 
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout
+
     const syncData = async () => {
 
-      // Already synced this session — skip
-      if (sessionStorage.getItem(SYNC_FLAG)) return
+      // FIX 4: The Recovery Ping
+      // If the flag is true, but this component is STILL mounted, 
+      // the server refreshed too quickly and missed the data. 
+      // We wait 1.5 seconds and ask the server to check again.
+      if (sessionStorage.getItem(SYNC_FLAG)) {
+        timeoutId = setTimeout(() => {
+          router.refresh()
+        }, 1500)
+        return
+      }
 
       // No authenticated session — nothing to do
       const { data: { session } } = await supabase.auth.getSession()
@@ -81,8 +95,12 @@ export default function GuestSync() {
         // before clearGuestData() propagates
         sessionStorage.setItem(SYNC_FLAG, 'true')
 
-        // Re-run server component fetch so dashboard reflects transferred data
-        router.refresh()
+        // FIX 4: The Settling Buffer
+        // Wait 1 second before asking the server to refresh 
+        // to ensure the Supabase view has materialized the new rows.
+        timeoutId = setTimeout(() => {
+          router.refresh()
+        }, 1000)
       } else {
         // Do not set flag on failure — preserves guest data for retry
         console.error('[GuestSync] Sync failed:', error.message)
@@ -92,6 +110,11 @@ export default function GuestSync() {
     }
 
     syncData()
+
+    // Cleanup function to prevent memory leaks if the component unmounts
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId)
+    }
   }, [supabase, router])
 
   // Only visible during active sync — silent otherwise
