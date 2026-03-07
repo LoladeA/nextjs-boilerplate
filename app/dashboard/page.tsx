@@ -1,7 +1,8 @@
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { Activity } from 'lucide-react' 
+import { Activity, ArrowRight } from 'lucide-react' 
+import Link from 'next/link'
 import DashboardUI from './DashboardUI'
 import GuestSync from '../components/GuestSync'
 import { calculateNeuroLoad } from '../utils/scoring-engine' 
@@ -22,13 +23,7 @@ export default async function Dashboard() {
   const displayName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Member'
 
   // --- FETCH ALL DATA IN PARALLEL ---
-  // Two new queries added alongside existing ones:
-  //   baselineSnapshotRes — the user's original baseline (first snapshot)
-  //   latestSnapshotRes   — their most recent snapshot (baseline or update)
-  // These are lightweight single-row queries — negligible performance cost.
-
   const [responsesRes, logsRes, baselineSnapshotRes, latestSnapshotRes] = await Promise.all([
-
     supabase
       .from('current_user_responses')
       .select('*')
@@ -62,20 +57,35 @@ export default async function Dashboard() {
   ])
 
   const safeResponses  = responsesRes.data      || []
-  const recentLogs     = logsRes.data            || []
+  const recentLogs      = logsRes.data            || []
   const baselineSnap   = baselineSnapshotRes.data || null
-  const latestSnap     = latestSnapshotRes.data   || null
+  const latestSnap      = latestSnapshotRes.data   || null
 
-  // --- PLG SHIELD: no responses yet ---
+  // --- PLG SHIELD: NO RESPONSES YET ---
+  // Replaced passive loader with an active gateway to Step 0
   if (safeResponses.length === 0) {
     return (
       <div className="min-h-screen bg-[#1b270e] flex flex-col items-center justify-center p-6 text-center">
         <GuestSync /> 
-        <Activity className="text-[#b5a642] animate-pulse mb-6" size={48} />
-        <h1 className="text-3xl font-serif text-[#c9ccbb] mb-3">Calibrating Your Baseline...</h1>
-        <p className="text-[#c9ccbb]/70 text-sm max-w-md mx-auto">
-          Synchronising your sensory profile with the intelligence engine. This will just take a moment.
-        </p>
+        <div className="max-w-md w-full glass-panel p-10 rounded-[2rem] border border-[#c9ccbb]/10 shadow-2xl">
+          <Activity className="text-[#b5a642] mx-auto mb-6 animate-pulse" size={48} />
+          <h1 className="text-3xl font-serif text-[#c9ccbb] mb-4">Calibrating Your Baseline</h1>
+          <p className="text-[#c9ccbb]/70 text-sm mb-8 leading-relaxed">
+            Your sensory profile is the foundation of the Sentient Home. 
+            To activate your intelligence layer and calculate your baseline NeuroLoad, 
+            we require your initial assessment data.
+          </p>
+          <Link 
+            href="/assessments/step0"
+            className="group flex items-center justify-center gap-3 bg-[#b5a642] text-[#1b270e] px-8 py-4 rounded-full text-xs font-bold uppercase tracking-[0.2em] transition-all hover:bg-[#c9ccbb] hover:scale-[1.02]"
+          >
+            Begin Baseline Assessment
+            <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+          </Link>
+          <p className="mt-6 text-[10px] text-[#c9ccbb]/40 uppercase tracking-widest">
+            Estimated time: 10 minutes
+          </p>
+        </div>
       </div>
     )
   }
@@ -104,9 +114,6 @@ export default async function Dashboard() {
   ]
 
   // --- NUDGE CHECK ---
-  // Runs on every dashboard load. No CRON. No email.
-  // shouldShowNudge checks days elapsed since baseline (or last update).
-  // Returns { show: false } until day 14 — invisible to new users.
   const nudge = shouldShowNudge(
     baselineSnap?.created_at    ?? null,
     latestSnap?.snapshot_type === 'update'
@@ -115,9 +122,6 @@ export default async function Dashboard() {
   )
 
   // --- LOAD DELTA ---
-  // null until the user completes their first update check-in.
-  // Calculated as: latest update neuro_load - original baseline neuro_load.
-  // Negative = improved (less friction). Positive = worsened.
   const loadDelta = (
     latestSnap &&
     baselineSnap &&
