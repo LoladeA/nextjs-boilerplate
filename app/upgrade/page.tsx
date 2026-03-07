@@ -309,7 +309,7 @@ export default function UpgradePage() {
                   ))}
                   <div className="pt-4">
                     <a
-                      href="https://loladaajaiinteriordesign.com"
+                      href="https://www.lolade-ajai.com/services"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 px-6 py-3 border border-[#c9ccbb]/20 text-[#c9ccbb]/70 rounded-full text-xs font-bold uppercase tracking-widest hover:border-[#b5a642]/40 hover:text-[#c9ccbb] transition-all"
