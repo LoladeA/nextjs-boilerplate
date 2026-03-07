@@ -65,8 +65,11 @@ export default function GuestSync() {
       // No guest data in localStorage — nothing to transfer
       const guestData = getGuestData()
       if (!guestData || Object.keys(guestData.answers).length === 0) {
-        sessionStorage.setItem(SYNC_FLAG, 'true')
-        return
+      sessionStorage.setItem(SYNC_FLAG, 'true')
+      // If they are on the dashboard but have no data, 
+      // push them to the assessment to build their baseline.
+      router.push('/assessment') 
+      return
       }
 
       setSyncing(true)
