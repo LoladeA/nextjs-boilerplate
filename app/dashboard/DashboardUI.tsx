@@ -13,24 +13,25 @@ import RitualsInterface from '../components/RitualsInterface'
 import HowItWorksModal from '../components/HowItWorksModal'
 import Sidebar from '../components/Sidebar'
 import UpdateNudgeBanner from '../components/UpdateNudgeBanner'
+import EmptyStateBanner from '../components/EmptyStateBanner'
 import type { NudgeConfig } from '../components/UpdateNudgeBanner'
 
 export default function DashboardUI({ 
   user, 
   displayName, 
   recentLogs, 
-  totalLoad, 
-  systemState, 
+  totalLoad,       // null when no assessment
+  systemState,     // null when no assessment
   radarData = [], 
   circadianLoad,
   profile = 'anchor',
+  hasAssessment = true,
   nudge,
   loadDelta
 }: any) {
   
   const [isGuideOpen, setIsGuideOpen] = useState(false)
   const [greeting, setGreeting] = useState('Welcome back')
-
   const [hasAccess, setHasAccess] = useState(false)
 
   useEffect(() => {
@@ -69,27 +70,29 @@ export default function DashboardUI({
     sensor: 'Sensor'
   }
   const identityLabel = profileLabels[profile] || 'Anchor'
-  
-  const recoveryRaw  = radarData?.find((d: any) => d.subject === 'Recovery')?.A  || 50
-  const sensoryRaw   = radarData?.find((d: any) => d.subject === 'Sensory')?.A   || 50
-  const autonomicRaw = radarData?.find((d: any) => d.subject === 'Autonomic')?.A || 50
 
-  const recoveryCapacity = 100 - recoveryRaw
-  let recoveryLabel = 'Moderate'
-  if (recoveryCapacity > 60) recoveryLabel = 'High'
-  else if (recoveryCapacity < 30) recoveryLabel = 'Low'
+  // Null-safe data extraction
+  // All values fall back to safe defaults when hasAssessment is false
+  const recoveryRaw  = radarData?.find((d: any) => d.subject === 'Recovery')?.A  ?? null
+  const sensoryRaw   = radarData?.find((d: any) => d.subject === 'Sensory')?.A   ?? null
+  const autonomicRaw = radarData?.find((d: any) => d.subject === 'Autonomic')?.A ?? null
 
-  let sensoryLabel = 'Moderate'
-  if (sensoryRaw > 60) sensoryLabel = 'High'
-  else if (sensoryRaw < 40) sensoryLabel = 'Low'
+  const recoveryCapacity = recoveryRaw !== null ? 100 - recoveryRaw : null
+  const recoveryLabel = recoveryCapacity === null ? '—'
+    : recoveryCapacity > 60 ? 'High'
+    : recoveryCapacity < 30 ? 'Low'
+    : 'Moderate'
 
-  // ── Delta display helpers ──────────────────
-  // loadDelta is null until the user completes their first update check-in.
-  // Only rendered once a delta exists.
-  const hasDelta       = loadDelta !== null && loadDelta !== undefined
-  const deltaImproved  = hasDelta && loadDelta < 0
-  const deltaWorsened  = hasDelta && loadDelta > 0
-  const deltaStable    = hasDelta && loadDelta === 0
+  const sensoryLabel = sensoryRaw === null ? '—'
+    : sensoryRaw > 60 ? 'High'
+    : sensoryRaw < 40 ? 'Low'
+    : 'Moderate'
+
+  // Delta display
+  const hasDelta      = loadDelta !== null && loadDelta !== undefined
+  const deltaImproved = hasDelta && loadDelta < 0
+  const deltaWorsened = hasDelta && loadDelta > 0
+  const deltaStable   = hasDelta && loadDelta === 0
 
   return (
     <div className="min-h-screen bg-[#1b270e] font-sans selection:bg-[#b5a642] selection:text-[#1b270e]">
@@ -98,7 +101,7 @@ export default function DashboardUI({
       <HowItWorksModal isOpen={isGuideOpen} onClose={() => setIsGuideOpen(false)} />
 
       <div className="md:ml-64 min-h-screen p-6 md:p-12">
-        
+
         {/* HEADER */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
@@ -114,93 +117,139 @@ export default function DashboardUI({
               {greeting}, <span className="text-[#c9ccbb] font-normal">{displayName}</span>.
             </p>
           </div>
-          <div className="flex gap-4">
-            <Link href="/assessments/report" className="flex items-center gap-2 px-6 py-3 glass-panel hover:bg-[#c9ccbb]/10 text-[#c9ccbb] rounded-lg text-sm font-medium transition-all">
-              <FileText size={16} className="text-[#b5a642]" />
-              View Detailed Report
-            </Link>
-          </div>
+          {hasAssessment && (
+            <div className="flex gap-4">
+              <Link
+                href="/assessments/report"
+                className="flex items-center gap-2 px-6 py-3 glass-panel hover:bg-[#c9ccbb]/10 text-[#c9ccbb] rounded-lg text-sm font-medium transition-all"
+              >
+                <FileText size={16} className="text-[#b5a642]" />
+                View Detailed Report
+              </Link>
+            </div>
+          )}
         </div>
 
-        {/* ── UPDATE NUDGE BANNER ──────────────────────────────────────────
-            Renders only when nudge.show is true (≥14 days since baseline).
-            Dismissible per session. Invisible to new users until day 14.
+        {/* ── EMPTY STATE BANNER ──────────────────────────────────────────
+            Shown when user is authenticated but has no assessment data.
+            Replaces the nudge banner — both cannot show at the same time.
         ────────────────────────────────────────────────────────────────── */}
-        {nudge && <UpdateNudgeBanner nudge={nudge} />}
+        {!hasAssessment && <EmptyStateBanner />}
+
+        {/* ── UPDATE NUDGE BANNER ─────────────────────────────────────────
+            Only shown to users who have completed their baseline and are
+            due for a check-in. Never shown alongside EmptyStateBanner.
+        ────────────────────────────────────────────────────────────────── */}
+        {hasAssessment && nudge && <UpdateNudgeBanner nudge={nudge} />}
 
         {/* ROW 1: CORE METRICS */}
         <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 -mx-6 px-6 md:grid md:grid-cols-2 lg:grid-cols-4 md:overflow-visible md:pb-0 md:mx-0 md:px-0 mb-8 scrollbar-hide">
-          
-          {/* ── NeuroLoad card — now shows delta when available ── */}
+
+          {/* NeuroLoad */}
           <div className="snap-center shrink-0 w-[85vw] md:w-auto glass-panel p-6 rounded-3xl border border-[#c9ccbb]/10 flex flex-col justify-between min-h-[180px] relative overflow-hidden">
             <div className="flex justify-between items-start z-10 relative">
               <h3 className="text-[#c9ccbb] font-serif text-xl">NeuroLoad</h3>
               <Brain className="text-[#b5a642]" size={20} />
             </div>
             <div className="z-10 relative">
-              <div className="text-5xl font-serif text-[#c9ccbb] mb-1">{totalLoad}</div>
-              <div className="text-xs text-[#c9ccbb]/60 uppercase tracking-widest">Cumulative Strain</div>
-
-              {/* Delta callout — only visible after first check-in */}
-              {hasDelta && (
-                <div className={`
-                  flex items-center gap-1.5 mt-2 text-[10px] font-bold uppercase tracking-widest
-                  ${deltaImproved ? 'text-emerald-400' : deltaWorsened ? 'text-orange-400' : 'text-[#c9ccbb]/30'}
-                `}>
-                  {deltaImproved && <TrendingDown size={11} />}
-                  {deltaWorsened && <TrendingUp   size={11} />}
-                  {deltaStable   && <Minus        size={11} />}
-                  {deltaImproved && `↓ ${Math.abs(loadDelta)} pts since baseline`}
-                  {deltaWorsened && `↑ ${Math.abs(loadDelta)} pts since baseline`}
-                  {deltaStable   && 'Stable since baseline'}
-                </div>
+              {hasAssessment ? (
+                <>
+                  <div className="text-5xl font-serif text-[#c9ccbb] mb-1">{totalLoad}</div>
+                  <div className="text-xs text-[#c9ccbb]/60 uppercase tracking-widest">Cumulative Strain</div>
+                  {hasDelta && (
+                    <div className={`flex items-center gap-1.5 mt-2 text-[10px] font-bold uppercase tracking-widest
+                      ${deltaImproved ? 'text-emerald-400' : deltaWorsened ? 'text-orange-400' : 'text-[#c9ccbb]/30'}`}>
+                      {deltaImproved && <TrendingDown size={11} />}
+                      {deltaWorsened && <TrendingUp size={11} />}
+                      {deltaStable   && <Minus size={11} />}
+                      {deltaImproved && `↓ ${Math.abs(loadDelta)} pts since baseline`}
+                      {deltaWorsened && `↑ ${Math.abs(loadDelta)} pts since baseline`}
+                      {deltaStable   && 'Stable since baseline'}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div className="text-5xl font-serif text-[#c9ccbb]/20 mb-1">—</div>
+                  <div className="text-xs text-[#c9ccbb]/30 uppercase tracking-widest">Assessment needed</div>
+                </>
               )}
             </div>
             <div className="absolute bottom-0 right-0 w-32 h-32 bg-[#b5a642]/10 rounded-full blur-2xl pointer-events-none" />
           </div>
 
+          {/* Recovery Capacity */}
           <div className="snap-center shrink-0 w-[85vw] md:w-auto glass-panel p-6 rounded-3xl border border-[#c9ccbb]/10 flex flex-col justify-between min-h-[180px] relative overflow-hidden">
             <div className="flex justify-between items-start z-10 relative">
               <h3 className="text-[#c9ccbb] font-serif text-xl">Recovery Capacity</h3>
               <Activity className="text-[#b5a642]" size={20} />
             </div>
             <div className="z-10 relative">
-              <div className="text-5xl font-serif text-[#c9ccbb] mb-1">{recoveryCapacity}%</div>
-              <div className="text-xs text-[#c9ccbb]/60 uppercase tracking-widest">{recoveryLabel} Potential</div>
+              {hasAssessment ? (
+                <>
+                  <div className="text-5xl font-serif text-[#c9ccbb] mb-1">{recoveryCapacity}%</div>
+                  <div className="text-xs text-[#c9ccbb]/60 uppercase tracking-widest">{recoveryLabel} Potential</div>
+                </>
+              ) : (
+                <>
+                  <div className="text-5xl font-serif text-[#c9ccbb]/20 mb-1">—</div>
+                  <div className="text-xs text-[#c9ccbb]/30 uppercase tracking-widest">Assessment needed</div>
+                </>
+              )}
             </div>
             <div className="absolute bottom-0 right-0 w-32 h-32 bg-[#b5a642]/10 rounded-full blur-2xl pointer-events-none" />
           </div>
 
+          {/* Sensory Load */}
           <div className="snap-center shrink-0 w-[85vw] md:w-auto glass-panel p-6 rounded-3xl border border-[#c9ccbb]/10 flex flex-col justify-between min-h-[180px] relative overflow-hidden">
             <div className="flex justify-between items-start z-10 relative">
               <h3 className="text-[#c9ccbb] font-serif text-xl">Sensory Load</h3>
               <AlertTriangle className="text-[#b5a642]" size={20} />
             </div>
             <div className="z-10 relative">
-              <div className="text-5xl font-serif text-[#c9ccbb] mb-1 capitalize">{sensoryLabel}</div>
-              <div className="text-xs text-[#c9ccbb]/60 uppercase tracking-widest">Current Stress Load</div>
+              {hasAssessment ? (
+                <>
+                  <div className="text-5xl font-serif text-[#c9ccbb] mb-1 capitalize">{sensoryLabel}</div>
+                  <div className="text-xs text-[#c9ccbb]/60 uppercase tracking-widest">Current Stress Load</div>
+                </>
+              ) : (
+                <>
+                  <div className="text-5xl font-serif text-[#c9ccbb]/20 mb-1">—</div>
+                  <div className="text-xs text-[#c9ccbb]/30 uppercase tracking-widest">Assessment needed</div>
+                </>
+              )}
             </div>
             <div className="absolute bottom-0 right-0 w-32 h-32 bg-[#b5a642]/10 rounded-full blur-2xl pointer-events-none" />
           </div>
 
-          {/* ── Sensory Profile card — Update Baseline now routes to /assessment/update ── */}
+          {/* Sensory Profile */}
           <div className="snap-center shrink-0 w-[85vw] md:w-auto glass-panel p-6 rounded-3xl border border-[#c9ccbb]/10 flex flex-col justify-between min-h-[180px] relative overflow-hidden group">
             <div className="flex justify-between items-start z-10 relative">
               <h3 className="text-[#c9ccbb] font-serif text-xl">Sensory Profile</h3>
               <Fingerprint className="text-[#b5a642]" size={20} />
             </div>
             <div className="z-10 relative">
-              <div className="text-4xl font-serif text-[#c9ccbb] mb-2">The {identityLabel}</div>
-              {/* 
-                CHANGED: was /assessments/step0 (full reassessment)
-                NOW:      /assessment/update (14-question check-in)
-              */}
-              <Link
-                href="/assessment/update"
-                className="inline-flex items-center gap-2 text-[10px] text-[#b5a642] uppercase tracking-widest hover:text-[#b5a642]/80 transition-colors border border-[#b5a642]/20 px-3 py-1.5 rounded-full hover:bg-[#b5a642]/10"
-              >
-                <RefreshCw size={10} /> Update Baseline
-              </Link>
+              {hasAssessment ? (
+                <>
+                  <div className="text-4xl font-serif text-[#c9ccbb] mb-2">The {identityLabel}</div>
+                  <Link
+                    href="/assessment/update"
+                    className="inline-flex items-center gap-2 text-[10px] text-[#b5a642] uppercase tracking-widest hover:text-[#b5a642]/80 transition-colors border border-[#b5a642]/20 px-3 py-1.5 rounded-full hover:bg-[#b5a642]/10"
+                  >
+                    <RefreshCw size={10} /> Update Baseline
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <div className="text-4xl font-serif text-[#c9ccbb]/20 mb-2">—</div>
+                  <Link
+                    href="/assessment"
+                    className="inline-flex items-center gap-2 text-[10px] text-[#b5a642] uppercase tracking-widest hover:text-[#b5a642]/80 transition-colors border border-[#b5a642]/20 px-3 py-1.5 rounded-full hover:bg-[#b5a642]/10"
+                  >
+                    Begin Assessment
+                  </Link>
+                </>
+              )}
             </div>
             <div className="absolute bottom-0 right-0 w-32 h-32 bg-[#b5a642]/10 rounded-full blur-2xl pointer-events-none" />
           </div>
@@ -216,34 +265,52 @@ export default function DashboardUI({
               </div>
               {recentLogs && recentLogs.length > 0 && (
                 <div className="text-right">
-                  <div className="text-2xl font-serif text-[#c9ccbb]">{recentLogs[0].mood_score}<span className="text-sm text-[#c9ccbb]/40">/5</span></div>
+                  <div className="text-2xl font-serif text-[#c9ccbb]">
+                    {recentLogs[0].mood_score}<span className="text-sm text-[#c9ccbb]/40">/5</span>
+                  </div>
                   <div className="text-[10px] text-[#c9ccbb]/80 uppercase tracking-widest">Latest Log</div>
                 </div>
               )}
             </div>
-            <div className="absolute bottom-0 left-0 right-0 h-48 opacity-80 pointer-events-none">
-              <DashboardPulse logs={recentLogs || []} />
-            </div>
+            {recentLogs && recentLogs.length > 0 ? (
+              <div className="absolute bottom-0 left-0 right-0 h-48 opacity-80 pointer-events-none">
+                <DashboardPulse logs={recentLogs} />
+              </div>
+            ) : (
+              <div className="flex-1 flex items-center justify-center pb-6">
+                <p className="text-xs text-[#c9ccbb]/20 uppercase tracking-widest">
+                  Daily logs will appear here
+                </p>
+              </div>
+            )}
           </div>
 
-          {/* ── Current Baseline card — shows system state transition when available ── */}
+          {/* Current Baseline card */}
           <div className="glass-panel p-6 rounded-3xl flex flex-col justify-center items-center text-center relative overflow-hidden border-l-4 border-[#b5a642] min-h-[250px]">
             <div className="relative z-10">
-              <div className="text-[10px] text-[#b5a642] font-bold uppercase tracking-widest mb-2">Current Baseline</div>
-              <div className="text-6xl font-serif text-[#c9ccbb] mb-2">{totalLoad}</div>
-              <div className="text-lg text-[#c9ccbb]/80 mb-4">{systemState}</div>
-              <div className="text-[10px] text-[#c9ccbb]/80 uppercase tracking-widest">NeuroLoad Score™</div>
-
-              {/* System state transition — only visible after first check-in */}
-              {hasDelta && (
-                <div className={`
-                  mt-4 text-[10px] font-bold uppercase tracking-widest
-                  ${deltaImproved ? 'text-emerald-400' : deltaWorsened ? 'text-orange-400' : 'text-[#c9ccbb]/30'}
-                `}>
-                  {deltaImproved && `↓ ${Math.abs(loadDelta)} pts from original`}
-                  {deltaWorsened && `↑ ${Math.abs(loadDelta)} pts from original`}
-                  {deltaStable   && 'No change from original'}
-                </div>
+              <div className="text-[10px] text-[#b5a642] font-bold uppercase tracking-widest mb-2">
+                Current Baseline
+              </div>
+              {hasAssessment ? (
+                <>
+                  <div className="text-6xl font-serif text-[#c9ccbb] mb-2">{totalLoad}</div>
+                  <div className="text-lg text-[#c9ccbb]/80 mb-4">{systemState}</div>
+                  <div className="text-[10px] text-[#c9ccbb]/80 uppercase tracking-widest">NeuroLoad Score™</div>
+                  {hasDelta && (
+                    <div className={`mt-4 text-[10px] font-bold uppercase tracking-widest
+                      ${deltaImproved ? 'text-emerald-400' : deltaWorsened ? 'text-orange-400' : 'text-[#c9ccbb]/30'}`}>
+                      {deltaImproved && `↓ ${Math.abs(loadDelta)} pts from original`}
+                      {deltaWorsened && `↑ ${Math.abs(loadDelta)} pts from original`}
+                      {deltaStable   && 'No change from original'}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div className="text-6xl font-serif text-[#c9ccbb]/20 mb-2">—</div>
+                  <div className="text-sm text-[#c9ccbb]/30 mb-4">Not yet established</div>
+                  <div className="text-[10px] text-[#c9ccbb]/30 uppercase tracking-widest">NeuroLoad Score™</div>
+                </>
               )}
             </div>
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-[#b5a642]/10 rounded-full blur-3xl" />
@@ -259,18 +326,29 @@ export default function DashboardUI({
                 <p className="text-sm text-[#c9ccbb]/80">Circadian • Autonomic • Predictive • Sensory • Recovery</p>
               </div>
             </div>
-            <div className="h-[300px] w-full">
-              <SensoryRadar data={radarData || []} />
-            </div>
+            {hasAssessment && radarData.length > 0 ? (
+              <div className="h-[300px] w-full">
+                <SensoryRadar data={radarData} />
+              </div>
+            ) : (
+              <div className="h-[300px] w-full flex items-center justify-center">
+                <div className="text-center">
+                  <div className="text-[#c9ccbb]/10 text-6xl font-serif mb-3">◎</div>
+                  <p className="text-xs text-[#c9ccbb]/20 uppercase tracking-widest">
+                    Complete your assessment to see your radar
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="h-full min-h-[400px]">
-            <NeuroFlashcard 
+            <NeuroFlashcard
               isPremium={hasAccess}
               scores={{
                 light:    circadianLoad > 15 ? 40 : 80,
-                visual:   100 - sensoryRaw,
-                acoustic: 100 - autonomicRaw
+                visual:   sensoryRaw !== null ? 100 - sensoryRaw : 50,
+                acoustic: autonomicRaw !== null ? 100 - autonomicRaw : 50
               }}
             />
           </div>
@@ -278,7 +356,7 @@ export default function DashboardUI({
 
         {/* ROW 4: PROTOCOLS */}
         <div className="mb-8">
-          <RitualsInterface neuroLoadScore={totalLoad} profile={profile} />
+          <RitualsInterface neuroLoadScore={totalLoad ?? 0} profile={profile} />
         </div>
 
         {/* ROW 5: TOOLKIT */}
@@ -286,7 +364,7 @@ export default function DashboardUI({
           <h3 className="text-[#c9ccbb]/80 text-xs font-bold uppercase tracking-widest mb-6">Toolkit</h3>
           <SensoryTools />
         </div>
-      
+
       </div>
     </div>
   )
