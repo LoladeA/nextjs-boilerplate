@@ -213,11 +213,11 @@ export async function POST(request: Request) {
     const upsertRows = anchorResponses.map(r => ({
       user_id:      user.id,
       question_key: r.question_key,
-      answer_value: String(r.answer.response)
+      answer:       { response: r.answer.response }  // JSONB format matching user_responses schema
     }))
 
     const { error: upsertError } = await supabase
-      .from('current_user_responses')
+      .from('user_responses')
       .upsert(upsertRows, { onConflict: 'user_id, question_key' })
 
     if (upsertError) {
