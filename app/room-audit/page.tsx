@@ -53,9 +53,9 @@ function getScoreBand(score: number): 'high' | 'mid' | 'low' {
 }
 
 const BAND_COLORS = {
-  high: 'from-[#7ec89a]/60 to-[#7ec89a]',
-  mid:  'from-[#b5a642]/60 to-[#b5a642]',
-  low:  'from-[#e87c7c]/60 to-[#e87c7c]'
+  high: 'from-[#7ec89a]/80 to-[#7ec89a]',
+  mid:  'from-[#b5a642]/80 to-[#b5a642]',
+  low:  'from-[#e87c7c]/80 to-[#e87c7c]'
 }
 
 const rooms = ['Living Room', 'Bedroom', 'Home Office', 'Kitchen', 'Entryway']
@@ -210,7 +210,7 @@ export default function RoomAudit() {
       <h2 className="text-2xl font-serif text-[#c9ccbb] mb-4 max-w-sm leading-snug">
         See exactly how your space is impacting your nervous system
       </h2>
-      <p className="text-[#c9ccbb]/50 mb-8 max-w-sm leading-relaxed text-sm">
+      <p className="text-[#c9ccbb]/80 mb-8 max-w-sm leading-relaxed text-sm">
         The Room Audit scans your space across six neural domains: Amygdala Regulation, Vagal Coherence, Circadian Alignment, and more; and returns structural directives your body will respond to. This feature is part of the Blueprint programme.
       </p>
       <Link
@@ -244,7 +244,7 @@ export default function RoomAudit() {
                   <HelpCircle size={22} />
                 </button>
               </h1>
-              <p className="text-[#c9ccbb]/50 text-sm">NeuroDesign Analysis Engine: Six Neural System Evaluation</p>
+              <p className="text-[#c9ccbb]/80 text-sm">NeuroDesign Analysis Engine: Six Neural System Evaluation</p>
             </div>
           </div>
 
@@ -272,7 +272,7 @@ export default function RoomAudit() {
                       className={`px-3 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${
                         selectedRoom === room
                           ? 'bg-[#b5a642] text-[#1b270e]'
-                          : 'text-[#c9ccbb]/40 hover:text-[#c9ccbb]'
+                          : 'text-[#c9ccbb]/80 hover:text-[#c9ccbb]'
                       }`}
                     >
                       {room}
@@ -303,7 +303,7 @@ export default function RoomAudit() {
                     alt="Room preview"
                   />
                 ) : (
-                  <div className="flex flex-col items-center gap-3 text-[#c9ccbb]/40">
+                  <div className="flex flex-col items-center gap-3 text-[#c9ccbb]/80">
                     <Camera size={28} />
                     <span className="text-xs font-bold uppercase tracking-widest">Tap to Upload Room Photo</span>
                   </div>
@@ -312,7 +312,7 @@ export default function RoomAudit() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="flex items-center gap-1.5 text-[#c9ccbb]/60 text-[10px] font-bold uppercase tracking-widest mb-2">
+                  <label className="flex items-center gap-1.5 text-[#c9ccbb]/80 text-[10px] font-bold uppercase tracking-widest mb-2">
                     <Zap size={11} className="text-[#b5a642]" /> Light Level (Optional)
                   </label>
                   <div className="relative">
@@ -328,7 +328,7 @@ export default function RoomAudit() {
                   </div>
                 </div>
                 <div>
-                  <label className="flex items-center gap-1.5 text-[#c9ccbb]/60 text-[10px] font-bold uppercase tracking-widest mb-2">
+                  <label className="flex items-center gap-1.5 text-[#c9ccbb]/80 text-[10px] font-bold uppercase tracking-widest mb-2">
                     <Volume2 size={11} className="text-[#b5a642]" /> Surface Type (Optional)
                   </label>
                   <div className="grid grid-cols-3 gap-1.5">
@@ -341,14 +341,14 @@ export default function RoomAudit() {
                         className={`py-2.5 rounded-xl border text-[10px] font-bold uppercase tracking-widest transition-all capitalize ${
                           acousticContext === type
                             ? 'border-[#b5a642]/60 bg-[#b5a642]/10 text-[#b5a642]'
-                            : 'border-[#c9ccbb]/10 text-[#c9ccbb]/40 hover:border-[#c9ccbb]/25'
+                            : 'border-[#c9ccbb]/10 text-[#c9ccbb]/80 hover:border-[#c9ccbb]/25'
                         }`}
                       >
                         {type}
                       </button>
                     ))}
                   </div>
-                  <p className="text-[#c9ccbb]/30 text-[9px] mt-1.5 leading-relaxed">
+                  <p className="text-[#c9ccbb]/80 text-[9px] mt-1.5 leading-relaxed">
                     Dominant surface material. Helps calibrate acoustic safety when surfaces are not visible.
                   </p>
                 </div>
@@ -402,23 +402,23 @@ export default function RoomAudit() {
                     </span>
                     <div className="text-7xl font-serif text-[#c9ccbb] drop-shadow-md">
                       {result.alignment_index}
-                      <span className="text-2xl text-[#c9ccbb]/30">/100</span>
+                      <span className="text-2xl text-[#c9ccbb]/80">/100</span>
                     </div>
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-[#b5a642]/8 rounded-full blur-3xl pointer-events-none" />
                   </div>
 
                   <div className="grid grid-cols-3 gap-3">
                     <div className="p-4 bg-[#000]/30 rounded-xl border border-[#c9ccbb]/8 text-center">
-                      <span className="text-[#c9ccbb]/40 text-[9px] font-bold uppercase tracking-widest block mb-1">Visual Entropy</span>
+                      <span className="text-[#c9ccbb]/80 text-[9px] font-bold uppercase tracking-widest block mb-1">Visual Entropy</span>
                       <span className="text-2xl font-serif text-[#c9ccbb]">{result.entropy_score}</span>
-                      <span className="text-[#c9ccbb]/30 text-[10px]"> /10</span>
+                      <span className="text-[#c9ccbb]/80 text-[10px]"> /10</span>
                     </div>
                     <div className="p-4 bg-[#000]/30 rounded-xl border border-[#c9ccbb]/8 text-center">
-                      <span className="text-[#c9ccbb]/40 text-[9px] font-bold uppercase tracking-widest block mb-1">Colour Temp</span>
+                      <span className="text-[#c9ccbb]/80 text-[9px] font-bold uppercase tracking-widest block mb-1">Colour Temp</span>
                       <span className="text-lg font-serif text-[#c9ccbb]">{result.lighting_kelvin}K</span>
                     </div>
                     <div className="p-4 bg-[#000]/30 rounded-xl border border-[#c9ccbb]/8 text-center">
-                      <span className="text-[#c9ccbb]/40 text-[9px] font-bold uppercase tracking-widest block mb-1">Biophilic</span>
+                      <span className="text-[#c9ccbb]/80 text-[9px] font-bold uppercase tracking-widest block mb-1">Biophilic</span>
                       <span className="text-lg font-serif text-[#c9ccbb]">{result.biophilic_rating}</span>
                     </div>
                   </div>
@@ -435,7 +435,7 @@ export default function RoomAudit() {
                           <div className="flex justify-between items-end mb-1.5">
                             <div>
                               <span className="text-[#c9ccbb]/90 text-xs font-bold block">{meta?.label || key}</span>
-                              <span className="text-[#c9ccbb]/40 text-[10px]">{meta?.description}</span>
+                              <span className="text-[#c9ccbb]/70 text-[10px]">{meta?.description}</span>
                             </div>
                             <span className="text-[#b5a642] text-xs font-bold ml-4 flex-shrink-0">{val}/100</span>
                           </div>
@@ -493,8 +493,8 @@ export default function RoomAudit() {
               {status === 'idle' && (
                 <div className="h-full border-2 border-dashed border-[#c9ccbb]/5 rounded-3xl flex flex-col items-center justify-center p-12 text-center opacity-50 bg-[#000]/10">
                   <ScanEye size={40} className="text-[#c9ccbb]/20 mb-4" />
-                  <p className="text-[#c9ccbb]/40 text-sm uppercase tracking-widest">Awaiting Scan Input</p>
-                  <p className="text-[#c9ccbb]/20 text-xs mt-2">Upload a photo of your priority room to begin.</p>
+                  <p className="text-[#c9ccbb]/80 text-sm uppercase tracking-widest">Awaiting Scan Input</p>
+                  <p className="text-[#c9ccbb]/80 text-xs mt-2">Upload a photo of your priority room to begin.</p>
                 </div>
               )}
             </div>
@@ -514,12 +514,12 @@ export default function RoomAudit() {
             >
               <button
                 onClick={() => setIsManualOpen(false)}
-                className="absolute top-6 right-6 text-[#c9ccbb]/50 hover:text-[#b5a642] transition-colors bg-[#000]/20 p-2 rounded-full z-10"
+                className="absolute top-6 right-6 text-[#c9ccbb]/80 hover:text-[#b5a642] transition-colors bg-[#000]/20 p-2 rounded-full z-10"
               >
                 <X size={18} />
               </button>
               <h2 className="text-3xl font-serif text-[#c9ccbb] mb-2">Room Audit Manual</h2>
-              <p className="text-[#c9ccbb]/40 text-xs uppercase tracking-widest mb-8 border-b border-[#c9ccbb]/10 pb-6">
+              <p className="text-[#c9ccbb]/80 text-xs uppercase tracking-widest mb-8 border-b border-[#c9ccbb]/10 pb-6">
                 NeuroDesign Analysis Engine
               </p>
               <div className="space-y-8 text-[#c9ccbb]/80 text-sm leading-relaxed">
@@ -535,7 +535,7 @@ export default function RoomAudit() {
                         <div className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0" style={{ backgroundColor: meta.color }} />
                         <div>
                           <span className="text-[#c9ccbb] font-bold text-xs block mb-0.5">{meta.label}</span>
-                          <span className="text-[#c9ccbb]/60 text-xs">{meta.description}</span>
+                          <span className="text-[#c9ccbb]/80 text-xs">{meta.description}</span>
                         </div>
                       </div>
                     ))}
