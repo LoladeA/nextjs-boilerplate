@@ -668,7 +668,7 @@ export default function Progress() {
                 Your Daily Logs
                 <button 
                   onClick={() => setIsManualOpen(true)} 
-                  className="text-[#b5a642]/60 hover:text-[#b5a642] transition-colors p-2 rounded-full hover:bg-[#b5a642]/10"
+                  className="text-[#b5a642]/80 hover:text-[#b5a642] transition-colors p-2 rounded-full hover:bg-[#b5a642]/10"
                 >
                   <HelpCircle size={24} />
                 </button>
@@ -686,7 +686,7 @@ export default function Progress() {
                     <button 
                         onClick={() => setActiveTab('morning')}
                         className={`flex items-center gap-2 px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${
-                            activeTab === 'morning' ? 'bg-[#b5a642] text-[#1b270e]' : 'text-[#c9ccbb]/70 hover:text-[#c9ccbb]'
+                            activeTab === 'morning' ? 'bg-[#b5a642] text-[#1b270e]' : 'text-[#c9ccbb]/80 hover:text-[#c9ccbb]'
                         }`}
                     >
                         <Sunrise size={14} /> Morning
@@ -694,7 +694,7 @@ export default function Progress() {
                     <button 
                         onClick={() => setActiveTab('evening')}
                         className={`flex items-center gap-2 px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${
-                            activeTab === 'evening' ? 'bg-[#b5a642] text-[#1b270e]' : 'text-[#c9ccbb]/70 hover:text-[#c9ccbb]'
+                            activeTab === 'evening' ? 'bg-[#b5a642] text-[#1b270e]' : 'text-[#c9ccbb]/80 hover:text-[#c9ccbb]'
                         }`}
                     >
                         <Moon size={14} /> Evening
@@ -711,7 +711,7 @@ export default function Progress() {
                      {activeTab === 'morning' ? 'How You Woke Up' : 'How You Feel Right Now'}
                  </h2>
                  {activeTab === 'evening' && (
-                   <p className="text-[#c9ccbb]/40 text-[10px] uppercase tracking-widest font-bold mt-0.5">
+                   <p className="text-[#c9ccbb]/80 text-[10px] uppercase tracking-widest font-bold mt-0.5">
                      What is your nervous system still carrying?
                    </p>
                  )}
@@ -726,7 +726,7 @@ export default function Progress() {
                   className={`p-4 rounded-xl border transition-all text-left flex flex-col justify-between h-28 group relative overflow-hidden ${
                     currentMood === mood.val 
                       ? `${mood.color} shadow-lg scale-105` 
-                      : 'bg-[#000]/20 border-[#c9ccbb]/10 text-[#c9ccbb]/40 hover:bg-[#c9ccbb]/5'
+                      : 'bg-[#000]/20 border-[#c9ccbb]/10 text-[#c9ccbb]/80 hover:bg-[#c9ccbb]/5'
                   }`}
                 >
                   <span className="text-xl font-serif font-bold relative z-10">{mood.val}</span>
@@ -754,7 +754,7 @@ export default function Progress() {
                                 </label>
                                 <span className="text-[#b5a642] font-mono text-xs">{tensionScore}/10</span>
                             </div>
-                            <p className="text-[#c9ccbb]/40 text-[10px] mb-3">Jaw/Shoulder tightness upon waking.</p>
+                            <p className="text-[#c9ccbb]/80 text-[10px] mb-3">Jaw/Shoulder tightness upon waking.</p>
                             <input 
                                 type="range" min="0" max="10" step="1"
                                 value={tensionScore}
@@ -774,7 +774,7 @@ export default function Progress() {
                                     <button onClick={() => setWakeScore(wakeScore + 1)} className="text-[#c9ccbb] hover:text-[#b5a642]">+</button>
                                 </div>
                             </div>
-                            <p className="text-[#c9ccbb]/40 text-[10px] mb-3">How many times you woke up during the night.</p>
+                            <p className="text-[#c9ccbb]/80 text-[10px] mb-3">How many times you woke up during the night.</p>
                         </div>
                     </div>
 
@@ -829,7 +829,7 @@ export default function Progress() {
                                                 </div>
                                                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 z-10">
                                                   <Lock size={14} className="text-[#b5a642]" />
-                                                  <span className="text-[9px] font-bold text-[#c9ccbb]/70 uppercase tracking-widest text-center">Understand the why from the lens of NeuroPsychology</span>
+                                                  <span className="text-[9px] font-bold text-[#c9ccbb]/80 uppercase tracking-widest text-center">Understand the why from the lens of NeuroPsychology</span>
                                                   <Link href="/upgrade">
                                                     <button className="px-5 py-1.5 bg-[#b5a642] text-[#1b270e] text-[9px] font-bold uppercase tracking-widest rounded-full hover:bg-white transition-all">
                                                       Unlock Now
@@ -860,7 +860,7 @@ export default function Progress() {
                                 </label>
                                 <span className="text-[#b5a642] font-mono text-xs">{focusScore}h</span>
                             </div>
-                            <p className="text-[#c9ccbb]/40 text-[10px] mb-3">Hours where you were focused and uninterrupted.</p>
+                            <p className="text-[#c9ccbb]/80 text-[10px] mb-3">Hours where you were focused and uninterrupted.</p>
                             <input 
                                 type="range" min="0" max="12" step="1"
                                 value={focusScore}
@@ -921,7 +921,7 @@ export default function Progress() {
                                                 </div>
                                                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 z-10">
                                                   <Lock size={14} className="text-[#b5a642]" />
-                                                  <span className="text-[9px] font-bold text-[#c9ccbb]/70 uppercase tracking-widest text-center">Understand the why from the lens of NeuroPsychology</span>
+                                                  <span className="text-[9px] font-bold text-[#c9ccbb]/80 uppercase tracking-widest text-center">Understand the why from the lens of NeuroPsychology</span>
                                                   <Link href="/upgrade">
                                                     <button className="px-5 py-1.5 bg-[#b5a642] text-[#1b270e] text-[9px] font-bold uppercase tracking-widest rounded-full hover:bg-white transition-all">
                                                       Unlock Now
@@ -948,7 +948,7 @@ export default function Progress() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2 text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest">
+                            <div className="flex items-center gap-2 text-[#c9ccbb]/80 text-xs font-bold uppercase tracking-widest">
                                 <Sun size={14} className="text-orange-400" /> Morning Light Level
                             </div>
                             <button 
@@ -970,7 +970,7 @@ export default function Progress() {
                     </div>
                     <div>
                         <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2 text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest">
+                            <div className="flex items-center gap-2 text-[#c9ccbb]/80 text-xs font-bold uppercase tracking-widest">
                                 <Volume2 size={14} className="text-red-400" /> Daytime Sound Level
                             </div>
                             <button 
@@ -1022,17 +1022,17 @@ export default function Progress() {
                     </div>
                     <div>
                       <span className={`text-[10px] font-bold uppercase tracking-widest block mb-1 transition-colors ${
-                        eveningTags.includes('low_horizon') ? 'text-[#b5a642]' : 'text-[#c9ccbb]/50'
+                        eveningTags.includes('low_horizon') ? 'text-[#b5a642]' : 'text-[#c9ccbb]/80'
                       }`}>
                         Evening Wind-Down
                       </span>
                       <p className={`text-sm font-serif transition-colors ${
-                        eveningTags.includes('low_horizon') ? 'text-[#c9ccbb]' : 'text-[#c9ccbb]/70'
+                        eveningTags.includes('low_horizon') ? 'text-[#c9ccbb]' : 'text-[#c9ccbb]/80'
                       }`}>
                         Have you adjusted the brightness and temperature of your lighting for the evening?
                       </p>
                       <p className={`text-[10px] mt-1 leading-relaxed transition-colors ${
-                        eveningTags.includes('low_horizon') ? 'text-[#c9ccbb]/60' : 'text-[#c9ccbb]/30'
+                        eveningTags.includes('low_horizon') ? 'text-[#c9ccbb]/80' : 'text-[#c9ccbb]/60'
                       }`}>
                         Turn off the overhead lights. Switch to warm, low-level sources that are below 100 lux.
                       </p>
@@ -1076,7 +1076,7 @@ export default function Progress() {
                 value={currentNote}
                 onChange={(e) => setCurrentNote(e.target.value)}
                 placeholder={activeTab === 'morning' ? "Anything worth noting about your morning?" : "Anything worth noting about your evening?"}
-                className="w-full h-24 bg-[#000]/20 border border-[#c9ccbb]/10 rounded-xl p-4 text-[#c9ccbb] text-sm placeholder:text-[#c9ccbb]/50 focus:outline-none focus:border-[#b5a642]/50 resize-none font-sans"
+                className="w-full h-24 bg-[#000]/20 border border-[#c9ccbb]/10 rounded-xl p-4 text-[#c9ccbb] text-sm placeholder:text-[#c9ccbb]/80 focus:outline-none focus:border-[#b5a642]/50 resize-none font-sans"
               />
             </div>
 
@@ -1100,7 +1100,7 @@ export default function Progress() {
                     <span className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest block">
                       Sleep Conditions
                     </span>
-                    <span className="text-[#c9ccbb]/40 text-[10px]">
+                    <span className="text-[#c9ccbb]/80 text-[10px]">
                       These contribute to your overnight recovery score, which is your most weighted domain.
                     </span>
                   </div>
@@ -1125,8 +1125,8 @@ export default function Progress() {
                     className="w-full accent-[#b5a642] h-1 bg-[#000]/50 rounded-lg appearance-none cursor-pointer mb-1"
                   />
                   <div className="flex justify-between">
-                    <span className="text-[#c9ccbb]/30 text-[9px]">Tired but Wired</span>
-                    <span className="text-[#c9ccbb]/30 text-[9px]">Ready to Sleep</span>
+                    <span className="text-[#c9ccbb]/80 text-[9px]">Tired but Wired</span>
+                    <span className="text-[#c9ccbb]/80 text-[9px]">Ready to Sleep</span>
                   </div>
                 </div>
 
@@ -1137,7 +1137,7 @@ export default function Progress() {
                   <div className="p-5 bg-[#000]/20 rounded-2xl border border-[#c9ccbb]/5 relative overflow-hidden group hover:border-[#b5a642]/20 transition-colors">
                     <div className="absolute top-0 right-0 w-16 h-16 bg-[#b5a642]/5 rounded-full blur-2xl group-hover:bg-[#b5a642]/10 transition-all" />
                     <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2 text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest">
+                      <div className="flex items-center gap-2 text-[#c9ccbb]/80 text-xs font-bold uppercase tracking-widest">
                         <Volume2 size={13} className="text-blue-400" /> Bedroom Sound
                       </div>
                       <button
@@ -1147,7 +1147,7 @@ export default function Progress() {
                         <Activity size={11} /> Measure
                       </button>
                     </div>
-                    <p className="text-[#c9ccbb]/30 text-[10px] mb-3">Target: below 35 dB for sleep onset.</p>
+                    <p className="text-[#c9ccbb]/80 text-[10px] mb-3">Target: below 35 dB for sleep onset.</p>
                     <input
                       type="number"
                       min="0" max="140"
@@ -1162,7 +1162,7 @@ export default function Progress() {
                   <div className="p-5 bg-[#000]/20 rounded-2xl border border-[#c9ccbb]/5 relative overflow-hidden group hover:border-[#b5a642]/20 transition-colors">
                     <div className="absolute top-0 right-0 w-16 h-16 bg-[#b5a642]/5 rounded-full blur-2xl group-hover:bg-[#b5a642]/10 transition-all" />
                     <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2 text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest">
+                      <div className="flex items-center gap-2 text-[#c9ccbb]/80 text-xs font-bold uppercase tracking-widest">
                         <Moon size={13} className="text-orange-400" /> Bedroom Light
                       </div>
                       <button
@@ -1172,7 +1172,7 @@ export default function Progress() {
                         <Activity size={11} /> Measure
                       </button>
                     </div>
-                    <p className="text-[#c9ccbb]/30 text-[10px] mb-3">Target: below 10 lux for melatonin onset.</p>
+                    <p className="text-[#c9ccbb]/80 text-[10px] mb-3">Target: below 10 lux for melatonin onset.</p>
                     <input
                       type="number"
                       min="0" max="10000"
@@ -1230,7 +1230,7 @@ export default function Progress() {
                    disabled={currentMood === null || status === 'saving'}
                    className={`px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-all flex items-center gap-2 ${
                      currentMood === null 
-                       ? 'bg-[#c9ccbb]/10 text-[#c9ccbb]/50 cursor-not-allowed'
+                       ? 'bg-[#c9ccbb]/10 text-[#c9ccbb]/80 cursor-not-allowed'
                        : 'bg-[#c9ccbb] text-[#1b270e] hover:bg-white' 
                    }`}
                  >
@@ -1255,7 +1255,7 @@ export default function Progress() {
                 {/* Panel header */}
                 <div className="flex items-center gap-2 mb-3 px-1">
                   <Sparkles size={12} className="text-[#b5a642]/60" />
-                  <span className="text-[#b5a642]/60 text-[10px] font-bold uppercase tracking-widest">
+                  <span className="text-[#b5a642]/70 text-[10px] font-bold uppercase tracking-widest">
                     Today's Bio-Spatial Friction
                   </span>
                 </div>
@@ -1272,7 +1272,7 @@ export default function Progress() {
                       {/* subtle ambient glow */}
                       <div className="absolute -top-6 -right-6 w-24 h-24 bg-[#b5a642]/10 rounded-full blur-2xl pointer-events-none" />
                       <div className="relative z-10">
-                        <span className="text-[#b5a642]/60 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 mb-4">
+                        <span className="text-[#b5a642]/80 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 mb-4">
                           <Sunrise size={11} /> Morning · What last night produced
                         </span>
                         <div className="flex items-center gap-5">
@@ -1280,21 +1280,21 @@ export default function Progress() {
                             <span className={`text-2xl font-serif ${getBsfiLabel(morningBsfi.total_score).color}`}>
                               {morningBsfi.total_score}
                             </span>
-                            <span className="text-[9px] text-[#c9ccbb]/40 font-bold uppercase tracking-widest">BSFI</span>
+                            <span className="text-[9px] text-[#c9ccbb]/80 font-bold uppercase tracking-widest">BSFI</span>
                           </div>
                           <div>
                             <h3 className="text-lg font-serif text-[#c9ccbb] mb-1">
                               {getBsfiLabel(morningBsfi.total_score).label}
                             </h3>
                             {morningBsfi.is_internal_driver ? (
-                              <p className="text-[#c9ccbb]/60 text-[10px] leading-relaxed max-w-xs">
+                              <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed max-w-xs">
                                 Internal friction. Your environment readings are stable. The load is coming from inside.
                               </p>
                             ) : (() => {
                               const safeDomain = sanitiseDomain(morningBsfi.dominant_domain)
                               return safeDomain ? (
                                 <div>
-                                  <span className="text-[#c9ccbb]/40 text-[10px] block mb-1 uppercase tracking-widest font-bold">Primary source</span>
+                                  <span className="text-[#c9ccbb]/80 text-[10px] block mb-1 uppercase tracking-widest font-bold">Primary source</span>
                                   <span className="text-white bg-[#000]/30 px-2.5 py-1 rounded text-[10px] font-bold inline-block">
                                     {getDomainDisplay(safeDomain).label}
                                   </span>
@@ -1318,7 +1318,7 @@ export default function Progress() {
                       {/* subtle ambient glow — warmer orange tone for evening */}
                       <div className="absolute -top-6 -right-6 w-24 h-24 bg-[#b5a642]/8 rounded-full blur-2xl pointer-events-none" />
                       <div className="relative z-10">
-                        <span className="text-[#b5a642]/60 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 mb-4">
+                        <span className="text-[#b5a642]/80 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 mb-4">
                           <Moon size={11} /> Evening · What will be processed tonight
                         </span>
                         <div className="flex items-center gap-5">
@@ -1326,21 +1326,21 @@ export default function Progress() {
                             <span className={`text-2xl font-serif ${getBsfiLabel(eveningBsfi.total_score).color}`}>
                               {eveningBsfi.total_score}
                             </span>
-                            <span className="text-[9px] text-[#c9ccbb]/40 font-bold uppercase tracking-widest">BSFI</span>
+                            <span className="text-[9px] text-[#c9ccbb]/80 font-bold uppercase tracking-widest">BSFI</span>
                           </div>
                           <div>
                             <h3 className="text-lg font-serif text-[#c9ccbb] mb-1">
                               {getBsfiLabel(eveningBsfi.total_score).label}
                             </h3>
                             {eveningBsfi.is_internal_driver ? (
-                              <p className="text-[#c9ccbb]/60 text-[10px] leading-relaxed max-w-xs">
+                              <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed max-w-xs">
                                 Internal friction. Your environment readings are stable. Reduce external stimulation to support you: dim the lights, lower any background noise, and keep the bedroom cool and quiet.
                               </p>
                             ) : (() => {
                               const safeDomain = sanitiseDomain(eveningBsfi.dominant_domain)
                               return safeDomain ? (
                                 <div>
-                                  <span className="text-[#c9ccbb]/40 text-[10px] block mb-1 uppercase tracking-widest font-bold">Primary source</span>
+                                  <span className="text-[#c9ccbb]/80 text-[10px] block mb-1 uppercase tracking-widest font-bold">Primary source</span>
                                   <span className="text-white bg-[#000]/30 px-2.5 py-1 rounded text-[10px] font-bold inline-block">
                                     {getDomainDisplay(safeDomain).label}
                                   </span>
@@ -1550,7 +1550,7 @@ export default function Progress() {
               exit={{ opacity: 0, scale: 0.95 }}
               className="w-full max-w-md bg-[#1b270e] border border-[#b5a642]/30 rounded-3xl overflow-hidden shadow-2xl relative"
             >
-              <button onClick={() => setIsAcousticMeterOpen(false)} className="absolute top-4 right-4 text-[#c9ccbb]/50 hover:text-[#b5a642] z-10">✕</button>
+              <button onClick={() => setIsAcousticMeterOpen(false)} className="absolute top-4 right-4 text-[#c9ccbb]/80 hover:text-[#b5a642] z-10">✕</button>
               
               <NoiseSensorModal 
                 onClose={() => setIsAcousticMeterOpen(false)}
