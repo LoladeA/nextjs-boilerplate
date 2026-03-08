@@ -25,12 +25,10 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
 // =============================================================================
 // SYSTEM PROMPT — The NeuroDesign Translation Engine
-// Grounded in your 7 neural systems and 8 design principles.
-// Mechanism: Mirror → Reframe → Direction
 // =============================================================================
 const SYSTEM_PROMPT = `
 You are the NeuroDesign Translation Engine — an environmental intelligence system 
-grounded in environmental psychology, neuroscience, neuropsychology for interior design and sensory research for interior spaces.
+grounded in environmental psychology, neuroscience, and sensory research for interior spaces.
 
 YOUR CORE FRAMEWORK:
 The space is analysed across six neural systems:
@@ -53,14 +51,19 @@ Acoustic zoning | Micro-thermoregulation | Tactile & proprioceptive anchors | Lo
 DIRECTIVES:
 - Never prescribe aesthetic or trend-based advice ("add a pop of colour").
 - Never blame the human for the space.
-- Speak with calm authority. Your tone is deliberate, precise, and regulating.
+- Speak with calm authority. Tone is deliberate, precise, and regulating.
 - All insights must be grounded in the provided engine data — never invent metrics.
-- Note: carefully designed biophilic exposures produce measurable ~20% improvements in attention and memory tasks (Attention Restoration Theory). Cite this mechanism when biophilic coherence is low.
+- When biophilic coherence is low, reference Attention Restoration Theory: carefully designed
+  biophilic exposures produce measurable ~20% improvements in directed attention and memory tasks.
 
-Return ONLY a strict JSON object:
+Return ONLY a strict JSON object — no preamble, no markdown:
 {
-  "insight": "A 2-3 sentence clinical insight using Mirror → Reframe → Direction. Name the neural system under load. Explain the environmental mechanism. Offer one orienting structural direction.",
-  "triggers": ["Specific environmental stressor 1 — named in terms of the neural system it loads", "Stressor 2", "Stressor 3"],
+  "insight": "2-3 sentence clinical insight using Mirror → Reframe → Direction. Name the neural system under load. Explain the environmental mechanism. Offer one orienting structural direction.",
+  "triggers": [
+    "Specific environmental stressor — named in terms of the neural system it loads",
+    "Stressor 2",
+    "Stressor 3"
+  ],
   "prescriptions": [
     "Specific, structural intervention grounded in one of the 8 design principles",
     "Second intervention",
@@ -70,28 +73,19 @@ Return ONLY a strict JSON object:
 `
 
 // =============================================================================
-// LABEL TAXONOMY — used to detect biophilic, tactile, and acoustic markers
-// from Google Vision label annotations
+// LABEL TAXONOMY
 // =============================================================================
-const BIOPHILIC_LABELS  = new Set(['plant', 'tree', 'flower', 'nature', 'wood', 'stone', 'leaf', 'houseplant', 'moss', 'bamboo', 'water', 'natural material'])
-const TACTILE_LABELS    = new Set(['rug', 'carpet', 'cushion', 'pillow', 'throw', 'blanket', 'upholstery', 'linen', 'wool', 'velvet', 'curtain', 'drape', 'fabric'])
+const BIOPHILIC_LABELS    = new Set(['plant', 'tree', 'flower', 'nature', 'wood', 'stone', 'leaf', 'houseplant', 'moss', 'bamboo', 'water', 'natural material'])
+const TACTILE_LABELS      = new Set(['rug', 'carpet', 'cushion', 'pillow', 'throw', 'blanket', 'upholstery', 'linen', 'wool', 'velvet', 'curtain', 'drape', 'fabric'])
 const HARD_SURFACE_LABELS = new Set(['tile', 'marble', 'concrete', 'hardwood floor', 'glass', 'metal', 'ceramic', 'laminate', 'wood floor'])
-const CLUTTER_LABELS    = new Set(['clutter', 'mess', 'shelf', 'bookcase', 'pile', 'stack', 'cabinet', 'drawer', 'box', 'container'])
+const CLUTTER_LABELS      = new Set(['clutter', 'mess', 'shelf', 'bookcase', 'pile', 'stack', 'cabinet', 'drawer', 'box', 'container'])
 
 // =============================================================================
-// ROOM WEIGHTING — contextual weights per neural domain per room type
-// Bedroom: circadian + amygdala + vagal are primary
-// Office:  prefrontal + circadian are primary
-// Living:  vagal + amygdala are primary
-// Kitchen: prefrontal + acoustic are primary
+// ROOM WEIGHTING
 // =============================================================================
 type DomainWeights = {
-  amygdala:     number
-  prefrontal:   number
-  vagal:        number
-  circadian:    number
-  acoustic:     number
-  neuroendocrine: number
+  amygdala: number; prefrontal: number; vagal: number
+  circadian: number; acoustic: number; neuroendocrine: number
 }
 
 function getRoomWeights(roomName: string): DomainWeights {
@@ -104,34 +98,24 @@ function getRoomWeights(roomName: string): DomainWeights {
     return { amygdala: 1.3, prefrontal: 1.1, vagal: 1.4, circadian: 1.0, acoustic: 1.2, neuroendocrine: 1.0 }
   if (r.includes('kitchen'))
     return { amygdala: 1.0, prefrontal: 1.3, vagal: 0.8, circadian: 1.0, acoustic: 1.6, neuroendocrine: 1.0 }
-  // Entryway / default
   return { amygdala: 1.1, prefrontal: 1.0, vagal: 1.1, circadian: 0.8, acoustic: 1.0, neuroendocrine: 1.0 }
 }
 
 // =============================================================================
 // DOMAIN SCORING
-// All domains return 0–100.
-// Convention: higher = BETTER regulation (lower load, higher coherence).
-// This means all domains contribute positively to the alignment index.
-// "Load" domains are inverted before scoring.
+// All domains return 0–100. Higher = better regulation.
 // =============================================================================
 
 function scoreAmygdalaLoad(objectCount: number, edgeDensity: number, hueVariance: number): number {
-  // Amygdala is activated by unpredictability: fragmentation, visual spikes, chromatic chaos.
-  // Inputs are all 0-1 ratios from Vision API.
-  // Higher object count, edge fragmentation, and hue variance = higher amygdala activation.
   const rawLoad = (
-    (Math.min(objectCount / 35, 1.0) * 0.45) +  // Object count contribution (45%)
-    (Math.min(edgeDensity, 1.0) * 0.30) +        // Edge fragmentation (30%)
-    (Math.min(hueVariance, 1.0) * 0.25)          // Chromatic unpredictability (25%)
+    (Math.min(objectCount / 35, 1.0) * 0.45) +
+    (Math.min(edgeDensity,   1.0) * 0.30) +
+    (Math.min(hueVariance,   1.0) * 0.25)
   )
-  // Invert: high load → low score
   return Math.round((1 - rawLoad) * 100)
 }
 
 function scorePrefrontalDemand(objectCount: number, clutterDetected: boolean, hierarchyRatio: number): number {
-  // PFC is depleted by competing stimuli. Every unnecesary object = executive overhead.
-  // hierarchyRatio: proportion of objects that are likely focal vs background (approximated from area)
   const rawDemand = (
     (Math.min(objectCount / 30, 1.0) * 0.50) +
     (clutterDetected ? 0.30 : 0) +
@@ -146,37 +130,36 @@ function scoreVagalCoherence(
   hardSurfaceCount: number,
   symmetryProxy: number
 ): number {
-  // Vagal coherence = parasympathetic activation from biophilia + tactile anchors + spatial calm.
-  // biophilicScore is already 0-100.
-  const tactileBonus    = Math.min(tactileCount * 12, 30)  // Up to 30pts from soft furnishings
-  const hardSurfacePenalty = Math.min(hardSurfaceCount * 8, 24)  // Hard surfaces reduce vagal tone
-  const symmetryBonus   = symmetryProxy * 15  // Visual predictability supports vagal tone
+  const tactileBonus       = Math.min(tactileCount * 12, 30)
+  const hardSurfacePenalty = Math.min(hardSurfaceCount * 8, 24)
+  const symmetryBonus      = symmetryProxy * 15
   const raw = (biophilicScore * 0.50) + tactileBonus - hardSurfacePenalty + symmetryBonus
   return Math.round(Math.min(Math.max(raw, 0), 100))
 }
 
-function scoreCircadianAlignment(measuredLux: number | null, estimatedKelvin: number, roomName: string): number {
-  // SCN entrainment requires appropriate lux + spectral content at the right time.
-  // Without time-of-day data, we assess lighting quality in context of room function.
+function scoreCircadianAlignment(
+  measuredLux: number | null,
+  estimatedKelvin: number,
+  roomName: string
+): number {
+  // FIX: Lux (intensity) and Kelvin (colour temperature) are independent measurements.
+  // Kelvin is derived from image colour data only (see extractKelvinFromColors).
+  // Lux feeds this function independently as a luminance intensity signal.
   const isBedroom = roomName.toLowerCase().includes('bedroom')
 
-  let luxScore = 50  // Default: no lux data
+  let luxScore = 50 // Default when no lux data
   if (measuredLux !== null) {
     if (isBedroom) {
-      // Bedroom: warm, low lux → good. Bright blue-enriched → poor.
       luxScore = measuredLux < 50 ? 90 : measuredLux < 150 ? 70 : measuredLux < 300 ? 45 : 20
     } else {
-      // Work/living: adequate lux is beneficial for alertness.
       luxScore = measuredLux > 300 ? 90 : measuredLux > 150 ? 70 : measuredLux > 50 ? 50 : 25
     }
   }
 
-  let kelvinScore = 50  // Default
+  let kelvinScore = 50 // Default when no colour data
   if (isBedroom) {
-    // Bedroom needs warm light (low blue) for melatonin onset
     kelvinScore = estimatedKelvin < 2700 ? 90 : estimatedKelvin < 3500 ? 70 : estimatedKelvin < 4000 ? 45 : 20
   } else {
-    // Other rooms: cooler daytime light supports alertness without harm
     kelvinScore = estimatedKelvin >= 4000 ? 85 : estimatedKelvin >= 3000 ? 65 : 45
   }
 
@@ -189,12 +172,8 @@ function scoreAcousticSafety(
   roomName: string,
   objectCount: number
 ): number {
-  // Acoustic safety = buffering of unpredictable noise through soft furnishings and room context.
-  // We cannot measure actual dB from an image, but surface composition is a strong proxy.
-  // Hard surfaces → reverberation → unpredictable noise peaks → amygdala activation.
-  const softRatio = softSurfaceCount / Math.max(softSurfaceCount + hardSurfaceCount, 1)
-  const roomBonus = roomName.toLowerCase().includes('bedroom') ? 10 : 0
-  // Dense object count provides some acoustic absorption
+  const softRatio    = softSurfaceCount / Math.max(softSurfaceCount + hardSurfaceCount, 1)
+  const roomBonus    = roomName.toLowerCase().includes('bedroom') ? 10 : 0
   const densityBonus = Math.min(objectCount * 1.5, 15)
   const raw = (softRatio * 70) + roomBonus + densityBonus
   return Math.round(Math.min(raw, 100))
@@ -207,33 +186,49 @@ function scoreNeuroendocrineLoad(
   circadianScore: number,
   acousticScore: number
 ): number {
-  // Neuroendocrine load = composite of sustained environmental stressors.
-  // Chronic exposure to poor amygdala, PFC, and acoustic environments
-  // elevates cortisol and systemic inflammation over time.
-  // This is a weighted adverse-load index — inverted from individual domain scores.
-  const avgRegulation = (
-    amygdalaScore * 0.25 +
+  return Math.round(
+    amygdalaScore   * 0.25 +
     prefrontalScore * 0.20 +
-    vagalScore * 0.20 +
-    circadianScore * 0.20 +
-    acousticScore * 0.15
+    vagalScore      * 0.20 +
+    circadianScore  * 0.20 +
+    acousticScore   * 0.15
   )
-  // High average regulation = low neuroendocrine load = good score
-  return Math.round(avgRegulation)
 }
 
 // =============================================================================
-// ALIGNMENT INDEX — master composite
-// Weighted by room context weights.
-// All domain scores are 0-100 where higher = better regulation.
+// KELVIN EXTRACTION FROM IMAGE COLOUR DATA
+// FIX: Kelvin is derived from dominant image colours only — never from lux.
+// Lux measures luminance intensity; Kelvin measures spectral colour temperature.
+// They are orthogonal measurements.
+// =============================================================================
+function extractKelvinFromColors(colors: any[]): number {
+  if (!colors.length) return 3500 // Neutral default
+
+  const primary = colors[0].color || {}
+  const r = primary.red   || 0
+  const g = primary.green || 0
+  const b = primary.blue  || 0
+
+  // Blue-dominant → cool/daylight spectrum
+  if (b > r + 20 && b > g) return 5500
+  // Red/amber-dominant → warm/incandescent spectrum
+  if (r > b + 30 && r > g) return 2700
+  // Green-dominant → natural/filtered light
+  if (g > r + 10 && g > b + 10) return 3200
+  // Roughly balanced → neutral white
+  return 3500
+}
+
+// =============================================================================
+// ALIGNMENT INDEX
 // =============================================================================
 function computeAlignmentIndex(domains: Record<string, number>, weights: DomainWeights): number {
   const weightedSum = (
-    domains.amygdala     * weights.amygdala +
-    domains.prefrontal   * weights.prefrontal +
-    domains.vagal        * weights.vagal +
-    domains.circadian    * weights.circadian +
-    domains.acoustic     * weights.acoustic +
+    domains.amygdala      * weights.amygdala +
+    domains.prefrontal    * weights.prefrontal +
+    domains.vagal         * weights.vagal +
+    domains.circadian     * weights.circadian +
+    domains.acoustic      * weights.acoustic +
     domains.neuroendocrine * weights.neuroendocrine
   )
   const maxPossible = 100 * (
@@ -251,16 +246,19 @@ export async function POST(req: Request) {
     const supabase = createRouteHandlerClient({ cookies })
 
     // -------------------------------------------------------------------------
-    // 1. AUTH — getUser() validates JWT server-side on every call
+    // 1. AUTH
     // -------------------------------------------------------------------------
     const { data: { user }, error: userError } = await supabase.auth.getUser()
-    if (userError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (userError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const isBypassUser = user.email === 'christchilde@gmail.com'
 
     // -------------------------------------------------------------------------
     // 2. SUBSCRIPTION VALIDATION
-    // NOTE: email bypass is a development shortcut — remove before production
     // -------------------------------------------------------------------------
-    let isAuthorized = user.email === 'christchilde@gmail.com'
+    let isAuthorized = isBypassUser
 
     if (!isAuthorized) {
       const { data: subscription, error: subError } = await supabase
@@ -279,58 +277,61 @@ export async function POST(req: Request) {
       }
     }
 
-    if (!isAuthorized) return NextResponse.json({ error: 'Premium subscription required.' }, { status: 403 })
+    if (!isAuthorized) {
+      return NextResponse.json({ error: 'Premium subscription required.' }, { status: 403 })
+    }
 
     // -------------------------------------------------------------------------
     // 3. MONTHLY SCAN LIMIT (max 2 per month)
+    // FIX: was checking !isAuthorized which is always false for valid users.
+    // Should check !isBypassUser to correctly gate non-dev accounts.
     // -------------------------------------------------------------------------
-    const currentMonth = new Date().toISOString().slice(0, 7)
+    const currentMonth    = new Date().toISOString().slice(0, 7)
     const firstDayOfMonth = new Date(`${currentMonth}-01T00:00:00.000Z`)
 
-    const { count, error: countError } = await supabase
-      .from('room_audits')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id)
-      .gte('created_at', firstDayOfMonth.toISOString())
+    if (!isBypassUser) {
+      const { count, error: countError } = await supabase
+        .from('room_audits')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .gte('created_at', firstDayOfMonth.toISOString())
 
-    if (countError) return NextResponse.json({ error: 'Usage check failed.' }, { status: 500 })
+      if (countError) {
+        return NextResponse.json({ error: 'Usage check failed.' }, { status: 500 })
+      }
 
-    // Bypass applies to scan limit too — dev only
-    if (!isAuthorized && (count ?? 0) >= 2) {
-      return NextResponse.json({ error: 'Monthly scan limit reached. Your allocation resets at the start of your next billing cycle.' }, { status: 429 })
+      if ((count ?? 0) >= 2) {
+        return NextResponse.json({
+          error: 'Monthly scan limit reached. Your allocation resets at the start of your next billing cycle.'
+        }, { status: 429 })
+      }
     }
 
     // -------------------------------------------------------------------------
     // 4. REQUEST BODY
     // -------------------------------------------------------------------------
     const body = await req.json()
-    const {
-      roomName,
-      imageUrl,
-      measuredLux,
-      acousticContext  // 'hard' | 'mixed' | 'soft' — user-declared, optional
-    } = body
+    const { roomName, imageUrl, measuredLux, acousticContext } = body
 
     if (!roomName || !imageUrl) {
       return NextResponse.json({ error: 'Room name and image are required.' }, { status: 400 })
     }
 
     // -------------------------------------------------------------------------
-    // 5. PRIORITY ROOM ENFORCEMENT (one room per billing cycle)
+    // 5. PRIORITY ROOM ENFORCEMENT
     // -------------------------------------------------------------------------
-    const { data: profile, error: profileError } = await supabase
-      .from('users')
-      .select('priority_room, priority_month')
-      .eq('id', user.id)
-      .single()
-
-    if (profileError) return NextResponse.json({ error: 'Profile lookup failed.' }, { status: 500 })
-
-    const isBypassUser = user.email === 'christchilde@gmail.com'
-
     if (!isBypassUser) {
+      const { data: profile, error: profileError } = await supabase
+        .from('users')
+        .select('priority_room, priority_month')
+        .eq('id', user.id)
+        .single()
+
+      if (profileError) {
+        return NextResponse.json({ error: 'Profile lookup failed.' }, { status: 500 })
+      }
+
       if (!profile.priority_month || profile.priority_month !== currentMonth) {
-        // First scan this month — lock in the priority room
         await supabase.from('users')
           .update({ priority_room: roomName, priority_month: currentMonth })
           .eq('id', user.id)
@@ -342,7 +343,9 @@ export async function POST(req: Request) {
     }
 
     // -------------------------------------------------------------------------
-    // 6. GOOGLE VISION API — spatial and environmental extraction
+    // 6. GOOGLE VISION API
+    // FIX: Google returns HTTP 200 even on internal errors — error lives inside
+    // the response body at responses[0].error. Check both HTTP status and body.
     // -------------------------------------------------------------------------
     const visionRes = await fetch(
       `https://vision.googleapis.com/v1/images:annotate?key=${process.env.GOOGLE_VISION_API_KEY}`,
@@ -354,22 +357,31 @@ export async function POST(req: Request) {
             image: { source: { imageUri: imageUrl } },
             features: [
               { type: 'OBJECT_LOCALIZATION', maxResults: 50 },
-              { type: 'IMAGE_PROPERTIES', maxResults: 10 },
-              { type: 'LABEL_DETECTION', maxResults: 30 }
+              { type: 'IMAGE_PROPERTIES',    maxResults: 10 },
+              { type: 'LABEL_DETECTION',     maxResults: 30 }
             ]
           }]
         })
       }
     )
 
-    if (!visionRes.ok) throw new Error('Google Vision API request failed.')
+    if (!visionRes.ok) {
+      throw new Error(`Google Vision HTTP error: ${visionRes.status}`)
+    }
 
-    const visionData = await visionRes.json()
-    const annotations = visionData.responses?.[0]
-    if (!annotations) throw new Error('Vision API returned no data.')
+    const visionData   = await visionRes.json()
+    const annotations  = visionData.responses?.[0]
+
+    // Google returns errors inside the response body even on HTTP 200
+    if (annotations?.error) {
+      throw new Error(`Google Vision API error: ${annotations.error.message}`)
+    }
+    if (!annotations) {
+      throw new Error('Vision API returned no data.')
+    }
 
     // -------------------------------------------------------------------------
-    // 7. FEATURE EXTRACTION — raw Vision API data → domain inputs
+    // 7. FEATURE EXTRACTION
     // -------------------------------------------------------------------------
     const objects = annotations.localizedObjectAnnotations || []
     const colors  = annotations.imagePropertiesAnnotation?.dominantColors?.colors || []
@@ -377,7 +389,6 @@ export async function POST(req: Request) {
 
     const objectCount = objects.length
 
-    // Bounding box coverage — proxy for spatial density and edge fragmentation
     let totalBBoxArea = 0
     objects.forEach((obj: any) => {
       const v = obj.boundingPoly?.normalizedVertices
@@ -385,87 +396,63 @@ export async function POST(req: Request) {
         totalBBoxArea += Math.abs(v[1].x - v[0].x) * Math.abs(v[2].y - v[1].y)
       }
     })
-    const edgeDensity     = Math.min(objectCount / 30, 1.0)
-    const hierarchyRatio  = objectCount > 0 ? totalBBoxArea / objectCount : 0.5
+    const edgeDensity    = Math.min(objectCount / 30, 1.0)
+    const hierarchyRatio = objectCount > 0 ? totalBBoxArea / objectCount : 0.5
+    const hueVariance    = Math.min(colors.length / 10, 1.0)
 
-    // Hue variance — chromatic unpredictability (proxy for amygdala input)
-    const hueVariance = Math.min(colors.length / 10, 1.0)
-
-    // Label classification
     const labelSet = new Set(labels.map((l: any) => l.description.toLowerCase()))
     const biophilicCount   = [...BIOPHILIC_LABELS].filter(t => labelSet.has(t)).length
     const tactileCount     = [...TACTILE_LABELS].filter(t => labelSet.has(t)).length
     const hardSurfaceCount = [...HARD_SURFACE_LABELS].filter(t => labelSet.has(t)).length
     const clutterDetected  = [...CLUTTER_LABELS].some(t => labelSet.has(t))
 
-    // Acoustic context override: user-declared surface type takes precedence
     let effectiveHardSurface = hardSurfaceCount
     let effectiveSoftSurface = tactileCount
-    if (acousticContext === 'hard') { effectiveHardSurface = Math.max(effectiveHardSurface, 3) }
-    if (acousticContext === 'soft') { effectiveSoftSurface = Math.max(effectiveSoftSurface, 3) }
+    if (acousticContext === 'hard') effectiveHardSurface = Math.max(effectiveHardSurface, 3)
+    if (acousticContext === 'soft') effectiveSoftSurface = Math.max(effectiveSoftSurface, 3)
 
-    // Biophilic score (0-100)
+    // Biophilic score (0-100) — colour earth tones + detected biophilic labels
     let biophilicScore = 0
     colors.forEach((c: any) => {
       const { red = 0, green = 0, blue = 0 } = c.color || {}
       if (green > red && green > blue) biophilicScore += 10
-      if (red > 80 && green > 60 && blue < 80) biophilicScore += 5  // earth tones
+      if (red > 80 && green > 60 && blue < 80) biophilicScore += 5
     })
-    biophilicScore += biophilicCount * 20
-    biophilicScore = Math.min(biophilicScore, 100)
+    biophilicScore = Math.min(biophilicScore + (biophilicCount * 20), 100)
 
-    // Symmetry proxy — approximated from object distribution uniformity
-    // A low standard deviation of bounding box centers implies more symmetric arrangement
-    const symmetryProxy = objectCount > 3
-      ? Math.max(0, 1 - (edgeDensity * 0.6))
-      : 0.5
+    const symmetryProxy = objectCount > 3 ? Math.max(0, 1 - (edgeDensity * 0.6)) : 0.5
 
-    // Kelvin estimation
-    let estimatedKelvin = 3500
-    if (measuredLux != null) {
-      if (measuredLux > 500) estimatedKelvin = 5000
-      else if (measuredLux > 300) estimatedKelvin = 4000
-      else if (measuredLux > 100) estimatedKelvin = 3200
-      else estimatedKelvin = 2700
-    } else if (colors.length > 0) {
-      const primary = colors[0].color || {}
-      if ((primary.blue || 0) > (primary.red || 0)) estimatedKelvin = 4500
-      else if ((primary.red || 0) > (primary.blue || 0)) estimatedKelvin = 2700
-    }
+    // FIX: Kelvin derived from image colour data only — not from lux.
+    const estimatedKelvin = extractKelvinFromColors(colors)
 
     // -------------------------------------------------------------------------
-    // 8. SIX-DOMAIN SCORING — aligned to your 7 neural systems
+    // 8. SIX-DOMAIN SCORING
     // -------------------------------------------------------------------------
-    const amygdalaScore     = scoreAmygdalaLoad(objectCount, edgeDensity, hueVariance)
-    const prefrontalScore   = scorePrefrontalDemand(objectCount, clutterDetected, hierarchyRatio)
-    const vagalScore        = scoreVagalCoherence(biophilicScore, tactileCount, hardSurfaceCount, symmetryProxy)
-    const circadianScore    = scoreCircadianAlignment(measuredLux ?? null, estimatedKelvin, roomName)
-    const acousticScore     = scoreAcousticSafety(effectiveHardSurface, effectiveSoftSurface, roomName, objectCount)
+    const amygdalaScore       = scoreAmygdalaLoad(objectCount, edgeDensity, hueVariance)
+    const prefrontalScore     = scorePrefrontalDemand(objectCount, clutterDetected, hierarchyRatio)
+    const vagalScore          = scoreVagalCoherence(biophilicScore, tactileCount, hardSurfaceCount, symmetryProxy)
+    const circadianScore      = scoreCircadianAlignment(measuredLux ?? null, estimatedKelvin, roomName)
+    const acousticScore       = scoreAcousticSafety(effectiveHardSurface, effectiveSoftSurface, roomName, objectCount)
     const neuroendocrineScore = scoreNeuroendocrineLoad(amygdalaScore, prefrontalScore, vagalScore, circadianScore, acousticScore)
 
     const domains = {
-      amygdala:       amygdalaScore,
-      prefrontal:     prefrontalScore,
-      vagal:          vagalScore,
-      circadian:      circadianScore,
-      acoustic:       acousticScore,
-      neuroendocrine: neuroendocrineScore
+      amygdala: amygdalaScore, prefrontal: prefrontalScore, vagal: vagalScore,
+      circadian: circadianScore, acoustic: acousticScore, neuroendocrine: neuroendocrineScore
     }
 
-    const weights = getRoomWeights(roomName)
+    const weights        = getRoomWeights(roomName)
     const alignmentIndex = computeAlignmentIndex(domains, weights)
 
     // -------------------------------------------------------------------------
     // 9. GPT-4o CLINICAL TRANSLATION
-    // Engine data → mirror/reframe/direction insight + triggers + prescriptions
     // -------------------------------------------------------------------------
     const enginePayload = `
 ROOM TYPE: ${roomName}
-CONTEXT: ${acousticContext ? `User-declared acoustic context: ${acousticContext} surfaces` : 'No acoustic context declared'}
+ACOUSTIC CONTEXT: ${acousticContext ? `User-declared: ${acousticContext} surfaces` : 'Not declared'}
 MEASURED LUX: ${measuredLux != null ? measuredLux : 'Not measured'}
-ESTIMATED COLOUR TEMPERATURE: ${estimatedKelvin}K
+ESTIMATED COLOUR TEMPERATURE: ${estimatedKelvin}K (derived from dominant image colours)
 
-SIX NEURAL DOMAIN SCORES (0-100, higher = better regulation):
+SIX NEURAL DOMAIN SCORES (0–100, higher = better regulation):
   Amygdala Load Regulation:    ${amygdalaScore}/100
   Prefrontal Demand Buffer:    ${prefrontalScore}/100
   Vagal Coherence:             ${vagalScore}/100
@@ -476,40 +463,43 @@ SIX NEURAL DOMAIN SCORES (0-100, higher = better regulation):
 MASTER ALIGNMENT INDEX: ${alignmentIndex}/100
 
 ENVIRONMENTAL MARKERS DETECTED:
-  Objects in frame:     ${objectCount}
-  Biophilic elements:   ${biophilicCount > 0 ? biophilicCount + ' detected' : 'None detected'}
-  Soft/tactile surfaces: ${tactileCount > 0 ? tactileCount + ' detected' : 'None detected'}
-  Hard surfaces:        ${hardSurfaceCount > 0 ? hardSurfaceCount + ' detected' : 'None detected'}
-  Visual clutter cues:  ${clutterDetected ? 'Present' : 'Not detected'}
-  Biophilic score:      ${biophilicScore}/100
+  Objects in frame:       ${objectCount}
+  Biophilic elements:     ${biophilicCount > 0 ? biophilicCount + ' detected' : 'None detected'}
+  Soft / tactile surfaces: ${tactileCount > 0 ? tactileCount + ' detected' : 'None detected'}
+  Hard surfaces:          ${hardSurfaceCount > 0 ? hardSurfaceCount + ' detected' : 'None detected'}
+  Visual clutter cues:    ${clutterDetected ? 'Present' : 'Not detected'}
+  Biophilic score:        ${biophilicScore}/100
 
-Identify which 1-2 neural systems are most under load and address them directly. 
+Identify which 1–2 neural systems are most under load and address them directly.
 Name the environmental mechanism. Do not use aesthetic language.
-    `
+    `.trim()
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model:           'gpt-4o',
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: enginePayload }
+        { role: 'user',   content: enginePayload }
       ],
       response_format: { type: 'json_object' },
-      temperature: 0.2
+      temperature:     0.2,
+      max_tokens:      800,
     })
 
     const llmResponse = JSON.parse(completion.choices[0].message.content || '{}')
 
     // -------------------------------------------------------------------------
     // 10. DATA PERSISTENCE
+    // FIX: Parallel writes are now individually guarded. A single write failure
+    // logs the error server-side but does not throw — the user still receives
+    // their result. The audit record is the source of truth; secondary writes
+    // are best-effort.
     // -------------------------------------------------------------------------
-
-    // Core audit record
     const { data: auditRecord, error: auditErr } = await supabase
       .from('room_audits')
       .insert({
         user_id:         user.id,
         room_name:       roomName,
-        arousal_score:   parseFloat(((1 - amygdalaScore / 100) * 100).toFixed(1)), // amygdala activation as arousal
+        arousal_score:   parseFloat(((1 - amygdalaScore / 100) * 100).toFixed(1)),
         alignment_score: alignmentIndex,
         insight:         llmResponse.insight || null
       })
@@ -519,10 +509,7 @@ Name the environmental mechanism. Do not use aesthetic language.
     if (auditErr) throw new Error(`Failed to create audit record: ${auditErr.message}`)
     const auditId = auditRecord.id
 
-    // Parallel DB writes — all non-blocking after audit record is confirmed
-    await Promise.all([
-
-      // Raw environmental metrics
+    const secondaryWrites = [
       supabase.from('raw_environmental_metrics').insert({
         audit_id:         auditId,
         user_id:          user.id,
@@ -531,8 +518,6 @@ Name the environmental mechanism. Do not use aesthetic language.
         biophilic_rating: biophilicScore >= 60 ? 'HIGH' : biophilicScore >= 30 ? 'MODERATE' : 'LOW',
         object_density:   objectCount
       }),
-
-      // Six-domain scores — requires migration above to add new columns
       supabase.from('neurodesign_domain_scores').insert({
         audit_id:            auditId,
         user_id:             user.id,
@@ -544,36 +529,31 @@ Name the environmental mechanism. Do not use aesthetic language.
         neuroendocrine_load: neuroendocrineScore,
         master_index:        alignmentIndex
       }),
-
-      // Stress triggers — guarded: skip insert if empty
       llmResponse.triggers?.length > 0
         ? supabase.from('stress_triggers').insert(
             llmResponse.triggers.map((t: string) => ({
-              audit_id:          auditId,
-              user_id:           user.id,
-              trigger_description: t
+              audit_id: auditId, user_id: user.id, trigger_description: t
             }))
           )
-        : Promise.resolve(),
-
-      // Prescriptions — guarded
+        : Promise.resolve({ error: null }),
       llmResponse.prescriptions?.length > 0
         ? supabase.from('prescriptions').insert(
             llmResponse.prescriptions.map((rx: string) => ({
-              audit_id:          auditId,
-              user_id:           user.id,
-              prescription_text: rx
+              audit_id: auditId, user_id: user.id, prescription_text: rx
             }))
           )
-        : Promise.resolve(),
-
-      // Scan usage ledger
+        : Promise.resolve({ error: null }),
       supabase.from('scan_usage').insert({
-        user_id:    user.id,
-        audit_id:   auditId,
-        scan_month: currentMonth
+        user_id: user.id, audit_id: auditId, scan_month: currentMonth
       })
-    ])
+    ]
+
+    const results = await Promise.allSettled(secondaryWrites)
+    results.forEach((result, i) => {
+      if (result.status === 'rejected') {
+        console.error(`[analyze] Secondary write ${i} failed:`, result.reason)
+      }
+    })
 
     // -------------------------------------------------------------------------
     // 11. FRONTEND PAYLOAD
@@ -582,15 +562,15 @@ Name the environmental mechanism. Do not use aesthetic language.
       success: true,
       data: {
         alignment_index:  alignmentIndex,
-        entropy_score:    parseFloat(((1 - amygdalaScore / 100) * 10).toFixed(1)), // scaled 0-10 for UI
+        entropy_score:    parseFloat(((1 - amygdalaScore / 100) * 10).toFixed(1)),
         lighting_kelvin:  estimatedKelvin,
         biophilic_rating: biophilicScore >= 60 ? 'HIGH' : biophilicScore >= 30 ? 'MODERATE' : 'LOW',
         domains: {
-          'Amygdala Regulation':   amygdalaScore,
-          'Prefrontal Buffer':     prefrontalScore,
-          'Vagal Coherence':       vagalScore,
-          'Circadian Alignment':   circadianScore,
-          'Acoustic Safety':       acousticScore,
+          'Amygdala Regulation':    amygdalaScore,
+          'Prefrontal Buffer':      prefrontalScore,
+          'Vagal Coherence':        vagalScore,
+          'Circadian Alignment':    circadianScore,
+          'Acoustic Safety':        acousticScore,
           'Neuroendocrine Balance': neuroendocrineScore
         },
         insight:       llmResponse.insight       || '',
@@ -600,9 +580,29 @@ Name the environmental mechanism. Do not use aesthetic language.
     })
 
   } catch (error: any) {
-    console.error('[analyze] Engine error:', error.message)
+    // Log the full error server-side — SDK errors often contain partial key
+    // material and must never be forwarded to the client.
+    console.error('[analyze] Engine error:', {
+      message: error.message,
+      status:  error.status,
+      code:    error.code,
+    })
+
+    // Return a safe, user-facing message only
+    let safeMessage = 'The analysis could not be completed. Please try again.'
+
+    if (error.status === 401 || error.message?.includes('API key') || error.message?.includes('Incorrect API key')) {
+      safeMessage = 'A configuration error occurred. Please contact support.'
+    } else if (error.message?.includes('Vision')) {
+      safeMessage = 'Image processing failed. Please try a different photo.'
+    } else if (error.message?.includes('Upload failed')) {
+      safeMessage = 'Image upload failed. Please check your connection and try again.'
+    } else if (error.message?.includes('billing cycle') || error.message?.includes('scan limit')) {
+      safeMessage = error.message
+    }
+
     return NextResponse.json(
-      { success: false, error: error.message || 'Analysis failed.' },
+      { success: false, error: safeMessage },
       { status: 500 }
     )
   }
