@@ -7,8 +7,6 @@ import { calculateBSFI, DailyLogParams } from '@/lib/bsfi-engine'
 
 // -----------------------------------------------------------------------------
 // SAFE NUMBER COERCION
-// Guards against booleans, whitespace strings, Infinity, and arrays —
-// all of which pass vanilla Number() + isNaN() silently.
 // -----------------------------------------------------------------------------
 const safeNum = (val: unknown): number | null => {
   if (val === null || val === undefined) return null
@@ -26,7 +24,6 @@ const safeNum = (val: unknown): number | null => {
   }
   return null
 }
-
 
 export async function POST(req: Request) {
   try {
@@ -48,16 +45,29 @@ export async function POST(req: Request) {
     }
 
     // -------------------------------------------------------------------------
-    // 2. Normalise Today's Log
+    // 2. Validate and normalise session parameter
     //
-    // morning_tags maps from raw.tags — confirmed against daily_logs schema
-    // where the column is named 'tags' not 'morning_tags'.
+    // FIX: session is now read from the request body and validated.
+    // progress.tsx sends { session: activeTab } which is 'morning' | 'evening'.
+    // Without this, both sessions land in the same row and evening overwrites
+    // morning on every save.
+    // -------------------------------------------------------------------------
+    const logSession: 'morning' | 'evening' =
+      raw.session === 'evening' ? 'evening' : 'morning'
+
+    // -------------------------------------------------------------------------
+    // 3. Normalise Today's Log
+    //
+    // FIX: nighttime_db → bedtime_db
+    // progress.tsx sends bedtime_db in the payload. The previous mapping used
+    // raw.nighttime_db which was always undefined, silently dropping the
+    // bedtime sound reading before it reached the engine.
     // -------------------------------------------------------------------------
     const todayParams: DailyLogParams = {
       morning_lux:     safeNum(raw.morning_lux),
       evening_lux:     safeNum(raw.evening_lux),
       daytime_db:      safeNum(raw.daytime_db),
-      nighttime_db:    safeNum(raw.nighttime_db),
+      nighttime_db:    safeNum(raw.bedtime_db),    // FIX: was raw.nighttime_db
       morning_tension: safeNum(raw.morning_tension),
       sleep_wakes:     safeNum(raw.sleep_wakes),
       focus_hours:     safeNum(raw.focus_hours),
@@ -67,10 +77,7 @@ export async function POST(req: Request) {
     }
 
     // -------------------------------------------------------------------------
-    // 3. Fetch 14-Day History Window
-    //
-    // setDate(-13) = exactly 14 days inclusive of today.
-    // setDate(-14) = maximum 13 prior days — off by one.
+    // 4. Fetch 14-Day History Window
     // -------------------------------------------------------------------------
     const windowStart = new Date()
     windowStart.setDate(windowStart.getDate() - 13)
@@ -88,13 +95,13 @@ export async function POST(req: Request) {
     }
 
     // -------------------------------------------------------------------------
-    // 4. Normalise History
+    // 5. Normalise History
     // -------------------------------------------------------------------------
     const historyParams: DailyLogParams[] = (historyData || []).map(log => ({
       morning_lux:     safeNum(log.morning_lux),
       evening_lux:     safeNum(log.evening_lux),
       daytime_db:      safeNum(log.daytime_db),
-      nighttime_db:    safeNum(log.nighttime_db),
+      nighttime_db:    safeNum(log.bedtime_db),    // FIX: consistent with above
       morning_tension: safeNum(log.morning_tension),
       sleep_wakes:     safeNum(log.sleep_wakes),
       focus_hours:     safeNum(log.focus_hours),
@@ -104,7 +111,7 @@ export async function POST(req: Request) {
     }))
 
     // -------------------------------------------------------------------------
-    // 5. Run Calculation Engine
+    // 6. Run Calculation Engine
     // -------------------------------------------------------------------------
     let bsfiResult
 
@@ -114,6 +121,7 @@ export async function POST(req: Request) {
       console.error('BSFI Engine Failure', {
         userId,
         date: raw.date,
+        session: logSession,
         historyLength: historyParams.length,
         error: engineError,
       })
@@ -124,51 +132,62 @@ export async function POST(req: Request) {
     }
 
     // -------------------------------------------------------------------------
-    // 6. Save to bsfi_results (Idempotent Upsert)
+    // 7. Save to bsfi_results
     //
-    // COLUMN OWNERSHIP — lux_score, db_score, readiness_score:
+    // FIX: session column now included in both the insert payload and the
+    // onConflict target. Morning and evening produce separate rows keyed on
+    // (user_id, calculated_for_date, session).
     //
-    //   lux_score (Circadian Coherence Score, 0–100)
-    //     Written by: handleSave in daily-logs page on every save
-    //     Formula: morning component (0–50) + evening component (0–50)
-    //     High score = strong morning anchor AND low evening lux
+    // PREREQUISITE MIGRATIONS (run once in Supabase SQL editor):
     //
-    //   db_score (Threshold-Normalised Acoustic Composite, 0–100)
-    //     Written by: handleSave in daily-logs page on every save
-    //     Each reading scored against its WHO threshold independently.
-    //     Daytime threshold: 55dB | Nighttime threshold: 40dB
+    //   ALTER TABLE bsfi_results
+    //   ADD COLUMN IF NOT EXISTS session varchar(10)
+    //     CHECK (session IN ('morning', 'evening'));
     //
-    //   readiness_score
-    //     Reserved for Oura ring integration — remains null until live.
-    //     Do not populate from BSFI outputs.
+    //   UPDATE bsfi_results SET session = 'morning' WHERE session IS NULL;
+    //
+    //   ALTER TABLE bsfi_results
+    //   DROP CONSTRAINT IF EXISTS bsfi_results_user_date_key;
+    //
+    //   ALTER TABLE bsfi_results
+    //   ADD CONSTRAINT bsfi_results_user_date_session_key
+    //   UNIQUE (user_id, calculated_for_date, session);
+    //
     // -------------------------------------------------------------------------
     const { error: upsertError } = await supabase
       .from('bsfi_results')
-      .upsert({
-        user_id:             userId,
-        calculated_for_date: raw.date,
-        domain_scores: {
-          CFS:                bsfiResult.cfs_score,
-          ALS:                bsfiResult.als_score,
-          SES:                bsfiResult.ses_score,
-          RDS:                bsfiResult.rds_score,
-          is_internal_driver: bsfiResult.is_internal_driver,
+      .upsert(
+        {
+          user_id:             userId,
+          calculated_for_date: raw.date,
+          session:             logSession,
+          domain_scores: {
+            CFS:                bsfiResult.cfs_score,
+            ALS:                bsfiResult.als_score,
+            SES:                bsfiResult.ses_score,
+            RDS:                bsfiResult.rds_score,
+            is_internal_driver: bsfiResult.is_internal_driver,
+          },
+          total_score:     bsfiResult.bsfi_total,
+          dominant_domain: bsfiResult.dominant_domain,
+          version:         bsfiResult.version,
         },
-        total_score:     bsfiResult.bsfi_total,
-        dominant_domain: bsfiResult.dominant_domain,
-        version:         bsfiResult.version,
-      })
+        {
+          onConflict: 'user_id, calculated_for_date, session'
+        }
+      )
 
     if (upsertError) {
       throw new Error(`Failed to save BSFI result: ${upsertError.message}`)
     }
 
     // -------------------------------------------------------------------------
-    // 7. Return Response
+    // 8. Return Response
     // -------------------------------------------------------------------------
     return NextResponse.json({
       success:           true,
       bsfiResult,
+      session:           logSession,
       history_days_used: historyParams.length,
     })
 
