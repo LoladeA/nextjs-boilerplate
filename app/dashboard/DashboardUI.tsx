@@ -158,7 +158,7 @@ export default function DashboardUI({
                   <div className="text-xs text-[#c9ccbb]/60 uppercase tracking-widest">Cumulative Strain</div>
                   {hasDelta && (
                     <div className={`flex items-center gap-1.5 mt-2 text-[10px] font-bold uppercase tracking-widest
-                      ${deltaImproved ? 'text-[#b5a642]' : deltaWorsened ? 'text-[#b5a642]/50' : 'text-[#c9ccbb]/30'}`}>
+                      ${deltaImproved ? 'text-[#b5a642]' : deltaWorsened ? 'text-[#b5a642]' : 'text-[#c9ccbb]'}`}>
                       {deltaImproved && <TrendingDown size={11} />}
                       {deltaWorsened && <TrendingUp size={11} />}
                       {deltaStable   && <Minus size={11} />}
@@ -298,7 +298,7 @@ export default function DashboardUI({
                   <div className="text-[10px] text-[#c9ccbb]/80 uppercase tracking-widest">NeuroLoad Score™</div>
                   {hasDelta && (
                     <div className={`mt-4 text-[10px] font-bold uppercase tracking-widest
-                      ${deltaImproved ? 'text-[#b5a642]' : deltaWorsened ? 'text-[#b5a642]/50' : 'text-[#c9ccbb]/30'}`}>
+                      ${deltaImproved ? 'text-[#b5a642]' : deltaWorsened ? 'text-[#b5a642]' : 'text-[#c9ccbb]'}`}>
                       {deltaImproved && `↓ ${Math.abs(loadDelta)} pts from original`}
                       {deltaWorsened && `↑ ${Math.abs(loadDelta)} pts from original`}
                       {deltaStable   && 'No change from original'}
