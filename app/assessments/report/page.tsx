@@ -84,10 +84,28 @@ export default async function AssessmentReport() {
   // RUN ENGINE
   // neuroLensAnswer (raw neurotype) is the correct second argument.
   // ============================================================
-  const engineInput = safeResponses.map((r: any) => ({
-    question_key: r.question_key,
-    answer: { response: r.answer_value }
-  }))
+  // CRITICAL: current_user_responses view returns answer_value as text (string).
+  // The scoring engine checks typeof val === 'number' to route into responseMap.
+  // String "4" fails that check — falls into choiceMap — so all scale questions
+  // score zero and every domain returns flat identical results.
+  // Fix: coerce to number for scale questions, preserve strings for choice answers.
+  const NUMERIC_KEYS = new Set([
+    'energy_tax',
+    'q5','q6','q7','q8','q9',
+    'q10','q11','q12','q13','q14',
+    'q15','q16','q17','q18','q19',
+    'q20','q21','q22','q23','q24','q25','q26',
+    'q27','q28','q29','q30','q31','q32','q33'
+  ])
+
+  const engineInput = safeResponses.map((r: any) => {
+    const raw = r.answer_value
+    const coerced = NUMERIC_KEYS.has(r.question_key) ? Number(raw) : raw
+    return {
+      question_key: r.question_key,
+      answer: { response: coerced }
+    }
+  })
 
   const engineResult = calculateNeuroLoad(engineInput, neuroLensAnswer)
 
