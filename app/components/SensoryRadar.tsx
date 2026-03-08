@@ -91,7 +91,7 @@ const CustomTooltip = ({ active, payload }: any) => {
   const opacity = getScoreOpacity(A)
   return (
     <div className="bg-[#1b270e] border border-[#b5a642]/20 rounded-xl px-4 py-3 shadow-xl text-left min-w-[160px]">
-      <p className="text-[10px] uppercase tracking-widest text-[#b5a642]/50 font-bold mb-1 tracking-[0.12em]">
+      <p className="text-[10px] uppercase tracking-widest text-[#b5a642]/70 font-bold mb-1 tracking-[0.12em]">
         {subject}
       </p>
       <p
@@ -101,7 +101,7 @@ const CustomTooltip = ({ active, payload }: any) => {
         {A}
         <span className="text-sm font-sans ml-1 opacity-50">/100</span>
       </p>
-      <p className="text-[11px] text-[#c9ccbb]/50 leading-snug">
+      <p className="text-[11px] text-[#c9ccbb]/70 leading-snug">
         {getScoreInterpretation(subject, A)}
       </p>
     </div>
@@ -268,7 +268,7 @@ export default function SensoryRadar({ data = defaultData }: { data?: DataPoint[
 
       {/* Bottom legend — domain colour key */}
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex items-center gap-1 pointer-events-none">
-        <span className="text-[9px] uppercase tracking-widest text-[#c9ccbb]/20 font-bold">
+        <span className="text-[9px] uppercase tracking-widest text-[#c9ccbb]/80 font-bold">
           Score = friction load · lower is better
         </span>
       </div>
