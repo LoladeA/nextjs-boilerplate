@@ -158,7 +158,7 @@ export default function DashboardUI({
                   <div className="text-xs text-[#c9ccbb]/60 uppercase tracking-widest">Cumulative Strain</div>
                   {hasDelta && (
                     <div className={`flex items-center gap-1.5 mt-2 text-[10px] font-bold uppercase tracking-widest
-                      ${deltaImproved ? 'text-emerald-400' : deltaWorsened ? 'text-orange-400' : 'text-[#c9ccbb]/30'}`}>
+                      ${deltaImproved ? 'text-[#b5a642]' : deltaWorsened ? 'text-[#b5a642]/50' : 'text-[#c9ccbb]/30'}`}>
                       {deltaImproved && <TrendingDown size={11} />}
                       {deltaWorsened && <TrendingUp size={11} />}
                       {deltaStable   && <Minus size={11} />}
@@ -298,7 +298,7 @@ export default function DashboardUI({
                   <div className="text-[10px] text-[#c9ccbb]/80 uppercase tracking-widest">NeuroLoad Score™</div>
                   {hasDelta && (
                     <div className={`mt-4 text-[10px] font-bold uppercase tracking-widest
-                      ${deltaImproved ? 'text-emerald-400' : deltaWorsened ? 'text-orange-400' : 'text-[#c9ccbb]/30'}`}>
+                      ${deltaImproved ? 'text-[#b5a642]' : deltaWorsened ? 'text-[#b5a642]/50' : 'text-[#c9ccbb]/30'}`}>
                       {deltaImproved && `↓ ${Math.abs(loadDelta)} pts from original`}
                       {deltaWorsened && `↑ ${Math.abs(loadDelta)} pts from original`}
                       {deltaStable   && 'No change from original'}
@@ -318,20 +318,23 @@ export default function DashboardUI({
         </div>
 
         {/* ROW 3: SENSORY PROFILE + NEURO INSIGHTS */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <div className="lg:col-span-2 glass-panel p-8 rounded-3xl relative overflow-hidden border border-[#c9ccbb]/10 min-h-[400px]">
-            <div className="flex justify-between items-start mb-6">
+        {/* lg:items-stretch ensures both columns grow to match the taller sibling */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 lg:items-stretch">
+          <div className="lg:col-span-2 glass-panel p-6 md:p-8 rounded-3xl relative overflow-hidden border border-[#c9ccbb]/10 flex flex-col">
+            <div className="flex justify-between items-start mb-4">
               <div>
                 <h3 className="font-serif text-[#c9ccbb] text-xl mb-1">Your Sensory Profile</h3>
-                <p className="text-sm text-[#c9ccbb]/80">Circadian • Autonomic • Predictive • Sensory • Recovery</p>
+                <p className="text-sm text-[#c9ccbb]/60">Five domains · Lower score = lower friction</p>
               </div>
             </div>
+            {/* flex-1 + min-h allows radar to fill remaining panel height.
+                min-h-[320px] on mobile, grows with container on desktop. */}
             {hasAssessment && radarData.length > 0 ? (
-              <div className="h-[300px] w-full">
+              <div className="flex-1 min-h-[320px] md:min-h-[380px] w-full">
                 <SensoryRadar data={radarData} />
               </div>
             ) : (
-              <div className="h-[300px] w-full flex items-center justify-center">
+              <div className="flex-1 min-h-[320px] w-full flex items-center justify-center">
                 <div className="text-center">
                   <div className="text-[#c9ccbb]/10 text-6xl font-serif mb-3">◎</div>
                   <p className="text-xs text-[#c9ccbb]/20 uppercase tracking-widest">
