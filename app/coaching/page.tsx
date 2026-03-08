@@ -176,7 +176,18 @@ export default function Coaching() {
               const needsProgression = !isModuleOne && isBlueprint && !hasProgressed
               const isCompleted      = mod.id < currentModule
               const isCurrent        = mod.id === currentModule
-              const href             = isModuleOne ? '/coaching/foundations' : `/coaching/module-${mod.id}`
+              const SLUGS: Record<number, string> = {
+                1: 'foundations',
+                2: 'sensory-lighting-dynamics',
+                3: 'acoustic-balance',
+                4: 'colour-psychology',
+                5: 'spatial-flow-layout',
+                6: 'biophilic-design',
+                7: 'air-quality-thermal-comfort',
+                8: 'ergonomics-physical-alignment',
+                9: 'whole-home-integration',
+              }
+              const href = `/coaching/${SLUGS[mod.id]}`
 
               const cardContent = (
                 <div
