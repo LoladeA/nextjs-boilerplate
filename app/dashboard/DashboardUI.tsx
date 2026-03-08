@@ -155,7 +155,7 @@ export default function DashboardUI({
               {hasAssessment ? (
                 <>
                   <div className="text-5xl font-serif text-[#c9ccbb] mb-1">{totalLoad}</div>
-                  <div className="text-xs text-[#c9ccbb]/60 uppercase tracking-widest">Cumulative Strain</div>
+                  <div className="text-xs text-[#c9ccbb]/80 uppercase tracking-widest">Cumulative Strain</div>
                   {hasDelta && (
                     <div className={`flex items-center gap-1.5 mt-2 text-[10px] font-bold uppercase tracking-widest
                       ${deltaImproved ? 'text-[#b5a642]' : deltaWorsened ? 'text-[#b5a642]' : 'text-[#c9ccbb]'}`}>
@@ -170,8 +170,8 @@ export default function DashboardUI({
                 </>
               ) : (
                 <>
-                  <div className="text-5xl font-serif text-[#c9ccbb]/20 mb-1">—</div>
-                  <div className="text-xs text-[#c9ccbb]/30 uppercase tracking-widest">Assessment needed</div>
+                  <div className="text-5xl font-serif text-[#c9ccbb]/70 mb-1">—</div>
+                  <div className="text-xs text-[#c9ccbb]/80 uppercase tracking-widest">Assessment needed</div>
                 </>
               )}
             </div>
@@ -188,12 +188,12 @@ export default function DashboardUI({
               {hasAssessment ? (
                 <>
                   <div className="text-5xl font-serif text-[#c9ccbb] mb-1">{recoveryCapacity}%</div>
-                  <div className="text-xs text-[#c9ccbb]/60 uppercase tracking-widest">{recoveryLabel} Potential</div>
+                  <div className="text-xs text-[#c9ccbb]/80 uppercase tracking-widest">{recoveryLabel} Potential</div>
                 </>
               ) : (
                 <>
-                  <div className="text-5xl font-serif text-[#c9ccbb]/20 mb-1">—</div>
-                  <div className="text-xs text-[#c9ccbb]/30 uppercase tracking-widest">Assessment needed</div>
+                  <div className="text-5xl font-serif text-[#c9ccbb]/60 mb-1">—</div>
+                  <div className="text-xs text-[#c9ccbb]/80 uppercase tracking-widest">Assessment needed</div>
                 </>
               )}
             </div>
@@ -210,12 +210,12 @@ export default function DashboardUI({
               {hasAssessment ? (
                 <>
                   <div className="text-5xl font-serif text-[#c9ccbb] mb-1 capitalize">{sensoryLabel}</div>
-                  <div className="text-xs text-[#c9ccbb]/60 uppercase tracking-widest">Current Stress Load</div>
+                  <div className="text-xs text-[#c9ccbb]/80 uppercase tracking-widest">Current Stress Load</div>
                 </>
               ) : (
                 <>
-                  <div className="text-5xl font-serif text-[#c9ccbb]/20 mb-1">—</div>
-                  <div className="text-xs text-[#c9ccbb]/30 uppercase tracking-widest">Assessment needed</div>
+                  <div className="text-5xl font-serif text-[#c9ccbb]/60 mb-1">—</div>
+                  <div className="text-xs text-[#c9ccbb]/80 uppercase tracking-widest">Assessment needed</div>
                 </>
               )}
             </div>
@@ -241,7 +241,7 @@ export default function DashboardUI({
                 </>
               ) : (
                 <>
-                  <div className="text-4xl font-serif text-[#c9ccbb]/20 mb-2">—</div>
+                  <div className="text-4xl font-serif text-[#c9ccbb]/80 mb-2">—</div>
                   <Link
                     href="/assessments/step0"
                     className="inline-flex items-center gap-2 text-[10px] text-[#b5a642] uppercase tracking-widest hover:text-[#b5a642]/80 transition-colors border border-[#b5a642]/20 px-3 py-1.5 rounded-full hover:bg-[#b5a642]/10"
@@ -266,7 +266,7 @@ export default function DashboardUI({
               {recentLogs && recentLogs.length > 0 && (
                 <div className="text-right">
                   <div className="text-2xl font-serif text-[#c9ccbb]">
-                    {recentLogs[0].mood_score}<span className="text-sm text-[#c9ccbb]/40">/5</span>
+                    {recentLogs[0].mood_score}<span className="text-sm text-[#c9ccbb]/60">/5</span>
                   </div>
                   <div className="text-[10px] text-[#c9ccbb]/80 uppercase tracking-widest">Latest Log</div>
                 </div>
@@ -278,7 +278,7 @@ export default function DashboardUI({
               </div>
             ) : (
               <div className="flex-1 flex items-center justify-center pb-6">
-                <p className="text-xs text-[#c9ccbb]/20 uppercase tracking-widest">
+                <p className="text-xs text-[#c9ccbb]/60 uppercase tracking-widest">
                   Daily logs will appear here
                 </p>
               </div>
@@ -307,9 +307,9 @@ export default function DashboardUI({
                 </>
               ) : (
                 <>
-                  <div className="text-6xl font-serif text-[#c9ccbb]/20 mb-2">—</div>
-                  <div className="text-sm text-[#c9ccbb]/30 mb-4">Not yet established</div>
-                  <div className="text-[10px] text-[#c9ccbb]/30 uppercase tracking-widest">NeuroLoad Score™</div>
+                  <div className="text-6xl font-serif text-[#c9ccbb]/60 mb-2">—</div>
+                  <div className="text-sm text-[#c9ccbb]/70 mb-4">Not yet established</div>
+                  <div className="text-[10px] text-[#c9ccbb]/80 uppercase tracking-widest">NeuroLoad Score™</div>
                 </>
               )}
             </div>
@@ -324,7 +324,7 @@ export default function DashboardUI({
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h3 className="font-serif text-[#c9ccbb] text-xl mb-1">Your Sensory Profile</h3>
-                <p className="text-sm text-[#c9ccbb]/60">Five domains · Lower score = lower friction</p>
+                <p className="text-sm text-[#c9ccbb]/80">Five domains · Lower score = lower friction</p>
               </div>
             </div>
             {/* flex-1 + min-h allows radar to fill remaining panel height.
@@ -336,8 +336,8 @@ export default function DashboardUI({
             ) : (
               <div className="flex-1 min-h-[320px] w-full flex items-center justify-center">
                 <div className="text-center">
-                  <div className="text-[#c9ccbb]/10 text-6xl font-serif mb-3">◎</div>
-                  <p className="text-xs text-[#c9ccbb]/20 uppercase tracking-widest">
+                  <div className="text-[#c9ccbb]/60 text-6xl font-serif mb-3">◎</div>
+                  <p className="text-xs text-[#c9ccbb]/80 uppercase tracking-widest">
                     Complete your assessment to see your radar
                   </p>
                 </div>
