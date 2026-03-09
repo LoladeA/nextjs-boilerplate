@@ -210,16 +210,16 @@ export default function RoomAudit() {
   // MAIN RENDER
   // ---------------------------------------------------------------------------
   return (
-    <div className={`min-h-screen bg-[#1b270e] font-sans selection:bg-[#b5a642] selection:text-[#1b270e] transition-all duration-500 ${!isBlueprint ? "pointer-events-none" : ""}`}>
-      {/* PAGE CONTENT — blurred when explainer is open for non-Blueprint users */}
-      <div
-        className="transition-all duration-500"
-        style={{
-          filter:     showExplainer ? 'blur(3px) brightness(0.45)' : 'none',
-          transform:  showExplainer ? 'scale(1.01)' : 'scale(1)',
-          pointerEvents: showExplainer ? 'none' : 'auto',
-        }}
-      >
+    <>
+    {/* PAGE — blurred and non-interactive when explainer is open */}
+    <div
+      className="min-h-screen bg-[#1b270e] font-sans selection:bg-[#b5a642] selection:text-[#1b270e] transition-all duration-500"
+      style={{
+        filter:        showExplainer ? 'blur(4px) brightness(0.55)' : 'none',
+        transform:     showExplainer ? 'scale(1.01)' : 'scale(1)',
+        pointerEvents: showExplainer ? 'none' : 'auto',
+      }}
+    >
       <Sidebar />
       <div className="md:ml-64 min-h-screen p-6 md:p-12">
         <div className="max-w-4xl mx-auto">
@@ -503,10 +503,10 @@ export default function RoomAudit() {
         </div>
       </div>
 
-      </div>{/* end blur wrapper */}
+    </div>{/* end page blur div */}
 
       {/* -------------------------------------------------------------------- */}
-      {/* MODALS                                                                */}
+      {/* MODALS — outside blur div so pointer-events always work              */}
       {/* -------------------------------------------------------------------- */}
       <AnimatePresence>
 
@@ -517,8 +517,8 @@ export default function RoomAudit() {
             — the modal is their entry point, not an interruptive overlay. */}
         {showExplainer && (
           <>
-            {/* Dark scrim — sits between blurred page and modal */}
-            <div className="fixed inset-0 z-[99] bg-[#000]/50 backdrop-blur-[2px]" />
+            {/* Scrim — deep green tint between blurred page and modal */}
+            <div className="fixed inset-0 z-[99] bg-[#1b270e]/30" />
             <RoomAuditExplainer onClose={() => { if (isBlueprint) setShowExplainer(false) }} />
           </>
         )}
@@ -583,6 +583,6 @@ export default function RoomAudit() {
         )}
 
       </AnimatePresence>
-    </div>
+    </>
   )
 }
