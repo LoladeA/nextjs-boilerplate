@@ -9,6 +9,18 @@ import {
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
+import RoomAuditExplainer from '@/components/RoomAuditExplainer'
+
+const [showExplainer, setShowExplainer] = useState(false)
+
+// In your page header, next to the title:
+<button onClick={() => setShowExplainer(true)}>
+  <HelpCircle size={20} className="text-[#b5a642]/60 hover:text-[#b5a642]" />
+</button>
+
+{showExplainer && (
+  <RoomAuditExplainer onClose={() => setShowExplainer(false)} />
+)}
 
 // =============================================================================
 // DOMAIN METADATA
