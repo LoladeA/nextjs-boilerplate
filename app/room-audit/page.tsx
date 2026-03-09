@@ -516,11 +516,7 @@ export default function RoomAudit() {
             onClose for non-Blueprint does nothing (they cannot dismiss without upgrading)
             — the modal is their entry point, not an interruptive overlay. */}
         {showExplainer && (
-          <>
-            {/* Scrim — deep green tint between blurred page and modal */}
-            <div className="fixed inset-0 z-[99] bg-[#c9ccbb]/5" />
-            <RoomAuditExplainer onClose={() => { if (isBlueprint) setShowExplainer(false) }} />
-          </>
+          <RoomAuditExplainer onClose={() => { if (isBlueprint) setShowExplainer(false) }} />
         )}
 
         {/* DETAILED TECHNICAL MANUAL — triggered by results footer link */}
