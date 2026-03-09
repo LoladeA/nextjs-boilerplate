@@ -518,7 +518,7 @@ export default function RoomAudit() {
         {showExplainer && (
           <>
             {/* Scrim — deep green tint between blurred page and modal */}
-            <div className="fixed inset-0 z-[99] bg-[#1b270e]/30" />
+            <div className="fixed inset-0 z-[99] bg-[#1b270e]/5" />
             <RoomAuditExplainer onClose={() => { if (isBlueprint) setShowExplainer(false) }} />
           </>
         )}
