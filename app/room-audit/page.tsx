@@ -108,16 +108,24 @@ export default function RoomAudit() {
         const res = await fetch('/api/subscription-status')
         if (res.ok) {
           const data = await res.json()
-          setIsBlueprint(data.tier === 'blueprint')
+          const blueprintAccess = data.tier === 'blueprint'
+          setIsBlueprint(blueprintAccess)
+          if (!blueprintAccess) setShowExplainer(true)
         }
       } catch {
         setIsBlueprint(false)
+        setShowExplainer(true)
       } finally {
         setLoading(false)
       }
     }
     validateAccess()
   }, [supabase])
+
+  // Auto-open explainer for non-Blueprint users — must live before any conditional returns
+  useEffect(() => {
+    if (!loading && !isBlueprint) setShowExplainer(true)
+  }, [loading, isBlueprint])
 
   // ---------------------------------------------------------------------------
   // FILE SELECTION
@@ -195,12 +203,6 @@ export default function RoomAudit() {
       <Loader2 className="animate-spin text-[#b5a642]" size={32} />
     </div>
   )
-
-  // Non-Blueprint users see the page blurred behind the explainer modal.
-  // Auto-open the explainer on mount for unsubscribed users.
-  useEffect(() => {
-    if (!loading && !isBlueprint) setShowExplainer(true)
-  }, [loading, isBlueprint])
 
   const isAnalysing = status === 'uploading' || status === 'processing'
 
