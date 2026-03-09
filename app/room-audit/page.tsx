@@ -9,7 +9,7 @@ import {
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import RoomAuditExplainer from '@/components/RoomAuditExplainer'
+import RoomAuditExplainer from '@/app/components/RoomAuditExplainer'
 
 // =============================================================================
 // DOMAIN METADATA
