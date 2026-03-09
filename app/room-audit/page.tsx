@@ -11,17 +11,6 @@ import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import RoomAuditExplainer from '@/components/RoomAuditExplainer'
 
-const [showExplainer, setShowExplainer] = useState(false)
-
-// In your page header, next to the title:
-<button onClick={() => setShowExplainer(true)}>
-  <HelpCircle size={20} className="text-[#b5a642]/60 hover:text-[#b5a642]" />
-</button>
-
-{showExplainer && (
-  <RoomAuditExplainer onClose={() => setShowExplainer(false)} />
-)}
-
 // =============================================================================
 // DOMAIN METADATA
 // =============================================================================
@@ -84,25 +73,26 @@ export default function RoomAudit() {
 
   // ---------------------------------------------------------------------------
   // ACCESS CONTROL
-  // Room Audit is a Blueprint-only feature.
-  // Uses /api/subscription-status for consistency with all other gated pages.
   // ---------------------------------------------------------------------------
   const [loading, setLoading]         = useState(true)
   const [isBlueprint, setIsBlueprint] = useState(false)
 
   // Scan state
-  const [selectedRoom, setSelectedRoom]   = useState('Living Room')
-  const [previewUrl, setPreviewUrl]       = useState<string | null>(null)
-  const [file, setFile]                   = useState<File | null>(null)
-  const [manualLux, setManualLux]         = useState<string>('')
+  const [selectedRoom, setSelectedRoom]       = useState('Living Room')
+  const [previewUrl, setPreviewUrl]           = useState<string | null>(null)
+  const [file, setFile]                       = useState<File | null>(null)
+  const [manualLux, setManualLux]             = useState<string>('')
   const [acousticContext, setAcousticContext] = useState<'hard' | 'mixed' | 'soft' | ''>('')
 
   // Flow state
-  const [status, setStatus]             = useState<'idle' | 'uploading' | 'processing' | 'success'>('idle')
-  const [result, setResult]             = useState<any>(null)
-  const [errorMsg, setErrorMsg]         = useState<string | null>(null)
-  const [loadingText, setLoadingText]   = useState(orchestrationStages[0])
-  const [isManualOpen, setIsManualOpen] = useState(false)
+  const [status, setStatus]           = useState<'idle' | 'uploading' | 'processing' | 'success'>('idle')
+  const [result, setResult]           = useState<any>(null)
+  const [errorMsg, setErrorMsg]       = useState<string | null>(null)
+  const [loadingText, setLoadingText] = useState(orchestrationStages[0])
+
+  // Modal state
+  const [isManualOpen, setIsManualOpen]     = useState(false)  // detailed technical manual
+  const [showExplainer, setShowExplainer]   = useState(false)  // orientation explainer (? icon)
 
   // ---------------------------------------------------------------------------
   // ACCESS VALIDATION
@@ -113,10 +103,8 @@ export default function RoomAudit() {
         const { data: { user }, error: userError } = await supabase.auth.getUser()
         if (userError || !user) { setIsBlueprint(false); setLoading(false); return }
 
-        // God mode — internal testing
         if (user.email === 'christchilde@gmail.com') { setIsBlueprint(true); setLoading(false); return }
 
-        // Use the subscription-status API — single source of truth for tier resolution
         const res = await fetch('/api/subscription-status')
         if (res.ok) {
           const data = await res.json()
@@ -208,49 +196,40 @@ export default function RoomAudit() {
     </div>
   )
 
-  // ---------------------------------------------------------------------------
-  // BLUEPRINT GATE
-  // Core subscribers see a clear explanation of what Blueprint adds.
-  // Free users see the general upgrade prompt.
-  // ---------------------------------------------------------------------------
-  if (!isBlueprint) return (
-    <div className="min-h-screen bg-[#1b270e] font-sans flex flex-col items-center justify-center text-center p-12">
-      <div className="w-16 h-16 rounded-full bg-[#b5a642]/10 border border-[#b5a642]/30 flex items-center justify-center mb-6">
-        <Lock size={28} className="text-[#b5a642]" />
-      </div>
-      <p className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-3">Blueprint Feature</p>
-      <h2 className="text-2xl font-serif text-[#c9ccbb] mb-4 max-w-sm leading-snug">
-        See exactly how your space is impacting your nervous system
-      </h2>
-      <p className="text-[#c9ccbb]/80 mb-8 max-w-sm leading-relaxed text-sm">
-        The Room Audit scans your space across six neural domains: Amygdala Regulation, Vagal Coherence, Circadian Alignment, and more; and returns structural directives your body will respond to. This feature is part of the Blueprint programme.
-      </p>
-      <Link
-        href="/upgrade"
-        className="px-8 py-3 bg-[#b5a642] text-[#1b270e] rounded-full font-bold text-xs uppercase tracking-widest hover:bg-white transition-all"
-      >
-        Upgrade to Blueprint
-      </Link>
-    </div>
-  )
+  // Non-Blueprint users see the page blurred behind the explainer modal.
+  // Auto-open the explainer on mount for unsubscribed users.
+  useEffect(() => {
+    if (!loading && !isBlueprint) setShowExplainer(true)
+  }, [loading, isBlueprint])
 
   const isAnalysing = status === 'uploading' || status === 'processing'
 
   // ---------------------------------------------------------------------------
-  // MAIN RENDER — unchanged from original
+  // MAIN RENDER
   // ---------------------------------------------------------------------------
   return (
-    <div className="min-h-screen bg-[#1b270e] font-sans selection:bg-[#b5a642] selection:text-[#1b270e]">
+    <div className={`min-h-screen bg-[#1b270e] font-sans selection:bg-[#b5a642] selection:text-[#1b270e] transition-all duration-500 ${!isBlueprint ? "pointer-events-none" : ""}`}>
+      {/* PAGE CONTENT — blurred when explainer is open for non-Blueprint users */}
+      <div
+        className="transition-all duration-500"
+        style={{
+          filter:     showExplainer ? 'blur(3px) brightness(0.45)' : 'none',
+          transform:  showExplainer ? 'scale(1.01)' : 'scale(1)',
+          pointerEvents: showExplainer ? 'none' : 'auto',
+        }}
+      >
       <Sidebar />
       <div className="md:ml-64 min-h-screen p-6 md:p-12">
         <div className="max-w-4xl mx-auto">
 
+          {/* PAGE HEADER */}
           <div className="mb-10 flex justify-between items-start">
             <div>
               <h1 className="text-4xl font-serif text-[#c9ccbb] mb-2 flex items-center gap-4">
                 Environmental Audit
+                {/* ? icon — opens RoomAuditExplainer orientation modal */}
                 <button
-                  onClick={() => setIsManualOpen(true)}
+                  onClick={() => setShowExplainer(true)}
                   className="text-[#b5a642]/60 hover:text-[#b5a642] transition-colors p-2 rounded-full hover:bg-[#b5a642]/10"
                 >
                   <HelpCircle size={22} />
@@ -499,6 +478,14 @@ export default function RoomAudit() {
                       ))}
                     </ul>
                   </div>
+
+                  {/* DETAILED MANUAL LINK — sits naturally after results */}
+                  <button
+                    onClick={() => setIsManualOpen(true)}
+                    className="w-full pt-4 border-t border-[#c9ccbb]/8 text-[#c9ccbb]/40 hover:text-[#b5a642] text-[10px] font-bold uppercase tracking-widest transition-colors text-center"
+                  >
+                    How the analysis engine works →
+                  </button>
                 </div>
               )}
 
@@ -514,8 +501,27 @@ export default function RoomAudit() {
         </div>
       </div>
 
-      {/* MANUAL MODAL — unchanged */}
+      </div>{/* end blur wrapper */}
+
+      {/* -------------------------------------------------------------------- */}
+      {/* MODALS                                                                */}
+      {/* -------------------------------------------------------------------- */}
       <AnimatePresence>
+
+        {/* ORIENTATION EXPLAINER
+            For Blueprint users: triggered by ? icon or results footer link.
+            For non-Blueprint users: auto-opens on mount with page blurred behind it.
+            onClose for non-Blueprint does nothing (they cannot dismiss without upgrading)
+            — the modal is their entry point, not an interruptive overlay. */}
+        {showExplainer && (
+          <>
+            {/* Dark scrim — sits between blurred page and modal */}
+            <div className="fixed inset-0 z-[99] bg-[#000]/50 backdrop-blur-[2px]" />
+            <RoomAuditExplainer onClose={() => { if (isBlueprint) setShowExplainer(false) }} />
+          </>
+        )}
+
+        {/* DETAILED TECHNICAL MANUAL — triggered by results footer link */}
         {isManualOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#000]/80 backdrop-blur-sm p-4">
             <motion.div
@@ -573,6 +579,7 @@ export default function RoomAudit() {
             </motion.div>
           </div>
         )}
+
       </AnimatePresence>
     </div>
   )
