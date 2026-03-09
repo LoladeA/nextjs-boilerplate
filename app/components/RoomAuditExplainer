@@ -12,38 +12,35 @@ interface RoomAuditExplainerProps {
 const screens = [
   {
     index: 0,
-    eyebrow: 'How The Room Audit Works',
-    headline: "You already know\nwhich room isn't supporting you.",
+    eyebrow: 'What The Room Audit Is',
+    headline: 'Your data, made\nvisible in your space.',
     body: [
-      "You don't need to think hard about which room to start with. There is usually one space in a home that costs more than it gives: a room you avoid without being able to fully explain why.",
-      "That is your starting point.",
-      "The Room Audit doesn't ask you to redesign it. It asks you to understand it, and then make one set of targeted, evidence-based changes to the sensory conditions that are generating friction.",
+      "Everything you have logged — your morning tension, your sleep interruptions, your focus levels, your BSFI scores — has been building a picture of how your home is affecting your nervous system.",
+      "The Room Audit is where that picture becomes concrete. It scans one priority room across six neural domains and returns a precise, data-grounded reading of what that space is asking your nervous system to absorb.",
+      "This is not the beginning of the process. It is the moment where the process becomes legible.",
     ],
-    icon: <ScanLine size={15} />,
     footnote: null,
   },
   {
     index: 1,
-    eyebrow: 'The Process',
-    headline: 'Before. Two weeks.\nAfter.',
+    eyebrow: 'The Two-Scan Protocol',
+    headline: 'Scan one.\nFour weeks.\nScan two.',
     body: [
-      "You begin with a before snapshot: your BSFI readings for the period, your environmental measurements for that room, and a brief record of how you actually feel inside it — your cognitive clarity, emotional ease, and physical comfort.",
-      "Over ta month, you make specific, targeted changes. Not aesthetic ones. Functional ones like the light temperature, the acoustic boundary, the thermal comfort, the spatial clarity of what you see first when you enter.",
-      "At the end of four weeks, you take an after snapshot. The platform cross-references it with your logged experience and shows you exactly what shifted, and what produced the shift.",
+      "Each month, you dedicate both scans to one priority room — the space your daily logs and BSFI data most consistently flag as a friction source.",
+      "Your first scan establishes the baseline: what the room is currently asking of your amygdala, your vagal system, your circadian rhythm, and three other neural domains. That score is your starting point.",
+      "Over the following four weeks, your coaching modules give you the targeted interventions. Your neuroflashcards explain the science behind each change. Your daily logs track whether your body is responding. Then your second scan measures what actually shifted.",
     ],
-    icon: <Layers size={15} />,
-    footnote: 'Four weeks is not arbitrary. It is the minimum time required for your nervous system to genuinely recalibrate to a changed environment rather than simply register that something is different.',
+    footnote: 'Two scans per month are allocated to one room deliberately. Splitting scans across multiple rooms fragments the baseline and makes the delta unreadable.',
   },
   {
     index: 2,
-    eyebrow: 'What You Walk Away With',
-    headline: 'A room that works.\nAnd the knowledge to do it again.',
+    eyebrow: 'How The Ecosystem Feeds It',
+    headline: 'The logs, modules,\nand cards do the work.\nThe audit shows it.',
     body: [
-      "Most people change their homes based on how things look. They add, remove, repaint, rearrange — without ever knowing whether the change addressed the thing that was actually draining them.",
-      "The Room Audit closes that loop. Every change you make is tied to a measurable environmental variable. Every shift in how you feel is cross-referenced with the data you logged. You don't have to guess whether it worked. You can see it.",
-      "One room becomes a proof of concept. The second becomes easier. By the third, you are not decorating. You are building a home designed around how you are actually wired.",
+      "Your daily logs are not just a tracking habit — they are the longitudinal evidence base. When your second scan returns a higher alignment score, your logs show you the specific days and conditions that produced it.",
+      "Your coaching modules supply the intervention logic: what to change, in what order, and why it matters neurologically. Your neuroflashcards keep the science accessible between sessions so the changes you make are grounded, not guesswork.",
+      "The Room Audit doesn't tell you what to do. The rest of the platform does that. What the audit does is hold up a mirror — and show you, in measurable terms, that the work you've been doing has changed something real.",
     ],
-    icon: <GitCompare size={15} />,
     footnote: null,
   },
 ]
@@ -69,6 +66,8 @@ export default function RoomAuditExplainer({ onClose }: RoomAuditExplainerProps)
     exit:   (dir: number) => ({ opacity: 0, x: dir > 0 ? -32 : 32 }),
   }
 
+  const icons = [<ScanLine size={15} />, <Layers size={15} />, <GitCompare size={15} />]
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#000]/80 backdrop-blur-sm p-4">
       <motion.div
@@ -78,92 +77,37 @@ export default function RoomAuditExplainer({ onClose }: RoomAuditExplainerProps)
         transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
         className="w-full max-w-lg relative"
       >
-
-        {/* ------------------------------------------------------------------ */}
-        {/* GLASS PANEL                                                          */}
-        {/* Exact values from coaching/page.tsx — isUnlocked card style         */}
-        {/* ------------------------------------------------------------------ */}
         <div
           className="relative rounded-3xl border overflow-hidden"
           style={{
-            background: `
-              linear-gradient(
-                135deg,
-                rgba(181,166,66,0.18) 0%,
-                rgba(181,166,66,0.06) 30%,
-                rgba(0,0,0,0.25)      60%,
-                rgba(181,166,66,0.10) 100%
-              )
-            `,
-            backdropFilter:       'blur(12px) saturate(1.4)',
+            background: 'linear-gradient(135deg, rgba(181,166,66,0.18) 0%, rgba(181,166,66,0.06) 30%, rgba(0,0,0,0.25) 60%, rgba(181,166,66,0.10) 100%)',
+            backdropFilter: 'blur(12px) saturate(1.4)',
             WebkitBackdropFilter: 'blur(12px) saturate(1.4)',
-            borderColor:          'rgba(181,166,66,0.35)',
-            boxShadow: `
-              inset 0  1px 0 rgba(181,166,66,0.30),
-              inset 0 -1px 0 rgba(0,0,0,0.40),
-              inset 1px 0  0 rgba(181,166,66,0.12),
-              0 8px 32px rgba(0,0,0,0.35),
-              0 0   0  1px rgba(181,166,66,0.08)
-            `,
+            borderColor: 'rgba(181,166,66,0.35)',
+            boxShadow: 'inset 0 1px 0 rgba(181,166,66,0.30), inset 0 -1px 0 rgba(0,0,0,0.40), inset 1px 0 0 rgba(181,166,66,0.12), 0 8px 32px rgba(0,0,0,0.35), 0 0 0 1px rgba(181,166,66,0.08)',
           }}
         >
-
-          {/* OVERLAY 1 — top-left gold light catch */}
-          <div
-            className="absolute top-0 left-0 w-48 h-48 pointer-events-none"
-            style={{
-              background: 'radial-gradient(ellipse at top left, rgba(181,166,66,0.22) 0%, transparent 70%)',
-            }}
-          />
-
-          {/* OVERLAY 2 — bottom-right depth shadow */}
-          <div
-            className="absolute bottom-0 right-0 w-56 h-40 pointer-events-none"
-            style={{
-              background: 'radial-gradient(ellipse at bottom right, rgba(0,0,0,0.40) 0%, transparent 70%)',
-            }}
-          />
-
-          {/* OVERLAY 3 — horizontal frosted top-edge shimmer */}
-          <div
-            className="absolute top-0 left-0 right-0 h-px pointer-events-none"
-            style={{
-              background: 'linear-gradient(90deg, transparent 0%, rgba(181,166,66,0.60) 40%, rgba(255,255,255,0.15) 55%, rgba(181,166,66,0.30) 70%, transparent 100%)',
-            }}
-          />
+          {/* OVERLAY 1 */}
+          <div className="absolute top-0 left-0 w-48 h-48 pointer-events-none" style={{ background: 'radial-gradient(ellipse at top left, rgba(181,166,66,0.22) 0%, transparent 70%)' }} />
+          {/* OVERLAY 2 */}
+          <div className="absolute bottom-0 right-0 w-56 h-40 pointer-events-none" style={{ background: 'radial-gradient(ellipse at bottom right, rgba(0,0,0,0.40) 0%, transparent 70%)' }} />
+          {/* OVERLAY 3 */}
+          <div className="absolute top-0 left-0 right-0 h-px pointer-events-none" style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(181,166,66,0.60) 40%, rgba(255,255,255,0.15) 55%, rgba(181,166,66,0.30) 70%, transparent 100%)' }} />
 
           {/* CLOSE */}
-          <button
-            onClick={onClose}
-            className="absolute top-5 right-5 z-20 w-7 h-7 rounded-full flex items-center justify-center text-[#c9ccbb]/30 hover:text-[#b5a642] hover:bg-[#b5a642]/10 transition-all duration-200"
-          >
+          <button onClick={onClose} className="absolute top-5 right-5 z-20 w-7 h-7 rounded-full flex items-center justify-center text-[#c9ccbb]/30 hover:text-[#b5a642] hover:bg-[#b5a642]/10 transition-all duration-200">
             <X size={14} />
           </button>
 
-          {/* PROGRESS DOTS */}
+          {/* DOTS */}
           <div className="absolute top-[22px] left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
             {screens.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => goTo(i)}
-                style={{
-                  borderRadius: 4,
-                  width:        i === current ? 18 : 6,
-                  height:       5,
-                  background:   i === current ? 'rgba(181,166,66,1)' : 'rgba(181,166,66,0.22)',
-                  border:       'none',
-                  cursor:       'pointer',
-                  padding:      0,
-                  transition:   'all 0.3s ease',
-                }}
-              />
+              <button key={i} onClick={() => goTo(i)} style={{ borderRadius: 4, width: i === current ? 18 : 6, height: 5, background: i === current ? 'rgba(181,166,66,1)' : 'rgba(181,166,66,0.22)', border: 'none', cursor: 'pointer', padding: 0, transition: 'all 0.3s ease' }} />
             ))}
           </div>
 
-          {/* ---------------------------------------------------------------- */}
-          {/* CONTENT                                                           */}
-          {/* ---------------------------------------------------------------- */}
-          <div className="relative z-10 px-8 pt-14 pb-6 min-h-[380px] flex flex-col">
+          {/* CONTENT */}
+          <div className="relative z-10 px-8 pt-14 pb-6 min-h-[400px] flex flex-col">
             <AnimatePresence mode="wait" custom={direction}>
               <motion.div
                 key={current}
@@ -175,126 +119,61 @@ export default function RoomAuditExplainer({ onClose }: RoomAuditExplainerProps)
                 transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
                 className="flex-1 flex flex-col"
               >
-
-                {/* EYEBROW — matches coaching page module badge */}
                 <div className="flex items-center gap-2 mb-5">
-                  <span
-                    className="text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full border inline-flex items-center gap-2"
-                    style={{
-                      borderColor: 'rgba(181,166,66,0.40)',
-                      color:       'rgba(181,166,66,1)',
-                      background:  'rgba(181,166,66,0.10)',
-                    }}
-                  >
-                    {screen.icon}
+                  <span className="text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full border inline-flex items-center gap-2" style={{ borderColor: 'rgba(181,166,66,0.40)', color: 'rgba(181,166,66,1)', background: 'rgba(181,166,66,0.10)' }}>
+                    {icons[screen.index]}
                     {screen.eyebrow}
                   </span>
                 </div>
 
-                {/* HEADLINE */}
                 <h2 className="text-[22px] font-serif text-[#c9ccbb] leading-snug mb-5 whitespace-pre-line">
                   {screen.headline}
                 </h2>
 
-                {/* RULE */}
-                <div
-                  className="mb-5"
-                  style={{
-                    width:      28,
-                    height:     1,
-                    background: 'linear-gradient(90deg, rgba(181,166,66,0.60), transparent)',
-                  }}
-                />
+                <div className="mb-5" style={{ width: 28, height: 1, background: 'linear-gradient(90deg, rgba(181,166,66,0.60), transparent)' }} />
 
-                {/* BODY */}
                 <div className="space-y-3 flex-1">
                   {screen.body.map((para, i) => (
-                    <p
-                      key={i}
-                      className="text-xs leading-relaxed"
-                      style={{ color: 'rgba(201,204,187,0.80)' }}
-                    >
-                      {para}
-                    </p>
+                    <p key={i} className="text-xs leading-relaxed" style={{ color: 'rgba(201,204,187,0.80)' }}>{para}</p>
                   ))}
                 </div>
 
-                {/* FOOTNOTE */}
                 {screen.footnote && (
-                  <p
-                    className="mt-5 pt-4 text-[10px] leading-relaxed italic"
-                    style={{
-                      borderTop: '1px solid rgba(181,166,66,0.12)',
-                      color:     'rgba(201,204,187,0.40)',
-                    }}
-                  >
+                  <p className="mt-5 pt-4 text-[10px] leading-relaxed italic" style={{ borderTop: '1px solid rgba(181,166,66,0.12)', color: 'rgba(201,204,187,0.40)' }}>
                     {screen.footnote}
                   </p>
                 )}
-
               </motion.div>
             </AnimatePresence>
           </div>
 
-          {/* ---------------------------------------------------------------- */}
-          {/* FOOTER — matches coaching card footer divider style               */}
-          {/* ---------------------------------------------------------------- */}
-          <div
-            className="relative z-10 px-8 pb-8 pt-5"
-            style={{ borderTop: '1px solid rgba(181,166,66,0.20)' }}
-          >
+          {/* FOOTER */}
+          <div className="relative z-10 px-8 pb-8 pt-5" style={{ borderTop: '1px solid rgba(181,166,66,0.20)' }}>
             {isLast ? (
               <div className="flex flex-col gap-2.5">
-                <Link href="/upgrade" onClick={onClose}>
-                  <button
-                    className="w-full py-3.5 rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all duration-200 hover:bg-white"
-                    style={{
-                      background: 'rgba(181,166,66,1)',
-                      color:      '#1b270e',
-                      boxShadow:  'inset 0 1px 0 rgba(255,255,255,0.15), 0 4px 20px rgba(181,166,66,0.25)',
-                    }}
-                  >
-                    Unlock The Room Audit
-                    <ArrowRight size={13} />
-                  </button>
-                </Link>
-                <button
+                <Link
+                  href="/upgrade"
                   onClick={onClose}
-                  className="w-full py-2.5 text-[10px] font-bold uppercase tracking-widest transition-colors hover:text-[#c9ccbb]/50"
-                  style={{ color: 'rgba(201,204,187,0.28)', background: 'none', border: 'none', cursor: 'pointer' }}
+                  className="w-full py-3.5 rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all duration-200 hover:bg-white"
+                  style={{ background: 'rgba(181,166,66,1)', color: '#1b270e', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.15), 0 4px 20px rgba(181,166,66,0.25)', display: 'flex' }}
                 >
+                  Unlock The Room Audit <ArrowRight size={13} />
+                </Link>
+                <button onClick={onClose} className="w-full py-2.5 text-[10px] font-bold uppercase tracking-widest transition-colors hover:text-[#c9ccbb]/50" style={{ color: 'rgba(201,204,187,0.28)', background: 'none', border: 'none', cursor: 'pointer' }}>
                   Not Yet
                 </button>
               </div>
             ) : (
-              /* PREV / NEXT — matches coaching card footer link style */
               <div className="flex items-center justify-between">
-                <button
-                  onClick={prev}
-                  className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest transition-colors hover:text-[#b5a642]"
-                  style={{
-                    color:         current === 0 ? 'transparent' : 'rgba(201,204,187,0.40)',
-                    background:    'none',
-                    border:        'none',
-                    cursor:        current === 0 ? 'default' : 'pointer',
-                    pointerEvents: current === 0 ? 'none' : 'auto',
-                  }}
-                >
+                <button onClick={prev} className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest transition-colors hover:text-[#b5a642]" style={{ color: current === 0 ? 'transparent' : 'rgba(201,204,187,0.40)', background: 'none', border: 'none', cursor: current === 0 ? 'default' : 'pointer', pointerEvents: current === 0 ? 'none' : 'auto' }}>
                   <ChevronLeft size={13} /> Back
                 </button>
-
-                <div
-                  className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest cursor-pointer transition-colors hover:text-[#b5a642]"
-                  onClick={next}
-                  style={{ color: 'rgba(201,204,187,0.80)' }}
-                >
-                  Continue
-                  <ChevronRight size={13} className="transition-transform duration-300 hover:translate-x-1" />
+                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest cursor-pointer transition-colors hover:text-[#b5a642]" onClick={next} style={{ color: 'rgba(201,204,187,0.80)' }}>
+                  Continue <ChevronRight size={13} />
                 </div>
               </div>
             )}
           </div>
-
         </div>
       </motion.div>
     </div>
