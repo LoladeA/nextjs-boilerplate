@@ -10,19 +10,17 @@ type SubscriptionStatus = {
 }
 
 const CORE_FEATURES = [
-  'Daily friction scores with Direction insights',
-  'The neuroscience behind each daily pattern (Why This Is Happening)',
+  'Daily friction scores with direction insights',
+  'The neuropsychology behind each daily pattern (Why This Is Happening)',
   '14-day environmental pattern synthesis',
   'Neuro Insights: ongoing environmental interpretation',
-  'Morning and evening somatic reframes',
 ]
 
 const BLUEPRINT_FEATURES = [
   'Everything in Core',
-  'Full Room Audit across six neural domains',
+  'Full Room Audit across six neural domains: apply your insights to one priority room a month',
   'Sensory Coaching Modules',
   'Priority practitioner response within 48 hours',
-  'Access to professional consultation booking',
 ]
 
 export default function UpgradePage() {
@@ -148,7 +146,7 @@ export default function UpgradePage() {
               </div>
 
               <p className="text-[#c9ccbb]/70 text-sm leading-relaxed mb-8">
-                The measurement and interpretation ecosystem. Log daily, see your pattern, understand what your home is doing to your body, and get one actionable step every day.
+                The Core tier gives you the intelligence to see what your environment is doing to your nervous system. Log daily, see your pattern, understand what your home is doing to your body, and get actionable insights.
               </p>
 
               <ul className="space-y-3 mb-8">
@@ -209,7 +207,7 @@ export default function UpgradePage() {
               </div>
 
               <p className="text-[#c9ccbb]/70 text-sm leading-relaxed mb-8">
-                The full diagnostic, design, and coaching programme. Your space is audited, your pattern is addressed room by room, and you have direct practitioner access when the work needs a human expert.
+                The Blueprint tier gives you the structured methodology and the professional tools to change your home environment, one room at a time, with measurable results.
               </p>
 
               <ul className="space-y-3 mb-8">
