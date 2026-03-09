@@ -269,9 +269,9 @@ export default function UpgradePage() {
                 <Calendar size={20} className="text-[#c9ccbb]/50" />
               </div>
               <div>
-                <p className="text-[#c9ccbb]/40 text-[10px] font-bold uppercase tracking-widest mb-1">Professional Services</p>
+                <p className="text-[#c9ccbb]/80 text-[10px] font-bold uppercase tracking-widest mb-1">Professional Services</p>
                 <h3 className="text-xl font-serif text-[#c9ccbb] mb-1">Transform your environment</h3>
-                <p className="text-[#c9ccbb]/50 text-sm">
+                <p className="text-[#c9ccbb]/80 text-sm">
                   For clients whose space requires professional hands.
                 </p>
               </div>
@@ -285,10 +285,10 @@ export default function UpgradePage() {
             <div className="px-8 pb-10 border-t border-[#c9ccbb]/5">
               <div className="grid md:grid-cols-2 gap-10 pt-8">
                 <div>
-                  <p className="text-[#c9ccbb]/70 text-sm leading-relaxed mb-4">
+                  <p className="text-[#c9ccbb]/80 text-sm leading-relaxed mb-4">
                     The NeuroDesign Blueprint™ methodology, applied to your physical space. This is where the data your home has been generating becomes a professional brief, and where environmental change becomes permanent.
                   </p>
-                  <p className="text-[#c9ccbb]/50 text-sm leading-relaxed">
+                  <p className="text-[#c9ccbb]/80 text-sm leading-relaxed">
                     Consultations have limited availability. The work that emerges from your 48-hour Q&A conversations often surfaces whether a full professional engagement is the right next step.
                   </p>
                 </div>
@@ -310,7 +310,7 @@ export default function UpgradePage() {
                       href="https://www.lolade-ajai.com/services"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-6 py-3 border border-[#c9ccbb]/20 text-[#c9ccbb]/70 rounded-full text-xs font-bold uppercase tracking-widest hover:border-[#b5a642]/40 hover:text-[#c9ccbb] transition-all"
+                      className="inline-flex items-center gap-2 px-6 py-3 border border-[#c9ccbb]/20 text-[#c9ccbb]/80 rounded-full text-xs font-bold uppercase tracking-widest hover:border-[#b5a642]/40 hover:text-[#c9ccbb] transition-all"
                     >
                       Book a Consultation <ArrowRight size={12} />
                     </a>
@@ -334,13 +334,13 @@ export default function UpgradePage() {
             </div>
           ))}
         </div>
-        <p className="text-[#c9ccbb]/40 text-sm leading-relaxed max-w-lg mx-auto">
+        <p className="text-[#c9ccbb]/80 text-sm leading-relaxed max-w-lg mx-auto">
           You don't need more willpower. You need a space designed for how you're actually wired.
         </p>
         <div className="mt-10">
           <Link
             href="/dashboard"
-            className="text-[#c9ccbb]/30 hover:text-[#c9ccbb] text-[10px] font-bold uppercase tracking-widest transition-colors"
+            className="text-[#c9ccbb]/80 hover:text-[#c9ccbb] text-[10px] font-bold uppercase tracking-widest transition-colors"
           >
             Return to Dashboard
           </Link>
