@@ -23,12 +23,14 @@ export type SensoryAction = {
   instruction: string
   duration?:   string
   toolLink?:   string
+  spotifyLink?: string
 }
 
 export type RitualVariant = {
   tagline:      string
   description:  string
   spotifyLink?: string
+  toolLink?:    string
   steps:        SensoryAction[]
 }
 
@@ -136,6 +138,7 @@ export const RITUALS: Record<string, Ritual> = {
       anchor: {
         tagline: 'Regulation Before Performance.',
         description: "When your system is already taxed before the day has started, activation is the wrong first move. The priority is to discharge residual stress load and re-establish a regulated baseline before asking anything of your nervous system. Stability first. Performance follows.",
+        toolLink: 'https://insig.ht/8UcaqAHTm1b',
         steps: [
           {
             type: 'somatic',
@@ -159,11 +162,12 @@ export const RITUALS: Record<string, Ritual> = {
       seeker: {
         tagline: 'Burn It Off First.',
         description: "For your system, anxiety and restlessness are often the same signal. When the morning arrives with high load, the most direct regulatory tool available to you is physical discharge. Move the stress through the body before attempting any cognitive task.",
+        toolLink: 'https://insig.ht/D7GHJJRTm1b',
         steps: [
           {
             type: 'somatic',
             label: 'Discharge Protocol',
-            instruction: "10–15 minutes of vigorous physical movement — jumping jacks, a brisk walk, stretching with weight. Your nervous system needs to metabolise the stress hormones before it can regulate. This is not optional.",
+            instruction: "10–15 minutes of vigorous physical movement such as jumping jacks, a brisk walk, stretching with weight. Your nervous system needs to metabolise the stress hormones before it can regulate. This is not optional.",
             duration: '15 min'
           },
           {
@@ -180,7 +184,8 @@ export const RITUALS: Record<string, Ritual> = {
       },
       sensor: {
         tagline: 'Zero Demands. Full Containment.',
-        description: "A high-load morning for the Sensor means the sensory bucket arrived full before the day began — often from poor sleep, overnight noise, or emotional residue. Do not attempt to push through. The only productive move is complete decompression before any environmental exposure.",
+        description: "A high-load morning for the Sensor means the sensory bucket arrived full before the day began, often from poor sleep, overnight noise, or emotional residue. Do not attempt to push through. The only productive move is complete decompression before any environmental exposure.",
+        toolLink: 'https://insig.ht/eu6G6KYTm1b',
         steps: [
           {
             type: 'space',
@@ -330,14 +335,16 @@ export const RITUALS: Record<string, Ritual> = {
             type: 'sound',
             label: 'Binaural Theta Reset',
             instruction: "After movement, 10 minutes of Theta binaural beats (4–8Hz) with eyes closed. This pulls the brain from Beta (active/stressed) toward Theta (rest/consolidation) without requiring sleep.",
-            duration: '10 min'
+            duration: '18 min',
+            toolLink: 'https://insig.ht/7mS0eZaUm1b'
           }
         ]
       },
       sensor: {
         tagline: 'Sensory Retreat: Emptying the Afternoon Bucket.',
-        description: "By high-stress afternoon, the Sensor's processing capacity is at or near threshold. Any additional input — no matter how benign — is now experienced as friction. The only effective intervention is complete sensory withdrawal. This is not laziness; it is physiological necessity.",
-        steps: [
+        description: "By high-stress afternoon, the Sensor's processing capacity is at or near threshold. Any additional input, no matter how benign, is now experienced as friction. The only effective intervention is complete sensory withdrawal. This is not laziness; it is physiological necessity.",
+        toolLink: 'https://insig.ht/SGjhihjUm1b',
+          steps: [
           {
             type: 'space',
             label: 'The Retreat Room',
@@ -450,7 +457,7 @@ export const RITUALS: Record<string, Ritual> = {
     variants: {
       anchor: {
         tagline: 'Safety First. Sleep Follows.',
-        description: "When the day has been genuinely dysregulating, attempting a standard wind-down routine is counterproductive — the nervous system is still in threat-assessment mode and will resist the transition. The first priority is to re-establish a physiological sense of safety. Once the threat signal subsides, sleep comes naturally.",
+        description: "When the day has been genuinely dysregulating, attempting a standard wind-down routine is counterproductive. The nervous system is still in threat-assessment mode and will resist the transition. The first priority is to re-establish a physiological sense of safety. Once the threat signal subsides, sleep comes naturally.",
         steps: [
           {
             type: 'somatic',
@@ -466,7 +473,8 @@ export const RITUALS: Record<string, Ritual> = {
           {
             type: 'somatic',
             label: 'Somatic Grounding',
-            instruction: "Lie down. Place one hand on your chest, one on your abdomen. Take 10 slow, deliberate breaths feeling the rise and fall. This body-contact grounding activates interoceptive awareness and anchors attention away from ruminative thought."
+            instruction: "Lie down. Place one hand on your chest, one on your abdomen. Take 10 slow, deliberate breaths feeling the rise and fall. This body-contact grounding activates interoceptive awareness and anchors attention away from ruminative thought.",
+            spotifyLink: 'https://insig.ht/cT2RQ9xUm1b'
           }
         ]
       },
@@ -489,7 +497,8 @@ export const RITUALS: Record<string, Ritual> = {
           {
             type: 'sound',
             label: 'Delta Entrainment',
-            instruction: "Play binaural beats in the Delta range (0.5–4Hz). Unlike Theta, Delta is specifically associated with deep non-REM sleep. The ADHD brain will track the frequency rather than spiral, allowing it to be pulled down rather than fighting the descent."
+            instruction: "Play binaural beats in the Delta range (0.5–4Hz). Unlike Theta, Delta is specifically associated with deep non-REM sleep. The ADHD brain will track the frequency rather than spiral, allowing it to be pulled down rather than fighting the descent.", 
+            spotifyLink: 'https://insig.ht/SbedT0EUm1b'
           }
         ]
       },
