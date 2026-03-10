@@ -3,7 +3,7 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import DashboardUI from './DashboardUI'
 import GuestSync from '../components/GuestSync'
-import { calculateNeuroLoad } from '../utils/scoring-engine' 
+import { calculateNeuroLoad } from '../utils/scoring-engine'
 import { mapEngineToDashboard } from '@/app/lib/neuro-mapper'
 import { shouldShowNudge } from '@/app/lib/baseline-delta-engine'
 
@@ -59,10 +59,6 @@ export default async function Dashboard() {
   const latestSnap    = latestSnapshotRes.data   || null
 
   // --- NO ASSESSMENT YET ---
-  // User is authenticated but has not completed the baseline assessment.
-  // Pass hasAssessment: false — DashboardUI renders the empty state banner
-  // and null-safe metric cards. GuestSync still mounts to catch any
-  // in-flight guest data that may arrive after OAuth redirect.
   if (safeResponses.length === 0) {
     return (
       <div className="min-h-screen bg-[#1b270e]">
@@ -79,6 +75,9 @@ export default async function Dashboard() {
           hasAssessment={false}
           nudge={{ show: false, level: 'none', days_elapsed: 0, label: '', sublabel: '' }}
           loadDelta={null}
+          integrationPattern={null}
+          integrationIndex={null}
+          profileDescriptor={null}
         />
       </div>
     )
@@ -87,8 +86,14 @@ export default async function Dashboard() {
   // --- SCORING ENGINE ---
   const neuroLensAnswer = safeResponses.find((r: any) => r.question_key === 'neuro_lens')?.answer_value || 'None'
 
+  // q_int1, q_int2, q_int3 are numeric (1–5 Likert) — must be in this set
+  // so they are cast to Number before being passed to the engine.
+  // Omitting them caused integration scores to be parsed as strings,
+  // producing NaN in the Integration Index and defaulting every user
+  // to 'integrative' regardless of their actual responses.
   const NUMERIC_KEYS = new Set([
     'energy_tax',
+    'q_int1', 'q_int2', 'q_int3',
     'q5','q6','q7','q8','q9',
     'q10','q11','q12','q13','q14',
     'q15','q16','q17','q18','q19',
@@ -104,7 +109,18 @@ export default async function Dashboard() {
     neuroLensAnswer
   )
 
-  const dashboardProfile = mapEngineToDashboard(engineResult.sensoryProfile)
+  // --- PROFILE MAPPING ---
+  // mapEngineToDashboard now accepts the full NeuroLoadResult so it can
+  // extract integrationProfile metadata alongside the threshold profile.
+  const dashboardProfile = mapEngineToDashboard(engineResult)
+
+  // --- INTEGRATION PROFILE ---
+  // Passed to DashboardUI so the Sensory Profile card and downstream
+  // components surface the full six-profile identity, not just the
+  // three threshold archetypes (Sensor / Seeker / Anchor).
+  const integrationPattern = engineResult.integrationProfile?.integrationPattern ?? null
+  const integrationIndex   = engineResult.integrationProfile?.integrationIndex   ?? null
+  const profileDescriptor  = engineResult.integrationProfile?.profileDescriptor  ?? null
 
   const { finalNeuroLoad, systemState, percentIndices, rawIndices } = engineResult
 
@@ -146,6 +162,9 @@ export default async function Dashboard() {
         hasAssessment={true}
         nudge={nudge}
         loadDelta={loadDelta}
+        integrationPattern={integrationPattern}
+        integrationIndex={integrationIndex}
+        profileDescriptor={profileDescriptor}
       />
     </div>
   )
