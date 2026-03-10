@@ -20,14 +20,16 @@ export default function DashboardUI({
   user, 
   displayName, 
   recentLogs, 
-  totalLoad,       // null when no assessment
-  systemState,     // null when no assessment
+  totalLoad,
+  systemState,
   radarData = [], 
   circadianLoad,
   profile = 'anchor',
   hasAssessment = true,
   nudge,
-  loadDelta
+  loadDelta,
+  integrationPattern,
+  integrationIndex
 }: any) {
   
   const [isGuideOpen, setIsGuideOpen] = useState(false)
@@ -71,8 +73,16 @@ export default function DashboardUI({
   }
   const identityLabel = profileLabels[profile] || 'Anchor'
 
-  // Null-safe data extraction
-  // All values fall back to safe defaults when hasAssessment is false
+  // Integration pattern — readable label for display
+  const integrationLabels: Record<string, string> = {
+    integrative:  'Integrative Pattern',
+    mixed:        'Variable Pattern',
+    accumulative: 'Accumulative Pattern'
+  }
+  const integrationLabel = integrationPattern
+    ? integrationLabels[integrationPattern] ?? integrationPattern
+    : null
+
   const recoveryRaw  = radarData?.find((d: any) => d.subject === 'Recovery')?.A  ?? null
   const sensoryRaw   = radarData?.find((d: any) => d.subject === 'Sensory')?.A   ?? null
   const autonomicRaw = radarData?.find((d: any) => d.subject === 'Autonomic')?.A ?? null
@@ -88,7 +98,6 @@ export default function DashboardUI({
     : sensoryRaw < 40 ? 'Low'
     : 'Moderate'
 
-  // Delta display
   const hasDelta      = loadDelta !== null && loadDelta !== undefined
   const deltaImproved = hasDelta && loadDelta < 0
   const deltaWorsened = hasDelta && loadDelta > 0
@@ -130,16 +139,7 @@ export default function DashboardUI({
           )}
         </div>
 
-        {/* ── EMPTY STATE BANNER ──────────────────────────────────────────
-            Shown when user is authenticated but has no assessment data.
-            Replaces the nudge banner — both cannot show at the same time.
-        ────────────────────────────────────────────────────────────────── */}
         {!hasAssessment && <EmptyStateBanner />}
-
-        {/* ── UPDATE NUDGE BANNER ─────────────────────────────────────────
-            Only shown to users who have completed their baseline and are
-            due for a check-in. Never shown alongside EmptyStateBanner.
-        ────────────────────────────────────────────────────────────────── */}
         {hasAssessment && nudge && <UpdateNudgeBanner nudge={nudge} />}
 
         {/* ROW 1: CORE METRICS */}
@@ -222,7 +222,14 @@ export default function DashboardUI({
             <div className="absolute bottom-0 right-0 w-32 h-32 bg-[#b5a642]/10 rounded-full blur-2xl pointer-events-none" />
           </div>
 
-          {/* Sensory Profile */}
+          {/* ─── SENSORY PROFILE CARD ──────────────────────────────────────
+              Now surfaces both axes:
+              - Threshold archetype  "The Sensor"           (large serif)
+              - Integration pattern  "Variable Pattern"     (gold badge)
+              - Profile descriptor   short plain-language   (muted fine text)
+              The descriptor is truncated to one line — full text lives in
+              the SensoryModal which the report page orbital badge opens.
+          ────────────────────────────────────────────────────────────────── */}
           <div className="snap-center shrink-0 w-[85vw] md:w-auto glass-panel p-6 rounded-3xl border border-[#c9ccbb]/10 flex flex-col justify-between min-h-[180px] relative overflow-hidden group">
             <div className="flex justify-between items-start z-10 relative">
               <h3 className="text-[#c9ccbb] font-serif text-xl">Sensory Profile</h3>
@@ -232,6 +239,16 @@ export default function DashboardUI({
               {hasAssessment ? (
                 <>
                   <div className="text-4xl font-serif text-[#c9ccbb] mb-2">The {identityLabel}</div>
+
+                  {/* Integration pattern badge — only renders when data present */}
+                  {integrationLabel && (
+                    <div className="inline-flex items-center gap-1.5 mb-2 px-2 py-0.5 rounded-full border border-[#b5a642]/30 bg-[#b5a642]/8">
+                      <span className="text-[9px] font-bold uppercase tracking-widest text-[#b5a642]">
+                        {integrationLabel}
+                      </span>
+                    </div>
+                  )}
+
                   <Link
                     href="/assessment/update"
                     className="inline-flex items-center gap-2 text-[10px] text-[#b5a642] uppercase tracking-widest hover:text-[#b5a642]/80 transition-colors border border-[#b5a642]/20 px-3 py-1.5 rounded-full hover:bg-[#b5a642]/10"
@@ -318,7 +335,6 @@ export default function DashboardUI({
         </div>
 
         {/* ROW 3: SENSORY PROFILE + NEURO INSIGHTS */}
-        {/* lg:items-stretch ensures both columns grow to match the taller sibling */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 lg:items-stretch">
           <div className="lg:col-span-2 glass-panel p-6 md:p-8 rounded-3xl relative overflow-hidden border border-[#c9ccbb]/10 flex flex-col">
             <div className="flex justify-between items-start mb-4">
@@ -327,8 +343,6 @@ export default function DashboardUI({
                 <p className="text-sm text-[#c9ccbb]/80">Five domains · Lower score = lower friction</p>
               </div>
             </div>
-            {/* flex-1 + min-h allows radar to fill remaining panel height.
-                min-h-[320px] on mobile, grows with container on desktop. */}
             {hasAssessment && radarData.length > 0 ? (
               <div className="flex-1 min-h-[320px] md:min-h-[380px] w-full">
                 <SensoryRadar data={radarData} />
