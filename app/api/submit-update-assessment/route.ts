@@ -4,20 +4,27 @@
 //
 // SERVER-SIDE HANDLER — Update Assessment Submission
 //
-// WHAT THIS DOES:
-//   1. Authenticates the user
-//   2. Fetches their current baseline snapshot (for delta comparison)
-//   3. Fetches their current responses (to reconstruct baseline NeuroLoadResult)
-//   4. Separates anchor responses from delta fields
-//   5. Upserts anchor responses into current_user_responses
-//      (this is what updates the dashboard score automatically)
-//   6. Runs calculateNeuroLoad on the updated responses
-//   7. Runs calculateBaselineDelta against the stored baseline
-//   8. Writes a new 'update' snapshot to assessment_snapshots
-//   9. Returns the delta result + new snapshot id to the client
+// CHANGE LOG (this version):
 //
-// THE CLIENT (update page) then redirects to /results/update/[id]
-// using the snapshot id returned here.
+//   NUMERIC CASTING (Step 7)
+//   All numeric question keys now cast to Number() before being passed to
+//   the scoring engine. Previously, values read from current_user_responses
+//   arrived as strings from Supabase and were passed to the engine uncasted.
+//   q_int1, q_int2, q_int3 added to NUMERIC_KEYS — without this, the
+//   Integration Index produces NaN and every user defaults to 'integrative'.
+//
+//   BASELINE RECONSTRUCTION (Step 8)
+//   integrationProfile added to the reconstructed baseline NeuroLoadResult.
+//   The delta engine reads baselineResult.integrationProfile?.integrationPattern
+//   to detect integration axis shifts between assessments. Without this,
+//   integration_pattern_change was always false regardless of what shifted.
+//   Falls back gracefully when the baseline snapshot pre-dates the new columns
+//   (integration_pattern = NULL) — existing users are unaffected.
+//
+//   SNAPSHOT INSERT (Step 11)
+//   integration_pattern and integration_index now written to the snapshot row.
+//   Required for the delta engine to detect integration axis changes on
+//   subsequent update assessments.
 //
 // =============================================================================
 
@@ -27,6 +34,19 @@ import { NextResponse } from 'next/server'
 import { calculateNeuroLoad } from '@/app/utils/scoring-engine'
 import { extractAnchorResponses, extractDeltaFields } from '@/app/lib/update-assessment-protocol'
 import { calculateBaselineDelta } from '@/app/lib/baseline-delta-engine'
+
+// Keys whose answer_value must be cast to Number before reaching the engine.
+// String values produce NaN in the scoring engine — silently breaking
+// domain scores and the Integration Index.
+const NUMERIC_KEYS = new Set([
+  'energy_tax',
+  'q_int1', 'q_int2', 'q_int3',
+  'q5','q6','q7','q8','q9',
+  'q10','q11','q12','q13','q14',
+  'q15','q16','q17','q18','q19',
+  'q20','q21','q22','q23','q24','q25','q26',
+  'q27','q28','q29','q30','q31','q32','q33'
+])
 
 export async function POST(request: Request) {
   try {
@@ -73,8 +93,6 @@ export async function POST(request: Request) {
 
     // -------------------------------------------------------
     // STEP 4 — FETCH CURRENT BASELINE SNAPSHOT
-    // This is the stored approximation from the migration.
-    // We use it to compute the delta callout on the dashboard.
     // -------------------------------------------------------
 
     const { data: baselineSnapshot, error: snapshotError } = await supabase
@@ -95,10 +113,6 @@ export async function POST(request: Request) {
 
     // -------------------------------------------------------
     // STEP 5 — FETCH ALL CURRENT RESPONSES
-    // We need the full current response set so that questions
-    // NOT re-asked in the update (q5, q7–q10, q12–q18, q20,
-    // q22–q32) still contribute to the engine calculation.
-    // The anchor responses will overwrite their matching keys.
     // -------------------------------------------------------
 
     const { data: currentResponses, error: responsesError } = await supabase
@@ -115,29 +129,40 @@ export async function POST(request: Request) {
 
     // -------------------------------------------------------
     // STEP 6 — MERGE ANCHOR RESPONSES INTO CURRENT RESPONSES
-    // Build a merged response array: start with all current
-    // responses, then overwrite any keys that appear in the
-    // anchor responses. This gives the engine a complete set.
+    // Values from Supabase arrive as strings. Cast numeric keys
+    // here so the engine always receives the correct type.
     // -------------------------------------------------------
 
-    // Build a map of current responses keyed by question_key
     const currentMap = new Map(
       currentResponses.map((r: any) => [
         r.question_key,
-        { question_key: r.question_key, answer: { response: r.answer_value } }
+        {
+          question_key: r.question_key,
+          answer: {
+            response: NUMERIC_KEYS.has(r.question_key)
+              ? Number(r.answer_value)
+              : r.answer_value
+          }
+        }
       ])
     )
 
-    // Overwrite with new anchor values
+    // Overwrite with new anchor values, applying the same numeric cast
     anchorResponses.forEach(r => {
-      currentMap.set(r.question_key, r)
+      currentMap.set(r.question_key, {
+        question_key: r.question_key,
+        answer: {
+          response: NUMERIC_KEYS.has(r.question_key)
+            ? Number(r.answer.response)
+            : r.answer.response
+        }
+      })
     })
 
     const mergedResponses = Array.from(currentMap.values())
 
     // -------------------------------------------------------
     // STEP 7 — RUN THE SCORING ENGINE ON MERGED RESPONSES
-    // This produces the update NeuroLoadResult.
     // -------------------------------------------------------
 
     const neuroLensRaw = currentMap.get('neuro_lens')?.answer?.response || 'None'
@@ -146,33 +171,53 @@ export async function POST(request: Request) {
 
     // -------------------------------------------------------
     // STEP 8 — RECONSTRUCT BASELINE NEUROLOADRESULT
-    // The engine needs a full NeuroLoadResult for the baseline
-    // to run calculateBaselineDelta. We reconstruct it from the
-    // stored snapshot percentIndices (already normalised 0–100).
+    //
+    // integrationProfile is included so the delta engine can detect
+    // integration axis shifts (integrative → accumulative etc.).
+    //
+    // Fallback: baseline snapshots written before the integration columns
+    // were added will have integration_pattern = NULL. In that case we
+    // omit integrationProfile entirely — the delta engine handles undefined
+    // gracefully and integration_pattern_change will be false for that
+    // comparison only. Corrects itself on the next update assessment once
+    // a proper snapshot with integration data exists.
     // -------------------------------------------------------
 
     const baselineResult = {
-      rawIndices:       { cii: 0, ali: 0, pli: 0, stl: 0, rci: 0 }, // not needed for delta
-      percentIndices:   {
+      rawIndices:      { cii: 0, ali: 0, pli: 0, stl: 0, rci: 0 },
+      percentIndices:  {
         cii: baselineSnapshot.cii,
         ali: baselineSnapshot.ali,
         pli: baselineSnapshot.pli,
         stl: baselineSnapshot.stl,
         rci: baselineSnapshot.rci
       },
-      weightedIndices:  { cii: 0, ali: 0, pli: 0, stl: 0, rci: 0 }, // not needed for delta
-      finalNeuroLoad:   baselineSnapshot.neuro_load,
-      systemState:      baselineSnapshot.system_state,
-      interactionFlags: { restorativeDeficit: false, sensoryHypervigilance: false, cognitiveStrain: false },
+      weightedIndices: { cii: 0, ali: 0, pli: 0, stl: 0, rci: 0 },
+      finalNeuroLoad:  baselineSnapshot.neuro_load,
+      systemState:     baselineSnapshot.system_state,
+      interactionFlags: {
+        restorativeDeficit:    false,
+        sensoryHypervigilance: false,
+        cognitiveStrain:       false
+      },
       priorityDomains:  [],
       recoveryModifier: 'neutral' as const,
-      sensoryProfile:   {
+      sensoryProfile: {
         threshold:             'low' as const,
         regulation:            'passive' as const,
         pattern:               (baselineSnapshot.sensory_pattern || 'sensitive') as any,
         blendApplied:          false,
         thresholdDifferential: 0
       },
+      // Integration profile — populated only when the baseline snapshot has
+      // the new columns. NULL-safe: undefined is handled by the delta engine.
+      integrationProfile: baselineSnapshot.integration_pattern
+        ? {
+            integrationPattern:  baselineSnapshot.integration_pattern as 'integrative' | 'mixed' | 'accumulative',
+            integrationIndex:    baselineSnapshot.integration_index ?? 50,
+            profileDescriptor:   ''
+          }
+        : undefined,
       energyTaxBaseline: baselineSnapshot.energy_tax,
       primaryStrain:     'None of the above'
     }
@@ -181,39 +226,34 @@ export async function POST(request: Request) {
     // STEP 9 — CALCULATE THE DELTA
     // -------------------------------------------------------
 
-    // Build delta fields in the format calculateBaselineDelta expects
     const formattedDeltaFields = {
-      cii_delta_self:             Number(deltaFields.cii_delta_self)  || 3,
-      ali_delta_self:             Number(deltaFields.ali_delta_self)  || 3,
-      pli_delta_self:             Number(deltaFields.pli_delta_self)  || 3,
-      stl_delta_self:             Number(deltaFields.stl_delta_self)  || 3,
-      rci_delta_self:             Number(deltaFields.rci_delta_self)  || 3,
+      cii_delta_self:             Number(deltaFields.cii_delta_self)             || 3,
+      ali_delta_self:             Number(deltaFields.ali_delta_self)             || 3,
+      pli_delta_self:             Number(deltaFields.pli_delta_self)             || 3,
+      stl_delta_self:             Number(deltaFields.stl_delta_self)             || 3,
+      rci_delta_self:             Number(deltaFields.rci_delta_self)             || 3,
       subjective_alignment_score: Number(deltaFields.subjective_alignment_score) || 3,
-      env_change_sleep:           deltaFields.env_change_sleep  || [],
-      env_change_day:             deltaFields.env_change_day    || [],
-      life_context_change:        deltaFields.life_context_change || []
+      env_change_sleep:           deltaFields.env_change_sleep                   || [],
+      env_change_day:             deltaFields.env_change_day                     || [],
+      life_context_change:        deltaFields.life_context_change                || []
     }
 
     const deltaReport = calculateBaselineDelta(
-      baselineResult,
+      baselineResult as any,
       updateResult,
       baselineSnapshot.id,
-      'pending', // will be replaced with actual snapshot id after insert
+      'pending',
       formattedDeltaFields
     )
 
     // -------------------------------------------------------
     // STEP 10 — UPSERT ANCHOR RESPONSES INTO current_user_responses
-    // This is what automatically updates the dashboard score.
-    // upsert with onConflict: question_key + user_id means:
-    //   if the row exists → update answer_value
-    //   if it does not   → insert it
     // -------------------------------------------------------
 
     const upsertRows = anchorResponses.map(r => ({
       user_id:      user.id,
       question_key: r.question_key,
-      answer:       { response: r.answer.response }  // JSONB format matching user_responses schema
+      answer:       { response: r.answer.response }
     }))
 
     const { error: upsertError } = await supabase
@@ -230,24 +270,29 @@ export async function POST(request: Request) {
 
     // -------------------------------------------------------
     // STEP 11 — WRITE UPDATE SNAPSHOT TO assessment_snapshots
-    // This records the post-update state for future delta
-    // comparisons and for the dashboard delta callout.
+    //
+    // integration_pattern and integration_index now persisted.
+    // These are the values the delta engine will read as the
+    // 'baseline' on the next update assessment for this user.
     // -------------------------------------------------------
 
     const { data: newSnapshot, error: snapshotInsertError } = await supabase
       .from('assessment_snapshots')
       .insert({
-        user_id:         user.id,
-        snapshot_type:   'update',
-        neuro_load:      updateResult.finalNeuroLoad,
-        cii:             Math.round(updateResult.percentIndices.cii),
-        ali:             Math.round(updateResult.percentIndices.ali),
-        pli:             Math.round(updateResult.percentIndices.pli),
-        stl:             Math.round(updateResult.percentIndices.stl),
-        rci:             Math.round(updateResult.percentIndices.rci),
-        energy_tax:      updateResult.energyTaxBaseline,
-        system_state:    updateResult.systemState,
-        sensory_pattern: updateResult.sensoryProfile.pattern
+        user_id:             user.id,
+        snapshot_type:       'update',
+        neuro_load:          updateResult.finalNeuroLoad,
+        cii:                 Math.round(updateResult.percentIndices.cii),
+        ali:                 Math.round(updateResult.percentIndices.ali),
+        pli:                 Math.round(updateResult.percentIndices.pli),
+        stl:                 Math.round(updateResult.percentIndices.stl),
+        rci:                 Math.round(updateResult.percentIndices.rci),
+        energy_tax:          updateResult.energyTaxBaseline,
+        system_state:        updateResult.systemState,
+        sensory_pattern:     updateResult.sensoryProfile.pattern,
+        // Integration axis — new columns added in migration
+        integration_pattern: updateResult.integrationProfile?.integrationPattern ?? null,
+        integration_index:   updateResult.integrationProfile?.integrationIndex   ?? null
       })
       .select()
       .single()
@@ -261,11 +306,10 @@ export async function POST(request: Request) {
     }
 
     // -------------------------------------------------------
-    // STEP 12 — STORE DELTA REPORT FIELDS ON THE SNAPSHOT
-    // We store the delta fields as JSONB on the snapshot row
-    // so the results page can fetch everything in one query.
-    // This requires a delta_report column on assessment_snapshots
-    // — see the SQL note below.
+    // STEP 12 — STORE DELTA REPORT ON THE SNAPSHOT
+    // Stored as JSONB so the results page can fetch everything
+    // in a single query. Includes integration_pattern_change
+    // and integration_pattern_shift from the updated delta engine.
     // -------------------------------------------------------
 
     const finalDeltaReport = {
@@ -280,17 +324,18 @@ export async function POST(request: Request) {
 
     // -------------------------------------------------------
     // STEP 13 — RETURN TO CLIENT
-    // The update page uses this id to redirect to results.
     // -------------------------------------------------------
 
     return NextResponse.json({
-      success:         true,
-      snapshot_id:     newSnapshot.id,
-      neuro_load:      updateResult.finalNeuroLoad,
-      system_state:    updateResult.systemState,
-      load_delta:      deltaReport.load_delta,
-      load_direction:  deltaReport.load_direction,
-      overall_progress: deltaReport.overall_progress
+      success:                    true,
+      snapshot_id:                newSnapshot.id,
+      neuro_load:                 updateResult.finalNeuroLoad,
+      system_state:               updateResult.systemState,
+      load_delta:                 deltaReport.load_delta,
+      load_direction:             deltaReport.load_direction,
+      overall_progress:           deltaReport.overall_progress,
+      integration_pattern_change: deltaReport.integration_pattern_change,
+      integration_pattern_shift:  deltaReport.integration_pattern_shift
     })
 
   } catch (err) {
