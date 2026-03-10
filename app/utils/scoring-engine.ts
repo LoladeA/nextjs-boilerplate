@@ -33,6 +33,36 @@
 //   7. EXTENDED RETURN — energyTaxBaseline, primaryStrain, blendApplied,
 //      thresholdDifferential added for tracking and UI transparency.
 //
+//   8. INTEGRATION INDEX (this version) —
+//      q_int1, q_int2, q_int3 (Part 0 expansion) score into a new
+//      Integration Index (0–100) representing how the nervous system
+//      handles sensation once it arrives — whether it resolves
+//      (integrative) or accumulates (accumulative).
+//
+//      The Integration Index acts as a profile modifier on the existing
+//      BSFI weight system. It does not replace or override any existing
+//      domain score. It reweights how scores are interpreted:
+//
+//        Accumulative pattern → PLI and RCI weights increase (consistency
+//        and recovery become structurally non-negotiable, not periodic)
+//        → ALI flagged as more serious at mid-range (system is already
+//        carrying more than the score alone suggests)
+//
+//        Integrative pattern  → No weight change. Recovery windows work.
+//        Prescriptions focus on timing and quality, not structural redesign.
+//
+//        Mixed pattern        → Modest PLI/RCI weight increase (0.5× the
+//        accumulative boost) to acknowledge variability without overstating it.
+//
+//   9. PROFILE DESCRIPTOR — six plain-language profile strings derived from
+//      the combination of sensoryPattern (threshold × regulation) and
+//      integrationPattern. Returned as profileDescriptor for direct UI use.
+//      No clinical labels are used in any descriptor string.
+//
+//  10. NEURO_LENS NORMALISATION PATCH — 'None / Unsure' now correctly maps
+//      to 'neurotypical'. Previously only 'None' was matched; the updated
+//      assessmentProtocol returns 'None / Unsure' for undiagnosed users.
+//
 // =============================================================================
 
 // ==============================
@@ -59,14 +89,34 @@ const INTERACTION_THRESHOLD = 60
 const MAX_INTERACTION_AMPLIFIER = 0.12
 
 // Threshold differential below which neuro_lens tiebreaks the pattern.
-// At ≤20 points the two candidate scores are too close to resolve from
-// scale responses alone — neurotype becomes the deciding signal.
 const BLEND_AMBIGUITY_THRESHOLD = 20
 
-// Maximum energy_tax modifier: ±0.08 (8 points at 0% or 100% energy_tax).
-// Centred at 50% (neutral). Kept deliberately gentle so Part 0 self-report
-// sensitises the score without dominating it.
-const ENERGY_TAX_SCALE = 625  // (100-50)/0.08 = 625
+// Maximum energy_tax modifier: ±0.08
+const ENERGY_TAX_SCALE = 625
+
+// Integration Index thresholds
+// 0–35:  Integrative — sensation resolves with recovery
+// 36–64: Mixed       — context-dependent; some environments tip accumulative
+// 65–100: Accumulative — sensation layers and persists
+const INTEGRATION_INTEGRATIVE_MAX  = 35
+const INTEGRATION_ACCUMULATIVE_MIN = 65
+
+// Integration pattern weight modifiers — applied additively to BASE_WEIGHTS
+// after strain and neuro_lens adjustments (Step 5c).
+//
+// Accumulative: PLI and RCI are structurally non-negotiable for a nervous
+// system that cannot quickly resolve environmental inconsistency or recover
+// from accumulated load.
+//
+// Mixed: Half the accumulative boost — acknowledges variability without
+// treating the profile as fully accumulative.
+//
+// Integrative: No adjustment — existing weights are calibrated for this pattern.
+const INTEGRATION_WEIGHT_BOOST = {
+  accumulative: { pli: 0.20, rci: 0.20 },
+  mixed:        { pli: 0.10, rci: 0.10 },
+  integrative:  {}
+}
 
 // ==============================
 // 2. TYPES
@@ -80,13 +130,15 @@ export type NeuroLens =
   | 'spd'
   | 'neurotypical'
 
-export type SensoryThreshold = 'low' | 'high'
-export type RegulationStyle  = 'active' | 'passive'
-export type SensoryPattern   =
+export type SensoryThreshold    = 'low' | 'high'
+export type RegulationStyle     = 'active' | 'passive'
+export type SensoryPattern      =
   | 'sensitive'
   | 'avoider'
   | 'low_registration'
   | 'seeker'
+
+export type IntegrationPattern  = 'integrative' | 'mixed' | 'accumulative'
 
 export interface DomainScores {
   cii: number
@@ -100,15 +152,22 @@ export interface InteractionFlags {
   restorativeDeficit:       boolean
   sensoryHypervigilance:    boolean
   cognitiveStrain:          boolean
+  // New: mid-range ALI flagged as more serious for accumulative profiles
+  accumulativeALIFlag:      boolean
 }
 
 export interface SensoryProfile {
-  threshold:            SensoryThreshold
-  regulation:           RegulationStyle
-  pattern:              SensoryPattern
-  // Blend metadata
-  blendApplied:         boolean  // true when neuro_lens tiebreak was used
-  thresholdDifferential: number  // absolute score gap (0–100); low = ambiguous
+  threshold:             SensoryThreshold
+  regulation:            RegulationStyle
+  pattern:               SensoryPattern
+  blendApplied:          boolean
+  thresholdDifferential: number
+}
+
+export interface IntegrationProfile {
+  integrationIndex:    number           // 0–100
+  integrationPattern:  IntegrationPattern
+  profileDescriptor:   string           // plain-language, no clinical labels
 }
 
 export interface NeuroLoadResult {
@@ -121,9 +180,10 @@ export interface NeuroLoadResult {
   priorityDomains:      { id: keyof DomainScores; score: number }[]
   recoveryModifier:     'protective' | 'compounding' | 'neutral'
   sensoryProfile:       SensoryProfile
-  // Part 0 outputs — stored for tracking and modifier application
-  energyTaxBaseline:    number   // raw 0–100 slider value
-  primaryStrain:        string   // raw choice string
+  integrationProfile:   IntegrationProfile
+  // Part 0 outputs
+  energyTaxBaseline:    number
+  primaryStrain:        string
 }
 
 // ==============================
@@ -131,7 +191,7 @@ export interface NeuroLoadResult {
 // ==============================
 
 const DOMAIN_QUESTIONS: Record<keyof DomainScores, string[]> = {
-  cii: ['q5', 'q6', 'q7', 'q8', 'q9'],
+  cii: ['q5',  'q6',  'q7',  'q8',  'q9'],
   ali: ['q10', 'q11', 'q12', 'q13', 'q14'],
   pli: ['q15', 'q16', 'q17', 'q18', 'q19'],
   stl: ['q20', 'q21', 'q22', 'q23', 'q24', 'q25', 'q26'],
@@ -140,21 +200,13 @@ const DOMAIN_QUESTIONS: Record<keyof DomainScores, string[]> = {
 
 const REVERSE_SCORED = new Set(['q33'])
 
+// Integration questions — all score in the same direction.
+// High agreement = accumulative pattern. No reverse scoring needed.
+const INTEGRATION_QUESTIONS = ['q_int1', 'q_int2', 'q_int3']
+
 // ==============================
 // 4. PRIMARY STRAIN → DOMAIN PRE-WEIGHTS
 // ==============================
-//
-// Additive boosts applied to BASE_WEIGHTS before neuro_lens adjustment.
-// Modest (max +0.08 per domain) so scale responses can override them.
-// Intentionally additive (not multiplicative) — primary_strain is a
-// transient self-reported state, not a structural trait.
-//
-// Mapping rationale:
-//   Mental overload    → PLI (spatial/cognitive clarity) + ALI (vigilance)
-//   Physical tension   → ALI (stress axis is the primary physical load domain)
-//   Emotional volatility → ALI (nervous system activation) + RCI (recovery)
-//   Sleep disruption   → CII (circadian rhythm) + RCI (recovery deficit)
-//   None of the above  → no adjustment
 
 const STRAIN_DOMAIN_BOOST: Record<string, Partial<Record<keyof DomainScores, number>>> = {
   'Mental overload':      { pli: 0.08, ali: 0.05 },
@@ -167,26 +219,81 @@ const STRAIN_DOMAIN_BOOST: Record<string, Partial<Record<keyof DomainScores, num
 // ==============================
 // 5. NEURO_LENS → THRESHOLD BIAS
 // ==============================
-//
-// Clinical associations used in blend tiebreaker (Step 6).
-// Only applied when thresholdDifferential ≤ BLEND_AMBIGUITY_THRESHOLD.
-//
-// HSP:    consistently associated with lower neurological threshold
-// Autism: frequently associated with lower threshold (hyper-sensitivity pattern)
-// ADHD:   frequently associated with higher threshold (sensory seeking)
-// SPD:    too heterogeneous for a directional bias — no assignment
-// Dyslexia: sensory threshold not a primary characteristic — no assignment
-// neurotypical: no bias applied
 
 const LENS_THRESHOLD_BIAS: Partial<Record<NeuroLens, SensoryThreshold>> = {
   hsp:    'low',
   autism: 'low',
   adhd:   'high',
-  // spd, dyslexia, neurotypical: intentionally unset
 }
 
 // ==============================
-// 6. HELPERS
+// 6. PROFILE DESCRIPTORS
+// ==============================
+//
+// Six plain-language profile strings. No clinical labels.
+// Keyed by `${sensoryPattern}__${integrationPattern}`.
+//
+// Sensory patterns:
+//   sensitive        = low threshold + passive regulation
+//   avoider          = low threshold + active regulation
+//   low_registration = high threshold + passive regulation
+//   seeker           = high threshold + active regulation
+//
+// Integration patterns: integrative | mixed | accumulative
+
+const PROFILE_DESCRIPTORS: Record<string, string> = {
+
+  // LOW THRESHOLD + INTEGRATIVE
+  'sensitive__integrative':
+    'You receive the world deeply, with sound, light, texture and atmosphere all landing with intensity. Your nervous system is designed to sense everything. With the right recovery conditions, it can also release and reset. Your home needs to be a genuine space for restoration, not just a quieter version of everywhere else.',
+
+  // LOW THRESHOLD + MIXED
+  'sensitive__mixed':
+    'The way you experience the world depends on the day, the season, and the cumulative weight of what came before. Some environments quickly restore you. Others leave a residue that takes time to clear away. Your home needs to consistently provide a low enough load to give you a reliable baseline with genuine recovery built in, rather than assumed.',
+
+  // LOW THRESHOLD + ACCUMULATIVE
+  'sensitive__accumulative':
+    'You experience the world deeply, and what you experience tends to stay with you. The effects of a difficult morning can still be present in your body by evening. Your environment is not just a backdrop; it is a constant stimulus to which your nervous system is always responding. Consistency and predictability in your surroundings are not just preferences. They are a biological requirement.',
+
+  // LOW THRESHOLD + INTEGRATIVE (active regulation)
+  'avoider__integrative':
+    'You are finely attuned to your surroundings and have learnt how to shield yourself from anything that might overwhelm you. When the conditions are right, you recover well. Your home should provide a space where you don not need to constantly protect yourself, so that the energy you currently spend managing your exposure can be redirected towards enjoying it.',
+
+  // LOW THRESHOLD + MIXED (active regulation)
+  'avoider__mixed':
+    'Although you are finely attuned to your environment and actively manage your exposure, the effectiveness of this management can vary. Some days, even the strategies that usually work well can feel insufficient. This is not an inconsistency on your part. It reflects a nervous system whose capacity to integrate changes with load. Your home needs to provide more protection so that you provide less.',
+
+  // LOW THRESHOLD + ACCUMULATIVE (active regulation)
+  'avoider__accumulative':
+    'You are acutely aware of what is expected of you in your environment, and you work hard to manage that. However, this effort comes at a cost, and when one thing has not fully cleared before the next arrives, the management load increases. Your home needs to be a space that is already tailored to you, providing structural protection without requiring effort.',
+
+  // HIGH THRESHOLD + INTEGRATIVE
+  'low_registration__integrative':
+    'Your nervous system is steady and grounding. You do not easily register environmental changes, which gives you natural resilience. However, this also means that you may not notice the slow accumulation of sensory friction until it has already impacted your mood or ability. Your home needs to provide genuine anchoring, not just familiarity.',
+
+  // HIGH THRESHOLD + MIXED
+  'low_registration__mixed':
+    'Your nervous system usually processes a wide range of inputs without any visible disruption. But there are conditions [usually cumulative ones, or particular channels] where that steadiness gives way. You may not always be able to identify what caused the shift. Your home needs to provide reliable anchors for those moments, ensuring the baseline remains stable even when the load is not.',
+
+  // HIGH THRESHOLD + ACCUMULATIVE
+  'low_registration__accumulative':
+    'Your threshold appears to be high, as you do not seem bothered by small things. However, this may be because your system is already under significant strain, with little capacity for new input. What looks like resilience from the outside may actually be a system that is already full. Your priority is not managing stimulation. It is reducing your fundamental load.',
+
+  // HIGH THRESHOLD + INTEGRATIVE (active regulation — seeks stimulation, processes it)
+  'seeker__integrative':
+    'Your nervous system needs stimulation to feel present and focused; low stimulation leaves you feeling listless rather than calm. You are drawn to contrast and variety, and when you find the right level, you process it well and move on. Your home needs intelligent variety and enough stimulation to keep you engaged without becoming overwhelming.',
+
+  // HIGH THRESHOLD + MIXED (active regulation)
+  'seeker__mixed':
+    'Your nervous system seeks contrast and stimulation in order to feel alive, but the line between activation and overstimulation shifts depending on how much you are already carrying. On a good day, the same environment that energises you can feel overwhelming when you are under pressure. Your home needs to offer genuine variety that you can adjust, rather than a fixed level of stimulation imposed on a system in flux.',
+
+  // HIGH THRESHOLD + ACCUMULATIVE (active regulation)
+  'seeker__accumulative':
+    'Your nervous system seeks contrast, but struggles when it arrives unpredictably or is forced upon you. You may find yourself craving stimulation one moment, then feeling overwhelmed the next. This is not inconsistency. Your system needs to choose the contrast itself, rather than having it arrive uninvited. It is predictable, self-directed environmental change that regulates you, not more or less stimulation, but stimulation on your terms.',
+}
+
+// ==============================
+// 7. HELPERS
 // ==============================
 
 const reverseScore = (val: number) => 6 - val
@@ -194,11 +301,10 @@ const reverseScore = (val: number) => 6 - val
 const clamp = (num: number, min = 0, max = 100) =>
   Math.min(Math.max(num, min), max)
 
-// Normalises a 1–5 scale response to 0–100
 const normToHundred = (val: number): number => (val - 1) / 4 * 100
 
 // ==============================
-// 7. MAIN ENGINE
+// 8. MAIN ENGINE
 // ==============================
 
 export const calculateNeuroLoad = (
@@ -209,15 +315,22 @@ export const calculateNeuroLoad = (
   // ==============================
   // STEP 0 — NORMALISE NEURO LENS
   // ==============================
+  //
+  // Patch: 'None / Unsure' now correctly maps to 'neurotypical'.
+  // The updated assessmentProtocol returns 'None / Unsure' for undiagnosed
+  // users. Previously only 'None' was matched; 'None / Unsure' fell through
+  // without matching, remaining as 'neurotypical' by default — which was
+  // correct in outcome but fragile. Now explicit.
 
   let neuroLens: NeuroLens = 'neurotypical'
   const normalizedLens = (neuroLensRaw || 'None').toLowerCase()
 
-  if (normalizedLens.includes('adhd'))     neuroLens = 'adhd'
-  else if (normalizedLens.includes('autism'))   neuroLens = 'autism'
-  else if (normalizedLens.includes('hsp'))      neuroLens = 'hsp'
-  else if (normalizedLens.includes('dyslexia')) neuroLens = 'dyslexia'
-  else if (normalizedLens.includes('spd'))      neuroLens = 'spd'
+  if      (normalizedLens.includes('adhd'))         neuroLens = 'adhd'
+  else if (normalizedLens.includes('autism'))        neuroLens = 'autism'
+  else if (normalizedLens.includes('hsp'))           neuroLens = 'hsp'
+  else if (normalizedLens.includes('dyslexia'))      neuroLens = 'dyslexia'
+  else if (normalizedLens.includes('spd'))           neuroLens = 'spd'
+  // 'none', 'none / unsure', 'unsure', or anything unrecognised → neurotypical
 
   if (!responses || responses.length === 0) {
     throw new Error('No assessment responses provided.')
@@ -226,13 +339,6 @@ export const calculateNeuroLoad = (
   // ==============================
   // STEP 1 — BUILD RESPONSE MAPS
   // ==============================
-  //
-  // Two maps are required:
-  //   responseMap — numeric scale and slider answers (q5–q33, energy_tax)
-  //   choiceMap   — string choice answers (primary_strain, q_state, neuro_lens)
-  //
-  // Previously only responseMap existed, which meant primary_strain and
-  // q_state were silently dropped with no downstream effect.
 
   const responseMap = new Map<string, number>()
   const choiceMap   = new Map<string, string>()
@@ -250,22 +356,42 @@ export const calculateNeuroLoad = (
   // STEP 2 — EXTRACT PART 0 DATA
   // ==============================
 
-  // energy_tax: 0–100 slider, clamped for safety
-  const energyTaxRaw   = responseMap.get('energy_tax') ?? 50
-  const energyTax      = clamp(energyTaxRaw, 0, 100)
-
-  // primary_strain: choice string, normalised
-  const primaryStrain  = choiceMap.get('primary_strain') ?? 'None of the above'
+  const energyTaxRaw  = responseMap.get('energy_tax') ?? 50
+  const energyTax     = clamp(energyTaxRaw, 0, 100)
+  const primaryStrain = choiceMap.get('primary_strain') ?? 'None of the above'
 
   const getValidatedValue = (key: string): number => {
-    if (!responseMap.has(key)) return 3  // neutral fallback — prevents crash
+    if (!responseMap.has(key)) return 3
     const raw = responseMap.get(key)!
     if (raw < 1 || raw > 5) return 3
     return REVERSE_SCORED.has(key) ? reverseScore(raw) : raw
   }
 
   // ==============================
-  // STEP 3 — RAW DOMAIN SCORES
+  // STEP 3 — INTEGRATION INDEX
+  // ==============================
+  //
+  // q_int1, q_int2, q_int3 each return a 1–5 scale response.
+  // Normalised to 0–100 per item, then averaged.
+  // High score = accumulative pattern.
+  // Missing responses default to 3 (midpoint — neutral, not accumulative).
+
+  const integrationRaw = INTEGRATION_QUESTIONS.map(q => {
+    const val = getValidatedValue(q)
+    return normToHundred(val)
+  })
+
+  const integrationIndex = clamp(
+    Math.round(integrationRaw.reduce((a, b) => a + b, 0) / integrationRaw.length)
+  )
+
+  const integrationPattern: IntegrationPattern =
+    integrationIndex <= INTEGRATION_INTEGRATIVE_MAX  ? 'integrative' :
+    integrationIndex >= INTEGRATION_ACCUMULATIVE_MIN ? 'accumulative' :
+    'mixed'
+
+  // ==============================
+  // STEP 4 — RAW DOMAIN SCORES
   // ==============================
 
   const rawIndices = Object.keys(DOMAIN_QUESTIONS).reduce(
@@ -279,7 +405,7 @@ export const calculateNeuroLoad = (
   )
 
   // ==============================
-  // STEP 4 — NORMALISE TO PERCENT
+  // STEP 5 — NORMALISE TO PERCENT
   // ==============================
 
   const percentIndices: DomainScores = {
@@ -291,12 +417,8 @@ export const calculateNeuroLoad = (
   }
 
   // ==============================
-  // STEP 5a — PRIMARY STRAIN PRE-WEIGHTING
+  // STEP 6a — PRIMARY STRAIN PRE-WEIGHTING
   // ==============================
-  //
-  // Additive boost to BASE_WEIGHTS based on user's self-reported strain.
-  // Applied before neuro_lens adjustment so structural trait (neuro_lens)
-  // compounds on top of transient state (primary_strain).
 
   const weights = { ...BASE_WEIGHTS }
 
@@ -306,11 +428,8 @@ export const calculateNeuroLoad = (
   })
 
   // ==============================
-  // STEP 5b — NEURO_LENS ADAPTIVE WEIGHTS
+  // STEP 6b — NEURO_LENS ADAPTIVE WEIGHTS
   // ==============================
-  //
-  // Multiplicative adjustments applied after strain pre-weighting.
-  // Represents structural neurological trait — compounds on top of state.
 
   if (neuroLens === 'adhd' || neuroLens === 'dyslexia') {
     weights.pli *= 1.10
@@ -326,7 +445,34 @@ export const calculateNeuroLoad = (
   }
 
   // ==============================
-  // STEP 6 — WEIGHTED INDICES
+  // STEP 6c — INTEGRATION PATTERN WEIGHT MODIFIER
+  // ==============================
+  //
+  // Applied after strain and neuro_lens adjustments so all three modifiers
+  // stack in the correct order:
+  //   transient state (primary_strain) →
+  //   structural trait (neuro_lens) →
+  //   integration pattern (how sensation is processed)
+  //
+  // Accumulative: PLI and RCI weights increase substantially.
+  //   PLI: an accumulative nervous system cannot self-correct for spatial
+  //   ambiguity the way an integrative one can. Predictive legibility is
+  //   not a convenience — it reduces the continuous low-level processing
+  //   demand that compounds load.
+  //   RCI: recovery for an accumulative profile is structural. The home
+  //   must do the work; recovery windows alone are insufficient.
+  //
+  // Mixed: half the accumulative boost. Acknowledges variability.
+  //
+  // Integrative: no change. Existing weights are correctly calibrated.
+
+  const integrationBoost = INTEGRATION_WEIGHT_BOOST[integrationPattern]
+  ;(Object.keys(integrationBoost) as (keyof DomainScores)[]).forEach(domain => {
+    weights[domain] += (integrationBoost as any)[domain] ?? 0
+  })
+
+  // ==============================
+  // STEP 7 — WEIGHTED INDICES
   // ==============================
 
   const weightedIndices: DomainScores = {
@@ -338,30 +484,8 @@ export const calculateNeuroLoad = (
   }
 
   // ==============================
-  // STEP 7 — THRESHOLD INDEX (REBALANCED)
+  // STEP 8 — THRESHOLD INDEX
   // ==============================
-  //
-  // PREVIOUS FORMULA (problematic):
-  //   lowThresholdScore  = (percentIndices.ali + percentIndices.stl + (q14 * 20)) / 3
-  //   highThresholdScore = ((q22 * 20) + (q23 * 20) + (100 - percentIndices.stl)) / 3
-  //
-  //   Problem: q14*20, q22*20, q23*20 placed single items on a 0–100 scale
-  //   then averaged equally with full domain scores. This gave a single
-  //   question the same weight as a 5–7 question domain. Additionally,
-  //   q14 is already captured in percentIndices.ali — double-counting it
-  //   at full domain weight was disproportionate.
-  //
-  // NEW FORMULA:
-  //   All components on genuine 0–100 scale.
-  //   Explicit fractional weights that sum to 1.0.
-  //   Single items weighted at 0.10–0.15, not 0.33.
-  //
-  // Note on double-counting:
-  //   q14 contributes to percentIndices.ali AND appears here at 0.15 weight.
-  //   q22, q23 contribute to percentIndices.stl AND appear here.
-  //   This is intentional — these specific items are the highest-discriminating
-  //   threshold indicators within their domains. The fractional weights (0.10–0.15)
-  //   keep their additive contribution modest.
 
   const q14 = getValidatedValue('q14')
   const q22 = getValidatedValue('q22')
@@ -373,29 +497,21 @@ export const calculateNeuroLoad = (
   const q22Norm = normToHundred(q22)
   const q23Norm = normToHundred(q23)
 
-  // Low threshold: high autonomic vigilance + high sensory load + noticing tendency
-  // Weights: ali (45%) + stl (40%) + q14 noticing item (15%) = 1.00
   const lowThresholdScore =
     percentIndices.ali * 0.45 +
     percentIndices.stl * 0.40 +
     q14Norm            * 0.15
 
-  // High threshold: hypo-registration items + low sensory load
-  // q22 (don't notice until very strong) + q23 (quiet = dull) are the
-  // clearest hypo-registration indicators. Inverted STL captures overall
-  // sensory tolerance.
-  // Weights: q22 (35%) + q23 (35%) + (100 - stl) (30%) = 1.00
   const highThresholdScore =
     q22Norm                    * 0.35 +
     q23Norm                    * 0.35 +
     (100 - percentIndices.stl) * 0.30
 
-  // Derived threshold — will be checked for blend override below
   const derivedThreshold: SensoryThreshold =
     lowThresholdScore >= highThresholdScore ? 'low' : 'high'
 
   // ==============================
-  // STEP 8 — REGULATION STYLE
+  // STEP 9 — REGULATION STYLE
   // ==============================
 
   const activeScore = (q30 + q31) / 2
@@ -403,19 +519,8 @@ export const calculateNeuroLoad = (
     activeScore >= 3.5 ? 'active' : 'passive'
 
   // ==============================
-  // STEP 9 — BLEND LOGIC
+  // STEP 10 — BLEND LOGIC
   // ==============================
-  //
-  // When the two threshold scores are close (differential ≤ BLEND_AMBIGUITY_THRESHOLD),
-  // the derived pattern is uncertain — scale responses alone cannot reliably
-  // discriminate. In this zone, neuro_lens provides the tiebreaker because
-  // neurotype carries clinical weight that scale questions cannot fully capture.
-  //
-  // When differential > BLEND_AMBIGUITY_THRESHOLD, the derived pattern is
-  // unambiguous and governs unconditionally. neuro_lens still affects weights
-  // (Step 5b) but does not change the pattern classification.
-  //
-  // blendApplied is returned so the UI can acknowledge when the tiebreak fired.
 
   const thresholdDifferential = Math.abs(lowThresholdScore - highThresholdScore)
   let finalThreshold = derivedThreshold
@@ -430,7 +535,7 @@ export const calculateNeuroLoad = (
   }
 
   // ==============================
-  // STEP 10 — SENSORY PATTERN
+  // STEP 11 — SENSORY PATTERN
   // ==============================
 
   let pattern: SensoryPattern
@@ -449,8 +554,33 @@ export const calculateNeuroLoad = (
   }
 
   // ==============================
-  // STEP 11 — INTERACTION FLAGS
+  // STEP 12 — PROFILE DESCRIPTOR
   // ==============================
+  //
+  // Keyed by `${pattern}__${integrationPattern}`.
+  // Falls back to a generic descriptor if the key is somehow unmapped —
+  // should never occur given the bounded pattern and integrationPattern
+  // types, but defensive fallback is preferable to a blank UI.
+
+  const descriptorKey = `${pattern}__${integrationPattern}`
+  const profileDescriptor =
+    PROFILE_DESCRIPTORS[descriptorKey] ??
+    'Your home environment is creating a measurable load on your nervous system. The assessment has identified specific domains where targeted changes will have the greatest impact on how you feel day to day.'
+
+  const integrationProfile: IntegrationProfile = {
+    integrationIndex,
+    integrationPattern,
+    profileDescriptor
+  }
+
+  // ==============================
+  // STEP 13 — INTERACTION FLAGS
+  // ==============================
+  //
+  // accumulativeALIFlag: mid-range ALI (40–65) is flagged as more serious
+  // for accumulative profiles because the system is already carrying load
+  // that the score itself does not fully represent. An ALI of 50 on an
+  // accumulative profile warrants the same urgency as 65+ on an integrative one.
 
   const flags: InteractionFlags = {
     restorativeDeficit:
@@ -463,50 +593,47 @@ export const calculateNeuroLoad = (
 
     cognitiveStrain:
       percentIndices.pli > INTERACTION_THRESHOLD &&
-      percentIndices.ali > INTERACTION_THRESHOLD
+      percentIndices.ali > INTERACTION_THRESHOLD,
+
+    accumulativeALIFlag:
+      integrationPattern === 'accumulative' &&
+      percentIndices.ali >= 40 &&
+      percentIndices.ali <= 65
   }
 
   let interactionAmplifier = 0
   if (flags.restorativeDeficit)    interactionAmplifier += 0.05
   if (flags.sensoryHypervigilance) interactionAmplifier += 0.07
   if (flags.cognitiveStrain)       interactionAmplifier += 0.05
+  // accumulativeALIFlag surfaces in UI and prescriptions — does not add
+  // to the composite score directly, as the integration weight boost in
+  // Step 6c already adjusts the weighted indices upstream.
 
   interactionAmplifier = Math.min(interactionAmplifier, MAX_INTERACTION_AMPLIFIER)
 
   // ==============================
-  // STEP 12 — RECOVERY MODIFIER
+  // STEP 14 — RECOVERY MODIFIER
   // ==============================
 
   let recoveryModifier: 'protective' | 'compounding' | 'neutral' = 'neutral'
   let recoveryAdjustment = 0
 
   if (percentIndices.rci < 40) {
-    recoveryModifier  = 'protective'
+    recoveryModifier   = 'protective'
     recoveryAdjustment = -0.05
   } else if (percentIndices.rci > 70) {
-    recoveryModifier  = 'compounding'
+    recoveryModifier   = 'compounding'
     recoveryAdjustment = 0.05
   }
 
   // ==============================
-  // STEP 13 — ENERGY TAX MODIFIER
+  // STEP 15 — ENERGY TAX MODIFIER
   // ==============================
-  //
-  // Gentle ±0.08 modifier on the final composite.
-  // Centred at energy_tax = 50 (neutral).
-  //
-  //   energy_tax = 0   → modifier = -0.08 (low environmental burden, reduces load)
-  //   energy_tax = 50  → modifier =  0.00 (neutral baseline)
-  //   energy_tax = 100 → modifier = +0.08 (high environmental burden, amplifies load)
-  //
-  // Kept deliberately gentle: self-reported Part 0 data sensitises the score
-  // without dominating the scale-response-derived composite. At energy_tax = 100,
-  // the modifier can shift the final score by up to ~8 points.
 
   const energyTaxModifier = (energyTax - 50) / ENERGY_TAX_SCALE
 
   // ==============================
-  // STEP 14 — FINAL COMPOSITE
+  // STEP 16 — FINAL COMPOSITE
   // ==============================
 
   const totalWeighted =
@@ -535,7 +662,7 @@ export const calculateNeuroLoad = (
   finalLoad = clamp(Math.round(finalLoad))
 
   // ==============================
-  // STEP 15 — SYSTEM STATE
+  // STEP 17 — SYSTEM STATE
   // ==============================
 
   let systemState: string
@@ -547,7 +674,7 @@ export const calculateNeuroLoad = (
   else                      systemState = 'Structural Friction'
 
   // ==============================
-  // STEP 16 — PRIORITY DOMAINS
+  // STEP 18 — PRIORITY DOMAINS
   // ==============================
 
   const domainImpact = Object.entries(weightedIndices).map(([id, score]) => {
@@ -585,6 +712,7 @@ export const calculateNeuroLoad = (
     priorityDomains,
     recoveryModifier,
     sensoryProfile,
+    integrationProfile,
     energyTaxBaseline:    energyTax,
     primaryStrain
   }
