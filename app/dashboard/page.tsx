@@ -77,7 +77,6 @@ export default async function Dashboard() {
           loadDelta={null}
           integrationPattern={null}
           integrationIndex={null}
-          profileDescriptor={null}
         />
       </div>
     )
@@ -120,7 +119,6 @@ export default async function Dashboard() {
   // three threshold archetypes (Sensor / Seeker / Anchor).
   const integrationPattern = engineResult.integrationProfile?.integrationPattern ?? null
   const integrationIndex   = engineResult.integrationProfile?.integrationIndex   ?? null
-  const profileDescriptor  = engineResult.integrationProfile?.profileDescriptor  ?? null
 
   const { finalNeuroLoad, systemState, percentIndices, rawIndices } = engineResult
 
@@ -164,7 +162,6 @@ export default async function Dashboard() {
         loadDelta={loadDelta}
         integrationPattern={integrationPattern}
         integrationIndex={integrationIndex}
-        profileDescriptor={profileDescriptor}
       />
     </div>
   )
