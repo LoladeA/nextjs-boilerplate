@@ -249,7 +249,11 @@ export default async function AssessmentReport() {
               </p>
             </div>
             <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-              <OrbitalBadge profile={profile} />
+              <OrbitalBadge
+                profile={profile}
+                integrationPattern={integrationPattern}
+                profileDescriptor={profileDescriptor}
+              />
             </div>
           </div>
 
