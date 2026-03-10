@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Fingerprint, Activity, Shield, Zap, Layers } from 'lucide-react'
-import { SENSORY_DOSSIERS, DossierProfile } from '../data/sensory-dossiers'
+import { SENSORY_DOSSIERS, DossierProfile, IntegrationVariant } from '../data/sensory-dossiers'
 
 // ==============================
 // INTEGRATION PATTERN — display labels and subtitles
@@ -41,6 +41,12 @@ export default function SensoryModal({
 }: SensoryModalProps) {
   const safeProfile = (profile?.toLowerCase() || 'anchor') as DossierProfile
   const data = SENSORY_DOSSIERS[safeProfile] || SENSORY_DOSSIERS.anchor
+
+  // Resolve the correct experience + mandate variant.
+  // Falls back to 'integrative' when integrationPattern is not passed —
+  // preserves backwards compatibility for call-sites without engine data.
+  const safePattern: IntegrationVariant = integrationPattern ?? 'integrative'
+  const variant = data.variants[safePattern] || data.variants['integrative']
 
   const integrationLabel    = integrationPattern ? INTEGRATION_LABELS[integrationPattern]    : null
   const integrationSubtitle = integrationPattern ? INTEGRATION_SUBTITLES[integrationPattern] : null
@@ -141,7 +147,7 @@ export default function SensoryModal({
                     <span className="text-[10px] font-bold uppercase tracking-widest">The Experience</span>
                   </div>
                   <p className="text-[#c9ccbb] text-sm leading-relaxed italic">
-                    "{data.experience}"
+                    "{variant.experience}"
                   </p>
                 </div>
 
@@ -170,7 +176,7 @@ export default function SensoryModal({
                     <span className="text-[10px] font-bold uppercase tracking-widest">The Home Mandate</span>
                   </div>
                   <p className="text-[#c9ccbb] text-sm font-medium leading-relaxed">
-                    {data.mandate}
+                    {variant.mandate}
                   </p>
                 </div>
 
