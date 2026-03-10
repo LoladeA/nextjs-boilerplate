@@ -3,6 +3,59 @@
 // =============================================================================
 //
 // CHANGE LOG:
+//
+//   STRUCTURE
+//   Part 0 expanded from 4 to 7 questions.
+//   Three integration pattern questions (q_int1, q_int2, q_int3) inserted
+//   between primary_strain and neuro_lens. neuro_lens moved to last position
+//   in Part 0 — it now functions as a corroborative signal, not a primary
+//   classifier. The behavioural questions speak first; the self-identification
+//   label follows.
+//
+//   NEW QUESTIONS
+//   q_int1 — Residue / carry-over signal
+//     Detects whether sensation resolves once the stimulus is removed, or
+//     continues to activate the nervous system after the environment has
+//     changed. High agreement = accumulative integration pattern.
+//     Source: Ayres Sensory Integration Theory (1972); Marco et al.,
+//     Nature Reviews Neuroscience (2011).
+//
+//   q_int2 — Loading curve / cumulative depletion signal
+//     Detects progressive capacity loss across the day where no single event
+//     was responsible. The hallmark of accumulative processing. Also the
+//     question most likely to produce a recognition moment for undiagnosed
+//     users. High agreement = accumulative integration pattern.
+//     Source: Dunn Sensory Processing Model (1997, 2001); McEwen allostatic
+//     load research.
+//
+//   q_int3 — Transition friction / boundary resolution signal
+//     Detects whether the nervous system carries one environmental context
+//     into the next, or resolves and arrives in the new space. High
+//     agreement = accumulative integration pattern.
+//     Source: Cascio et al. (2016); Sternberg, Healing Spaces.
+//
+//   SCORING
+//   q_int1, q_int2, q_int3 score into a new Integration Index (0–100),
+//   separate from the five BSFI domains. The Integration Index acts as a
+//   profile modifier — it reweights how BSFI domain scores are interpreted
+//   rather than replacing them.
+//
+//     0–35:  Integrative pattern
+//            Sensation resolves with recovery. Prescriptions focus on quality
+//            and timing of recovery windows.
+//
+//     36–64: Mixed pattern
+//            Integration is context-dependent. Some environments or seasons
+//            tip the system toward accumulation. Prescriptions acknowledge
+//            variability.
+//
+//     65–100: Accumulative pattern
+//             Sensation layers and persists. Prescriptions prioritise
+//             environmental consistency above all else. PLI and RCI weights
+//             increase. Mid-range ALI scores are read as more serious.
+//             Recovery is structural, not periodic.
+//
+//   EXISTING QUESTION CHANGES
 //   q27 — reworded to clarify that avoidance is driven by how the room makes
 //          the person feel, not simply by disuse. Scoring direction unchanged.
 //   q30 — reworded to frame the behaviour as a demand the home places on the
@@ -16,6 +69,18 @@
 //   indicates a home that is imposing active management demands — which is
 //   high friction, not high agency. The scoring direction (high = friction)
 //   is intentional and clinically correct.
+//
+// SCIENTIFIC FOUNDATIONS:
+//   Aron & Aron (1997) — Sensory Processing Sensitivity
+//   Dunn (1997, 2001) — Sensory Processing Model
+//   Ayres (1972) — Sensory Integration Theory
+//   Marco et al., Nature Reviews Neuroscience (2011) — sensory processing
+//     in autism; atypical multisensory integration as distinct from threshold
+//     sensitivity
+//   Cascio et al. (2016) — tactile processing differences, autism vs HSP
+//   McEwen — allostatic load; apparent high threshold as system already full
+//   Sternberg, Healing Spaces — environmental neuroscience; spatial
+//     translation from sensory type to environmental prescription
 // =============================================================================
 
 export const assessmentProtocol = {
@@ -24,8 +89,11 @@ export const assessmentProtocol = {
     step: 0,
     subtitle: "Current State",
     main_question: "Baseline Regulation Check",
-    description: "Before we assess the environment, we must establish the current load on your nervous system.",
+    description: "Before we assess the environment, we must establish the current load on your nervous system, and how it tends to process what it receives.",
     questions: [
+      // ------------------------------------------------------------------
+      // EXISTING — current state snapshot
+      // ------------------------------------------------------------------
       {
         id: 'q_state',
         text: "How does your body feel in your home environment right now?",
@@ -49,13 +117,69 @@ export const assessmentProtocol = {
         //          + cross-validation signal against derived domain scores
         //          + stored for progress tracking
       },
+
+      // ------------------------------------------------------------------
+      // NEW — integration pattern (q_int1, q_int2, q_int3)
+      //
+      // UI NOTE: Render a soft visual divider above q_int1 with the
+      // following reframe line:
+      //   "Three more questions — these ones are about how your body
+      //    handles what it receives, rather than what it's carrying
+      //    right now."
+      //
+      // This prepares the user for the register shift without creating
+      // a new named section or step.
+      // ------------------------------------------------------------------
+      {
+        id: 'q_int1',
+        text: "If my day has been loud or demanding, I can still feel its effects in my body hours later, even once I am home and the noise has stopped.",
+        type: 'scale',
+        // Detects: residue / carry-over
+        // High agreement = accumulative integration pattern
+        // Scientific basis: Ayres (1972); Marco et al. (2011)
+        scores_into: 'integration_index'
+      },
+      {
+        id: 'q_int2',
+        text: "By the end of the day, small things that would not have bothered me in the morning feel much harder to tolerate.",
+        type: 'scale',
+        // Detects: loading curve / cumulative depletion
+        // High agreement = accumulative integration pattern
+        // Scientific basis: Dunn (1997, 2001); McEwen allostatic load
+        scores_into: 'integration_index'
+      },
+      {
+        id: 'q_int3',
+        text: "Moving from one environment to another: arriving home, entering a different room, returning from outside, takes time before my body feels settled in the new space.",
+        type: 'scale',
+        // Detects: transition friction / boundary resolution
+        // High agreement = accumulative integration pattern
+        // Scientific basis: Cascio et al. (2016); Sternberg, Healing Spaces
+        scores_into: 'integration_index'
+      },
+
+      // ------------------------------------------------------------------
+      // EXISTING — self-identification (moved to last position)
+      //
+      // Rationale: neuro_lens is now a corroborative signal. The three
+      // integration questions above establish the behavioural pattern
+      // without requiring the user to hold a clinical label. neuro_lens
+      // follows as confirmation — not as the primary classifier.
+      // Undiagnosed users complete the integration questions on their own
+      // terms before being asked to identify with a clinical category.
+      // ------------------------------------------------------------------
       {
         id: 'neuro_lens',
         text: "My sensory processing is influenced by:",
         type: 'choice',
-        options: ['HSP', 'ADHD', 'Autism', 'Dyslexia', 'SPD', 'None']
-        // Used as: adaptive weight modifier (structural neurological trait)
-        //          + blend tiebreaker when threshold classification is ambiguous
+        options: ['HSP', 'ADHD', 'Autism', 'Dyslexia', 'SPD', 'None / Unsure']
+        // Changed: 'None' → 'None / Unsure' to hold undiagnosed users
+        // without forcing a false negative.
+        //
+        // Used as: corroborative modifier (structural neurological trait)
+        //          + blend tiebreaker when integration classification is
+        //            ambiguous at 36–64 mixed range
+        //          + no longer used as primary threshold classifier
       },
     ]
   },
