@@ -373,7 +373,11 @@ export default function DashboardUI({
 
         {/* ROW 4: PROTOCOLS */}
         <div className="mb-8">
-          <RitualsInterface neuroLoadScore={totalLoad ?? 0} profile={profile} />
+          <RitualsInterface
+            neuroLoadScore={totalLoad ?? 0}
+            profile={profile}
+            integrationPattern={integrationPattern}
+          />
         </div>
 
         {/* ROW 5: TOOLKIT */}
