@@ -75,7 +75,7 @@ export default function LoginPage() {
           {view === 'signin' ? 'Welcome Back' : view === 'signup' ? 'Begin Your Shift' : 'Reset Password'}
         </h2>
         <p className="opacity-60 mb-8 font-light italic">
-          {view === 'signin' ? 'Access your dashboard.' : view === 'signup' ? 'Create your Sensory Intelligence account.' : 'Enter your email to receive a reset link.'}
+          {view === 'signin' ? : view === 'signup' ? 'Create your Sensory Intelligence account.' : 'Enter your email to receive a reset link.'}
         </p>
 
         {view !== 'forgot' && (
