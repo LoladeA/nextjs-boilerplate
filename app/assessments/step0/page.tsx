@@ -159,7 +159,7 @@ export default function AssessmentStep0() {
         ---------------------------------------------------------------- */}
         <div className="flex items-center gap-4 py-2">
           <div className="flex-1 h-px bg-[#b5a642]/20" />
-          <p className="text-[#c9ccbb]/50 text-xs text-center leading-relaxed max-w-sm">
+          <p className="text-[#c9ccbb] text-sm text-center leading-relaxed max-w-sm">
             Three more questions. These ones are about how your body handles what it receives, rather than what it is carrying right now.
           </p>
           <div className="flex-1 h-px bg-[#b5a642]/20" />
