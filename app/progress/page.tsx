@@ -51,6 +51,13 @@ export default function Progress() {
   const [tensionScore, setTensionScore] = useState<number>(0)
   const [wakeScore, setWakeScore] = useState<number>(0)
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // eveningMood is DERIVED from sleepReadiness — the two scales are
+  // semantically identical (1 = Tired but Wired / Wired, 5 = Sleep Ready).
+  // We never render an evening mood card selector. eveningMood is kept
+  // in state and synced here so the save payload and feedback engine are
+  // unchanged.
+  // ─────────────────────────────────────────────────────────────────────────
   const [eveningMood, setEveningMood] = useState<number | null>(null)
   const [eveningTags, setEveningTags] = useState<string[]>([])
   const [eveningNote, setEveningNote] = useState('')
@@ -70,6 +77,15 @@ export default function Progress() {
   const [isSynthesisExpanded, setIsSynthesisExpanded] = useState(false)
 
   const [chartLogs, setChartLogs] = useState<any[]>([])
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // FIX 1 — SYNC eveningMood FROM sleepReadiness
+  // sleepReadiness is the authoritative somatic state input for the evening.
+  // eveningMood mirrors it so the payload and feedback engine stay intact.
+  // ─────────────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    setEveningMood(sleepReadiness)
+  }, [sleepReadiness])
 
   useEffect(() => {
     const hour = new Date().getHours()
@@ -348,8 +364,10 @@ export default function Progress() {
   const macroSynthesis  = getMacroSynthesis()
 
   // ---------------------------------------------------------------------------
-  // MOOD SCALE — gold spectrum only, no long-wavelength alarm colours
-  // Opacity communicates state without triggering threat response.
+  // MOOD SCALE — morning only. Gold spectrum, no alarm colours.
+  // Evening somatic state is captured via the sleepReadiness slider in the
+  // Sleep Conditions section. eveningMoods array retained for reference only
+  // (it is no longer rendered as a card grid).
   // ---------------------------------------------------------------------------
   const moods = [
     { val: 1, label: 'Burned Out',   desc: 'Running on empty',      color: 'bg-[#b5a642]/10 border-[#b5a642]/25 text-[#b5a642]/50' },
@@ -357,14 +375,6 @@ export default function Progress() {
     { val: 3, label: 'Neutral',      desc: 'Holding steady',        color: 'bg-[#c9ccbb]/10 border-[#c9ccbb]/30 text-[#c9ccbb]/70' },
     { val: 4, label: 'Grounded',     desc: 'Breathing deeper',      color: 'bg-[#b5a642]/18 border-[#b5a642]/50 text-[#b5a642]/80' },
     { val: 5, label: 'In Flow',      desc: 'Effortless movement',   color: 'bg-[#b5a642]/20 border-[#b5a642]/60 text-[#b5a642]'    },
-  ]
-
-  const eveningMoods = [
-    { val: 1, label: 'Tired but Wired', desc: "Exhausted but can't come down",  color: 'bg-[#b5a642]/10 border-[#b5a642]/25 text-[#b5a642]/50' },
-    { val: 2, label: 'Buzzing',         desc: 'Surface agitation, body still running', color: 'bg-[#b5a642]/12 border-[#b5a642]/30 text-[#b5a642]/60' },
-    { val: 3, label: 'Present',         desc: 'Here, nothing pulling',          color: 'bg-[#c9ccbb]/10 border-[#c9ccbb]/30 text-[#c9ccbb]/70' },
-    { val: 4, label: 'Settling',        desc: 'Body beginning to release',      color: 'bg-[#b5a642]/18 border-[#b5a642]/50 text-[#b5a642]/80' },
-    { val: 5, label: 'Sleep Ready',     desc: 'Genuinely quiet',                color: 'bg-[#b5a642]/20 border-[#b5a642]/60 text-[#b5a642]'    },
   ]
 
   const morningTagOptions = [
@@ -399,26 +409,41 @@ export default function Progress() {
         .eq('date', todayStr)
         .single()
 
+      // ─────────────────────────────────────────────────────────────────────
+      // FIX 2 — BSFI SESSION DETECTION
+      //
+      // Previous bug: ascending: false (descending) + no hour fallback meant
+      // both results could be assigned to morningBsfi when session is null.
+      //
+      // Fix A — ascending: true so index 0 is always the morning entry
+      //          and index 1 is the evening entry chronologically.
+      // Fix B — hour fallback: if session column is null, treat any entry
+      //          saved at or after 17:00 as the evening session.
+      //          This makes detection robust without a schema change.
+      // ─────────────────────────────────────────────────────────────────────
       const { data: bsfiResults } = await supabase
         .from('bsfi_results')
         .select('*')
         .eq('user_id', user.id)
         .eq('calculated_for_date', todayStr)
-        .order('created_at', { ascending: false })
+        .order('created_at', { ascending: true })   // FIX A: chronological order
         .limit(2)
 
       if (bsfiResults && bsfiResults.length > 0) {
         bsfiResults.forEach((result: any) => {
+          const savedHour = new Date(result.created_at).getHours()
+          // FIX B: prefer explicit session field; fall back to hour >= 17
+          const isEvening =
+            result.session === 'evening' ||
+            (result.session == null && savedHour >= 17)
+
           const entry = {
-            total_score:      result.total_score,
-            dominant_domain:  result.dominant_domain,
+            total_score:        result.total_score,
+            dominant_domain:    result.dominant_domain,
             is_internal_driver: result.domain_scores?.is_internal_driver || false
           }
-          if (result.session === 'evening') {
-            setEveningBsfi(entry)
-          } else {
-            setMorningBsfi(entry)
-          }
+          if (isEvening) setEveningBsfi(entry)
+          else           setMorningBsfi(entry)
         })
       }
 
@@ -459,7 +484,7 @@ export default function Progress() {
         if (logData.focus_hours      !== null) setFocusScore(logData.focus_hours)
         if (logData.morning_tension  !== null) setTensionScore(logData.morning_tension)
         if (logData.sleep_wakes      !== null) setWakeScore(logData.sleep_wakes)
-        setEveningMood(logData.evening_mood_score)
+        // eveningMood is derived from sleepReadiness via useEffect — no direct set needed
         setEveningTags(logData.evening_tags || [])
         setEveningNote(logData.evening_note || '')
       } else {
@@ -552,7 +577,7 @@ export default function Progress() {
         db_score:           deriveDbScore(daytimeDb, bedtimeDb),
         readiness_score:    null,
         focus_hours:        Math.round(focusScore),
-        evening_mood_score: eveningMood,
+        evening_mood_score: eveningMood,   // derived from sleepReadiness via useEffect
         evening_tags:       eveningTags,
         evening_note:       eveningNote,
       }
@@ -594,13 +619,20 @@ export default function Progress() {
     }
   }
 
-  const currentMood     = activeTab === 'morning' ? morningMood    : eveningMood
-  const setCurrentMood  = activeTab === 'morning' ? setMorningMood : setEveningMood
-  const currentMoods    = activeTab === 'morning' ? moods          : eveningMoods
   const currentTags     = activeTab === 'morning' ? morningTags    : eveningTags
   const currentNote     = activeTab === 'morning' ? morningNote    : eveningNote
   const setCurrentNote  = activeTab === 'morning' ? setMorningNote : setEveningNote
   const currentOptions  = activeTab === 'morning' ? morningTagOptions : eveningTagOptions
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // FIX 3 — SAVE BUTTON GATE
+  // Morning: requires morningMood selection (user must make an explicit choice).
+  // Evening: sleepReadiness always has a value (default 3) so the button is
+  //          never blocked. eveningMood is auto-derived and always present.
+  // ─────────────────────────────────────────────────────────────────────────
+  const canSave = activeTab === 'morning'
+    ? morningMood !== null && status !== 'saving'
+    : status !== 'saving'
 
   // ---------------------------------------------------------------------------
   // RENDER
@@ -654,45 +686,55 @@ export default function Progress() {
               </div>
             </div>
 
-            {/* MOOD HEADER */}
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-full bg-[#b5a642]/10 flex items-center justify-center text-[#b5a642]">
-                <Heart size={20} />
-              </div>
-              <div>
-                <h2 className="text-2xl font-serif text-[#c9ccbb]">
-                  {activeTab === 'morning' ? 'How You Woke Up' : 'How You Feel Right Now'}
-                </h2>
-                {activeTab === 'evening' && (
-                  <p className="text-[#c9ccbb]/80 text-[10px] uppercase tracking-widest font-bold mt-0.5">
-                    What is your nervous system still carrying?
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* MOOD SCALE */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-8">
-              {currentMoods.map((mood) => (
-                <button
-                  key={mood.val}
-                  onClick={() => setCurrentMood(mood.val)}
-                  className={`p-4 rounded-xl border transition-all text-left flex flex-col justify-between h-28 group relative overflow-hidden ${
-                    currentMood === mood.val
-                      ? `${mood.color} shadow-lg scale-105`
-                      : 'bg-[#000]/20 border-[#c9ccbb]/10 text-[#c9ccbb]/60 hover:bg-[#c9ccbb]/5'
-                  }`}
-                >
-                  <span className="text-xl font-serif font-bold relative z-10">{mood.val}</span>
-                  <div className="relative z-10">
-                    <div className={`font-bold text-xs mb-1 ${currentMood === mood.val ? 'opacity-100' : 'opacity-60 group-hover:opacity-100'}`}>
-                      {mood.label}
-                    </div>
+            {/* ---------------------------------------------------------------- */}
+            {/* MORNING MOOD HEADER + CARDS — morning tab only                   */}
+            {/*                                                                   */}
+            {/* REMOVAL RATIONALE: The evening mood cards (1 Tired but Wired →   */}
+            {/* 5 Sleep Ready) and the sleep readiness slider below are           */}
+            {/* semantically identical — both capture current somatic state on a  */}
+            {/* 1–5 scale with the same endpoint labels. Rendering both created   */}
+            {/* a redundant input that also blocked saving (currentMood === null  */}
+            {/* check applied to evening tab). The slider produces a continuous   */}
+            {/* numeric value that feeds directly into the BSFI recovery domain   */}
+            {/* and the sleep-copy feedback engine, making it the more useful     */}
+            {/* of the two. The cards are retained for the morning tab where they */}
+            {/* serve a distinct purpose: capturing waking state before the user  */}
+            {/* has entered any readings.                                          */}
+            {/* ---------------------------------------------------------------- */}
+            {activeTab === 'morning' && (
+              <>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-full bg-[#b5a642]/10 flex items-center justify-center text-[#b5a642]">
+                    <Heart size={20} />
                   </div>
-                  {currentMood === mood.val && <div className="absolute inset-0 bg-white/5 blur-md" />}
-                </button>
-              ))}
-            </div>
+                  <div>
+                    <h2 className="text-2xl font-serif text-[#c9ccbb]">How You Woke Up</h2>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-8">
+                  {moods.map((mood) => (
+                    <button
+                      key={mood.val}
+                      onClick={() => setMorningMood(mood.val)}
+                      className={`p-4 rounded-xl border transition-all text-left flex flex-col justify-between h-28 group relative overflow-hidden ${
+                        morningMood === mood.val
+                          ? `${mood.color} shadow-lg scale-105`
+                          : 'bg-[#000]/20 border-[#c9ccbb]/10 text-[#c9ccbb]/60 hover:bg-[#c9ccbb]/5'
+                      }`}
+                    >
+                      <span className="text-xl font-serif font-bold relative z-10">{mood.val}</span>
+                      <div className="relative z-10">
+                        <div className={`font-bold text-xs mb-1 ${morningMood === mood.val ? 'opacity-100' : 'opacity-60 group-hover:opacity-100'}`}>
+                          {mood.label}
+                        </div>
+                      </div>
+                      {morningMood === mood.val && <div className="absolute inset-0 bg-white/5 blur-md" />}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
 
             {/* ---------------------------------------------------------------- */}
             {/* MORNING BIO-METRICS + INSIGHT ACCORDION                          */}
@@ -760,10 +802,6 @@ export default function Progress() {
                         >
                           <div className="space-y-0">
                             <div className="w-full h-px bg-[#b5a642]/10" />
-
-                            {/* ENVIRONMENTAL NOTE — first, always visible when open.
-                                Redirects attribution away from self toward environment.
-                                This is the mirror layer: reflect before explaining. */}
                             {(() => {
                               const sleepCopy = getSleepMorningCopy({
                                 sleep_wakes:     wakeScore,
@@ -778,16 +816,12 @@ export default function Progress() {
                                 </div>
                               ) : null
                             })()}
-
-                            {/* DIRECTION — free for all users */}
                             <div className="p-4">
                               <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
                                 <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Direction:</strong>
                                 {morningInsight.direction}
                               </p>
                             </div>
-
-                            {/* REFRAME — premium only */}
                             {hasAccess ? (
                               <div className="px-4 pb-4">
                                 <div className="w-full h-px bg-[#b5a642]/10 mb-4" />
@@ -829,7 +863,7 @@ export default function Progress() {
             {activeTab === 'evening' && (
               <div className="mb-8 p-6 bg-[#b5a642]/5 rounded-2xl border border-[#b5a642]/10 animate-fade-in">
                 <label className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-6 block flex items-center gap-2">
-                  <Brain size={12} /> How Your Day Went
+                  <Brain size={12} /> How Did Your Day Go?
                 </label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
                   <div>
@@ -873,16 +907,12 @@ export default function Progress() {
                         >
                           <div className="space-y-0">
                             <div className="w-full h-px bg-[#b5a642]/10" />
-
-                            {/* DIRECTION — free for all users */}
                             <div className="p-4">
                               <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
                                 <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Direction:</strong>
                                 {eveningInsight.direction}
                               </p>
                             </div>
-
-                            {/* REFRAME — premium only */}
                             {hasAccess ? (
                               <div className="px-4 pb-4">
                                 <div className="w-full h-px bg-[#b5a642]/10 mb-4" />
@@ -1047,6 +1077,9 @@ export default function Progress() {
 
             {/* ---------------------------------------------------------------- */}
             {/* SLEEP CONDITIONS — evening only                                   */}
+            {/* The sleep readiness slider here IS the evening somatic state      */}
+            {/* input. It replaces the removed evening mood cards entirely.       */}
+            {/* eveningMood is synced to sleepReadiness via useEffect above.      */}
             {/* ---------------------------------------------------------------- */}
             {activeTab === 'evening' && (
               <div className="mb-8 animate-fade-in">
@@ -1062,7 +1095,7 @@ export default function Progress() {
                       Sleep Conditions
                     </span>
                     <span className="text-[#c9ccbb]/80 text-[10px]">
-                      These contribute to your overnight recovery score — your most weighted domain.
+                      These contribute to your overnight recovery score, which is your most weighted domain.
                     </span>
                   </div>
                 </div>
@@ -1088,10 +1121,6 @@ export default function Progress() {
                     <span className="text-[#c9ccbb]/80 text-[9px]">Ready to Sleep</span>
                   </div>
 
-                  {/* EVENING MOOD STATE — from sleep-copy.ts
-                      Surfaces immediately after the slider. Names the somatic state,
-                      contextualises it, and points toward environmental action.
-                      Always visible — no gate, no accordion. */}
                   {(() => {
                     const state = getSleepEveningCopy(sleepReadiness as 1|2|3|4|5)
                     return (
@@ -1161,9 +1190,7 @@ export default function Progress() {
               </div>
             )}
 
-            {/* ---------------------------------------------------------------- */}
-            {/* SAVE CONTROLS                                                     */}
-            {/* ---------------------------------------------------------------- */}
+            {/* SAVE CONTROLS */}
             <div className="flex flex-col gap-4 pt-6 border-t border-[#c9ccbb]/10">
               <AnimatePresence>
                 {showAccuracyWarning && (
@@ -1207,11 +1234,11 @@ export default function Progress() {
 
                 <button
                   onClick={() => handleSave(false)}
-                  disabled={currentMood === null || status === 'saving'}
+                  disabled={!canSave}
                   className={`px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-all flex items-center gap-2 ${
-                    currentMood === null
-                      ? 'bg-[#c9ccbb]/10 text-[#c9ccbb]/80 cursor-not-allowed'
-                      : 'bg-[#c9ccbb] text-[#1b270e] hover:bg-white'
+                    canSave
+                      ? 'bg-[#c9ccbb] text-[#1b270e] hover:bg-white'
+                      : 'bg-[#c9ccbb]/10 text-[#c9ccbb]/80 cursor-not-allowed'
                   }`}
                 >
                   {status === 'saving' ? <><Loader2 size={14} className="animate-spin" /> Saving</> : 'Save Entry'}
@@ -1220,9 +1247,7 @@ export default function Progress() {
             </div>
           </div>
 
-          {/* ------------------------------------------------------------------ */}
-          {/* BSFI DUAL SESSION PANEL                                             */}
-          {/* ------------------------------------------------------------------ */}
+          {/* BSFI DUAL SESSION PANEL */}
           <AnimatePresence>
             {(morningBsfi || eveningBsfi) && (
               <motion.div
@@ -1233,13 +1258,12 @@ export default function Progress() {
                 <div className="flex items-center gap-2 mb-3 px-1">
                   <Sparkles size={12} className="text-[#b5a642]/60" />
                   <span className="text-[#b5a642]/70 text-[10px] font-bold uppercase tracking-widest">
-                    Today's Bio-Spatial Friction
+                    Today's Bio-Spatial Rhythm
                   </span>
                 </div>
 
                 <div className={`grid gap-4 ${morningBsfi && eveningBsfi ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'}`}>
 
-                  {/* MORNING BSFI */}
                   {morningBsfi && (
                     <motion.div
                       initial={{ opacity: 0, y: 8 }}
@@ -1279,16 +1303,11 @@ export default function Progress() {
                             })()}
                           </div>
                         </div>
-
-                        {/* BSFI CONTEXT — from sleep-copy.ts getBSFIContext()
-                            Normalises the number. Prevents score anxiety. */}
                         {(() => {
                           const ctx = getBSFIContext(morningBsfi.total_score)
                           return (
                             <div className="mt-5 pt-5 border-t border-[#b5a642]/10">
-                              <p className="text-[10px] font-bold uppercase tracking-widest text-[#b5a642] mb-2">
-                                What this score means
-                              </p>
+                              <p className="text-[10px] font-bold uppercase tracking-widest text-[#b5a642] mb-2">What this score means</p>
                               <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed mb-2">{ctx.reframe}</p>
                               <p className="text-[#c9ccbb]/70 text-[10px] leading-relaxed italic">{ctx.environment_lens}</p>
                             </div>
@@ -1298,7 +1317,6 @@ export default function Progress() {
                     </motion.div>
                   )}
 
-                  {/* EVENING BSFI */}
                   {eveningBsfi && (
                     <motion.div
                       initial={{ opacity: 0, y: 8 }}
@@ -1339,15 +1357,11 @@ export default function Progress() {
                             })()}
                           </div>
                         </div>
-
-                        {/* BSFI CONTEXT */}
                         {(() => {
                           const ctx = getBSFIContext(eveningBsfi.total_score)
                           return (
                             <div className="mt-5 pt-5 border-t border-[#b5a642]/10">
-                              <p className="text-[10px] font-bold uppercase tracking-widest text-[#b5a642] mb-2">
-                                What this score means
-                              </p>
+                              <p className="text-[10px] font-bold uppercase tracking-widest text-[#b5a642] mb-2">What this score means</p>
                               <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed mb-2">{ctx.reframe}</p>
                               <p className="text-[#c9ccbb]/70 text-[10px] leading-relaxed italic">{ctx.environment_lens}</p>
                             </div>
@@ -1358,7 +1372,6 @@ export default function Progress() {
                   )}
                 </div>
 
-                {/* DELTA CALLOUT */}
                 {morningBsfi && eveningBsfi && (() => {
                   const delta   = eveningBsfi.total_score - morningBsfi.total_score
                   const isWorse  = delta > 10
@@ -1385,9 +1398,7 @@ export default function Progress() {
             )}
           </AnimatePresence>
 
-          {/* ------------------------------------------------------------------ */}
-          {/* 14-DAY PATTERN PANEL                                                */}
-          {/* ------------------------------------------------------------------ */}
+          {/* 14-DAY PATTERN PANEL */}
           <div className={`glass-panel p-6 rounded-3xl mb-8 border relative overflow-hidden transition-all ${
             !macroSynthesis.ready || hasAccess
               ? 'bg-gradient-to-r from-[#b5a642]/10 to-transparent border-[#b5a642]/20'
@@ -1459,9 +1470,7 @@ export default function Progress() {
             )}
           </div>
 
-          {/* ------------------------------------------------------------------ */}
-          {/* TREND CHART                                                          */}
-          {/* ------------------------------------------------------------------ */}
+          {/* TREND CHART */}
           <div className="animate-fade-in-up delay-100 mb-12">
             <div className="flex justify-between items-end mb-6">
               <div>
@@ -1483,9 +1492,7 @@ export default function Progress() {
         </div>
       </div>
 
-      {/* ------------------------------------------------------------------ */}
-      {/* HOW THIS WORKS MODAL                                                */}
-      {/* ------------------------------------------------------------------ */}
+      {/* HOW THIS WORKS MODAL */}
       <AnimatePresence>
         {isManualOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#000]/80 backdrop-blur-sm p-4">
