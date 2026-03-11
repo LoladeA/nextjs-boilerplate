@@ -69,7 +69,12 @@ export default function RoomAuditExplainer({ onClose }: RoomAuditExplainerProps)
   const icons = [<ScanLine size={15} />, <Layers size={15} />, <GitCompare size={15} />]
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#000]/80 backdrop-blur-sm p-4">
+    // ─────────────────────────────────────────────────────────────────────────
+    // FIX: md:left-64 offsets the backdrop by the sidebar width on desktop.
+    // On mobile (< md breakpoint) the sidebar collapses so inset-0 is correct.
+    // The sidebar component itself is untouched.
+    // ─────────────────────────────────────────────────────────────────────────
+    <div className="fixed inset-0 md:left-64 z-[100] flex items-center justify-center bg-[#354029]/50 backdrop-blur-sm p-4">
       <motion.div
         initial={{ opacity: 0, y: 20, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
