@@ -211,17 +211,18 @@ export default function RoomAudit() {
   // ---------------------------------------------------------------------------
   return (
     <>
-    {/* PAGE — blurred and non-interactive when explainer is open */}
-    <div
-      className="min-h-screen bg-[#1b270e] font-sans selection:bg-[#b5a642] selection:text-[#1b270e] transition-all duration-500"
-      style={{
-        filter:        showExplainer ? 'blur(4px) brightness(0.55)' : 'none',
-        transform:     showExplainer ? 'scale(1.01)' : 'scale(1)',
-        pointerEvents: showExplainer ? 'none' : 'auto',
-      }}
-    >
+    {/* PAGE WRAPPER — Sidebar always visible */}
+    <div className="min-h-screen bg-[#1b270e] font-sans selection:bg-[#b5a642] selection:text-[#1b270e]">
       <Sidebar />
-      <div className="md:ml-64 min-h-screen p-6 md:p-12">
+      {/* CONTENT AREA — blurred and non-interactive when explainer is open */}
+      <div
+        className="md:ml-64 min-h-screen p-6 md:p-12 transition-all duration-500"
+        style={{
+          filter:        showExplainer ? 'blur(4px) brightness(0.55)' : 'none',
+          transform:     showExplainer ? 'scale(1.01)' : 'scale(1)',
+          pointerEvents: showExplainer ? 'none' : 'auto',
+        }}
+      >
         <div className="max-w-4xl mx-auto">
 
           {/* PAGE HEADER */}
@@ -502,7 +503,6 @@ export default function RoomAudit() {
           </div>
         </div>
       </div>
-
     </div>{/* end page blur div */}
 
       {/* -------------------------------------------------------------------- */}
