@@ -111,7 +111,7 @@ export default async function Dashboard() {
   // --- PROFILE MAPPING ---
   // mapEngineToDashboard now accepts the full NeuroLoadResult so it can
   // extract integrationProfile metadata alongside the threshold profile.
-  const dashboardProfile = mapEngineToDashboard(engineResult)
+  const dashboardProfile = mapEngineToDashboard(engineResult.sensoryProfile)
 
   // --- INTEGRATION PROFILE ---
   // Passed to DashboardUI so the Sensory Profile card and downstream
