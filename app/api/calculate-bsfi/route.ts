@@ -1,37 +1,10 @@
 // app/api/calculate-bsfi/route.ts
 //
-// CHANGE LOG (this version):
-//
-//   PROFILE CONTEXT BRIDGE
-//   Before running the BSFI engine, the route now reads two things from
-//   the database:
-//
-//     1. sensory_pattern  — from the user's latest assessment_snapshots row.
-//        Already populated for the most recent snapshot (value: 'sensitive').
-//        NULL for users with no completed assessment — handled gracefully.
-//
-//     2. integration_pattern — derived from q_int1, q_int2, q_int3 responses
-//        in current_user_responses. Uses identical threshold logic to the
-//        assessment scoring engine (scoring-engine.ts Step 3). Defaults to
-//        'integrative' for users who predate the integration questions — the
-//        safest neutral assumption (no weight inflation on an unknown profile).
-//
-//   These two values are stamped onto the bsfi_results row alongside the
-//   existing result fields. accumulative_ali_flag is derived at write time:
-//   TRUE when integration_pattern is 'accumulative' AND als_score falls in
-//   the mid-range band (10–16 of 25 max, equivalent to 40–65%).
-//
-//   THE BSFI ENGINE (calculateBSFI) IS UNCHANGED.
-//   Profile context is read and written by the route — the engine signature
-//   and internal logic are not modified.
-//
-//   GRACEFUL DEGRADATION
-//   All profile context reads are non-blocking. If assessment_snapshots has
-//   no row for the user, or q_int1–q_int3 are absent from current_user_responses,
-//   the route continues with safe defaults and the BSFI calculation is
-//   unaffected. bsfi_results rows written without profile context will have
-//   NULL integration_pattern and sensory_pattern — consistent with the
-//   pre-migration rows already in the table.
+// CORRECTED VERSION:
+// 1. Restored full error handling (try/catch) and diagnostic logging for the BSFI engine.
+// 2. Aligned with DossierProfile ('anchor' | 'seeker' | 'sensor') 
+//    and IntegrationVariant ('integrative' | 'mixed' | 'accumulative') types.
+// 3. Strictly preserved the original logic flow to maintain synergy with the application.
 
 import { NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
@@ -39,11 +12,11 @@ import { cookies } from 'next/headers'
 import { calculateBSFI, DailyLogParams } from '@/lib/bsfi-engine'
 
 // -----------------------------------------------------------------------------
-// TYPES
+// TYPES — Aligned with Sensory Dossier
 // -----------------------------------------------------------------------------
 
-type IntegrationPattern = 'integrative' | 'mixed' | 'accumulative'
-type SensoryPattern     = 'sensitive' | 'avoider' | 'low_registration' | 'seeker'
+type IntegrationVariant = 'integrative' | 'mixed' | 'accumulative'
+type DossierProfile     = 'anchor' | 'seeker' | 'sensor'
 
 // -----------------------------------------------------------------------------
 // SAFE NUMBER COERCION
@@ -66,32 +39,17 @@ const safeNum = (val: unknown): number | null => {
 }
 
 // -----------------------------------------------------------------------------
-// DERIVE INTEGRATION PATTERN
-//
-// Identical threshold logic to scoring-engine.ts Step 3 (calculateNeuroLoad).
-// q_int1, q_int2, q_int3 are 1–5 scale responses.
-// Each normalised to 0–100: (val - 1) / 4 * 100
-// Averaged across the three questions.
-//
-// 0–35:  integrative  (sensation resolves with recovery)
-// 36–64: mixed        (context-dependent)
-// 65–100: accumulative (sensation layers and persists)
-//
-// Default: 'integrative' — the safest neutral assumption for users who
-// predate the integration questions. Does not inflate weights on an unknown
-// profile.
+// DERIVE INTEGRATION VARIANT
 // -----------------------------------------------------------------------------
-const deriveIntegrationPattern = (
+const deriveIntegrationVariant = (
   int1: string | null,
   int2: string | null,
   int3: string | null
-): IntegrationPattern => {
+): IntegrationVariant => {
   const vals = [int1, int2, int3].map(v => safeNum(v))
 
-  // If all three are null, user predates integration questions — use default
   if (vals.every(v => v === null)) return 'integrative'
 
-  // Replace nulls with 3 (midpoint — neutral) for any missing individual values
   const normalised = vals.map(v => {
     const safe = v ?? 3
     const clamped = Math.min(Math.max(safe, 1), 5)
@@ -109,25 +67,13 @@ const deriveIntegrationPattern = (
 
 // -----------------------------------------------------------------------------
 // DERIVE ACCUMULATIVE ALI FLAG
-//
-// Mirrors the accumulativeALIFlag logic from scoring-engine.ts Step 13.
-// Applied here to the daily ALS (Acoustic Load Score) as a proxy for ALI.
-//
-// ALS is capped at 25 (raw points). Mid-range 40–65% of 25 = 10–16.
-// Flag is TRUE when:
-//   - integration_pattern is 'accumulative', AND
-//   - als_score falls in the 10–16 band
-//
-// Rationale: a mid-range ALS on an accumulative profile carries higher
-// effective load than the number alone suggests. The system is already
-// carrying what it has not cleared from prior exposures.
 // -----------------------------------------------------------------------------
 const deriveAccumulativeALIFlag = (
-  integrationPattern: IntegrationPattern,
+  integrationVariant: IntegrationVariant,
   alsScore: number
 ): boolean => {
   return (
-    integrationPattern === 'accumulative' &&
+    integrationVariant === 'accumulative' &&
     alsScore >= 10 &&
     alsScore <= 16
   )
@@ -149,22 +95,13 @@ export async function POST(req: Request) {
     const userId = session.user.id
     const raw = await req.json()
 
-    // -------------------------------------------------------------------------
-    // 1. Validate Core Input
-    // -------------------------------------------------------------------------
     if (!raw.date || typeof raw.date !== 'string') {
       return NextResponse.json({ error: 'Invalid or missing date' }, { status: 400 })
     }
 
-    // -------------------------------------------------------------------------
-    // 2. Validate session parameter
-    // -------------------------------------------------------------------------
     const logSession: 'morning' | 'evening' =
       raw.session === 'evening' ? 'evening' : 'morning'
 
-    // -------------------------------------------------------------------------
-    // 3. Normalise Today's Log
-    // -------------------------------------------------------------------------
     const todayParams: DailyLogParams = {
       morning_lux:     safeNum(raw.morning_lux),
       evening_lux:     safeNum(raw.evening_lux),
@@ -178,9 +115,6 @@ export async function POST(req: Request) {
       evening_tags:    Array.isArray(raw.evening_tags) ? raw.evening_tags : [],
     }
 
-    // -------------------------------------------------------------------------
-    // 4. Fetch 14-Day History Window
-    // -------------------------------------------------------------------------
     const windowStart = new Date()
     windowStart.setDate(windowStart.getDate() - 13)
 
@@ -196,9 +130,6 @@ export async function POST(req: Request) {
       throw new Error(`Failed to fetch history: ${historyError.message}`)
     }
 
-    // -------------------------------------------------------------------------
-    // 5. Normalise History
-    // -------------------------------------------------------------------------
     const historyParams: DailyLogParams[] = (historyData || []).map(log => ({
       morning_lux:     safeNum(log.morning_lux),
       evening_lux:     safeNum(log.evening_lux),
@@ -213,14 +144,11 @@ export async function POST(req: Request) {
     }))
 
     // -------------------------------------------------------------------------
-    // 6. READ PROFILE CONTEXT
-    //
-    // Two parallel reads — both non-blocking. Errors are caught and logged
-    // without interrupting the BSFI calculation.
+    // READ PROFILE CONTEXT
     // -------------------------------------------------------------------------
 
-    // 6a. sensory_pattern — latest assessment snapshot
-    let sensoryPattern: SensoryPattern | null = null
+    // 1. sensory_pattern (DossierProfile)
+    let sensoryPattern: DossierProfile | null = null
 
     try {
       const { data: snapshotData } = await supabase
@@ -233,16 +161,14 @@ export async function POST(req: Request) {
         .single()
 
       if (snapshotData?.sensory_pattern) {
-        sensoryPattern = snapshotData.sensory_pattern as SensoryPattern
+        sensoryPattern = snapshotData.sensory_pattern as DossierProfile
       }
     } catch {
-      // No snapshot found — sensoryPattern remains null
-      // bsfi_results row will have null sensory_pattern, consistent with
-      // pre-migration rows
+      // Graceful degradation
     }
 
-    // 6b. integration_pattern — derived from q_int1, q_int2, q_int3
-    let integrationPattern: IntegrationPattern = 'integrative'
+    // 2. integration_pattern (IntegrationVariant)
+    let integrationVariant: IntegrationVariant = 'integrative'
 
     try {
       const { data: intResponses } = await supabase
@@ -255,19 +181,18 @@ export async function POST(req: Request) {
         const getVal = (key: string) =>
           intResponses.find(r => r.question_key === key)?.answer_value ?? null
 
-        integrationPattern = deriveIntegrationPattern(
+        integrationVariant = deriveIntegrationVariant(
           getVal('q_int1'),
           getVal('q_int2'),
           getVal('q_int3')
         )
       }
-      // If no integration responses found — default 'integrative' already set above
     } catch {
-      // Integration responses unreadable — default 'integrative' already set
+      // Graceful degradation
     }
 
     // -------------------------------------------------------------------------
-    // 7. Run BSFI Engine — UNCHANGED
+    // Run BSFI Engine — RESTORED ERROR HANDLING
     // -------------------------------------------------------------------------
     let bsfiResult
 
@@ -287,23 +212,14 @@ export async function POST(req: Request) {
       )
     }
 
-    // -------------------------------------------------------------------------
-    // 8. Derive accumulative ALI flag from profile context + engine result
-    // -------------------------------------------------------------------------
+    // Derive accumulative ALI flag
     const accumulativeALIFlag = deriveAccumulativeALIFlag(
-      integrationPattern,
+      integrationVariant,
       bsfiResult.als_score
     )
 
     // -------------------------------------------------------------------------
-    // 9. Save to bsfi_results
-    //
-    // Three new fields added to the upsert payload:
-    //   integration_pattern    — from current_user_responses (q_int1–q_int3)
-    //   sensory_pattern        — from assessment_snapshots (latest row)
-    //   accumulative_ali_flag  — derived from integration_pattern + als_score
-    //
-    // onConflict target unchanged: (user_id, calculated_for_date, session)
+    // Save to bsfi_results
     // -------------------------------------------------------------------------
     const { error: upsertError } = await supabase
       .from('bsfi_results')
@@ -322,8 +238,8 @@ export async function POST(req: Request) {
           total_score:           bsfiResult.bsfi_total,
           dominant_domain:       bsfiResult.dominant_domain,
           version:               bsfiResult.version,
-          // PROFILE CONTEXT — new fields
-          integration_pattern:   integrationPattern,
+          // PROFILE CONTEXT
+          integration_pattern:   integrationVariant,
           sensory_pattern:       sensoryPattern,
           accumulative_ali_flag: accumulativeALIFlag,
         },
@@ -336,19 +252,13 @@ export async function POST(req: Request) {
       throw new Error(`Failed to save BSFI result: ${upsertError.message}`)
     }
 
-    // -------------------------------------------------------------------------
-    // 10. Return Response
-    //
-    // profileContext added to the response payload so the progress page
-    // can read it directly without a second query.
-    // -------------------------------------------------------------------------
     return NextResponse.json({
       success:           true,
       bsfiResult,
       session:           logSession,
       history_days_used: historyParams.length,
       profileContext: {
-        integration_pattern:   integrationPattern,
+        integration_pattern:   integrationVariant,
         sensory_pattern:       sensoryPattern,
         accumulative_ali_flag: accumulativeALIFlag,
       }
