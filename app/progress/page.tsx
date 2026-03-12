@@ -54,9 +54,6 @@ export default function Progress() {
   // ─────────────────────────────────────────────────────────────────────────
   // eveningMood is DERIVED from sleepReadiness — the two scales are
   // semantically identical (1 = Tired but Wired / Wired, 5 = Sleep Ready).
-  // We never render an evening mood card selector. eveningMood is kept
-  // in state and synced here so the save payload and feedback engine are
-  // unchanged.
   // ─────────────────────────────────────────────────────────────────────────
   const [eveningMood, setEveningMood] = useState<number | null>(null)
   const [eveningTags, setEveningTags] = useState<string[]>([])
@@ -66,9 +63,44 @@ export default function Progress() {
   const [errorMessage, setErrorMessage] = useState('')
   const [showAccuracyWarning, setShowAccuracyWarning] = useState(false)
 
-  // --- BSFI STATE — dual session ---
-  const [morningBsfi, setMorningBsfi] = useState<{ total_score: number, dominant_domain: string, is_internal_driver: boolean } | null>(null)
-  const [eveningBsfi, setEveningBsfi] = useState<{ total_score: number, dominant_domain: string, is_internal_driver: boolean } | null>(null)
+  // -------------------------------------------------------------------------
+  // CHANGE 1 — BSFI STATE TYPE
+  //
+  // Extended to carry three profile context fields stamped by the updated
+  // calculate-bsfi route onto every bsfi_results row.
+  //
+  // integration_pattern   — 'integrative' | 'mixed' | 'accumulative' | null
+  //   Derived from q_int1–q_int3 in current_user_responses. Null for users
+  //   who predate the integration questions.
+  //
+  // sensory_pattern       — DossierProfile ('anchor' | 'seeker' | 'sensor') | null
+  //   Read from the latest assessment_snapshots row. Analytics and context
+  //   only — never used to key into SENSORY_DOSSIERS from this page.
+  //   All dossier lookups must go through neuro-mapper.ts.
+  //
+  // accumulative_ali_flag — boolean
+  //   TRUE when integration_pattern is 'accumulative' AND the daily ALS
+  //   score is in the mid-range band (10–16 of 25 max). Surfaces a context
+  //   note in the BSFI card — same language register as the assessment report.
+  // -------------------------------------------------------------------------
+  const [morningBsfi, setMorningBsfi] = useState<{
+    total_score:           number
+    dominant_domain:       string
+    is_internal_driver:    boolean
+    integration_pattern:   string | null
+    sensory_pattern:       string | null
+    accumulative_ali_flag: boolean
+  } | null>(null)
+
+  const [eveningBsfi, setEveningBsfi] = useState<{
+    total_score:           number
+    dominant_domain:       string
+    is_internal_driver:    boolean
+    integration_pattern:   string | null
+    sensory_pattern:       string | null
+    accumulative_ali_flag: boolean
+  } | null>(null)
+
   const [bsfiLoading, setBsfiLoading] = useState(true)
 
   // ACCORDION STATES
@@ -80,8 +112,6 @@ export default function Progress() {
 
   // ─────────────────────────────────────────────────────────────────────────
   // FIX 1 — SYNC eveningMood FROM sleepReadiness
-  // sleepReadiness is the authoritative somatic state input for the evening.
-  // eveningMood mirrors it so the payload and feedback engine stay intact.
   // ─────────────────────────────────────────────────────────────────────────
   useEffect(() => {
     setEveningMood(sleepReadiness)
@@ -176,9 +206,6 @@ export default function Progress() {
 
   // ---------------------------------------------------------------------------
   // BSFI LABEL SYSTEM
-  // Single gold hue throughout. Opacity encodes load level.
-  // No red, orange, yellow, or emerald — long-wavelength colours trigger
-  // physiological alarm responses that contradict the brand's therapeutic intent.
   // ---------------------------------------------------------------------------
   const getBsfiLabel = (score: number) => {
     if (score <= 20) return { label: 'Your Home Is Supporting You',   color: 'text-[#b5a642]',    border: 'border-[#b5a642]/60' }
@@ -189,7 +216,7 @@ export default function Progress() {
   }
 
   // ---------------------------------------------------------------------------
-  // FEEDBACK ENGINE — morning and evening insight cards
+  // FEEDBACK ENGINE
   // ---------------------------------------------------------------------------
   const getMorningFeedback = () => {
     const moodScore = morningMood ?? 3
@@ -363,12 +390,6 @@ export default function Progress() {
   const eveningInsight  = getEveningFeedback()
   const macroSynthesis  = getMacroSynthesis()
 
-  // ---------------------------------------------------------------------------
-  // MOOD SCALE — morning only. Gold spectrum, no alarm colours.
-  // Evening somatic state is captured via the sleepReadiness slider in the
-  // Sleep Conditions section. eveningMoods array retained for reference only
-  // (it is no longer rendered as a card grid).
-  // ---------------------------------------------------------------------------
   const moods = [
     { val: 1, label: 'Burned Out',   desc: 'Running on empty',      color: 'bg-[#b5a642]/10 border-[#b5a642]/25 text-[#b5a642]/50' },
     { val: 2, label: 'Tense / Edgy', desc: 'Buzzing with stress',   color: 'bg-[#b5a642]/12 border-[#b5a642]/30 text-[#b5a642]/60' },
@@ -409,38 +430,36 @@ export default function Progress() {
         .eq('date', todayStr)
         .single()
 
-      // ─────────────────────────────────────────────────────────────────────
-      // FIX 2 — BSFI SESSION DETECTION
+      // -----------------------------------------------------------------------
+      // CHANGE 2 — bsfi_results SELECT + ENTRY CONSTRUCTION
       //
-      // Previous bug: ascending: false (descending) + no hour fallback meant
-      // both results could be assigned to morningBsfi when session is null.
-      //
-      // Fix A — ascending: true so index 0 is always the morning entry
-      //          and index 1 is the evening entry chronologically.
-      // Fix B — hour fallback: if session column is null, treat any entry
-      //          saved at or after 17:00 as the evening session.
-      //          This makes detection robust without a schema change.
-      // ─────────────────────────────────────────────────────────────────────
+      // Explicit field list replaces select('*') to include the three profile
+      // context columns added in migration 002. Entry construction maps the new
+      // fields with safe null/false defaults for pre-migration rows.
+      // Session detection (Fix A + Fix B) is unchanged.
+      // -----------------------------------------------------------------------
       const { data: bsfiResults } = await supabase
         .from('bsfi_results')
-        .select('*')
+        .select('id, total_score, dominant_domain, domain_scores, created_at, session, integration_pattern, sensory_pattern, accumulative_ali_flag')
         .eq('user_id', user.id)
         .eq('calculated_for_date', todayStr)
-        .order('created_at', { ascending: true })   // FIX A: chronological order
+        .order('created_at', { ascending: true })
         .limit(2)
 
       if (bsfiResults && bsfiResults.length > 0) {
         bsfiResults.forEach((result: any) => {
           const savedHour = new Date(result.created_at).getHours()
-          // FIX B: prefer explicit session field; fall back to hour >= 17
           const isEvening =
             result.session === 'evening' ||
             (result.session == null && savedHour >= 17)
 
           const entry = {
-            total_score:        result.total_score,
-            dominant_domain:    result.dominant_domain,
-            is_internal_driver: result.domain_scores?.is_internal_driver || false
+            total_score:           result.total_score,
+            dominant_domain:       result.dominant_domain,
+            is_internal_driver:    result.domain_scores?.is_internal_driver || false,
+            integration_pattern:   result.integration_pattern   ?? null,
+            sensory_pattern:       result.sensory_pattern       ?? null,
+            accumulative_ali_flag: result.accumulative_ali_flag ?? false,
           }
           if (isEvening) setEveningBsfi(entry)
           else           setMorningBsfi(entry)
@@ -484,7 +503,6 @@ export default function Progress() {
         if (logData.focus_hours      !== null) setFocusScore(logData.focus_hours)
         if (logData.morning_tension  !== null) setTensionScore(logData.morning_tension)
         if (logData.sleep_wakes      !== null) setWakeScore(logData.sleep_wakes)
-        // eveningMood is derived from sleepReadiness via useEffect — no direct set needed
         setEveningTags(logData.evening_tags || [])
         setEveningNote(logData.evening_note || '')
       } else {
@@ -577,7 +595,7 @@ export default function Progress() {
         db_score:           deriveDbScore(daytimeDb, bedtimeDb),
         readiness_score:    null,
         focus_hours:        Math.round(focusScore),
-        evening_mood_score: eveningMood,   // derived from sleepReadiness via useEffect
+        evening_mood_score: eveningMood,
         evening_tags:       eveningTags,
         evening_note:       eveningNote,
       }
@@ -592,6 +610,13 @@ export default function Progress() {
       fetchHistory()
       setTimeout(() => setStatus('idle'), 2000)
 
+      // -----------------------------------------------------------------------
+      // CHANGE 3 — BSFI ROUTE RESPONSE HANDLER
+      //
+      // Reads data.profileContext from the calculate-bsfi route response and
+      // stamps the three profile context fields into the BSFI state entry.
+      // Safe defaults apply if profileContext is absent (older route or error).
+      // -----------------------------------------------------------------------
       try {
         const res  = await fetch('/api/calculate-bsfi', {
           method:  'POST',
@@ -601,9 +626,12 @@ export default function Progress() {
         const data = await res.json()
         if (data.success && data.bsfiResult) {
           const entry = {
-            total_score:       data.bsfiResult.bsfi_total,
-            dominant_domain:   data.bsfiResult.dominant_domain,
-            is_internal_driver: data.bsfiResult.is_internal_driver
+            total_score:           data.bsfiResult.bsfi_total,
+            dominant_domain:       data.bsfiResult.dominant_domain,
+            is_internal_driver:    data.bsfiResult.is_internal_driver,
+            integration_pattern:   data.profileContext?.integration_pattern   ?? null,
+            sensory_pattern:       data.profileContext?.sensory_pattern       ?? null,
+            accumulative_ali_flag: data.profileContext?.accumulative_ali_flag ?? false,
           }
           if (activeTab === 'morning') setMorningBsfi(entry)
           else                         setEveningBsfi(entry)
@@ -624,12 +652,6 @@ export default function Progress() {
   const setCurrentNote  = activeTab === 'morning' ? setMorningNote : setEveningNote
   const currentOptions  = activeTab === 'morning' ? morningTagOptions : eveningTagOptions
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // FIX 3 — SAVE BUTTON GATE
-  // Morning: requires morningMood selection (user must make an explicit choice).
-  // Evening: sleepReadiness always has a value (default 3) so the button is
-  //          never blocked. eveningMood is auto-derived and always present.
-  // ─────────────────────────────────────────────────────────────────────────
   const canSave = activeTab === 'morning'
     ? morningMood !== null && status !== 'saving'
     : status !== 'saving'
@@ -686,21 +708,7 @@ export default function Progress() {
               </div>
             </div>
 
-            {/* ---------------------------------------------------------------- */}
-            {/* MORNING MOOD HEADER + CARDS — morning tab only                   */}
-            {/*                                                                   */}
-            {/* REMOVAL RATIONALE: The evening mood cards (1 Tired but Wired →   */}
-            {/* 5 Sleep Ready) and the sleep readiness slider below are           */}
-            {/* semantically identical — both capture current somatic state on a  */}
-            {/* 1–5 scale with the same endpoint labels. Rendering both created   */}
-            {/* a redundant input that also blocked saving (currentMood === null  */}
-            {/* check applied to evening tab). The slider produces a continuous   */}
-            {/* numeric value that feeds directly into the BSFI recovery domain   */}
-            {/* and the sleep-copy feedback engine, making it the more useful     */}
-            {/* of the two. The cards are retained for the morning tab where they */}
-            {/* serve a distinct purpose: capturing waking state before the user  */}
-            {/* has entered any readings.                                          */}
-            {/* ---------------------------------------------------------------- */}
+            {/* MORNING MOOD CARDS */}
             {activeTab === 'morning' && (
               <>
                 <div className="flex items-center gap-3 mb-3">
@@ -736,16 +744,13 @@ export default function Progress() {
               </>
             )}
 
-            {/* ---------------------------------------------------------------- */}
-            {/* MORNING BIO-METRICS + INSIGHT ACCORDION                          */}
-            {/* ---------------------------------------------------------------- */}
+            {/* MORNING BIO-METRICS + INSIGHT */}
             {activeTab === 'morning' && (
               <div className="mb-8 p-6 bg-[#b5a642]/5 rounded-2xl border border-[#b5a642]/10 animate-fade-in">
                 <label className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-6 block flex items-center gap-2">
                   <Activity size={12} /> How Your Body Woke Up
                 </label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
-
                   <div>
                     <div className="flex justify-between mb-2">
                       <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb]">
@@ -761,7 +766,6 @@ export default function Progress() {
                       className="w-full accent-[#b5a642] h-1 bg-[#000]/50 rounded-lg appearance-none cursor-pointer"
                     />
                   </div>
-
                   <div>
                     <div className="flex justify-between mb-2">
                       <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb]">
@@ -775,7 +779,6 @@ export default function Progress() {
                     </div>
                     <p className="text-[#c9ccbb]/80 text-[10px] mb-3">How many times you woke up during the night.</p>
                   </div>
-
                 </div>
 
                 {(tensionScore > 0 || wakeScore > 0) && (
@@ -857,9 +860,7 @@ export default function Progress() {
               </div>
             )}
 
-            {/* ---------------------------------------------------------------- */}
-            {/* EVENING BIO-METRICS + INSIGHT ACCORDION                          */}
-            {/* ---------------------------------------------------------------- */}
+            {/* EVENING BIO-METRICS + INSIGHT */}
             {activeTab === 'evening' && (
               <div className="mb-8 p-6 bg-[#b5a642]/5 rounded-2xl border border-[#b5a642]/10 animate-fade-in">
                 <label className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-6 block flex items-center gap-2">
@@ -948,9 +949,7 @@ export default function Progress() {
               </div>
             )}
 
-            {/* ---------------------------------------------------------------- */}
-            {/* ENVIRONMENTAL READINGS — morning                                  */}
-            {/* ---------------------------------------------------------------- */}
+            {/* ENVIRONMENTAL READINGS — morning */}
             {activeTab === 'morning' && (
               <div className="mb-8 p-6 bg-[#000]/20 rounded-2xl border border-[#c9ccbb]/5 animate-fade-in">
                 <label className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-4 block flex items-center gap-2">
@@ -1001,9 +1000,7 @@ export default function Progress() {
               </div>
             )}
 
-            {/* ---------------------------------------------------------------- */}
-            {/* EVENING WIND-DOWN LIGHTING PROMPT                                 */}
-            {/* ---------------------------------------------------------------- */}
+            {/* EVENING WIND-DOWN PROMPT */}
             {activeTab === 'evening' && (
               <button
                 onClick={() => toggleTag('low_horizon')}
@@ -1034,7 +1031,7 @@ export default function Progress() {
                       <p className={`text-[10px] mt-1 leading-relaxed transition-colors ${
                         eveningTags.includes('low_horizon') ? 'text-[#c9ccbb]/80' : 'text-[#c9ccbb]/70'
                       }`}>
-                        Turn off the overhead lights. Switch to warm, low-level sources below 100 lux.
+                        Turn off the overhead lights and switch to warm, low-level light sources below 100 lux.
                       </p>
                     </div>
                   </div>
@@ -1075,12 +1072,7 @@ export default function Progress() {
               />
             </div>
 
-            {/* ---------------------------------------------------------------- */}
-            {/* SLEEP CONDITIONS — evening only                                   */}
-            {/* The sleep readiness slider here IS the evening somatic state      */}
-            {/* input. It replaces the removed evening mood cards entirely.       */}
-            {/* eveningMood is synced to sleepReadiness via useEffect above.      */}
-            {/* ---------------------------------------------------------------- */}
+            {/* SLEEP CONDITIONS — evening only */}
             {activeTab === 'evening' && (
               <div className="mb-8 animate-fade-in">
                 <div className="flex items-center gap-3 mb-5">
@@ -1100,7 +1092,6 @@ export default function Progress() {
                   </div>
                 </div>
 
-                {/* SLEEP READINESS SLIDER */}
                 <div className="mb-6 p-5 bg-[#000]/20 rounded-2xl border border-[#c9ccbb]/5">
                   <div className="flex justify-between mb-2">
                     <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb]">
@@ -1139,7 +1130,6 @@ export default function Progress() {
                   })()}
                 </div>
 
-                {/* BEDTIME READINGS */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="p-5 bg-[#000]/20 rounded-2xl border border-[#c9ccbb]/5 relative overflow-hidden group hover:border-[#b5a642]/20 transition-colors">
                     <div className="absolute top-0 right-0 w-16 h-16 bg-[#b5a642]/5 rounded-full blur-2xl group-hover:bg-[#b5a642]/10 transition-all" />
@@ -1247,7 +1237,9 @@ export default function Progress() {
             </div>
           </div>
 
-          {/* BSFI DUAL SESSION PANEL */}
+          {/* ------------------------------------------------------------------ */}
+          {/* BSFI DUAL SESSION PANEL                                             */}
+          {/* ------------------------------------------------------------------ */}
           <AnimatePresence>
             {(morningBsfi || eveningBsfi) && (
               <motion.div
@@ -1288,7 +1280,7 @@ export default function Progress() {
                             </h3>
                             {morningBsfi.is_internal_driver ? (
                               <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed max-w-xs">
-                                Internal friction. Your environment reads stable. The load is coming from inside.
+                                There is some internal friction present, but your environment appears stable. This suggests that the load is coming from within.
                               </p>
                             ) : (() => {
                               const safeDomain = sanitiseDomain(morningBsfi.dominant_domain)
@@ -1313,6 +1305,30 @@ export default function Progress() {
                             </div>
                           )
                         })()}
+                        {/* ------------------------------------------------------- */}
+                        {/* CHANGE 4 — ACCUMULATIVE ALI FLAG NOTE (morning card)     */}
+                        {/*                                                           */}
+                        {/* Renders only when accumulative_ali_flag is true.          */}
+                        {/* Same language register as the assessment report page.     */}
+                        {/* sensory_pattern is stored for analytics only — it is      */}
+                        {/* never used to key into SENSORY_DOSSIERS from this page.   */}
+                        {/* ------------------------------------------------------- */}
+                        {morningBsfi.accumulative_ali_flag && (
+                          <div className="mt-4 pt-4 border-t border-[#b5a642]/10 flex items-start gap-2">
+                            <AlertCircle size={13} className="text-[#b5a642] shrink-0 mt-0.5" />
+                            <div>
+                              <span className="text-[#b5a642] text-[9px] font-bold uppercase tracking-widest block mb-1">
+                                Acoustic Load — Context Note
+                              </span>
+                              <p className="text-[#c9ccbb]/60 text-[9px] leading-relaxed">
+                                Althoiugh your acoustic load score appears moderate, your cumulative processing 
+                                pattern means your nervous system is under more strain than the score suggests.
+                                Mid-range friction on an accumulative profile requires the same
+                                attention as high friction on an integrative one.
+                              </p>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </motion.div>
                   )}
@@ -1342,7 +1358,7 @@ export default function Progress() {
                             </h3>
                             {eveningBsfi.is_internal_driver ? (
                               <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed max-w-xs">
-                                Internal friction. Your environment reads stable. Dim the lights, lower background noise, keep the bedroom cool and quiet.
+                                There is some internal friction present here, however your environment appears stable. Dim the lights, reduce background noise and keep the bedroom cool and quiet.
                               </p>
                             ) : (() => {
                               const safeDomain = sanitiseDomain(eveningBsfi.dominant_domain)
@@ -1367,6 +1383,25 @@ export default function Progress() {
                             </div>
                           )
                         })()}
+                        {/* ------------------------------------------------------- */}
+                        {/* CHANGE 4 — ACCUMULATIVE ALI FLAG NOTE (evening card)     */}
+                        {/* ------------------------------------------------------- */}
+                        {eveningBsfi.accumulative_ali_flag && (
+                          <div className="mt-4 pt-4 border-t border-[#b5a642]/10 flex items-start gap-2">
+                            <AlertCircle size={13} className="text-[#b5a642] shrink-0 mt-0.5" />
+                            <div>
+                              <span className="text-[#b5a642] text-[9px] font-bold uppercase tracking-widest block mb-1">
+                                Acoustic Load: Context Note
+                              </span>
+                              <p className="text-[#c9ccbb]/60 text-[9px] leading-relaxed">
+                                Your acoustic load score appears moderate, but your accumulative processing
+                                pattern means your nervous system is under more strain than the score suggests.
+                                Mid-range friction on an accumulative profile requires the same
+                                attention as high friction on an integrative one.
+                              </p>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </motion.div>
                   )}
@@ -1508,27 +1543,27 @@ export default function Progress() {
               >
                 <X size={20} />
               </button>
-              <h2 className="text-3xl font-serif text-[#c9ccbb] mb-8 border-b border-[#c9ccbb]/10 pb-6">How This Works</h2>
+              <h2 className="text-3xl font-serif text-[#c9ccbb] mb-8 border-b border-[#c9ccbb]/10 pb-6">Why We Log</h2>
               <div className="space-y-8 text-[#c9ccbb]/70 text-sm leading-relaxed font-light">
                 <section>
                   <h3 className="text-lg font-serif text-[#b5a642] mb-2">The Purpose of Logging</h3>
-                  <p>This isn't about optimising yourself. It's about understanding how aligned your home is with your nervous system's needs. Consistent daily entries build a picture that a single day can never show — revealing which parts of your environment are genuinely supporting you and which are slowly draining you.</p>
+                  <p>This isn’t about optimising yourself. It's about understanding the subtle dialogue between your nervous system and your environment. One day tells you very little. However, when you record consistently, patterns begin to appear, showing which parts of your home restore you and which quietly ask your body to compensate.</p>
                 </section>
                 <section>
                   <h3 className="text-lg font-serif text-[#b5a642] mb-2">How Your Body Woke Up (Morning)</h3>
-                  <p>This captures what your body held overnight. Waking up with tension in your jaw or shoulders, or waking frequently through the night, are environmental signals — not personal failures. This section tracks whether your home is helping your body rest or asking it to endure.</p>
+                  <p>What your body experienced during the night is reflected in the morning entry. Jaw tension, tight shoulders or frequent waking are not personal shortcomings. They are signals. They often point to conditions relating to light, temperature, sound, materials or internal states that prevented your nervous system from fully settling.</p>
                 </section>
                 <section>
                   <h3 className="text-lg font-serif text-[#b5a642] mb-2">How Your Day Went (Evening)</h3>
-                  <p>This captures how much focused work your day held. A demanding day needs a deliberate evening. Without one, tomorrow pays the cost. We track this to ensure your evening environment matches what your day actually asked of you.</p>
+                  <p>The evening entry records how much effort your day required. A demanding day puts a real strain on the nervous system. If the environment doesn’t shift to match that demand, the body continues to carry it into the night. This helps us to see whether your evening routines are truly allowing you to recover.</p>
                 </section>
                 <section>
-                  <h3 className="text-lg font-serif text-[#b5a642] mb-2">Your Home Friction Score</h3>
-                  <p>A daily score from 0 to 100 that measures how aligned or misaligned your home environment is with your nervous system on any given day. A low score means your home is supporting you. A high score means it is introducing friction — not a verdict, just a signal worth understanding.</p>
+                  <h3 className="text-lg font-serif text-[#b5a642] mb-2">Home Friction Score</h3>
+                  <p>This score reflects the amount of effort your environment required from you that day. Lower scores suggest that your home absorbed the demands placed on your body. Higher scores indicate friction, or small environmental pressures that accumulate over time. This is not a judgement, but a signal that is worth paying attention to.</p>
                 </section>
                 <section>
-                  <h3 className="text-lg font-serif text-[#b5a642] mb-2">Your 14-Day Pattern</h3>
-                  <p>After 14 days of entries, the pattern becomes readable. The system separates friction that is coming from your physical space from fluctuation that is coming from inside — such as hormonal shifts, emotional load, and natural energy cycles. Not everything you feel is your home's doing. The 14-day picture helps identify what actually is.</p>
+                  <h3 className="text-lg font-serif text-[#b5a642] mb-2">The 14-Day Pattern</h3>
+                  <p>After two weeks of entries, a clearer picture begins to emerge. Patterns reveal what is coming from the environment and what may be part of normal internal cycles, such as stress, hormones or natural energy fluctuations. Not everything you feel originates in your home. The 14-day view helps distinguish what truly does.</p>
                 </section>
               </div>
             </motion.div>
