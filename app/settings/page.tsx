@@ -104,7 +104,7 @@ function SectionHeader({
       <div className="text-[#b5a642]">{icon}</div>
       <div>
         <h2 className="text-xl font-serif text-[#c9ccbb]">{title}</h2>
-        {subtitle && <p className="text-[#c9ccbb]/50 text-xs mt-0.5">{subtitle}</p>}
+        {subtitle && <p className="text-[#c9ccbb]/80 text-xs mt-0.5">{subtitle}</p>}
       </div>
     </div>
   )
@@ -212,14 +212,14 @@ function DeleteAccountModal({
         </div>
 
         <h3 className="text-2xl font-serif text-[#c9ccbb] mb-2">Delete Account</h3>
-        <p className="text-[#c9ccbb]/60 text-sm leading-relaxed mb-6">
+        <p className="text-[#c9ccbb]/80 text-sm leading-relaxed mb-6">
           This permanently deletes your account, all assessment responses, daily logs, BSFI results,
           and sensory profile. This action cannot be undone.
         </p>
 
         <div className="bg-[#000]/30 border border-red-500/20 rounded-xl p-4 mb-6">
-          <p className="text-[#c9ccbb]/50 text-xs uppercase tracking-widest mb-1">What will be erased</p>
-          <ul className="text-[#c9ccbb]/60 text-xs space-y-1 mt-2">
+          <p className="text-[#c9ccbb] text-xs uppercase tracking-widest mb-1">What will be erased</p>
+          <ul className="text-[#c9ccbb]/80 text-xs space-y-1 mt-2">
             <li>• All assessment responses and sensory profile</li>
             <li>• All daily logs and lux/dB measurements</li>
             <li>• All BSFI scores and 14-day history</li>
@@ -227,7 +227,7 @@ function DeleteAccountModal({
           </ul>
         </div>
 
-        <label className="block text-[#c9ccbb]/60 text-xs font-bold uppercase tracking-widest mb-2">
+        <label className="block text-[#c9ccbb]/80 text-xs font-bold uppercase tracking-widest mb-2">
           Type <span className="text-red-400">delete</span> to confirm
         </label>
         <input
@@ -242,7 +242,7 @@ function DeleteAccountModal({
         <div className="flex gap-3">
           <button
             onClick={onCancel}
-            className="flex-1 py-3 rounded-xl font-bold text-xs uppercase tracking-widest text-[#c9ccbb]/60 border border-[#c9ccbb]/10 hover:border-[#c9ccbb]/30 transition-colors"
+            className="flex-1 py-3 rounded-xl font-bold text-xs uppercase tracking-widest text-[#c9ccbb]/80 border border-[#c9ccbb]/10 hover:border-[#c9ccbb]/30 transition-colors"
           >
             Cancel
           </button>
@@ -614,7 +614,7 @@ export default function Settings() {
           {/* PAGE HEADER */}
           <div className="mb-2">
             <h1 className="text-4xl font-serif text-[#c9ccbb] mb-2">Settings</h1>
-            <p className="text-[#c9ccbb]/50 text-sm">
+            <p className="text-[#c9ccbb]/70 text-sm">
               Manage your account, calibrate the engine, and control your data.
             </p>
           </div>
@@ -632,7 +632,7 @@ export default function Settings() {
             <form onSubmit={handleSaveProfile} className="space-y-5">
               {/* Email — read only */}
               <div>
-                <label className="block text-[#c9ccbb]/50 text-xs font-bold uppercase tracking-widest mb-2">
+                <label className="block text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest mb-2">
                   Email Address
                 </label>
                 <input
@@ -641,14 +641,14 @@ export default function Settings() {
                   disabled
                   className="w-full bg-[#000]/10 border border-[#c9ccbb]/5 rounded-xl p-4 text-[#c9ccbb]/40 text-sm cursor-default"
                 />
-                <p className="text-[10px] text-[#c9ccbb]/30 mt-1.5">
+                <p className="text-[10px] text-[#c9ccbb]/70 mt-1.5">
                   Email changes require account re-verification. Contact support to update.
                 </p>
               </div>
 
               {/* Display name */}
               <div>
-                <label className="block text-[#c9ccbb]/60 text-xs font-bold uppercase tracking-widest mb-2">
+                <label className="block text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest mb-2">
                   Display Name
                 </label>
                 <input
@@ -679,7 +679,7 @@ export default function Settings() {
 
             <form onSubmit={handleSaveNeuroLens} className="space-y-5">
               <div>
-                <label className="block text-[#c9ccbb]/60 text-xs font-bold uppercase tracking-widest mb-2">
+                <label className="block text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest mb-2">
                   Neurotype
                 </label>
                 <div className="relative">
@@ -696,7 +696,7 @@ export default function Settings() {
                   </select>
                   <ChevronDown
                     size={16}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[#c9ccbb]/40 pointer-events-none"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[#c9ccbb]/70 pointer-events-none"
                   />
                 </div>
               </div>
@@ -708,9 +708,9 @@ export default function Settings() {
                   : 'bg-[#c9ccbb]/3 border-[#c9ccbb]/8'
               }`}>
                 <p className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-1">
-                  Engine Calibration Effect
+                  What Changes
                 </p>
-                <p className="text-[#c9ccbb]/60 text-xs leading-relaxed">
+                <p className="text-[#c9ccbb]/70 text-xs leading-relaxed">
                   {NEURO_LENS_IMPACT[neuroLens] || NEURO_LENS_IMPACT['None']}
                 </p>
               </div>
@@ -745,7 +745,7 @@ export default function Settings() {
             />
 
             <p className="text-[#c9ccbb]/50 text-xs leading-relaxed mb-6">
-              These fields anchor your BSFI scores to the fixed rhythms of your life.
+              These fields anchor your BSFI scores to the rhythms of your life.
               A morning lux reading means something different at 5:30am versus 9am.
               Set these once and update them when your circumstances change.
             </p>
@@ -754,7 +754,7 @@ export default function Settings() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {/* Wake Time */}
                 <div>
-                  <label className="block text-[#c9ccbb]/60 text-xs font-bold uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                  <label className="block text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest mb-2 flex items-center gap-1.5">
                     <Clock size={11} className="text-[#b5a642]" /> Target Wake Time
                   </label>
                   <input
@@ -763,15 +763,15 @@ export default function Settings() {
                     onChange={(e) => setWakeTime(e.target.value)}
                     className="w-full bg-[#000]/20 border border-[#c9ccbb]/10 rounded-xl p-4 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 transition-colors text-sm"
                   />
-                  <p className="text-[10px] text-[#c9ccbb]/30 mt-1.5">
+                  <p className="text-[10px] text-[#c9ccbb]/70 mt-1.5">
                     Used to contextualise morning lux scores and cortisol window timing.
                   </p>
                 </div>
 
                 {/* Sleep Target */}
                 <div>
-                  <label className="block text-[#c9ccbb]/60 text-xs font-bold uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                    <Clock size={11} className="text-[#b5a642]" /> Target Sleep Onset
+                  <label className="block text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                    <Clock size={11} className="text-[#b5a642]" /> Schedule Sleep Onset
                   </label>
                   <input
                     type="time"
@@ -779,7 +779,7 @@ export default function Settings() {
                     onChange={(e) => setSleepTarget(e.target.value)}
                     className="w-full bg-[#000]/20 border border-[#c9ccbb]/10 rounded-xl p-4 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 transition-colors text-sm"
                   />
-                  <p className="text-[10px] text-[#c9ccbb]/30 mt-1.5">
+                  <p className="text-[10px] text-[#c9ccbb]/70 mt-1.5">
                     Used to score evening lux and dB readings against your melatonin window.
                   </p>
                 </div>
@@ -787,7 +787,7 @@ export default function Settings() {
 
               {/* Household */}
               <div>
-                <label className="block text-[#c9ccbb]/60 text-xs font-bold uppercase tracking-widest mb-2">
+                <label className="block text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest mb-2">
                   Household Occupancy
                 </label>
                 <div className="grid grid-cols-2 gap-3">
@@ -799,7 +799,7 @@ export default function Settings() {
                       className={`p-4 rounded-xl border text-left transition-all ${
                         household === opt.value
                           ? 'border-[#b5a642]/50 bg-[#b5a642]/8 text-[#c9ccbb]'
-                          : 'border-[#c9ccbb]/10 text-[#c9ccbb]/50 hover:border-[#c9ccbb]/20'
+                          : 'border-[#c9ccbb]/10 text-[#c9ccbb]/70 hover:border-[#c9ccbb]/20'
                       }`}
                     >
                       <div className="text-xs font-bold mb-0.5">
@@ -811,8 +811,8 @@ export default function Settings() {
                     </button>
                   ))}
                 </div>
-                <p className="text-[10px] text-[#c9ccbb]/30 mt-2">
-                  Modulates acoustic friction baselines. A family home and a solo flat have different noise thresholds.
+                <p className="text-[10px] text-[#c9ccbb]/70 mt-2">
+                  This adjusts acoustic friction baselines. The noise thresholds of a family home and a single person's home are different.
                 </p>
               </div>
 
@@ -830,7 +830,7 @@ export default function Settings() {
             <SectionHeader
               icon={<Bell size={20} />}
               title="Notifications"
-              subtitle="When the system checks in with you"
+              subtitle="Choose your check-in times"
             />
 
             <form onSubmit={handleSaveNotifications} className="space-y-2">
@@ -840,14 +840,14 @@ export default function Settings() {
                 <div className="flex items-center justify-between mb-3">
                   <div>
                     <div className="text-[#c9ccbb] text-sm font-bold">Daily Log Reminder</div>
-                    <div className="text-[#c9ccbb]/50 text-xs">A prompt to record your environment each morning.</div>
+                    <div className="text-[#c9ccbb]/70 text-xs">A prompt to record your environment each morning.</div>
                   </div>
                   <Toggle checked={notifLog} onChange={() => setNotifLog(!notifLog)} />
                 </div>
                 {notifLog && (
                   <div className="flex items-center gap-3 mt-2 ml-0">
-                    <label className="text-[#c9ccbb]/40 text-[10px] uppercase tracking-widest flex-shrink-0">
-                      Remind at
+                    <label className="text-[#c9ccbb]/70 text-[10px] uppercase tracking-widest flex-shrink-0">
+                      Remind me at
                     </label>
                     <input
                       type="time"
@@ -863,7 +863,7 @@ export default function Settings() {
               <div className="flex items-center justify-between p-4 rounded-xl hover:bg-[#c9ccbb]/3 transition-colors">
                 <div>
                   <div className="text-[#c9ccbb] text-sm font-bold">Assessment Cycle Reminder</div>
-                  <div className="text-[#c9ccbb]/50 text-xs">Notified at day 12 of each 14-day cycle.</div>
+                  <div className="text-[#c9ccbb]/70 text-xs">You will be notified on day 12 of every 14-day cycle.</div>
                 </div>
                 <Toggle checked={notifAssess} onChange={() => setNotifAssess(!notifAssess)} />
               </div>
@@ -872,7 +872,7 @@ export default function Settings() {
               <div className="flex items-center justify-between p-4 rounded-xl hover:bg-[#c9ccbb]/3 transition-colors">
                 <div>
                   <div className="text-[#c9ccbb] text-sm font-bold">Weekly Synthesis</div>
-                  <div className="text-[#c9ccbb]/50 text-xs">A summary of your nervous system logs each week.</div>
+                  <div className="text-[#c9ccbb]/70 text-xs">A summary of your nervous system logs each week. Coming soon.</div>
                 </div>
                 <Toggle checked={notifDigest} onChange={() => setNotifDigest(!notifDigest)} />
               </div>
@@ -881,7 +881,7 @@ export default function Settings() {
               <div className="flex items-center justify-between p-4 rounded-xl hover:bg-[#c9ccbb]/3 transition-colors">
                 <div>
                   <div className="text-[#c9ccbb] text-sm font-bold">Product Updates</div>
-                  <div className="text-[#c9ccbb]/50 text-xs">News about new tools and features.</div>
+                  <div className="text-[#c9ccbb]/70 text-xs">News about new tools and features.</div>
                 </div>
                 <Toggle checked={notifUpdates} onChange={() => setNotifUpdates(!notifUpdates)} />
               </div>
@@ -911,9 +911,9 @@ export default function Settings() {
 
             <div className="bg-[#000]/20 rounded-xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <div>
-                <h3 className="text-[#c9ccbb] font-bold text-sm mb-1">Sentient Membership</h3>
-                <p className="text-[#c9ccbb]/50 text-xs leading-relaxed max-w-xs">
-                  Full sensory diagnostics, complete BSFI history, Oura integration, 14 day rhythm synthesis, somatic protocols, coaching modules and room audit.
+                <h3 className="text-[#c9ccbb] font-bold text-sm mb-1">Which Tier You Prefer</h3>
+                <p className="text-[#c9ccbb]/70 text-xs leading-relaxed max-w-xs">
+                  Choose to stay on the free plan or upgrade to the Core or Blueprint tier to get the full experience.
                 </p>
               </div>
               <Link
@@ -937,7 +937,7 @@ export default function Settings() {
 
             <form onSubmit={handleUpdatePassword} className="space-y-5">
               <div>
-                <label className="block text-[#c9ccbb]/60 text-xs font-bold uppercase tracking-widest mb-2">
+                <label className="block text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest mb-2">
                   New Password
                 </label>
                 <input
@@ -949,7 +949,7 @@ export default function Settings() {
                 />
               </div>
               <div>
-                <label className="block text-[#c9ccbb]/60 text-xs font-bold uppercase tracking-widest mb-2">
+                <label className="block text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest mb-2">
                   Confirm New Password
                 </label>
                 <input
@@ -981,30 +981,30 @@ export default function Settings() {
             {/* What is stored */}
             <div className="bg-[#000]/20 rounded-xl p-5 mb-6 space-y-3">
               <p className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest">
-                What the system stores
+                What we store
               </p>
-              <ul className="text-[#c9ccbb]/60 text-xs space-y-2 leading-relaxed">
+              <ul className="text-[#c9ccbb]/70 text-xs space-y-2 leading-relaxed">
                 <li>
-                  <span className="text-[#c9ccbb]/80 font-bold">Assessment responses</span> — your answers from each
-                  assessment cycle, used to calculate your NeuroLoad score and sensory profile.
+                  <span className="text-[#c9ccbb]/80 font-bold">Assessment responses</span> : your answers from each
+                  assessment cycle, which is used to calculate your NeuroLoad score and sensory profile.
                 </li>
                 <li>
-                  <span className="text-[#c9ccbb]/80 font-bold">Daily logs</span> — light, sound, sleep,
+                  <span className="text-[#c9ccbb]/80 font-bold">Daily logs</span> : the light, sound, sleep,
                   and tension readings you submit. The BSFI engine uses your most recent
                   <span className="text-[#b5a642]"> 14 days</span>. Older entries are retained for your
                   personal history but do not affect your current score.
                 </li>
                 <li>
-                  <span className="text-[#c9ccbb]/80 font-bold">BSFI results</span> — composite friction scores
+                  <span className="text-[#c9ccbb]/80 font-bold">BSFI results</span> : friction scores
                   calculated per log entry and stored for trend analysis.
                 </li>
                 <li>
-                  <span className="text-[#c9ccbb]/80 font-bold">Profile settings</span> — display name, calibration
+                  <span className="text-[#c9ccbb]/80 font-bold">Profile settings</span> : your display name, calibration
                   anchors, and notification preferences stored on this page.
                 </li>
               </ul>
               <div className="pt-2 border-t border-[#c9ccbb]/5">
-                <p className="text-[#c9ccbb]/30 text-[10px]">
+                <p className="text-[#c9ccbb]/70 text-[10px]">
                   Your data is never sold, shared with advertisers, or used to train external models.
                 </p>
               </div>
@@ -1018,7 +1018,7 @@ export default function Settings() {
               <div className="flex items-center justify-between p-4 rounded-xl border border-[#c9ccbb]/8 hover:border-[#c9ccbb]/15 transition-colors">
                 <div>
                   <div className="text-[#c9ccbb] text-sm font-bold">Export Daily Logs</div>
-                  <div className="text-[#c9ccbb]/50 text-xs">Download all log entries as a CSV file.</div>
+                  <div className="text-[#c9ccbb]/70 text-xs">Download all your log entries as a CSV file.</div>
                 </div>
                 <button
                   onClick={handleExport}
@@ -1035,9 +1035,9 @@ export default function Settings() {
                 <div className="flex items-center justify-between mb-3">
                   <div>
                     <div className="text-[#c9ccbb] text-sm font-bold">Clear All Daily Logs</div>
-                    <div className="text-[#c9ccbb]/50 text-xs">
-                      Wipes all log entries and resets the 14-day engine window.
-                      Use when restarting a baseline after a major life change.
+                    <div className="text-[#c9ccbb]/70 text-xs">
+                      Wipes all log entries and resets the 14-day window.
+                      Use when restarting a baseline or after any changes.
                     </div>
                   </div>
                 </div>
@@ -1075,7 +1075,7 @@ export default function Settings() {
               <div className="flex items-center justify-between p-4 rounded-xl border border-[#c9ccbb]/8">
                 <div>
                   <div className="text-[#c9ccbb] text-sm font-bold">Delete Account</div>
-                  <div className="text-[#c9ccbb]/50 text-xs">
+                  <div className="text-[#c9ccbb]/70 text-xs">
                     Permanently erases your account and all associated data.
                   </div>
                 </div>
@@ -1096,7 +1096,7 @@ export default function Settings() {
           <div className="pt-2 pb-12">
             <button
               onClick={handleSignOut}
-              className="flex items-center gap-3 text-[#c9ccbb]/50 hover:text-[#b5a642] transition-colors text-xs font-bold uppercase tracking-widest"
+              className="flex items-center gap-3 text-[#b5a642]/70 hover:text-[#b5a642] transition-colors text-xs font-bold uppercase tracking-widest"
             >
               <LogOut size={15} /> Sign Out
             </button>
