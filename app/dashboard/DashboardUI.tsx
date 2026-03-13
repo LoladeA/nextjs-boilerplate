@@ -376,7 +376,7 @@ export default function DashboardUI({
           <RitualsInterface
             neuroLoadScore={totalLoad ?? 0}
             profile={profile}
-            integrationPattern={integrationPattern}
+            integrationPattern={integrationPattern ?? 'integrative'}
           />
         </div>
 
