@@ -976,7 +976,7 @@ as specified. The interpretation leads — not the score.
         // Fetch matching FFE item — filtered by type and profile flag
         let ffeItem = null
         if (prescriptionType) {
-          const profileColumn = \`recommended_for_\${profile}\`
+          const profileColumn = `recommended_for_${profile}`
           const { data: ffeData } = await supabase
             .from('ffe_library')
             .select('name, description, source_url, spec_notes, contraindicated_for')
