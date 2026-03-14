@@ -202,7 +202,7 @@ export default function UpgradePage() {
               </div>
 
               <div className="mb-6">
-                <span className="text-4xl font-serif text-[#c9ccbb]">€99</span>
+                <span className="text-4xl font-serif text-[#c9ccbb]">€150</span>
                 <span className="text-[#c9ccbb]/40 text-sm ml-2">/ month</span>
               </div>
 
