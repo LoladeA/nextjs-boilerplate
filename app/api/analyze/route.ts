@@ -27,6 +27,9 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 // Step 2 — profile weight engine
 import { applyProfileWeightEngine } from '@/app/lib/profile-weight-engine'
 
+// Step 3 — prescription rationale map
+import { getRationale } from '@/app/lib/prescription-rationale-map'
+
 // =============================================================================
 // TYPES
 // =============================================================================
@@ -304,7 +307,7 @@ YOUR FRAMEWORK:
 You translate structured environmental observations and domain scores into 
 precise, human-first interpretations for a specific nervous system.
 
-This is neuropsychology applied to interior design, not clinical diagnosis.
+This is neuropsychology applied to interior design — not clinical diagnosis.
 Your language lives in the domain of home, environment, and lived experience.
 You never pathologise. You never use clinical severity language.
 You name environmental conditions and their nervous system consequences
@@ -324,32 +327,51 @@ YOUR DESIGN PRINCIPLES (evidence-based — draw from these only):
   Micro-thermal regulation and tactile grounding
   Inclusive and sensory-regulated design
 
+PRESCRIPTION TYPE VOCABULARY:
+Each prescription must include a prescription_type key from this list only:
+  acoustic_buffering_rug | acoustic_buffering_curtains | acoustic_zoning_soft_panel
+  biophilic_anchor_plant | biophilic_anchor_natural_material | biophilic_water_feature
+  tactile_grounding_weighted_throw | tactile_grounding_cushions | tactile_grounding_rug
+  lighting_warm_spectrum | lighting_below_eye_level | lighting_task_lamp | lighting_blackout
+  visual_hierarchy_declutter | visual_hierarchy_grouping | visual_contrast_reduction
+  chromatic_desaturation | chromatic_warm_neutral
+  spatial_containment_furniture | spatial_containment_screen
+  maintenance_surface_repair | maintenance_organisation
+
+PRESCRIPTION CATEGORY:
+Each prescription must include a category: "immediate" or "structural"
+  immediate — can be done without tradespeople or major change
+  structural — requires installation, replastering, rewiring, or significant reconfiguration
+
 DIRECTIVES:
-  - Never use aesthetic or trend language ("add a pop of colour", "feels cosy").
+  - Never use aesthetic or trend language.
   - Never blame the person for the space.
   - Never invent findings not supported by the observation data.
-  - Speak directly to the person's profile — a Sensor Accumulative and an Anchor
-    Integrative in the same room have genuinely different experiences of it.
+  - Speak directly to the person's profile — prescriptions must differ between profiles.
+  - A Sensor Accumulative needs interventions that address carried load first.
+  - A Seeker needs interventions that reduce unwanted stimulation without removing engagement.
+  - An Anchor needs interventions that address sustained load conditions, not acute ones.
   - The interpretation leads. The score does not lead.
-  - The vision (what this space becomes after interventions) should feel like a 
-    genuine possibility — specific enough to be believable, not a generic aspiration.
+  - prescription_type must be one of the vocabulary keys above — no free-form types.
 
 Return ONLY a strict JSON object — no preamble, no markdown:
 {
-  "interpretation": "3-4 sentences. Mirror → Reframe → Direction. Name the 1-2 dominant environmental conditions and what they cost this specific nervous system. End with one orienting direction — what changes first and why.",
-  "vision": "2-3 sentences. What this space becomes for this specific nervous system once the interventions are in place. Not generic. Grounded in the specific findings. Written in second person — speak to the person directly.",
+  "interpretation": "3-4 sentences. Mirror then Reframe then Direction. Name the 1-2 dominant environmental conditions and what they cost this specific nervous system. End with one orienting direction.",
+  "vision": "2-3 sentences. What this space becomes for this specific nervous system once the interventions are in place. Specific, grounded, second person.",
   "triggers": [
-    "Environmental condition named in terms of the neural system it loads — 1 sentence each",
+    "Environmental condition — plain language, one sentence",
     "Trigger 2",
     "Trigger 3"
   ],
   "prescriptions": [
-    "Specific structural intervention grounded in one design principle — 1-2 sentences each",
-    "Prescription 2",
-    "Prescription 3"
+    {
+      "text": "What changes and why — plain language, 1-2 sentences. No jargon.",
+      "prescription_type": "one of the vocabulary keys above",
+      "category": "immediate or structural"
+    }
   ],
-  "primary_domain_under_load": "The single domain name carrying the highest load for this profile",
-  "secondary_domain_under_load": "The second domain name, or null if only one is notable"
+  "primary_domain_under_load": "The single domain carrying the highest load for this profile",
+  "secondary_domain_under_load": "The second domain, or null if only one is notable"
 }
 `
 
@@ -905,8 +927,11 @@ as specified. The interpretation leads — not the score.
         : Promise.resolve({ error: null }),
       translation.prescriptions?.length > 0
         ? supabase.from('prescriptions').insert(
-            translation.prescriptions.map((rx: string) => ({
-              audit_id: auditId, user_id: user.id, prescription_text: rx
+            translation.prescriptions.map((rx: any) => ({
+              audit_id:          auditId,
+              user_id:           user.id,
+              prescription_text: typeof rx === 'string' ? rx : rx.text,
+              domain_target:     typeof rx === 'object' ? rx.prescription_type : null,
             }))
           )
         : Promise.resolve({ error: null })
@@ -921,17 +946,76 @@ as specified. The interpretation leads — not the score.
 
     // -------------------------------------------------------------------------
     // 11. PROFILE WEIGHT ENGINE — Step 2
-    // Applies sensitivity matrix and integration modifier to raw domain scores.
-    // Returns Environmental Cost Score, projected score, and human narratives.
-    // Weighted scores never replace stored objective scores —
-    // they are returned in the response payload only.
     // -------------------------------------------------------------------------
+    const prescriptionTexts = (translation.prescriptions || []).map(
+      (rx: any) => typeof rx === 'string' ? rx : rx.text
+    )
+
     const profileWeight = applyProfileWeightEngine(
       domainScores,
       profile as 'sensor' | 'seeker' | 'anchor',
       (integrationPattern ?? 'integrative') as 'integrative' | 'mixed' | 'accumulative',
       roomName,
-      translation.prescriptions || []
+      prescriptionTexts
+    )
+
+    // -------------------------------------------------------------------------
+    // 12. FFE LIBRARY QUERY — Step 3
+    // For each structured prescription returned by the translation pass,
+    // query ffe_library for a matching item filtered by prescription_type
+    // and the user's profile flags.
+    // Degrades cleanly — prescriptions without a matching item return without one.
+    // Rationale sentences come from the controlled map, not from GPT-4o.
+    // -------------------------------------------------------------------------
+    const structuredPrescriptions = await Promise.all(
+      (translation.prescriptions || []).map(async (rx: any) => {
+        const prescriptionType = typeof rx === 'object' ? rx.prescription_type : null
+        const prescriptionText = typeof rx === 'string' ? rx : rx.text
+        const category         = typeof rx === 'object' ? rx.category : 'immediate'
+
+        // Fetch matching FFE item — filtered by type and profile flag
+        let ffeItem = null
+        if (prescriptionType) {
+          const profileColumn = \`recommended_for_\${profile}\`
+          const { data: ffeData } = await supabase
+            .from('ffe_library')
+            .select('name, description, source_url, spec_notes, contraindicated_for')
+            .eq('prescription_type', prescriptionType)
+            .eq('active', true)
+            .eq(profileColumn, true)
+            .limit(1)
+            .maybeSingle()
+
+          if (ffeData) {
+            ffeItem = {
+              name:              ffeData.name,
+              description:       ffeData.description,
+              source_url:        ffeData.source_url,
+              spec_notes:        ffeData.spec_notes,
+              contraindicated_for: ffeData.contraindicated_for
+            }
+          }
+        }
+
+        // Rationale from controlled map — not GPT-4o
+        const rationale = prescriptionType
+          ? getRationale(
+              prescriptionType,
+              profile as 'sensor' | 'seeker' | 'anchor',
+              (integrationPattern ?? 'integrative') as 'integrative' | 'mixed' | 'accumulative'
+            )
+          : null
+
+        return {
+          text:              prescriptionText,
+          prescription_type: prescriptionType,
+          category:          category,
+          // rationale.primary leads in UI — rationale.accordion is the optional read
+          rationale_primary:   rationale?.primary   ?? null,
+          rationale_accordion: rationale?.accordion ?? null,
+          ffe_item:            ffeItem
+        }
+      })
     )
 
     // -------------------------------------------------------------------------
@@ -969,7 +1053,15 @@ as specified. The interpretation leads — not the score.
         cost_narrative:      profileWeight.cost_narrative,
         projected_narrative: profileWeight.projected_narrative,
         triggers:            translation.triggers       || [],
-        prescriptions:       translation.prescriptions  || [],
+        // Step 3: structured prescriptions with rationale + FFE items
+        // Each prescription carries:
+        //   text              — plain language intervention
+        //   prescription_type — structural key
+        //   category          — immediate or structural
+        //   rationale_primary — why this for this profile (plain language, leads)
+        //   rationale_accordion — deeper reasoning (accordion, optional read)
+        //   ffe_item          — matching product from FFE library, or null
+        prescriptions: structuredPrescriptions,
 
         primary_domain_under_load:   translation.primary_domain_under_load   || null,
         secondary_domain_under_load: translation.secondary_domain_under_load || null,
