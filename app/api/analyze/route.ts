@@ -24,6 +24,9 @@ import OpenAI from 'openai'
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
+// Step 2 — profile weight engine
+import { applyProfileWeightEngine } from '@/app/lib/profile-weight-engine'
+
 // =============================================================================
 // TYPES
 // =============================================================================
@@ -104,7 +107,7 @@ function buildObservationPrompt(
   acousticContext: string | null
 ): string {
   return `
-You are the NeuroPsychology for Interior Design Observation Engine — a precision environmental analysis instrument 
+You are the NeuroPsychology for Interior Design Observation Engine: a precision environmental analysis instrument 
 grounded in environmental psychology, neuroscience, and sensory research.
 
 Your task is to observe a room image and return a structured set of environmental observations 
@@ -301,7 +304,7 @@ YOUR FRAMEWORK:
 You translate structured environmental observations and domain scores into 
 precise, human-first interpretations for a specific nervous system.
 
-This is neuropsychology applied to interior design — not clinical diagnosis.
+This is neuropsychology applied to interior design, not clinical diagnosis.
 Your language lives in the domain of home, environment, and lived experience.
 You never pathologise. You never use clinical severity language.
 You name environmental conditions and their nervous system consequences
@@ -819,11 +822,11 @@ PROFILE CONTEXT FOR TRANSLATION:
     ? 'This system runs at higher baseline sensitivity. Environmental conditions that produce mild arousal in a regulated system produce measurable load in this one. Chromatic and acoustic conditions carry compounded cost with an accumulative pattern.'
     : profile === 'seeker'
     ? 'This system requires adequate environmental stimulation for executive engagement. Under-stimulating conditions compound the under-arousal tendency. Cool desaturated palettes and low sensory complexity are as problematic as overload for a different profile.'
-    : 'This system has broader environmental tolerance. The relevant findings are sustained sustained load conditions such as particularly accumulated circadian misalignment, persistent maintenance signals, and acoustic vulnerability, that exceed the system\'s absorption capacity over time.'
+    : 'This system has broader environmental tolerance. The relevant findings are sustained sustained load conditions — particularly accumulated circadian misalignment, persistent maintenance signals, and acoustic vulnerability — that exceed the system\'s absorption capacity over time.'
   }
 
 Generate the interpretation, vision, triggers, prescriptions, and domain identifiers
-as specified. The interpretation leads, not the score.
+as specified. The interpretation leads — not the score.
     `.trim()
 
     const translationCompletion = await openai.chat.completions.create({
@@ -917,35 +920,78 @@ as specified. The interpretation leads, not the score.
     })
 
     // -------------------------------------------------------------------------
-    // 11. FRONTEND PAYLOAD
-    // Structure carries both layers:
-    //   - interpretation layer (leads in UI)
-    //   - detail layer (accordion — domain scores + observations)
-    // Step 2 will add profile_weighted_scores to the detail layer.
-    // Step 3 will add ffe_recommendations to prescriptions.
-    // Step 4 will add bsfi_correlation to the interpretation layer.
+    // 11. PROFILE WEIGHT ENGINE — Step 2
+    // Applies sensitivity matrix and integration modifier to raw domain scores.
+    // Returns Environmental Cost Score, projected score, and human narratives.
+    // Weighted scores never replace stored objective scores —
+    // they are returned in the response payload only.
+    // -------------------------------------------------------------------------
+    const profileWeight = applyProfileWeightEngine(
+      domainScores,
+      profile as 'sensor' | 'seeker' | 'anchor',
+      (integrationPattern ?? 'integrative') as 'integrative' | 'mixed' | 'accumulative',
+      roomName,
+      translation.prescriptions || []
+    )
+
+    // -------------------------------------------------------------------------
+    // 12. FRONTEND PAYLOAD
+    //
+    // PRIMARY LAYER (leads in UI — no scores, human language only):
+    //   interpretation     — what this space is doing to this nervous system
+    //   vision             — what the space becomes after interventions
+    //   cost_narrative     — what this space currently costs (plain language)
+    //   projected_narrative — what it becomes after interventions (plain language)
+    //   triggers           — environmental conditions named in plain language
+    //   prescriptions      — what changes, in plain design language
+    //
+    // DETAIL LAYER (accordion — scores and domain breakdown):
+    //   environmental_cost_score  — profile-weighted composite (0–100)
+    //   projected_cost_score      — projected after interventions
+    //   improvement_delta         — numerical difference
+    //   domain_cost_labels        — plain-language per-domain descriptions
+    //   weighted_domain_scores    — profile-adjusted per-domain numbers
+    //   objective_domain_scores   — raw scores for longitudinal comparison
+    //   objective_alignment_index — raw alignment index
+    //   observations              — what GPT-4o observed
+    //   confidence                — image quality and any assessment caveats
+    //
+    // Step 3 will add ffe_recommendations alongside prescriptions.
+    // Step 4 will add bsfi_correlation to the primary layer.
     // -------------------------------------------------------------------------
     return NextResponse.json({
       success: true,
       data: {
 
-        // INTERPRETATION LAYER — leads in UI
-        interpretation:   translation.interpretation || '',
-        vision:           translation.vision         || '',
-        triggers:         translation.triggers        || [],
-        prescriptions:    translation.prescriptions   || [],
+        // PRIMARY LAYER — leads in UI, no scores
+        interpretation:      translation.interpretation || '',
+        vision:              translation.vision         || '',
+        cost_narrative:      profileWeight.cost_narrative,
+        projected_narrative: profileWeight.projected_narrative,
+        triggers:            translation.triggers       || [],
+        prescriptions:       translation.prescriptions  || [],
 
         primary_domain_under_load:   translation.primary_domain_under_load   || null,
         secondary_domain_under_load: translation.secondary_domain_under_load || null,
 
-        // DETAIL LAYER — accordion display
-        // Step 2 will add profile_weighted_scores here
+        // DETAIL LAYER — accordion
         detail: {
-          alignment_index:  alignmentIndex,
-          image_quality:    rawObservations.image_quality,
-          confidence_note:  rawObservations.confidence_note || null,
+          // Profile-weighted scores — what this room costs this nervous system
+          environmental_cost_score:  profileWeight.environmental_cost_score,
+          projected_cost_score:      profileWeight.projected_cost_score,
+          improvement_delta:         profileWeight.improvement_delta,
+          domain_cost_labels:        profileWeight.domain_cost_labels,
+          weighted_domain_scores: {
+            'Amygdala Regulation':    profileWeight.weighted_domain_scores.amygdala,
+            'Prefrontal Buffer':      profileWeight.weighted_domain_scores.prefrontal,
+            'Vagal Coherence':        profileWeight.weighted_domain_scores.vagal,
+            'Circadian Alignment':    profileWeight.weighted_domain_scores.circadian,
+            'Acoustic Safety':        profileWeight.weighted_domain_scores.acoustic,
+            'Neuroendocrine Balance': profileWeight.weighted_domain_scores.neuroendocrine
+          },
 
-          domain_scores: {
+          // Objective scores — stored for longitudinal comparison
+          objective_domain_scores: {
             'Amygdala Regulation':    domainScores.amygdala,
             'Prefrontal Buffer':      domainScores.prefrontal,
             'Vagal Coherence':        domainScores.vagal,
@@ -953,18 +999,24 @@ as specified. The interpretation leads, not the score.
             'Acoustic Safety':        domainScores.acoustic,
             'Neuroendocrine Balance': domainScores.neuroendocrine
           },
+          objective_alignment_index: alignmentIndex,
 
+          // Observation detail
           observations: {
-            chromatic_arousal_flag:          rawObservations.chromatic_arousal.profile_flag,
-            large_format_saturated_surface:  rawObservations.chromatic_arousal.large_format_saturated_surface,
-            biophilic_presence:              rawObservations.biophilic_presence,
-            tactile_anchors:                 rawObservations.tactile_anchors,
-            spatial_containment:             rawObservations.spatial_containment,
-            light_directionality:            rawObservations.light_directionality,
-            spectral_warmth:                 rawObservations.spectral_warmth,
-            hard_surface_dominance:          rawObservations.hard_surface_dominance,
-            maintenance_signal:              rawObservations.maintenance_signal
-          }
+            chromatic_arousal_flag:         rawObservations.chromatic_arousal.profile_flag,
+            large_format_saturated_surface: rawObservations.chromatic_arousal.large_format_saturated_surface,
+            biophilic_presence:             rawObservations.biophilic_presence,
+            tactile_anchors:                rawObservations.tactile_anchors,
+            spatial_containment:            rawObservations.spatial_containment,
+            light_directionality:           rawObservations.light_directionality,
+            spectral_warmth:                rawObservations.spectral_warmth,
+            hard_surface_dominance:         rawObservations.hard_surface_dominance,
+            maintenance_signal:             rawObservations.maintenance_signal
+          },
+
+          // Confidence
+          image_quality:   rawObservations.image_quality,
+          confidence_note: rawObservations.confidence_note || null
         }
       }
     })
