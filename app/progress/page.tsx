@@ -55,12 +55,12 @@ export default function Progress() {
   // SOCIAL DEMAND — evening log only
   // Three-option selector: low | moderate | high
   // Stored as text in daily_logs.social_demand
-  // Feeds BSFI correlation layer (Step 4) and 14-day synthesis
   // ─────────────────────────────────────────────────────────────────────────
   const [socialDemand, setSocialDemand] = useState<'low' | 'moderate' | 'high' | null>(null)
 
   // ─────────────────────────────────────────────────────────────────────────
-  // eveningMood is DERIVED from sleepReadiness
+  // eveningMood is DERIVED from sleepReadiness — the two scales are
+  // semantically identical (1 = Tired but Wired / Wired, 5 = Sleep Ready).
   // ─────────────────────────────────────────────────────────────────────────
   const [eveningMood, setEveningMood] = useState<number | null>(null)
   const [eveningTags, setEveningTags] = useState<string[]>([])
@@ -70,6 +70,9 @@ export default function Progress() {
   const [errorMessage, setErrorMessage] = useState('')
   const [showAccuracyWarning, setShowAccuracyWarning] = useState(false)
 
+  // -------------------------------------------------------------------------
+  // CHANGE 1 — BSFI STATE TYPE
+  // -------------------------------------------------------------------------
   const [morningBsfi, setMorningBsfi] = useState<{
     total_score:           number
     dominant_domain:       string
@@ -96,14 +99,16 @@ export default function Progress() {
   const [isSynthesisExpanded, setIsSynthesisExpanded] = useState(false)
 
   // ─────────────────────────────────────────────────────────────────────────
-  // BSFI SCORE ACCORDION STATES
-  // Score is optional viewing — interpretation leads
+  // BSFI SCORE VISIBILITY — interpretation leads, score is optional
   // ─────────────────────────────────────────────────────────────────────────
   const [showMorningScore, setShowMorningScore] = useState(false)
   const [showEveningScore, setShowEveningScore] = useState(false)
 
   const [chartLogs, setChartLogs] = useState<any[]>([])
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // FIX 1 — SYNC eveningMood FROM sleepReadiness
+  // ─────────────────────────────────────────────────────────────────────────
   useEffect(() => {
     setEveningMood(sleepReadiness)
   }, [sleepReadiness])
@@ -141,7 +146,7 @@ export default function Progress() {
     }
   }
 
-  const hasAccess   = tier !== null || godMode
+  const hasAccess  = tier !== null || godMode
   const isBlueprint = tier === 'blueprint' || godMode
 
   // ---------------------------------------------------------------------------
@@ -196,14 +201,14 @@ export default function Progress() {
   }
 
   // ---------------------------------------------------------------------------
-  // BSFI LABEL SYSTEM
+  // BSFI LABEL SYSTEM — unchanged from original
   // ---------------------------------------------------------------------------
   const getBsfiLabel = (score: number) => {
-    if (score <= 20) return { label: 'Your Home Is Supporting You',   color: 'text-[#b5a642]',    border: 'border-[#b5a642]' }
-    if (score <= 40) return { label: 'Mild Friction Present',         color: 'text-[#b5a642]/80', border: 'border-[#b5a642]' }
-    if (score <= 60) return { label: 'Moderate Environmental Load',   color: 'text-[#b5a642]/70', border: 'border-[#b5a642]' }
-    if (score <= 80) return { label: 'Significant Friction Detected', color: 'text-[#b5a642]/60', border: 'border-[#b5a642]' }
-    return             { label: 'High Environmental Load',            color: 'text-[#b5a642]/50', border: 'border-[#b5a642]' }
+    if (score <= 20) return { label: 'Your Home Is Supporting You',   color: 'text-[#b5a642]',    border: 'border-[#b5a642]/60' }
+    if (score <= 40) return { label: 'Mild Friction Present',         color: 'text-[#b5a642]/80', border: 'border-[#b5a642]/40' }
+    if (score <= 60) return { label: 'Moderate Environmental Load',   color: 'text-[#b5a642]/70', border: 'border-[#b5a642]/35' }
+    if (score <= 80) return { label: 'Significant Friction Detected', color: 'text-[#b5a642]/60', border: 'border-[#b5a642]/30' }
+    return             { label: 'High Environmental Load',            color: 'text-[#b5a642]/50', border: 'border-[#b5a642]/25' }
   }
 
   // ---------------------------------------------------------------------------
@@ -381,12 +386,15 @@ export default function Progress() {
   const eveningInsight  = getEveningFeedback()
   const macroSynthesis  = getMacroSynthesis()
 
+  // ---------------------------------------------------------------------------
+  // MOODS — unchanged from original
+  // ---------------------------------------------------------------------------
   const moods = [
-    { val: 1, label: 'Burned Out',   desc: 'Running on empty',      color: 'bg-[#b5a642]/10 border-[#b5a642] text-[#b5a642]/50' },
-    { val: 2, label: 'Tense / Edgy', desc: 'Buzzing with stress',   color: 'bg-[#b5a642]/12 border-[#b5a642] text-[#b5a642]/60' },
-    { val: 3, label: 'Neutral',      desc: 'Holding steady',        color: 'bg-[#b5a642]/10 border-[#b5a642] text-[#b5a642]/70' },
-    { val: 4, label: 'Grounded',     desc: 'Breathing deeper',      color: 'bg-[#b5a642]/18 border-[#b5a642] text-[#b5a642]/80' },
-    { val: 5, label: 'In Flow',      desc: 'Effortless movement',   color: 'bg-[#b5a642]/20 border-[#b5a642] text-[#b5a642]'    },
+    { val: 1, label: 'Burned Out',   desc: 'Running on empty',      color: 'bg-[#b5a642]/10 border-[#b5a642]/25 text-[#b5a642]/50' },
+    { val: 2, label: 'Tense / Edgy', desc: 'Buzzing with stress',   color: 'bg-[#b5a642]/12 border-[#b5a642]/30 text-[#b5a642]/60' },
+    { val: 3, label: 'Neutral',      desc: 'Holding steady',        color: 'bg-[#c9ccbb]/10 border-[#c9ccbb]/30 text-[#c9ccbb]/70' },
+    { val: 4, label: 'Grounded',     desc: 'Breathing deeper',      color: 'bg-[#b5a642]/18 border-[#b5a642]/50 text-[#b5a642]/80' },
+    { val: 5, label: 'In Flow',      desc: 'Effortless movement',   color: 'bg-[#b5a642]/20 border-[#b5a642]/60 text-[#b5a642]'    },
   ]
 
   const morningTagOptions = [
@@ -482,13 +490,11 @@ export default function Progress() {
         setDaytimeDb(logData.daytime_db   !== null ? logData.daytime_db.toString()  : autoDaytimeDb)
         setBedtimeDb(logData.bedtime_db   !== null ? logData.bedtime_db.toString()  : autoBedtimeDb)
         setBedtimeLux(logData.bedtime_lux !== null ? logData.bedtime_lux.toString() : autoBedtimeLux)
-        if (logData.sleep_readiness !== null) setSleepReadiness(logData.sleep_readiness)
-        if (logData.focus_hours     !== null) setFocusScore(logData.focus_hours)
-        if (logData.morning_tension !== null) setTensionScore(logData.morning_tension)
-        if (logData.sleep_wakes     !== null) setWakeScore(logData.sleep_wakes)
-        // ─────────────────────────────────────────────────────────────────
-        // SOCIAL DEMAND — read from daily_logs on load
-        // ─────────────────────────────────────────────────────────────────
+        if (logData.sleep_readiness  !== null) setSleepReadiness(logData.sleep_readiness)
+        if (logData.focus_hours      !== null) setFocusScore(logData.focus_hours)
+        if (logData.morning_tension  !== null) setTensionScore(logData.morning_tension)
+        if (logData.sleep_wakes      !== null) setWakeScore(logData.sleep_wakes)
+        // SOCIAL DEMAND — read back from daily_logs on load
         if (logData.social_demand) setSocialDemand(logData.social_demand as 'low' | 'moderate' | 'high')
         setEveningTags(logData.evening_tags || [])
         setEveningNote(logData.evening_note || '')
@@ -585,10 +591,7 @@ export default function Progress() {
         evening_mood_score: eveningMood,
         evening_tags:       eveningTags,
         evening_note:       eveningNote,
-        // ─────────────────────────────────────────────────────────────────
-        // SOCIAL DEMAND — written to daily_logs on every save
-        // null-safe: null when user has not selected an option
-        // ─────────────────────────────────────────────────────────────────
+        // SOCIAL DEMAND — written on every save, null when not selected
         social_demand:      socialDemand ?? null,
       }
 
@@ -669,11 +672,11 @@ export default function Progress() {
           </div>
 
           {/* LOGGING PANEL */}
-          <div className="glass-panel p-8 rounded-3xl mb-16 relative overflow-hidden border border-[#b5a642]/15">
+          <div className="glass-panel p-8 rounded-3xl mb-16 relative overflow-hidden border border-[#c9ccbb]/10">
 
             {/* MORNING / EVENING TAB */}
             <div className="flex justify-center mb-8">
-              <div className="bg-[#000]/30 p-1 rounded-full flex gap-1 border border-[#b5a642]/15">
+              <div className="bg-[#000]/30 p-1 rounded-full flex gap-1 border border-[#c9ccbb]/10">
                 <button
                   onClick={() => setActiveTab('morning')}
                   className={`flex items-center gap-2 px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${
@@ -713,7 +716,7 @@ export default function Progress() {
                       className={`p-4 rounded-xl border transition-all text-left flex flex-col justify-between h-28 group relative overflow-hidden ${
                         morningMood === mood.val
                           ? `${mood.color} shadow-lg scale-105`
-                          : 'bg-[#000]/20 border-[#b5a642]/10 text-[#c9ccbb]/60 hover:bg-[#b5a642]/5'
+                          : 'bg-[#000]/20 border-[#c9ccbb]/10 text-[#c9ccbb]/60 hover:bg-[#c9ccbb]/5'
                       }`}
                     >
                       <span className="text-xl font-serif font-bold relative z-10">{mood.val}</span>
@@ -829,7 +832,7 @@ export default function Progress() {
                                   <Lock size={14} className="text-[#b5a642]" />
                                   <span className="text-[9px] font-bold text-[#c9ccbb]/80 uppercase tracking-widest text-center">Understand the why through the lens of NeuroDesign</span>
                                   <Link href="/upgrade">
-                                    <button className="px-5 py-1.5 bg-[#b5a642] text-[#1b270e] text-[9px] font-bold uppercase tracking-widest rounded-full hover:bg-[#d4c55e] transition-all">
+                                    <button className="px-5 py-1.5 bg-[#b5a642] text-[#1b270e] text-[9px] font-bold uppercase tracking-widest rounded-full hover:bg-white transition-all">
                                       Unlock Now
                                     </button>
                                   </Link>
@@ -871,10 +874,8 @@ export default function Progress() {
                   </div>
 
                   {/* ─────────────────────────────────────────────────────────
-                      SOCIAL DEMAND SELECTOR
-                      Three options: low | moderate | high
-                      Neutral framing — measures demand level, not quality
-                      of relationships or personal circumstances.
+                      SOCIAL DEMAND SELECTOR — new addition
+                      Neutral framing: measures demand level only
                   ───────────────────────────────────────────────────────── */}
                   <div>
                     <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb] mb-2">
@@ -892,13 +893,11 @@ export default function Progress() {
                         <button
                           key={opt.value}
                           type="button"
-                          onClick={() => setSocialDemand(
-                            socialDemand === opt.value ? null : opt.value
-                          )}
+                          onClick={() => setSocialDemand(socialDemand === opt.value ? null : opt.value)}
                           className={`py-2.5 px-2 rounded-xl border text-[10px] font-bold uppercase tracking-widest transition-all text-center ${
                             socialDemand === opt.value
                               ? 'border-[#b5a642]/60 bg-[#b5a642]/15 text-[#b5a642]'
-                              : 'border-[#b5a642]/15 text-[#c9ccbb]/60 hover:border-[#b5a642]/30 hover:text-[#c9ccbb]/80'
+                              : 'border-[#c9ccbb]/10 text-[#c9ccbb]/60 hover:border-[#b5a642]/30 hover:text-[#c9ccbb]/80'
                           }`}
                         >
                           {opt.label}
@@ -957,7 +956,7 @@ export default function Progress() {
                                   <Lock size={14} className="text-[#b5a642]" />
                                   <span className="text-[9px] font-bold text-[#c9ccbb]/80 uppercase tracking-widest text-center">Understand the why through the lens of NeuroDesign</span>
                                   <Link href="/upgrade">
-                                    <button className="px-5 py-1.5 bg-[#b5a642] text-[#1b270e] text-[9px] font-bold uppercase tracking-widest rounded-full hover:bg-[#d4c55e] transition-all">
+                                    <button className="px-5 py-1.5 bg-[#b5a642] text-[#1b270e] text-[9px] font-bold uppercase tracking-widest rounded-full hover:bg-white transition-all">
                                       Unlock Now
                                     </button>
                                   </Link>
@@ -975,7 +974,7 @@ export default function Progress() {
 
             {/* ENVIRONMENTAL READINGS — morning */}
             {activeTab === 'morning' && (
-              <div className="mb-8 p-6 bg-[#000]/20 rounded-2xl border border-[#b5a642]/10 animate-fade-in">
+              <div className="mb-8 p-6 bg-[#000]/20 rounded-2xl border border-[#c9ccbb]/5 animate-fade-in">
                 <label className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-4 block flex items-center gap-2">
                   <Activity size={12} /> Your Home Environment Today
                 </label>
@@ -997,7 +996,7 @@ export default function Progress() {
                       placeholder="e.g. 250 (Dim) or 2500 (Bright)"
                       value={morningLux}
                       onChange={(e) => setMorningLux(e.target.value)}
-                      className="w-full bg-[#1b270e] border border-[#b5a642]/15 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
+                      className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
                     />
                   </div>
                   <div>
@@ -1017,7 +1016,7 @@ export default function Progress() {
                       placeholder="e.g. 45 (Kitchen) or 70 (Busy room)"
                       value={daytimeDb}
                       onChange={(e) => setDaytimeDb(e.target.value)}
-                      className="w-full bg-[#1b270e] border border-[#b5a642]/15 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
+                      className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
                     />
                   </div>
                 </div>
@@ -1031,7 +1030,7 @@ export default function Progress() {
                 className={`w-full mb-8 p-5 rounded-2xl border text-left transition-all duration-300 group relative overflow-hidden animate-fade-in ${
                   eveningTags.includes('low_horizon')
                     ? 'bg-[#b5a642]/15 border-[#b5a642]/60 shadow-lg shadow-[#b5a642]/10'
-                    : 'bg-[#000]/20 border-[#b5a642]/10 hover:border-[#b5a642]/30 hover:bg-[#b5a642]/5'
+                    : 'bg-[#000]/20 border-[#c9ccbb]/10 hover:border-[#b5a642]/30 hover:bg-[#b5a642]/5'
                 }`}
               >
                 <div className="flex items-center justify-between gap-4">
@@ -1060,7 +1059,7 @@ export default function Progress() {
                     </div>
                   </div>
                   <div className={`shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
-                    eveningTags.includes('low_horizon') ? 'border-[#b5a642] bg-[#b5a642]' : 'border-[#b5a642]/20 group-hover:border-[#b5a642]/40'
+                    eveningTags.includes('low_horizon') ? 'border-[#b5a642] bg-[#b5a642]' : 'border-[#c9ccbb]/20 group-hover:border-[#b5a642]/40'
                   }`}>
                     {eveningTags.includes('low_horizon') && <CheckCircle size={12} className="text-[#1b270e]" />}
                   </div>
@@ -1077,7 +1076,7 @@ export default function Progress() {
                   className={`flex items-center gap-2 px-4 py-3 h-auto rounded-full border text-[10px] font-bold uppercase tracking-widest transition-all ${
                     currentTags.includes(tag.id)
                       ? 'bg-[#b5a642] border-[#b5a642] text-[#1b270e]'
-                      : 'bg-[#000]/20 border-[#b5a642]/10 text-[#c9ccbb]/80 hover:text-[#c9ccbb]'
+                      : 'bg-[#000]/20 border-[#c9ccbb]/10 text-[#c9ccbb]/80 hover:text-[#c9ccbb]'
                   }`}
                 >
                   {tag.icon}
@@ -1092,7 +1091,7 @@ export default function Progress() {
                 value={currentNote}
                 onChange={(e) => setCurrentNote(e.target.value)}
                 placeholder={activeTab === 'morning' ? 'Anything worth noting about your morning?' : 'Anything worth noting about your evening?'}
-                className="w-full h-24 bg-[#000]/20 border border-[#b5a642]/10 rounded-xl p-4 text-[#c9ccbb] text-sm placeholder:text-[#c9ccbb]/80 focus:outline-none focus:border-[#b5a642]/50 resize-none font-sans"
+                className="w-full h-24 bg-[#000]/20 border border-[#c9ccbb]/10 rounded-xl p-4 text-[#c9ccbb] text-sm placeholder:text-[#c9ccbb]/80 focus:outline-none focus:border-[#b5a642]/50 resize-none font-sans"
               />
             </div>
 
@@ -1116,7 +1115,7 @@ export default function Progress() {
                   </div>
                 </div>
 
-                <div className="mb-6 p-5 bg-[#000]/20 rounded-2xl border border-[#b5a642]/10">
+                <div className="mb-6 p-5 bg-[#000]/20 rounded-2xl border border-[#c9ccbb]/5">
                   <div className="flex justify-between mb-2">
                     <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb]">
                       <Sparkles size={13} className="text-[#b5a642]" /> How settled does your body feel?
@@ -1155,7 +1154,7 @@ export default function Progress() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-5 bg-[#000]/20 rounded-2xl border border-[#b5a642]/10 relative overflow-hidden group hover:border-[#b5a642]/20 transition-colors">
+                  <div className="p-5 bg-[#000]/20 rounded-2xl border border-[#c9ccbb]/5 relative overflow-hidden group hover:border-[#b5a642]/20 transition-colors">
                     <div className="absolute top-0 right-0 w-16 h-16 bg-[#b5a642]/5 rounded-full blur-2xl group-hover:bg-[#b5a642]/10 transition-all" />
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2 text-[#c9ccbb]/60 text-xs font-bold uppercase tracking-widest">
@@ -1174,11 +1173,11 @@ export default function Progress() {
                       placeholder="e.g. 30 (Quiet) or 48 (Audible)"
                       value={bedtimeDb}
                       onChange={(e) => setBedtimeDb(e.target.value)}
-                      className="w-full bg-[#1b270e] border border-[#b5a642]/15 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
+                      className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
                     />
                   </div>
 
-                  <div className="p-5 bg-[#000]/20 rounded-2xl border border-[#b5a642]/10 relative overflow-hidden group hover:border-[#b5a642]/20 transition-colors">
+                  <div className="p-5 bg-[#000]/20 rounded-2xl border border-[#c9ccbb]/5 relative overflow-hidden group hover:border-[#b5a642]/20 transition-colors">
                     <div className="absolute top-0 right-0 w-16 h-16 bg-[#b5a642]/5 rounded-full blur-2xl group-hover:bg-[#b5a642]/10 transition-all" />
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2 text-[#c9ccbb]/80 text-xs font-bold uppercase tracking-widest">
@@ -1197,7 +1196,7 @@ export default function Progress() {
                       placeholder="e.g. 5 (Dark) or 80 (Lamp on)"
                       value={bedtimeLux}
                       onChange={(e) => setBedtimeLux(e.target.value)}
-                      className="w-full bg-[#1b270e] border border-[#b5a642]/15 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
+                      className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
                     />
                   </div>
                 </div>
@@ -1205,7 +1204,7 @@ export default function Progress() {
             )}
 
             {/* SAVE CONTROLS */}
-            <div className="flex flex-col gap-4 pt-6 border-t border-[#b5a642]/10">
+            <div className="flex flex-col gap-4 pt-6 border-t border-[#c9ccbb]/10">
               <AnimatePresence>
                 {showAccuracyWarning && (
                   <motion.div
@@ -1251,8 +1250,8 @@ export default function Progress() {
                   disabled={!canSave}
                   className={`px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-all flex items-center gap-2 ${
                     canSave
-                      ? 'bg-[#b5a642] text-[#1b270e] hover:bg-[#d4c55e]'
-                      : 'bg-[#b5a642]/10 text-[#b5a642]/20 cursor-not-allowed'
+                      ? 'bg-[#c9ccbb] text-[#1b270e] hover:bg-white'
+                      : 'bg-[#c9ccbb]/10 text-[#c9ccbb]/80 cursor-not-allowed'
                   }`}
                 >
                   {status === 'saving' ? <><Loader2 size={14} className="animate-spin" /> Saving</> : 'Save Entry'}
@@ -1262,47 +1261,54 @@ export default function Progress() {
           </div>
 
           {/* ------------------------------------------------------------------ */}
-          {/* BSFI SESSION CARD                                                   */}
-          {/* ─────────────────────────────────────────────────────────────────── */}
-          {/* CHANGE: morning card shows only on morning tab                      */}
-          {/*         evening card shows only on evening tab                      */}
-          {/* CHANGE: interpretation leads — score is optional (accordion)        */}
+          {/* BSFI SESSION CARDS                                                  */}
+          {/* CHANGE: morning card on morning tab only                            */}
+          {/*         evening card on evening tab only                            */}
+          {/* CHANGE: interpretation leads — score is optional accordion          */}
           {/* ------------------------------------------------------------------ */}
           <AnimatePresence mode="wait">
+
             {activeTab === 'morning' && morningBsfi && (
               <motion.div
                 key="morning-bsfi"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
                 className="mb-8"
               >
                 <div className="flex items-center gap-2 mb-3 px-1">
                   <Sparkles size={12} className="text-[#b5a642]/60" />
                   <span className="text-[#b5a642]/70 text-[10px] font-bold uppercase tracking-widest">
-                    Morning · What last night produced
+                    Today's Bio-Spatial Rhythm
                   </span>
                 </div>
 
-                <div className="glass-panel p-6 rounded-3xl border border-[#b5a642]/20 relative overflow-hidden bg-gradient-to-br from-[#b5a642]/8 to-transparent">
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="glass-panel p-6 rounded-3xl border border-[#b5a642]/20 relative overflow-hidden bg-gradient-to-br from-[#b5a642]/8 to-transparent"
+                >
                   <div className="absolute -top-6 -right-6 w-24 h-24 bg-[#b5a642]/10 rounded-full blur-2xl pointer-events-none" />
                   <div className="relative z-10">
+                    <span className="text-[#b5a642]/70 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 mb-4">
+                      <Sunrise size={11} /> Morning · What last night produced
+                    </span>
 
                     {/* INTERPRETATION LEADS */}
-                    <h3 className="text-xl font-serif text-[#c9ccbb] mb-3">
+                    <h3 className="text-lg font-serif text-[#c9ccbb] mb-2">
                       {getBsfiLabel(morningBsfi.total_score).label}
                     </h3>
 
                     {morningBsfi.is_internal_driver ? (
-                      <p className="text-[#c9ccbb]/70 text-sm leading-relaxed mb-4">
-                        There is some internal friction present, but your environment appears stable. This suggests the load is coming from within rather than from your space.
+                      <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed max-w-xs mb-4">
+                        There is some internal friction present, but your environment appears stable. This suggests that the load is coming from within.
                       </p>
                     ) : (() => {
                       const safeDomain = sanitiseDomain(morningBsfi.dominant_domain)
                       return safeDomain ? (
                         <div className="mb-4">
-                          <span className="text-[#c9ccbb]/60 text-[10px] uppercase tracking-widest font-bold block mb-1">Primary source of friction</span>
-                          <span className="text-[#c9ccbb] bg-[#000]/30 px-3 py-1.5 rounded-lg text-xs font-bold inline-block">
+                          <span className="text-[#c9ccbb]/80 text-[10px] block mb-1 uppercase tracking-widest font-bold">Primary source</span>
+                          <span className="text-white bg-[#000]/30 px-2.5 py-1 rounded text-[10px] font-bold inline-block">
                             {getDomainDisplay(safeDomain).label}
                           </span>
                         </div>
@@ -1312,37 +1318,37 @@ export default function Progress() {
                     {(() => {
                       const ctx = getBSFIContext(morningBsfi.total_score)
                       return (
-                        <div className="p-4 bg-[#b5a642]/5 rounded-xl border border-[#b5a642]/10 mb-4">
-                          <p className="text-[#c9ccbb]/80 text-xs leading-relaxed mb-2">{ctx.reframe}</p>
-                          <p className="text-[#c9ccbb]/60 text-xs leading-relaxed italic">{ctx.environment_lens}</p>
+                        <div className="mt-4 pt-4 border-t border-[#b5a642]/10">
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-[#b5a642] mb-2">What this means</p>
+                          <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed mb-2">{ctx.reframe}</p>
+                          <p className="text-[#c9ccbb]/70 text-[10px] leading-relaxed italic">{ctx.environment_lens}</p>
                         </div>
                       )
                     })()}
 
-                    {/* ACCUMULATIVE ALI FLAG */}
                     {morningBsfi.accumulative_ali_flag && (
-                      <div className="mb-4 flex items-start gap-2 p-3 rounded-xl bg-[#b5a642]/5 border border-[#b5a642]/15">
+                      <div className="mt-4 pt-4 border-t border-[#b5a642]/10 flex items-start gap-2">
                         <AlertCircle size={13} className="text-[#b5a642] shrink-0 mt-0.5" />
                         <div>
                           <span className="text-[#b5a642] text-[9px] font-bold uppercase tracking-widest block mb-1">
-                            Acoustic Load: Context Note
+                            Acoustic Load — Context Note
                           </span>
                           <p className="text-[#c9ccbb]/60 text-[9px] leading-relaxed">
-                            Your acoustic load score appears moderate, but your accumulative processing pattern means your nervous system is under more strain than the score suggests. Mid-range friction on an accumulative profile requires the same attention as high friction on an integrative one.
+                            Although your acoustic load score appears moderate, your cumulative processing
+                            pattern means your nervous system is under more strain than the score suggests.
+                            Mid-range friction on an accumulative profile requires the same
+                            attention as high friction on an integrative one.
                           </p>
                         </div>
                       </div>
                     )}
 
-                    {/* SCORE — OPTIONAL ACCORDION */}
+                    {/* SCORE — optional accordion */}
                     <button
                       onClick={() => setShowMorningScore(!showMorningScore)}
-                      className="flex items-center gap-2 text-[#c9ccbb]/40 hover:text-[#b5a642]/60 text-[10px] font-bold uppercase tracking-widest transition-colors"
+                      className="mt-4 flex items-center gap-1.5 text-[#c9ccbb]/40 hover:text-[#b5a642]/60 text-[10px] font-bold uppercase tracking-widest transition-colors"
                     >
-                      <ChevronDown
-                        size={12}
-                        className={`transition-transform duration-300 ${showMorningScore ? 'rotate-180' : ''}`}
-                      />
+                      <ChevronDown size={11} className={`transition-transform duration-300 ${showMorningScore ? 'rotate-180' : ''}`} />
                       {showMorningScore ? 'Hide score' : 'See your score'}
                     </button>
                     <AnimatePresence>
@@ -1354,12 +1360,12 @@ export default function Progress() {
                           transition={{ duration: 0.25 }}
                           className="overflow-hidden"
                         >
-                          <div className="pt-4 flex items-center gap-4">
-                            <div className={`w-16 h-16 rounded-full border-4 ${getBsfiLabel(morningBsfi.total_score).border} flex flex-col items-center justify-center bg-[#1b270e] shrink-0`}>
-                              <span className={`text-xl font-serif ${getBsfiLabel(morningBsfi.total_score).color}`}>
+                          <div className="pt-4 flex items-center gap-5">
+                            <div className={`w-20 h-20 rounded-full border-4 ${getBsfiLabel(morningBsfi.total_score).border} flex flex-col items-center justify-center bg-[#1b270e] shrink-0 shadow-lg shadow-[#b5a642]/10`}>
+                              <span className={`text-2xl font-serif ${getBsfiLabel(morningBsfi.total_score).color}`}>
                                 {morningBsfi.total_score}
                               </span>
-                              <span className="text-[8px] text-[#c9ccbb]/60 font-bold uppercase tracking-widest">BSFI</span>
+                              <span className="text-[9px] text-[#c9ccbb]/80 font-bold uppercase tracking-widest">BSFI</span>
                             </div>
                             <p className="text-[#c9ccbb]/50 text-xs leading-relaxed">
                               Your Bio-Spatial Friction Index for this morning. Lower is better. This score reflects how much environmental load your nervous system absorbed overnight.
@@ -1369,44 +1375,51 @@ export default function Progress() {
                       )}
                     </AnimatePresence>
                   </div>
-                </div>
+                </motion.div>
               </motion.div>
             )}
 
             {activeTab === 'evening' && eveningBsfi && (
               <motion.div
                 key="evening-bsfi"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
                 className="mb-8"
               >
                 <div className="flex items-center gap-2 mb-3 px-1">
                   <Sparkles size={12} className="text-[#b5a642]/60" />
                   <span className="text-[#b5a642]/70 text-[10px] font-bold uppercase tracking-widest">
-                    Evening · What will be processed tonight
+                    Today's Bio-Spatial Rhythm
                   </span>
                 </div>
 
-                <div className="glass-panel p-6 rounded-3xl border border-[#b5a642]/20 relative overflow-hidden bg-gradient-to-br from-[#b5a642]/8 to-transparent">
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="glass-panel p-6 rounded-3xl border border-[#b5a642]/20 relative overflow-hidden bg-gradient-to-br from-[#b5a642]/8 to-transparent"
+                >
                   <div className="absolute -top-6 -right-6 w-24 h-24 bg-[#b5a642]/8 rounded-full blur-2xl pointer-events-none" />
                   <div className="relative z-10">
+                    <span className="text-[#b5a642]/80 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 mb-4">
+                      <Moon size={11} /> Evening · What will be processed tonight
+                    </span>
 
                     {/* INTERPRETATION LEADS */}
-                    <h3 className="text-xl font-serif text-[#c9ccbb] mb-3">
+                    <h3 className="text-lg font-serif text-[#c9ccbb] mb-2">
                       {getBsfiLabel(eveningBsfi.total_score).label}
                     </h3>
 
                     {eveningBsfi.is_internal_driver ? (
-                      <p className="text-[#c9ccbb]/70 text-sm leading-relaxed mb-4">
-                        There is some internal friction present, but your environment appears stable. Dim the lights, reduce background noise, and keep the bedroom cool and quiet.
+                      <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed max-w-xs mb-4">
+                        There is some internal friction present here, however your environment appears stable. Dim the lights, reduce background noise and keep the bedroom cool and quiet.
                       </p>
                     ) : (() => {
                       const safeDomain = sanitiseDomain(eveningBsfi.dominant_domain)
                       return safeDomain ? (
                         <div className="mb-4">
-                          <span className="text-[#c9ccbb]/60 text-[10px] uppercase tracking-widest font-bold block mb-1">Primary source of friction</span>
-                          <span className="text-[#c9ccbb] bg-[#000]/30 px-3 py-1.5 rounded-lg text-xs font-bold inline-block">
+                          <span className="text-[#c9ccbb]/80 text-[10px] block mb-1 uppercase tracking-widest font-bold">Primary source</span>
+                          <span className="text-white bg-[#000]/30 px-2.5 py-1 rounded text-[10px] font-bold inline-block">
                             {getDomainDisplay(safeDomain).label}
                           </span>
                         </div>
@@ -1416,37 +1429,37 @@ export default function Progress() {
                     {(() => {
                       const ctx = getBSFIContext(eveningBsfi.total_score)
                       return (
-                        <div className="p-4 bg-[#b5a642]/5 rounded-xl border border-[#b5a642]/10 mb-4">
-                          <p className="text-[#c9ccbb]/80 text-xs leading-relaxed mb-2">{ctx.reframe}</p>
-                          <p className="text-[#c9ccbb]/60 text-xs leading-relaxed italic">{ctx.environment_lens}</p>
+                        <div className="mt-4 pt-4 border-t border-[#b5a642]/10">
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-[#b5a642] mb-2">What this means</p>
+                          <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed mb-2">{ctx.reframe}</p>
+                          <p className="text-[#c9ccbb]/70 text-[10px] leading-relaxed italic">{ctx.environment_lens}</p>
                         </div>
                       )
                     })()}
 
-                    {/* ACCUMULATIVE ALI FLAG */}
                     {eveningBsfi.accumulative_ali_flag && (
-                      <div className="mb-4 flex items-start gap-2 p-3 rounded-xl bg-[#b5a642]/5 border border-[#b5a642]/15">
+                      <div className="mt-4 pt-4 border-t border-[#b5a642]/10 flex items-start gap-2">
                         <AlertCircle size={13} className="text-[#b5a642] shrink-0 mt-0.5" />
                         <div>
                           <span className="text-[#b5a642] text-[9px] font-bold uppercase tracking-widest block mb-1">
                             Acoustic Load: Context Note
                           </span>
                           <p className="text-[#c9ccbb]/60 text-[9px] leading-relaxed">
-                            Your acoustic load score appears moderate, but your accumulative processing pattern means your nervous system is under more strain than the score suggests. Mid-range friction on an accumulative profile requires the same attention as high friction on an integrative one.
+                            Your acoustic load score appears moderate, but your accumulative processing
+                            pattern means your nervous system is under more strain than the score suggests.
+                            Mid-range friction on an accumulative profile requires the same
+                            attention as high friction on an integrative one.
                           </p>
                         </div>
                       </div>
                     )}
 
-                    {/* SCORE — OPTIONAL ACCORDION */}
+                    {/* SCORE — optional accordion */}
                     <button
                       onClick={() => setShowEveningScore(!showEveningScore)}
-                      className="flex items-center gap-2 text-[#c9ccbb]/40 hover:text-[#b5a642]/60 text-[10px] font-bold uppercase tracking-widest transition-colors"
+                      className="mt-4 flex items-center gap-1.5 text-[#c9ccbb]/40 hover:text-[#b5a642]/60 text-[10px] font-bold uppercase tracking-widest transition-colors"
                     >
-                      <ChevronDown
-                        size={12}
-                        className={`transition-transform duration-300 ${showEveningScore ? 'rotate-180' : ''}`}
-                      />
+                      <ChevronDown size={11} className={`transition-transform duration-300 ${showEveningScore ? 'rotate-180' : ''}`} />
                       {showEveningScore ? 'Hide score' : 'See your score'}
                     </button>
                     <AnimatePresence>
@@ -1458,12 +1471,12 @@ export default function Progress() {
                           transition={{ duration: 0.25 }}
                           className="overflow-hidden"
                         >
-                          <div className="pt-4 flex items-center gap-4">
-                            <div className={`w-16 h-16 rounded-full border-4 ${getBsfiLabel(eveningBsfi.total_score).border} flex flex-col items-center justify-center bg-[#1b270e] shrink-0`}>
-                              <span className={`text-xl font-serif ${getBsfiLabel(eveningBsfi.total_score).color}`}>
+                          <div className="pt-4 flex items-center gap-5">
+                            <div className={`w-20 h-20 rounded-full border-4 ${getBsfiLabel(eveningBsfi.total_score).border} flex flex-col items-center justify-center bg-[#1b270e] shrink-0 shadow-lg shadow-[#b5a642]/10`}>
+                              <span className={`text-2xl font-serif ${getBsfiLabel(eveningBsfi.total_score).color}`}>
                                 {eveningBsfi.total_score}
                               </span>
-                              <span className="text-[8px] text-[#c9ccbb]/60 font-bold uppercase tracking-widest">BSFI</span>
+                              <span className="text-[9px] text-[#c9ccbb]/80 font-bold uppercase tracking-widest">BSFI</span>
                             </div>
                             <p className="text-[#c9ccbb]/50 text-xs leading-relaxed">
                               Your Bio-Spatial Friction Index for this evening. Lower is better. This score reflects the environmental load your nervous system will carry into tonight's sleep.
@@ -1473,9 +1486,10 @@ export default function Progress() {
                       )}
                     </AnimatePresence>
                   </div>
-                </div>
+                </motion.div>
               </motion.div>
             )}
+
           </AnimatePresence>
 
           {/* 14-DAY PATTERN PANEL */}
@@ -1507,7 +1521,7 @@ export default function Progress() {
             </div>
 
             {!macroSynthesis.ready ? (
-              <div className="mt-4 pt-4 border-t border-[#b5a642]/15 w-full relative z-10">
+              <div className="mt-4 pt-4 border-t border-[#c9ccbb]/10 w-full relative z-10">
                 <p className="text-sm text-[#c9ccbb]/80 leading-relaxed max-w-2xl">
                   {macroSynthesis.paragraphs[0]}
                 </p>
@@ -1528,7 +1542,7 @@ export default function Progress() {
                     transition={{ duration: 0.3, ease: 'easeInOut' }}
                     className="overflow-hidden relative z-10"
                   >
-                    <div className="mt-6 space-y-4 text-[#c9ccbb]/80 text-sm leading-relaxed border-t border-[#b5a642]/15 pt-6">
+                    <div className="mt-6 space-y-4 text-[#c9ccbb]/80 text-sm leading-relaxed border-t border-[#c9ccbb]/10 pt-6">
                       {macroSynthesis.paragraphs.map((para, i) => (
                         <p key={i}>{para}</p>
                       ))}
@@ -1537,12 +1551,12 @@ export default function Progress() {
                 )}
               </AnimatePresence>
             ) : (
-              <div className="mt-6 pt-6 border-t border-[#b5a642]/15 flex flex-col md:flex-row md:items-center justify-between gap-6 w-full relative z-10">
+              <div className="mt-6 pt-6 border-t border-[#c9ccbb]/10 flex flex-col md:flex-row md:items-center justify-between gap-6 w-full relative z-10">
                 <p className="text-sm text-[#c9ccbb]/80 leading-relaxed max-w-xl">
                   14 days of data collected. Your home's friction pattern is ready. Unlock now to see what it means for you.
                 </p>
                 <Link href="/upgrade" className="shrink-0 w-full md:w-auto">
-                  <button className="w-full md:w-auto px-8 py-3 bg-[#b5a642] text-[#1b270e] text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-[#d4c55e] transition-all shadow-lg shadow-[#b5a642]/20">
+                  <button className="w-full md:w-auto px-8 py-3 bg-[#b5a642] text-[#1b270e] text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-white transition-all shadow-lg shadow-[#b5a642]/20">
                     Read My Pattern
                   </button>
                 </Link>
@@ -1560,7 +1574,7 @@ export default function Progress() {
                 <h3 className="text-xl font-serif text-[#c9ccbb]">Mood, Tension & Focus Over Time</h3>
               </div>
             </div>
-            <div className="glass-panel p-4 md:p-8 rounded-3xl border border-[#b5a642]/15 relative overflow-hidden">
+            <div className="glass-panel p-4 md:p-8 rounded-3xl border border-[#c9ccbb]/10 relative overflow-hidden">
               <div className="w-full overflow-x-auto hide-scrollbar">
                 <div className="min-w-[600px] h-[300px]">
                   <CorrelationGraph data={chartLogs} />
@@ -1588,7 +1602,7 @@ export default function Progress() {
               >
                 <X size={20} />
               </button>
-              <h2 className="text-3xl font-serif text-[#c9ccbb] mb-8 border-b border-[#b5a642]/15 pb-6">Why We Log</h2>
+              <h2 className="text-3xl font-serif text-[#c9ccbb] mb-8 border-b border-[#c9ccbb]/10 pb-6">Why We Log</h2>
               <div className="space-y-8 text-[#c9ccbb]/70 text-sm leading-relaxed font-light">
                 <section>
                   <h3 className="text-lg font-serif text-[#b5a642] mb-2">The Purpose of Logging</h3>
@@ -1604,7 +1618,7 @@ export default function Progress() {
                 </section>
                 <section>
                   <h3 className="text-lg font-serif text-[#b5a642] mb-2">Social Demand</h3>
-                  <p>How much relational engagement your day involved is a meaningful signal for your nervous system. High social demand, regardless of whether the interactions were positive or negative, draws on regulatory resources that affect both your evening state and overnight recovery. This field helps the synthesis engine understand patterns that pure environmental data cannot explain.</p>
+                  <p>How much relational engagement your day involved is a meaningful signal. High social demand draws on regulatory resources that affect both your evening state and overnight recovery, regardless of whether the interactions were welcome or difficult. This field helps the synthesis engine understand patterns that environmental data alone cannot explain.</p>
                 </section>
                 <section>
                   <h3 className="text-lg font-serif text-[#b5a642] mb-2">Home Friction Score</h3>
