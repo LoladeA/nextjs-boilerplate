@@ -704,7 +704,7 @@ export default function Settings() {
               {/* Engine impact */}
               <div className={`rounded-xl p-4 border transition-all ${
                 neuroLens !== 'None'
-                  ? 'bg-[#b5a642] border-[#b5a642]'
+                  ? 'bg-[#b5a642]/10 border-[#b5a642]'
                   : 'bg-[#c9ccbb]/3 border-[#c9ccbb]/8'
               }`}>
                 <p className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-1">
@@ -1031,7 +1031,7 @@ export default function Settings() {
               </div>
 
               {/* Log Wipe */}
-              <div className="p-4 rounded-xl border border-[#c9ccbb]/8">
+              <div className="p-4 rounded-xl border border-[#b5a642]">
                 <div className="flex items-center justify-between mb-3">
                   <div>
                     <div className="text-[#c9ccbb] text-sm font-bold">Clear All Daily Logs</div>
