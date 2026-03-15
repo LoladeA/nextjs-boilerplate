@@ -199,11 +199,11 @@ export default function Progress() {
   // BSFI LABEL SYSTEM
   // ---------------------------------------------------------------------------
   const getBsfiLabel = (score: number) => {
-    if (score <= 20) return { label: 'Your Home Is Supporting You',   color: 'text-[#b5a642]',    border: 'border-[#b5a642]/60' }
-    if (score <= 40) return { label: 'Mild Friction Present',         color: 'text-[#b5a642]/80', border: 'border-[#b5a642]/40' }
-    if (score <= 60) return { label: 'Moderate Environmental Load',   color: 'text-[#b5a642]/70', border: 'border-[#b5a642]/35' }
-    if (score <= 80) return { label: 'Significant Friction Detected', color: 'text-[#b5a642]/60', border: 'border-[#b5a642]/30' }
-    return             { label: 'High Environmental Load',            color: 'text-[#b5a642]/50', border: 'border-[#b5a642]/25' }
+    if (score <= 20) return { label: 'Your Home Is Supporting You',   color: 'text-[#b5a642]',    border: 'border-[#b5a642]' }
+    if (score <= 40) return { label: 'Mild Friction Present',         color: 'text-[#b5a642]/80', border: 'border-[#b5a642]' }
+    if (score <= 60) return { label: 'Moderate Environmental Load',   color: 'text-[#b5a642]/70', border: 'border-[#b5a642]' }
+    if (score <= 80) return { label: 'Significant Friction Detected', color: 'text-[#b5a642]/60', border: 'border-[#b5a642]' }
+    return             { label: 'High Environmental Load',            color: 'text-[#b5a642]/50', border: 'border-[#b5a642]' }
   }
 
   // ---------------------------------------------------------------------------
@@ -382,11 +382,11 @@ export default function Progress() {
   const macroSynthesis  = getMacroSynthesis()
 
   const moods = [
-    { val: 1, label: 'Burned Out',   desc: 'Running on empty',      color: 'bg-[#b5a642]/10 border-[#b5a642]/25 text-[#b5a642]/50' },
-    { val: 2, label: 'Tense / Edgy', desc: 'Buzzing with stress',   color: 'bg-[#b5a642]/12 border-[#b5a642]/30 text-[#b5a642]/60' },
-    { val: 3, label: 'Neutral',      desc: 'Holding steady',        color: 'bg-[#c9ccbb]/10 border-[#c9ccbb]/30 text-[#c9ccbb]/70' },
-    { val: 4, label: 'Grounded',     desc: 'Breathing deeper',      color: 'bg-[#b5a642]/18 border-[#b5a642]/50 text-[#b5a642]/80' },
-    { val: 5, label: 'In Flow',      desc: 'Effortless movement',   color: 'bg-[#b5a642]/20 border-[#b5a642]/60 text-[#b5a642]'    },
+    { val: 1, label: 'Burned Out',   desc: 'Running on empty',      color: 'bg-[#b5a642]/10 border-[#b5a642] text-[#b5a642]/50' },
+    { val: 2, label: 'Tense / Edgy', desc: 'Buzzing with stress',   color: 'bg-[#b5a642]/12 border-[#b5a642] text-[#b5a642]/60' },
+    { val: 3, label: 'Neutral',      desc: 'Holding steady',        color: 'bg-[#b5a642]/10 border-[#b5a642] text-[#b5a642]/70' },
+    { val: 4, label: 'Grounded',     desc: 'Breathing deeper',      color: 'bg-[#b5a642]/18 border-[#b5a642] text-[#b5a642]/80' },
+    { val: 5, label: 'In Flow',      desc: 'Effortless movement',   color: 'bg-[#b5a642]/20 border-[#b5a642] text-[#b5a642]'    },
   ]
 
   const morningTagOptions = [
