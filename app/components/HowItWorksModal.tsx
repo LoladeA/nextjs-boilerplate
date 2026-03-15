@@ -42,7 +42,7 @@ export default function HowItWorksModal({ isOpen, onClose }: Props) {
             animate="visible"
             exit="exit"
             variants={modalVariants}
-            className="relative w-full max-w-4xl bg-[#1b270e] border border-[#b5a642]/30 rounded-3xl shadow-2xl shadow-[#b5a642]/10 overflow-hidden"
+            className="relative w-full max-w-4xl bg-[#1b270e] border border-[#b5a642] rounded-3xl shadow-2xl shadow-[#b5a642]/10 overflow-hidden"
           >
             {/* Background glow */}
             <div className="absolute top-0 right-0 w-96 h-96 bg-[#b5a642]/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
@@ -83,7 +83,7 @@ export default function HowItWorksModal({ isOpen, onClose }: Props) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
                   {/* PHASE 1: CALIBRATE */}
-                  <div className="p-6 rounded-2xl border border-[#b5a642]/15 bg-[#b5a642]/5 hover:border-[#b5a642]/35 transition-colors">
+                  <div className="p-6 rounded-2xl border border-[#b5a642] bg-[#b5a642]/5 hover:border-[#c4b550] transition-colors">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-10 h-10 rounded-full bg-[#b5a642]/10 text-[#b5a642] flex items-center justify-center shrink-0">
                         <Brain size={18} />
@@ -99,7 +99,7 @@ export default function HowItWorksModal({ isOpen, onClose }: Props) {
                   </div>
 
                   {/* PHASE 2: TRACK */}
-                  <div className="p-6 rounded-2xl border border-[#b5a642]/15 bg-[#b5a642]/5 hover:border-[#b5a642]/35 transition-colors">
+                  <div className="p-6 rounded-2xl border border-[#b5a642] bg-[#b5a642]/5 hover:border-[#c4b550] transition-colors">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-10 h-10 rounded-full bg-[#b5a642]/10 text-[#b5a642] flex items-center justify-center shrink-0">
                         <Activity size={18} />
@@ -115,7 +115,7 @@ export default function HowItWorksModal({ isOpen, onClose }: Props) {
                   </div>
 
                   {/* PHASE 3: UNDERSTAND */}
-                  <div className="p-6 rounded-2xl border border-[#b5a642]/15 bg-[#b5a642]/5 hover:border-[#b5a642]/35 transition-colors">
+                  <div className="p-6 rounded-2xl border border-[#b5a642] bg-[#b5a642]/5 hover:border-[#c4b550] transition-colors">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-10 h-10 rounded-full bg-[#b5a642]/10 text-[#b5a642] flex items-center justify-center shrink-0">
                         <BookOpen size={18} />
@@ -131,7 +131,7 @@ export default function HowItWorksModal({ isOpen, onClose }: Props) {
                   </div>
 
                   {/* PHASE 4: TRANSFORM */}
-                  <div className="p-6 rounded-2xl border border-[#b5a642]/15 bg-[#b5a642]/5 hover:border-[#b5a642]/35 transition-colors">
+                  <div className="p-6 rounded-2xl border border-[#b5a642] bg-[#b5a642]/5 hover:border-[#c4b550] transition-colors">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-10 h-10 rounded-full bg-[#b5a642]/10 text-[#b5a642] flex items-center justify-center shrink-0">
                         <Home size={18} />
@@ -152,7 +152,7 @@ export default function HowItWorksModal({ isOpen, onClose }: Props) {
               {/* ============================================================
                   SECTION 2: WHY IT WORKS
               ============================================================ */}
-              <div className="mb-10 p-6 rounded-2xl bg-[#000]/20 border border-[#b5a642]/15">
+              <div className="mb-10 p-6 rounded-2xl bg-[#000]/20 border border-[#b5a642]">
                 <p className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-3">
                   Why the system works
                 </p>
@@ -175,7 +175,7 @@ export default function HowItWorksModal({ isOpen, onClose }: Props) {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
                   {/* FREE */}
-                  <div className="p-5 rounded-2xl border border-[#b5a642]/15 bg-[#b5a642]/5 flex flex-col">
+                  <div className="p-5 rounded-2xl border border-[#b5a642] bg-[#b5a642]/5 flex flex-col">
                     <div className="mb-4">
                       <p className="text-[#c9ccbb]/40 text-[9px] font-bold uppercase tracking-widest mb-1">Free</p>
                       <h4 className="text-[#c9ccbb] font-serif text-lg">Know yourself</h4>
@@ -196,7 +196,7 @@ export default function HowItWorksModal({ isOpen, onClose }: Props) {
                         </div>
                       ))}
                     </div>
-                    <div className="mt-4 pt-4 border-t border-[#b5a642]/15">
+                    <div className="mt-4 pt-4 border-t border-[#b5a642]">
                       <p className="text-[#c9ccbb]/40 text-[10px] leading-relaxed italic">
                         You have a framework. You know what your nervous system is and how it processes its environment.
                       </p>
@@ -204,12 +204,12 @@ export default function HowItWorksModal({ isOpen, onClose }: Props) {
                   </div>
 
                   {/* CORE */}
-                  <div className="p-5 rounded-2xl border border-[#b5a642]/20 bg-[#b5a642]/5 flex flex-col relative overflow-hidden">
+                  <div className="p-5 rounded-2xl border border-[#b5a642] bg-[#b5a642]/5 flex flex-col relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-[#b5a642]/5 rounded-full blur-2xl pointer-events-none" />
                     <div className="mb-4 relative z-10">
                       <div className="flex items-center gap-2 mb-1">
                         <p className="text-[#b5a642] text-[9px] font-bold uppercase tracking-widest">Core</p>
-                        <span className="text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-full bg-[#b5a642]/10 text-[#b5a642] border border-[#b5a642]/20">
+                        <span className="text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-full bg-[#b5a642]/10 text-[#b5a642] border border-[#b5a642]">
                           29 euros/mo
                         </span>
                       </div>
@@ -229,7 +229,7 @@ export default function HowItWorksModal({ isOpen, onClose }: Props) {
                         </div>
                       ))}
                     </div>
-                    <div className="mt-4 pt-4 border-t border-[#b5a642]/10 relative z-10">
+                    <div className="mt-4 pt-4 border-t border-[#b5a642] relative z-10">
                       <p className="text-[#c9ccbb]/50 text-[10px] leading-relaxed italic">
                         The platform becomes a learning system. You understand what your data means and how to act on it with precision.
                       </p>
@@ -237,12 +237,12 @@ export default function HowItWorksModal({ isOpen, onClose }: Props) {
                   </div>
 
                   {/* BLUEPRINT */}
-                  <div className="p-5 rounded-2xl border border-[#b5a642]/30 bg-[#b5a642]/5 flex flex-col relative overflow-hidden">
+                  <div className="p-5 rounded-2xl border border-[#b5a642] bg-[#b5a642]/5 flex flex-col relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-40 h-40 bg-[#b5a642]/8 rounded-full blur-2xl pointer-events-none" />
                     <div className="mb-4 relative z-10">
                       <div className="flex items-center gap-2 mb-1">
                         <p className="text-[#b5a642] text-[9px] font-bold uppercase tracking-widest">Blueprint</p>
-                        <span className="text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-full bg-[#b5a642]/15 text-[#b5a642] border border-[#b5a642]/30">
+                        <span className="text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-full bg-[#b5a642]/15 text-[#b5a642] border border-[#b5a642]">
                           189 euros/mo
                         </span>
                       </div>
@@ -263,7 +263,7 @@ export default function HowItWorksModal({ isOpen, onClose }: Props) {
                         </div>
                       ))}
                     </div>
-                    <div className="mt-4 pt-4 border-t border-[#b5a642]/15 relative z-10">
+                    <div className="mt-4 pt-4 border-t border-[#b5a642] relative z-10">
                       <p className="text-[#c9ccbb]/60 text-[10px] leading-relaxed italic">
                         Internal understanding becomes external change. Your home is redesigned around how you are actually wired.
                       </p>
