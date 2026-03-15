@@ -704,7 +704,7 @@ export default function Settings() {
               {/* Engine impact */}
               <div className={`rounded-xl p-4 border transition-all ${
                 neuroLens !== 'None'
-                  ? 'bg-[#b5a642]/5 border-[#b5a642]/15'
+                  ? 'bg-[#b5a642] border-[#b5a642]'
                   : 'bg-[#c9ccbb]/3 border-[#c9ccbb]/8'
               }`}>
                 <p className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-1">
@@ -1015,7 +1015,7 @@ export default function Settings() {
             <div className="space-y-3 mt-4">
 
               {/* Export */}
-              <div className="flex items-center justify-between p-4 rounded-xl border border-[#c9ccbb]/8 hover:border-[#c9ccbb]/15 transition-colors">
+              <div className="flex items-center justify-between p-4 rounded-xl border border-[#b5a642] hover:border-[#b5a642] transition-colors">
                 <div>
                   <div className="text-[#c9ccbb] text-sm font-bold">Export Daily Logs</div>
                   <div className="text-[#c9ccbb]/70 text-xs">Download all your log entries as a CSV file.</div>
@@ -1023,7 +1023,7 @@ export default function Settings() {
                 <button
                   onClick={handleExport}
                   disabled={exportLoading}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#c9ccbb]/15 text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-wider hover:border-[#b5a642]/40 hover:text-[#b5a642] transition-all"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#b5a642] text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-wider hover:border-[#b5a642]/40 hover:text-[#b5a642] transition-all"
                 >
                   <Download size={13} />
                   {exportLoading ? 'Exporting...' : 'Export'}
@@ -1072,7 +1072,7 @@ export default function Settings() {
               </div>
 
               {/* Account Deletion */}
-              <div className="flex items-center justify-between p-4 rounded-xl border border-[#c9ccbb]/8">
+              <div className="flex items-center justify-between p-4 rounded-xl border border-[#b5a642]">
                 <div>
                   <div className="text-[#c9ccbb] text-sm font-bold">Delete Account</div>
                   <div className="text-[#c9ccbb]/70 text-xs">
