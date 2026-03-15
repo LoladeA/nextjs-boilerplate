@@ -47,7 +47,7 @@ export default function HowItWorksModal({ isOpen, onClose }: Props) {
             {/* Background glow */}
             <div className="absolute top-0 right-0 w-96 h-96 bg-[#b5a642]/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
 
-            <div className="p-8 md:p-12 relative z-10 max-h-[90vh] overflow-y-auto">
+            <div className="p-8 md:p-12 relative z-10 max-h-[90vh] overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-[#b5a642]/20 [&::-webkit-scrollbar-thumb]:rounded-full">
 
               {/* ============================================================
                   HEADER
@@ -175,7 +175,7 @@ export default function HowItWorksModal({ isOpen, onClose }: Props) {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
                   {/* FREE */}
-                  <div className="p-5 rounded-2xl border border-[#c9ccbb]/10 bg-[#141d0b] flex flex-col">
+                  <div className="p-5 rounded-2xl border border-[#c9ccbb]/10 bg-[#1b270e] flex flex-col">
                     <div className="mb-4">
                       <p className="text-[#c9ccbb]/40 text-[9px] font-bold uppercase tracking-widest mb-1">Free</p>
                       <h4 className="text-[#c9ccbb] font-serif text-lg">Know yourself</h4>
@@ -204,7 +204,7 @@ export default function HowItWorksModal({ isOpen, onClose }: Props) {
                   </div>
 
                   {/* CORE */}
-                  <div className="p-5 rounded-2xl border border-[#b5a642]/20 bg-[#141d0b] flex flex-col relative overflow-hidden">
+                  <div className="p-5 rounded-2xl border border-[#b5a642]/20 bg-[#1b270e] flex flex-col relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-[#b5a642]/5 rounded-full blur-2xl pointer-events-none" />
                     <div className="mb-4 relative z-10">
                       <div className="flex items-center gap-2 mb-1">
@@ -236,7 +236,7 @@ export default function HowItWorksModal({ isOpen, onClose }: Props) {
                   </div>
 
                   {/* BLUEPRINT */}
-                  <div className="p-5 rounded-2xl border border-[#b5a642]/30 bg-[#141d0b] flex flex-col relative overflow-hidden">
+                  <div className="p-5 rounded-2xl border border-[#b5a642]/30 bg-[#1b270e] flex flex-col relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-40 h-40 bg-[#b5a642]/8 rounded-full blur-2xl pointer-events-none" />
                     <div className="mb-4 relative z-10">
                       <div className="flex items-center gap-2 mb-1">
