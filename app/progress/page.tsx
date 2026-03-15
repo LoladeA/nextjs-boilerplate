@@ -860,7 +860,7 @@ export default function Progress() {
                   <div>
                     <div className="flex justify-between mb-2">
                       <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb]">
-                        <Brain size={14} className="text-[#b5a642]" /> Focused Work (Hours)
+                        <Brain size={14} className="text-[#c9ccbb]" /> Focused Work (Hours)
                       </label>
                       <span className="text-[#b5a642] font-mono text-xs">{focusScore}h</span>
                     </div>
@@ -879,7 +879,7 @@ export default function Progress() {
                   ───────────────────────────────────────────────────────── */}
                   <div>
                     <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb] mb-2">
-                      <Users size={14} className="text-[#b5a642]" /> Social Demand Today
+                      <Users size={14} className="text-[#c9ccbb]" /> Social Demand Today
                     </label>
                     <p className="text-[#c9ccbb]/80 text-[10px] mb-3">
                       How much relational or social engagement did today involve?
@@ -897,7 +897,7 @@ export default function Progress() {
                           className={`py-2.5 px-2 rounded-xl border text-[10px] font-bold uppercase tracking-widest transition-all text-center ${
                             socialDemand === opt.value
                               ? 'border-[#b5a642]/60 bg-[#b5a642]/15 text-[#b5a642]'
-                              : 'border-[#c9ccbb]/10 text-[#c9ccbb]/60 hover:border-[#b5a642]/30 hover:text-[#c9ccbb]/80'
+                              : 'border-[#c9ccbb]/10 text-[#c9ccbb]/60 hover:border-[#b5a642]/50 hover:text-[#c9ccbb]/80'
                           }`}
                         >
                           {opt.label}
@@ -1120,7 +1120,7 @@ export default function Progress() {
                     <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb]">
                       <Sparkles size={13} className="text-[#b5a642]" /> How settled does your body feel?
                     </label>
-                    <span className="font-mono text-xs font-bold text-[#b5a642]">
+                    <span className="font-mono text-xs font-bold text-[#b5a642]/80">
                       {['', 'Wired', 'Restless', 'Neutral', 'Winding Down', 'Ready to Sleep'][sleepReadiness]}
                     </span>
                   </div>
@@ -1138,7 +1138,7 @@ export default function Progress() {
                   {(() => {
                     const state = getSleepEveningCopy(sleepReadiness as 1|2|3|4|5)
                     return (
-                      <div className="p-4 rounded-xl bg-[#b5a642]/5 border border-[#b5a642]/15">
+                      <div className="p-4 rounded-xl bg-[#b5a642]/5 border border-[#b5a642]/80">
                         <p className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-1">
                           {state.headline}
                         </p>
