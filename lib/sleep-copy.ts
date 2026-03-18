@@ -75,7 +75,7 @@ export const MORNING_FEEDBACK: Record<MorningSleepQuality, MorningFeedback> = {
       'feature of human sleep for centuries. Historical records describe a common pattern ' +
       'of two sleep phases with a quiet period between them. ' +
       'What feels like insomnia may sometimes be the body moving through its own rhythm.' +
-      'That said, when relational or environmental load is high, the brain remains in a state of ' + ,
+      'That said, when relational or environmental load is high, the brain remains in a state of ' +
       'subtle vigilance, making you more sensitive to the early morning environment.',
     environmental_note:
       'Environmental conditions often drive disruption when the nervous system is already ' +
