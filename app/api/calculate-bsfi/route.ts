@@ -1,277 +1,140 @@
-// app/api/calculate-bsfi/route.ts
-//
-// CORRECTED VERSION:
-// 1. Restored full error handling (try/catch) and diagnostic logging for the BSFI engine.
-// 2. Aligned with DossierProfile (\'anchor\' | \'seeker\' | \'sensor\') 
-//    and IntegrationVariant (\'integrative\' | \'mixed\' | \'accumulative\') types.
-// 3. Strictly preserved the original logic flow to maintain synergy with the application.
-
+// /app/api/calculate-bsfi/route.ts
 import { NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
-import { calculateBSFI, DailyLogParams, BSFIResult } from '@/lib/bsfi-engine'
+import { calculateBSFI, DailyLogParams, BSFIResult, BaselineInput } from '@/lib/bsfi-engine'
 
 // -----------------------------------------------------------------------------
-// TYPES — Aligned with Sensory Dossier
+// TYPES & MAPPINGS
 // -----------------------------------------------------------------------------
-
 type IntegrationVariant = 'integrative' | 'mixed' | 'accumulative'
 type DossierProfile     = 'anchor' | 'seeker' | 'sensor'
 
-// -----------------------------------------------------------------------------
-// SAFE NUMBER COERCION
-// -----------------------------------------------------------------------------
 const safeNum = (val: unknown): number | null => {
-  if (val === null || val === undefined) return null
-  if (typeof val === 'boolean') return null
-  if (typeof val === 'string') {
-    const trimmed = val.trim()
-    if (trimmed === '') return null
-    const parsed = Number(trimmed)
-    if (isNaN(parsed) || !isFinite(parsed)) return parsed === parsed ? parsed : null
-    return parsed
-  }
-  if (typeof val === 'number') {
-    if (!isFinite(val) || isNaN(val)) return null
-    return val
-  }
-  return null
+    if (val === null || val === undefined || typeof val === 'boolean') return null
+    if (typeof val === 'string') {
+        const parsed = Number(val.trim())
+        return isNaN(parsed) ? null : parsed
+    }
+    return typeof val === 'number' && isFinite(val) ? val : null
 }
 
 // -----------------------------------------------------------------------------
-// DERIVE INTEGRATION VARIANT
+// DERIVE BASELINE INPUTS
 // -----------------------------------------------------------------------------
-const deriveIntegrationVariant = (
-  int1: string | null,
-  int2: string | null,
-  int3: string | null
-): IntegrationVariant => {
-  const vals = [int1, int2, int3].map(v => safeNum(v))
-
-  if (vals.every(v => v === null)) return 'integrative'
-
-  const normalised = vals.map(v => {
-    const safe = v ?? 3
-    const clamped = Math.min(Math.max(safe, 1), 5)
-    return ((clamped - 1) / 4) * 100
-  })
-
-  const average = Math.round(
-    normalised.reduce((a, b) => a + b, 0) / normalised.length
-  )
-
-  if (average <= 35)  return 'integrative'
-  if (average >= 65)  return 'accumulative'
-  return 'mixed'
+const deriveIntegrationVariant = (responses: any[]): IntegrationVariant => {
+    const vals = ['q_int1', 'q_int2', 'q_int3'].map(key => 
+        safeNum(responses.find(r => r.question_key === key)?.answer_value)
+    )
+    const average = vals.reduce((a, b) => a + (b ?? 3), 0) / 3
+    const score = ((average - 1) / 4) * 100
+    if (score <= 35) return 'integrative'
+    if (score >= 65) return 'accumulative'
+    return 'mixed'
 }
-
-// -----------------------------------------------------------------------------
-// DERIVE ACCUMULATIVE ALI FLAG
-// -----------------------------------------------------------------------------
-const deriveAccumulativeALIFlag = (
-  integrationVariant: IntegrationVariant,
-  alsScore: number
-): boolean => {
-  return (
-    integrationVariant === 'accumulative' &&
-    alsScore >= 10 &&
-    alsScore <= 16
-  )
-}
-
-// -----------------------------------------------------------------------------
-// MAIN ROUTE
-// -----------------------------------------------------------------------------
 
 export async function POST(req: Request) {
-  try {
-    const supabase = createRouteHandlerClient({ cookies })
-    const { data: { session } } = await supabase.auth.getSession()
-
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const userId = session.user.id
-    const raw = await req.json()
-
-    if (!raw.date || typeof raw.date !== 'string') {
-      return NextResponse.json({ error: 'Invalid or missing date' }, { status: 400 })
-    }
-
-    const logSession: 'morning' | 'evening' =
-      raw.session === 'evening' ? 'evening' : 'morning'
-
-    const todayParams: DailyLogParams = {
-      morning_lux:     safeNum(raw.morning_lux),
-      evening_lux:     safeNum(raw.evening_lux),
-      daytime_db:      safeNum(raw.daytime_db),
-      nighttime_db:    safeNum(raw.bedtime_db),
-      morning_tension: safeNum(raw.morning_tension),
-      sleep_wakes:     safeNum(raw.sleep_wakes),
-      focus_hours:     safeNum(raw.focus_hours),
-      mood_score:      safeNum(raw.mood_score),
-      morning_tags:    Array.isArray(raw.tags) ? raw.tags : [],
-      evening_tags:    Array.isArray(raw.evening_tags) ? raw.evening_tags : [],
-      social_demand:   raw.social_demand, // V.7: New social demand field
-    }
-
-    const windowStart = new Date()
-    windowStart.setDate(windowStart.getDate() - 13)
-
-    const { data: historyData, error: historyError } = await supabase
-      .from('daily_logs')
-      .select('*')
-      .eq('user_id', userId)
-      .gte('date', windowStart.toISOString().split('T')[0])
-      .lt('date', raw.date)
-      .order('date', { ascending: false })
-
-    if (historyError) {
-      throw new Error(`Failed to fetch history: ${historyError.message}`)
-    }
-
-    const historyParams: DailyLogParams[] = (historyData || []).map(log => ({
-      morning_lux:     safeNum(log.morning_lux),
-      evening_lux:     safeNum(log.evening_lux),
-      daytime_db:      safeNum(log.daytime_db),
-      nighttime_db:    safeNum(log.bedtime_db),
-      morning_tension: safeNum(log.morning_tension),
-      sleep_wakes:     safeNum(log.sleep_wakes),
-      focus_hours:     safeNum(log.focus_hours),
-      mood_score:      safeNum(log.mood_score),
-      morning_tags:    Array.isArray(log.tags) ? log.tags : [],
-      evening_tags:    Array.isArray(log.evening_tags) ? log.evening_tags : [],
-      social_demand:   log.social_demand, // V.7: New social demand field
-    }))
-
-    // -------------------------------------------------------------------------
-    // READ PROFILE CONTEXT
-    // -------------------------------------------------------------------------
-
-    // 1. sensory_pattern (DossierProfile)
-    let sensoryPattern: DossierProfile | null = null
-
     try {
-      const { data: snapshotData } = await supabase
-        .from('assessment_snapshots')
-        .select('sensory_pattern')
-        .eq('user_id', userId)
-        .not('sensory_pattern', 'is', null)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single()
+        const supabase = createRouteHandlerClient({ cookies })
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-      if (snapshotData?.sensory_pattern) {
-        sensoryPattern = snapshotData.sensory_pattern as DossierProfile
-      }
-    } catch {
-      // Graceful degradation
-    }
+        const userId = session.user.id
+        const raw = await req.json()
 
-    // 2. integration_pattern (IntegrationVariant)
-    let integrationVariant: IntegrationVariant = 'integrative'
-
-    try {
-      const { data: intResponses } = await supabase
-        .from('current_user_responses')
-        .select('question_key, answer_value')
-        .eq('user_id', userId)
-        .in('question_key', ['q_int1', 'q_int2', 'q_int3'])
-
-      if (intResponses && intResponses.length > 0) {
-        const getVal = (key: string) =>
-          intResponses.find(r => r.question_key === key)?.answer_value ?? null
-
-        integrationVariant = deriveIntegrationVariant(
-          getVal('q_int1'),
-          getVal('q_int2'),
-          getVal('q_int3')
-        )
-      }
-    } catch {
-      // Graceful degradation
-    }
-
-    // -------------------------------------------------------------------------
-    // Run BSFI Engine — RESTORED ERROR HANDLING
-    // -------------------------------------------------------------------------
-    let bsfiResult: BSFIResult
-
-    try {
-      bsfiResult = calculateBSFI(todayParams, historyParams)
-    } catch (engineError: any) {
-      console.error('BSFI Engine Failure', {
-        userId,
-        date: raw.date,
-        session: logSession,
-        historyLength: historyParams.length,
-        error: engineError,
-      })
-      return NextResponse.json(
-        { error: 'BSFI calculation failed internally' },
-        { status: 500 }
-      )
-    }
-
-    // Derive accumulative ALI flag
-    const accumulativeALIFlag = deriveAccumulativeALIFlag(
-      integrationVariant,
-      bsfiResult.als_score // Note: In V.7, ALS is purely acoustic. If accumulative_ali_flag needs to consider RLI, this logic should be updated.
-    )
-
-    // -------------------------------------------------------------------------
-    // Save to bsfi_results
-    // -------------------------------------------------------------------------
-    const { error: upsertError } = await supabase
-      .from('bsfi_results')
-      .upsert(
-        {
-          user_id:             userId,
-          calculated_for_date: raw.date,
-          session:             logSession,
-          domain_scores: {
-            CFS:                bsfiResult.cfs_score,
-            ALS:                bsfiResult.als_score,
-            RLI:                bsfiResult.rli_score, // V.7: New Relational Load Index
-            SES:                bsfiResult.ses_score,
-            RDS:                bsfiResult.rds_score,
-            is_internal_driver: bsfiResult.is_internal_driver,
-          },
-          total_score:           bsfiResult.bsfi_total,
-          dominant_domain:       bsfiResult.dominant_domain,
-          version:               bsfiResult.version,
-          // PROFILE CONTEXT
-          integration_pattern:   integrationVariant,
-          sensory_pattern:       sensoryPattern,
-          accumulative_ali_flag: accumulativeALIFlag,
-        },
-        {
-          onConflict: 'user_id, calculated_for_date, session'
+        // 1. Prepare Daily Log Params
+        const todayParams: DailyLogParams = {
+            morning_lux:     safeNum(raw.morning_lux),
+            evening_lux:     safeNum(raw.evening_lux),
+            daytime_db:      safeNum(raw.daytime_db),
+            nighttime_db:    safeNum(raw.bedtime_db),
+            morning_tension: safeNum(raw.morning_tension),
+            sleep_wakes:     safeNum(raw.sleep_wakes),
+            focus_hours:     safeNum(raw.focus_hours),
+            mood_score:      safeNum(raw.mood_score),
+            morning_tags:    Array.isArray(raw.tags) ? raw.tags : [],
+            evening_tags:    Array.isArray(raw.evening_tags) ? raw.evening_tags : [],
+            social_demand:   raw.social_demand || 'low',
         }
-      )
 
-    if (upsertError) {
-      throw new Error(`Failed to save BSFI result: ${upsertError.message}`)
+        // 2. Fetch History (14-day window)
+        const windowStart = new Date()
+        windowStart.setDate(windowStart.getDate() - 13)
+        const { data: historyData } = await supabase
+            .from('daily_logs')
+            .select('*')
+            .eq('user_id', userId)
+            .gte('date', windowStart.toISOString().split('T')[0])
+            .lt('date', raw.date)
+            .order('date', { ascending: false })
+
+        const historyParams: DailyLogParams[] = (historyData || []).map(log => ({
+            ...log,
+            social_demand: log.social_demand || 'low'
+        }))
+
+        // 3. FETCH BASELINE CONTEXT (The V7.3 Requirement)
+        const { data: profile } = await supabase
+            .from('assessment_snapshots')
+            .select('sensory_pattern, energy_tax_baseline')
+            .eq('user_id', userId)
+            .single()
+
+        const { data: intResponses } = await supabase
+            .from('current_user_responses')
+            .select('question_key, answer_value')
+            .eq('user_id', userId)
+            .in('question_key', ['q_int1', 'q_int2', 'q_int3'])
+
+        const integrationPattern = deriveIntegrationVariant(intResponses || [])
+        
+        // Map DossierProfile to Threshold
+        // 'sensor' = low threshold (highly reactive)
+        // 'anchor'/'seeker' = high threshold (resilient)
+        const threshold: 'low' | 'high' = profile?.sensory_pattern === 'sensor' ? 'low' : 'high'
+
+        const baseline: BaselineInput = {
+            threshold,
+            integrationPattern,
+            energyTaxBaseline: profile?.energy_tax_baseline ?? 50
+        }
+
+        // 4. Execute Engine V7.3
+        const bsfiResult = calculateBSFI(todayParams, historyParams, baseline)
+
+        // 5. Persist Results
+        const { error: upsertError } = await supabase
+            .from('bsfi_results')
+            .upsert({
+                user_id: userId,
+                calculated_for_date: raw.date,
+                session: raw.session === 'evening' ? 'evening' : 'morning',
+                total_score: bsfiResult.bsfi_total,
+                dominant_domain: bsfiResult.dominant_domain,
+                version: bsfiResult.version,
+                domain_scores: {
+                    CFS: bsfiResult.cfs_score,
+                    ALS: bsfiResult.als_score, // Now includes Social/Relational load
+                    SES: bsfiResult.ses_score,
+                    RDS: bsfiResult.rds_score,
+                    // New V7.3 Attribution Data
+                    internal_driver_score: bsfiResult.internal_driver_score,
+                    external_driver_score: bsfiResult.external_driver_score,
+                },
+                // Legacy support for boolean flag
+                is_internal_driver: bsfiResult.internal_driver_score > 0.5,
+                integration_pattern: integrationPattern,
+                sensory_pattern: profile?.sensory_pattern || null,
+            }, {
+                onConflict: 'user_id, calculated_for_date, session'
+            })
+
+        if (upsertError) throw upsertError
+
+        return NextResponse.json({ success: true, bsfiResult })
+
+    } catch (error: any) {
+        console.error('BSFI Route Error:', error)
+        return NextResponse.json({ error: error.message }, { status: 500 })
     }
-
-    return NextResponse.json({
-      success:           true,
-      bsfiResult,
-      session:           logSession,
-      history_days_used: historyParams.length,
-      profileContext: {
-        integration_pattern:   integrationVariant,
-        sensory_pattern:       sensoryPattern,
-        accumulative_ali_flag: accumulativeALIFlag,
-      }
-    })
-
-  } catch (error: any) {
-    console.error('BSFI Calculation Route Error:', error)
-    return NextResponse.json(
-      { error: error.message || 'Internal Server Error' },
-      { status: 500 }
-    )
-  }
 }
