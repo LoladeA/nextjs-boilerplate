@@ -1,4 +1,4 @@
-// /lib/bsfi-engine.ts
+// /lib/bsfi-engine.ts - Version 7
 
 // --- INTERFACES ---
 export interface DailyLogParams {
@@ -12,19 +12,13 @@ export interface DailyLogParams {
     mood_score:     number | null;
     morning_tags:   string[];
     evening_tags:   string[];
-    // ─────────────────────────────────────────────────────────────────────
-    // SOCIAL DEMAND — added to the daily log evening entry
-    // Measures relational and social load across the day.
-    // Null-safe: users who have not yet logged this field are treated as
-    // 'low' and score no additional load. This preserves backwards
-    // compatibility with all existing log entries.
-    // ─────────────────────────────────────────────────────────────────────
     social_demand?: 'low' | 'moderate' | 'high' | null;
 }
 
 export interface BSFIResult {
     cfs_score:          number;
     als_score:          number;
+    rli_score:          number; // New: Relational Load Index
     ses_score:          number;
     rds_score:          number;
     bsfi_total:         number;
@@ -71,19 +65,22 @@ const cap25 = (score: number) => Math.min(Math.max(score, 0), 25);
 // scoring intent while satisfying TypeScript strict null checks.
 const n = (val: number | null | undefined, fallback = 0): number => val ?? fallback;
 
+// --- CONSTANTS FOR V.7 ---
+const LAG_CORRELATION_WINDOW = 7; // Days for lagged correlation
+const LAG_CORRELATION_THRESHOLD = 0.4; // Pearson correlation threshold
+const VFR_THRESHOLD = 2.0; // Variance-to-Friction Ratio threshold for internal driver
+
 // --- THE CORE IP ENGINE ---
 
 export function calculateBSFI(today: DailyLogParams, history: DailyLogParams[] = []): BSFIResult {
     let cfs = 0; // Circadian Friction
     let als = 0; // Acoustic Load
+    let rli = 0; // Relational Load Index (NEW)
     let ses = 0; // Spatial Entropy
     let rds = 0; // Recovery Disruption
 
     // -------------------------------------------------------------------------
     // 1️⃣ CIRCADIAN FRICTION SCORE (CFS)
-    // Thresholds: Zeitzer et al. 2000, Gooley et al. 2011, Cajochen et al. 2011,
-    //             Viola et al. 2008
-    // Unchanged — social demand does not affect circadian friction directly.
     // -------------------------------------------------------------------------
     if (today.morning_lux !== null) {
         if (today.morning_lux < 100)      cfs += 8; // CAR cannot anchor — critical deficit
@@ -105,34 +102,40 @@ export function calculateBSFI(today: DailyLogParams, history: DailyLogParams[] =
         cfs += 4;
     }
 
-    // -------------------------------------------------------------------------
-    // 2️⃣ ACOUSTIC LOAD SCORE (ALS)
-    // ─────────────────────────────────────────────────────────────────────────
-    // SOCIAL DEMAND INTEGRATION
-    //
-    // Social demand is treated as a direct autonomic load source alongside
-    // acoustic load. High relational engagement activates the sympathetic
-    // nervous system through sustained interpersonal processing — a load
-    // category the existing acoustic metrics cannot capture.
-    //
-    // Scoring rationale:
-    //   high:     +5 — equivalent to a meaningful acoustic overexposure event.
-    //                  Sustained high social engagement produces measurable
-    //                  cortisol and ANS activation comparable to environmental
-    //                  noise stressors.
-    //   moderate: +2 — acknowledges the load without over-weighting days with
-    //                  normal social contact.
-    //   low/null: +0 — no additional autonomic load assumed.
-    //
-    // The ALS domain was chosen over SES or RDS as the primary receptor
-    // because social demand is an autonomic input, not a spatial or recovery
-    // input — it belongs alongside acoustic load, not in sleep disruption.
-    // ─────────────────────────────────────────────────────────────────────────
-    const socialLoad = today.social_demand ?? 'low'
-    if (socialLoad === 'high')     als += 5;
-    else if (socialLoad === 'moderate') als += 2;
-    // low or null: no addition
+    // V.7: Lagged Correlation for Lux vs. Morning Tension/Sleep Wakes
+    // We assume history is ordered chronologically, with the most recent being at the end.
+    // To check for lagged effects, we look at previous evening_lux and subsequent morning_tension/sleep_wakes.
+    const histEveningLux = history.slice(-LAG_CORRELATION_WINDOW).map(h => n(h.evening_lux));
+    const histMorningTension = history.slice(-LAG_CORRELATION_WINDOW).map(h => n(h.morning_tension));
+    const histSleepWakes = history.slice(-LAG_CORRELATION_WINDOW).map(h => n(h.sleep_wakes));
 
+    // Add today's data to the history for correlation calculation if applicable
+    // For lagged correlation, we need to correlate yesterday's evening lux with today's morning tension/sleep wakes.
+    // So, we need to align the arrays correctly.
+    const luxForLaggedCorrelation = history.slice(-LAG_CORRELATION_WINDOW -1, -1).map(h => n(h.evening_lux)); // Evening lux from previous days
+    const tensionForLaggedCorrelation = history.slice(-LAG_CORRELATION_WINDOW).map(h => n(h.morning_tension)); // Morning tension from those days + today
+    const wakesForLaggedCorrelation = history.slice(-LAG_CORRELATION_WINDOW).map(h => n(h.sleep_wakes)); // Sleep wakes from those days + today
+
+    // Ensure arrays are of equal length for Pearson correlation
+    if (luxForLaggedCorrelation.length > 0 && tensionForLaggedCorrelation.length > 0 &&
+        luxForLaggedCorrelation.length === tensionForLaggedCorrelation.length) {
+        const luxTensionCorr = calculatePearson(luxForLaggedCorrelation, tensionForLaggedCorrelation);
+        if (luxTensionCorr > LAG_CORRELATION_THRESHOLD) {
+            cfs += 3; // Penalty for consistent lagged impact of evening lux on morning tension
+        }
+    }
+
+    if (luxForLaggedCorrelation.length > 0 && wakesForLaggedCorrelation.length > 0 &&
+        luxForLaggedCorrelation.length === wakesForLaggedCorrelation.length) {
+        const luxWakesCorr = calculatePearson(luxForLaggedCorrelation, wakesForLaggedCorrelation);
+        if (luxWakesCorr > LAG_CORRELATION_THRESHOLD) {
+            cfs += 3; // Penalty for consistent lagged impact of evening lux on sleep wakes
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // 2️⃣ ACOUSTIC LOAD SCORE (ALS) - V.7: Social Demand removed
+    // -------------------------------------------------------------------------
     if (today.daytime_db !== null && today.daytime_db > 55)    als += 5;
     if (today.nighttime_db !== null && today.nighttime_db > 40) als += 8;
     if (n(today.morning_tension) >= 7 && today.nighttime_db !== null && today.nighttime_db > 40) als += 4;
@@ -145,8 +148,26 @@ export function calculateBSFI(today: DailyLogParams, history: DailyLogParams[] =
     }
 
     // -------------------------------------------------------------------------
-    // 3️⃣ SPATIAL ENTROPY SCORE (SES)
-    // Unchanged — social demand does not affect spatial entropy directly.
+    // 3️⃣ RELATIONAL LOAD INDEX (RLI) - NEW IN V.7
+    // -------------------------------------------------------------------------
+    const socialLoad = today.social_demand ?? 'low';
+    if (socialLoad === 'high')     rli += 5;
+    else if (socialLoad === 'moderate') rli += 2;
+
+    // Consider cumulative social load from history
+    const histSocialLoads = history.slice(-LAG_CORRELATION_WINDOW).map(h => {
+        const hSocialLoad = h.social_demand ?? 'low';
+        if (hSocialLoad === 'high') return 5;
+        if (hSocialLoad === 'moderate') return 2;
+        return 0;
+    });
+    const cumulativeSocialLoad = histSocialLoads.reduce((sum, val) => sum + val, 0);
+    if (cumulativeSocialLoad > (LAG_CORRELATION_WINDOW * 3)) { // Arbitrary threshold for cumulative stress
+        rli += 3; // Additional penalty for sustained high social demand
+    }
+
+    // -------------------------------------------------------------------------
+    // 4️⃣ SPATIAL ENTROPY SCORE (SES)
     // -------------------------------------------------------------------------
     let missingDeclutterDays    = 0;
     let missingEntropyResetDays = 0;
@@ -169,23 +190,12 @@ export function calculateBSFI(today: DailyLogParams, history: DailyLogParams[] =
     if (n(today.mood_score, 3) <= 2 && !hasBuffering) ses += 5;
 
     // -------------------------------------------------------------------------
-    // 4️⃣ RECOVERY DISRUPTION SCORE (RDS)
-    // ─────────────────────────────────────────────────────────────────────────
-    // SOCIAL DEMAND COMPOUND PENALTY
-    //
-    // High social demand on a day where sleep was already fragmented creates
-    // a compound load: the overnight clearing window must process both
-    // environmental and relational residue simultaneously. This combination
-    // is meaningfully worse than either in isolation.
-    //
-    // The penalty only fires when high social demand co-occurs with sleep
-    // fragmentation (>= 2 wakes). Moderate demand does not trigger this
-    // penalty — the compound effect requires both conditions at threshold.
-    // ─────────────────────────────────────────────────────────────────────────
+    // 5️⃣ RECOVERY DISRUPTION SCORE (RDS)
+    // -------------------------------------------------------------------------
     if (n(today.sleep_wakes) >= 3)     rds += 5;
     if (n(today.morning_tension) >= 7) rds += 5;
 
-    // Social demand compound: high relational load + sleep fragmentation
+    // Social demand compound penalty (now using RLI for clarity)
     if (socialLoad === 'high' && n(today.sleep_wakes) >= 2) {
         rds += 3;
     }
@@ -202,6 +212,7 @@ export function calculateBSFI(today: DailyLogParams, history: DailyLogParams[] =
     // CAP SUB-SCORES AT 25
     cfs = cap25(cfs);
     als = cap25(als);
+    rli = cap25(rli); // Cap RLI
     ses = cap25(ses);
     rds = cap25(rds);
 
@@ -216,28 +227,27 @@ export function calculateBSFI(today: DailyLogParams, history: DailyLogParams[] =
 
     if (tensionSD > 2.5) rds = cap25(rds * 1.15);
 
-    let totalBsfi = cfs + als + ses + rds;
+    let totalBsfi = cfs + als + rli + ses + rds; // Include RLI in total
     if (moodSD > 1.2) totalBsfi = totalBsfi * 1.1;
 
     totalBsfi = Math.min(Math.round(totalBsfi), 100);
 
     // -------------------------------------------------------------------------
-    // NEUROTYPE INCLUSIVITY LAYER
-    // ─────────────────────────────────────────────────────────────────────────
-    // SOCIAL DEMAND ADJUSTMENT
-    //
-    // The isInternalDriver flag marks cases where tension variance is high
-    // but total environmental friction is low — suggesting the load is
-    // coming from within rather than from the physical space.
-    //
-    // High social demand on a low-friction day is a known pattern where the
-    // flag would fire incorrectly: the load is relational, not internal or
-    // environmental. We exclude high social demand days from the
-    // isInternalDriver classification to preserve its accuracy.
-    // ─────────────────────────────────────────────────────────────────────────
+    // NEUROTYPE INCLUSIVITY LAYER - V.7: Proportional Attribution
+    // -------------------------------------------------------------------------
     let isInternalDriver = false;
 
-    if (tensionSD > 2.5 && totalBsfi < 40 && socialLoad !== 'high') {
+    // Calculate Variance-to-Friction Ratio (VFR)
+    const internalVarianceScore = (tensionSD * 0.7) + (moodSD * 0.3); // Weighted composite of internal variability
+    const environmentalFrictionScore = totalBsfi; // Use totalBsfi as environmental friction
+
+    // Avoid division by zero for VFR
+    if (environmentalFrictionScore > 0.1) { // Small epsilon to prevent division by zero
+        const vfr = internalVarianceScore / environmentalFrictionScore;
+        if (vfr > VFR_THRESHOLD && socialLoad !== 'high') {
+            isInternalDriver = true;
+        }
+    } else if (internalVarianceScore > 1.0) { // If environmental friction is near zero, but internal variance is high
         isInternalDriver = true;
     }
 
@@ -245,7 +255,8 @@ export function calculateBSFI(today: DailyLogParams, history: DailyLogParams[] =
     const scores = {
         'Circadian Rhythm Index': cfs,
         'Autonomic Load Index':   als,
-        'Sensory Load':           ses,
+        'Relational Load Index':  rli, // Include RLI
+        'Spatial Entropy':        ses,
         'Recovery Disruption':    rds
     };
     const dominant_domain = Object.keys(scores).reduce((a, b) =>
@@ -255,11 +266,12 @@ export function calculateBSFI(today: DailyLogParams, history: DailyLogParams[] =
     return {
         cfs_score:          Math.round(cfs),
         als_score:          Math.round(als),
+        rli_score:          Math.round(rli), // Return RLI score
         ses_score:          Math.round(ses),
         rds_score:          Math.round(rds),
         bsfi_total:         totalBsfi,
         is_internal_driver: isInternalDriver,
         dominant_domain:    dominant_domain,
-        version:            'bsfi_v5'
+        version:            'bsfi_v7'
     };
 }
