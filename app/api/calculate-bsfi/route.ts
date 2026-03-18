@@ -2,14 +2,14 @@
 //
 // CORRECTED VERSION:
 // 1. Restored full error handling (try/catch) and diagnostic logging for the BSFI engine.
-// 2. Aligned with DossierProfile ('anchor' | 'seeker' | 'sensor') 
-//    and IntegrationVariant ('integrative' | 'mixed' | 'accumulative') types.
+// 2. Aligned with DossierProfile (\'anchor\' | \'seeker\' | \'sensor\') 
+//    and IntegrationVariant (\'integrative\' | \'mixed\' | \'accumulative\') types.
 // 3. Strictly preserved the original logic flow to maintain synergy with the application.
 
 import { NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
-import { calculateBSFI, DailyLogParams } from '@/lib/bsfi-engine'
+import { calculateBSFI, DailyLogParams, BSFIResult } from '@/lib/bsfi-engine'
 
 // -----------------------------------------------------------------------------
 // TYPES — Aligned with Sensory Dossier
@@ -113,6 +113,7 @@ export async function POST(req: Request) {
       mood_score:      safeNum(raw.mood_score),
       morning_tags:    Array.isArray(raw.tags) ? raw.tags : [],
       evening_tags:    Array.isArray(raw.evening_tags) ? raw.evening_tags : [],
+      social_demand:   raw.social_demand, // V.7: New social demand field
     }
 
     const windowStart = new Date()
@@ -141,6 +142,7 @@ export async function POST(req: Request) {
       mood_score:      safeNum(log.mood_score),
       morning_tags:    Array.isArray(log.tags) ? log.tags : [],
       evening_tags:    Array.isArray(log.evening_tags) ? log.evening_tags : [],
+      social_demand:   log.social_demand, // V.7: New social demand field
     }))
 
     // -------------------------------------------------------------------------
@@ -194,7 +196,7 @@ export async function POST(req: Request) {
     // -------------------------------------------------------------------------
     // Run BSFI Engine — RESTORED ERROR HANDLING
     // -------------------------------------------------------------------------
-    let bsfiResult
+    let bsfiResult: BSFIResult
 
     try {
       bsfiResult = calculateBSFI(todayParams, historyParams)
@@ -215,7 +217,7 @@ export async function POST(req: Request) {
     // Derive accumulative ALI flag
     const accumulativeALIFlag = deriveAccumulativeALIFlag(
       integrationVariant,
-      bsfiResult.als_score
+      bsfiResult.als_score // Note: In V.7, ALS is purely acoustic. If accumulative_ali_flag needs to consider RLI, this logic should be updated.
     )
 
     // -------------------------------------------------------------------------
@@ -231,6 +233,7 @@ export async function POST(req: Request) {
           domain_scores: {
             CFS:                bsfiResult.cfs_score,
             ALS:                bsfiResult.als_score,
+            RLI:                bsfiResult.rli_score, // V.7: New Relational Load Index
             SES:                bsfiResult.ses_score,
             RDS:                bsfiResult.rds_score,
             is_internal_driver: bsfiResult.is_internal_driver,
