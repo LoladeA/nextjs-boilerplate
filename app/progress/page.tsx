@@ -1134,7 +1134,7 @@ export default function Progress() {
           {/* BSFI SESSION CARDS — now using new BSFI labels and context */}
           {/* ------------------------------------------------------------------ */}
           <AnimatePresence mode="wait">
-            {activeTab === 'morning' && (
+            {activeTab === 'morning' && morningBsfi && (
               <motion.div
                 key="morning-bsfi"
                 initial={{ opacity: 0, height: 0 }}
@@ -1238,7 +1238,7 @@ export default function Progress() {
                 </motion.div>
               </motion.div>
             )}
-            {activeTab === 'evening' && (
+            {activeTab === 'evening' && eveningBsfi && (
               <motion.div
                 key="evening-bsfi"
                 initial={{ opacity: 0, height: 0 }}
