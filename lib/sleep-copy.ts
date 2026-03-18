@@ -43,11 +43,11 @@ export const MORNING_FEEDBACK: Record<MorningSleepQuality, MorningFeedback> = {
     headline: 'Your system found its rhythm last night.',
     body:
       'Sleep aligned well with the conditions available to your nervous system. ' +
-      'This is not a baseline to chase. It is simply what becomes possible ' +
-      'when the environment and the body are working in the same direction.',
+      'This is what becomes possible when the environment, your relational load, ' +
+      'and the body are working in the same direction.',
     environmental_note:
       'Notice what felt different about yesterday evening. ' +
-      'Light exposure, temperature, and the level of sensory activity before bed ' +
+      'Light exposure, temperature,the level of social interaction and the level of sensory activity before bed ' +
       'each shape how readily the body transitions into rest.',
   },
 
@@ -57,13 +57,15 @@ export const MORNING_FEEDBACK: Record<MorningSleepQuality, MorningFeedback> = {
       'Night-to-night fluctuation is a normal feature of a healthy nervous system, ' +
       'not evidence that something has gone wrong. ' +
       'Your body is responding intelligently to the shifting conditions of your life: ' +
-      'emotional load, physical exertion, and the sensory environment you rested in.',
+      'emotional load, level of social interaction and exertion, and the sensory environment you rested in.',
     environmental_note:
-      'Your home environment is one of the most adjustable inputs in this equation. ' +
+      'Your home environment is the buffer for your life,' +
+      'and one of the most adjustable inputs in this equation. ' +
       'Lighting quality, temperature, and ambient noise all send signals to your ' +
-      'circadian system before you ever close your eyes.',
+      'circadian system before you ever close your eyes.' +
+      'and when social or cognitive load is high,the adjustment of light and noise becomes your primary intervention.',
     score_reframe:
-      'A variable BSFI score is data, not a verdict. It reflects a system responding, not failing.',
+      'A variable BSFI score is data, not a verdict. It reflects a nervous system responding to life, not failing at it.',
   },
 
   disrupted: {
@@ -72,11 +74,13 @@ export const MORNING_FEEDBACK: Record<MorningSleepQuality, MorningFeedback> = {
       'Waking during the night, especially in the early hours, has been a documented ' +
       'feature of human sleep for centuries. Historical records describe a common pattern ' +
       'of two sleep phases with a quiet period between them. ' +
-      'What feels like insomnia may sometimes be the body moving through its own rhythm.',
+      'What feels like insomnia may sometimes be the body moving through its own rhythm.' +
+      'That said, when relational or environmental load is high, the brain remains in a state of ' + ,
+      'subtle vigilance, making you more sensitive to the early morning environment.',
     environmental_note:
-      'Environmental conditions often drive disruption before internal factors do. ' +
-      'Light bleed, ambient temperature shifts, or subtle sound changes in the early morning ' +
-      'can pull the nervous system out of recovery before it is ready.',
+      'Environmental conditions often drive disruption when the nervous system is already ' +
+      'carrying a load. Light bleed, ambient temperature shifts, or subtle sound changes pull you out of recovery because ' +
+      'your safety threshold is currently lowered.',
     score_reframe:
       'Your score today reflects last night\'s conditions, not your long-term trajectory. ' +
       'A single disrupted night does not define your pattern.',
@@ -86,19 +90,20 @@ export const MORNING_FEEDBACK: Record<MorningSleepQuality, MorningFeedback> = {
     headline: 'Fragmented sleep is a signal, not a character flaw.',
     body:
       'When sleep is repeatedly broken, the nervous system is communicating that ' +
-      'something in the environment—or in its current load—is not yet resolved. ' +
+      'relational or sensory load is still being processed. Research shows that ' +
+      'high social demand can potentially block the continuity of REM.' +
       'This is intelligent, protective behaviour. ' +
       'The question is not: what is wrong with me? ' +
       'The question is: what in my environment, lifestyle habit or schedule is maintaining this signal?',
     environmental_note:
-      'Sensory load carried into the evening such as bright light, noise, thermal discomfort, ' +
+      'Sensory or social load carried into the evening such as bright light, noise, thermal discomfort, ' +
       'or unresolved cognitive demand extends the time it takes for the autonomic ' +
       'nervous system to shift from vigilance into recovery. ' +
-      'This is where environment becomes intervention.',
+      'This is where environment must act as a deliberate enclosure to signal safety.',
     score_reframe:
       'A pattern of fragmented sleep will show in your BSFI trend over time. ' +
       'That trend is useful because it points outward toward adjustable conditions, ' +
-      'not inward as a measure of personal inadequacy.',
+      '-both spatial and relational- rather than inward as a measure of personal inadequacy.',
   },
 }
 
@@ -127,27 +132,28 @@ interface EveningFeedback {
 export const EVENING_FEEDBACK: Record<EveningMoodLevel, EveningFeedback> = {
 
   1: {
-    headline: 'Tired but wired is a nervous system state, not a personal failure.',
+    headline: 'Tired but wired is an autonomic state, not a personal failure.',
     body:
-      'This pattern of physical exhaustion paired with an activated nervous system ' +
-      'is one of the clearest signs that the environment has not yet sent a safety signal. ' +
-      'The body knows it is tired. It does not yet know it is safe to rest.',
+      'This pattern of physical exhaustion paired with mental activation ' +
+      'is one of the clearest signs that high social demand or sensory noise has kept your sympathetic system in on mode. ' +
+      'The body knows it is tired. It is currently not reading your environment as safe to rest.',
     environment_action:
       'Reduce light intensity in the space you are moving through now. ' +
       'Warm-toned, low-lux lighting tells the circadian system the day is ending. ' +
-      'Bright overhead light sends the opposite message regardless of how tired you feel.',
+      'Bright overhead light sends the opposite message regardless of how tired you feel.' +
+      'Your environment must provide the safety signal your day did not.',
   },
 
   2: {
     headline: 'Surface agitation usually has an environmental source.',
     body:
       'A buzzing, restless state in the evening often reflects the cumulative sensory ' +
-      'load of the day such as noise, light, cognitive demand that has not yet had space to clear. ' +
+      'load of the day such as relational residue, noise, light, cognitive demand that has not yet had space to clear. ' +
       'The body is still processing. It has not received a clear signal to begin winding down.',
     environment_action:
       'Introduce a transition. A 15-minute shift in sensory input like lower light levels, ' +
       'reduced screen exposure, quieter surroundings. These give the nervous system ' +
-      'the environmental cue it is waiting for.',
+      'the environmental cue it needs to wind down.',
   },
 
   3: {
@@ -218,11 +224,10 @@ export const BSFI_SCORE_CONTEXTS: BSFIScoreContext[] = [
     label: 'Moderate Friction',
     reframe:
       'Moderate friction is within the normal range of daily variation for most people. ' +
-      'The body is responding to its conditions. This is adaptive, not problematic.',
+      'The body is responding to its current conditions. This is adaptive, not problematic.',
     environment_lens:
-      'Moderate scores often reflect one or two environmental factors ' +
-      'that are slightly misaligned with your nervous system\'s current needs. ' +
-      'Your domain breakdown will indicate where to look.',
+      'Moderate scores often reflect a slight mismatch between your autonomic load' +
+      '(social or environmental) and your current sensory threshold. These may be slightly misaligned with your nervous system\'s current needs. ' ,
   },
   {
     range: [56, 74],
@@ -231,10 +236,10 @@ export const BSFI_SCORE_CONTEXTS: BSFIScoreContext[] = [
       'An elevated score is a signal, not a diagnosis. ' +
       'It means your system is working harder than usual against its current environment. ' +
       'One difficult night or one high-demand day can move a score significantly. ' +
-      'A single data point is not a pattern.',
+      'Remember that a single data point is not a pattern.',
     environment_lens:
       'Elevated friction most often traces back to light environment, acoustic load, ' +
-      'or temperature conditions during sleep. Your domain scores will show which is dominant.',
+      'or temperature conditions during sleep. ',
   },
   {
     range: [75, 100],
@@ -355,22 +360,24 @@ interface MorningLogInputs {
   sleep_wakes: number | null   // number of wake events logged
   mood_score: number | null    // 1–5 morning state
   morning_tension: number | null // 1–5 tension on waking
+  social_demand?: 'low' | 'moderate' | 'high' | null
 }
 
 export function getMorningFeedback(inputs: MorningLogInputs): MorningFeedback {
-  const { sleep_wakes, mood_score, morning_tension } = inputs
+  const { sleep_wakes, mood_score, morning_tension, social_demand } = inputs
 
   const wakes = sleep_wakes ?? 0
   const mood  = mood_score ?? 3
   const tension = morning_tension ?? 3
-
+  const social = social_demand ?? 'low'
+  
   // Fragmented: multiple wakes + low mood or high tension
-  if (wakes >= 3 || (wakes >= 2 && mood <= 2)) {
+  if (wakes >= 3 || (wakes >= 2 && (mood <= 2 || social === 'high'))) {
     return MORNING_FEEDBACK.fragmented
   }
 
   // Disrupted: at least one wake + elevated tension or low mood
-  if (wakes >= 1 && (tension >= 4 || mood <= 2)) {
+  if (wakes >= 1 && (tension >= 4 || mood <= 2 || social === 'moderate')) {
     return MORNING_FEEDBACK.disrupted
   }
 
