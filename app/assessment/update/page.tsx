@@ -5,15 +5,29 @@
 // =============================================================================
 //
 // WHAT THIS PAGE DOES:
-//   Renders the 12-question update assessment in 4 parts.
+//   Renders the update assessment in 4 parts.
 //   On submit, POSTs to /api/submit-update-assessment.
 //   On success, redirects to /results/update/[snapshot_id].
 //
 // PARTS:
-//   Part 0 — Nervous System Snapshot     (3 questions: choice, slider, choice)
-//   Part 1 — Domain Re-Survey            (5 domains × 2 questions = 10 questions)
+//   Part 0 — Nervous System Snapshot     (3 questions: current state)
+//   Part 1 — Domain Re-Survey            (5 domains × 2–3 questions = 15 questions)
 //   Part 2 — Change Detection            (3 multi-select questions)
 //   Part 3 — Subjective Progress Marker  (1 choice question)
+//
+// PART 1 ARCHITECTURE:
+//   All questions are present-tense mirrors of the onboarding assessment.
+//   No comparative or delta questions. The user answers honestly about
+//   right now — the engine computes the delta by comparing to the stored
+//   snapshot in assessment_snapshots. This eliminates memory dependency
+//   and produces a cleaner, more accurate before/after picture.
+//
+// QUESTION KEY MAPPING (Part 1):
+//   CII — q5, q6, q7       (Circadian: alertness, sleep onset, energy rhythm)
+//   ALI — q10, q11, q12    (Autonomic: reactivity, activation, relaxation)
+//   PLI — q15, q17, q19    (Legibility: room clarity, visual hierarchy, navigation)
+//   STL — q20, q21, q24    (Sensory: focus, noise, lighting)
+//   RCI — q28, q29, q33    (Recovery: restoration, wind-down, recovery — q33 reverse scored)
 //
 // =============================================================================
 
@@ -34,9 +48,7 @@ type Response = {
 type StepId = 0 | 1 | 2 | 3
 
 // ─────────────────────────────────────────────
-// QUESTION DATA
-// Inline here to keep the page self-contained.
-// Mirrors updateAssessmentProtocol structure.
+// PART LABELS
 // ─────────────────────────────────────────────
 
 const PART_LABELS = [
@@ -46,61 +58,95 @@ const PART_LABELS = [
   'The Felt Sense'
 ]
 
+// ─────────────────────────────────────────────
+// PART 1 — DOMAIN SECTIONS
+//
+// Present-tense mirrors of the onboarding assessment questions.
+// Keys match the original question ids so the backend can compare
+// directly against the stored snapshot without any mapping layer.
+//
+// No comparative questions. No memory dependency.
+// The delta is a computed engine output, not a user-reported input.
+// ─────────────────────────────────────────────
+
 const DOMAIN_SECTIONS = [
   {
     domain: 'cii',
-    label: 'Sleep & Energy Rhythm',
-    anchor:      { id: 'q6',          text: 'I feel naturally tired at night and fall asleep without difficulty.' },
-    comparative: { id: 'cii_delta_self', text: 'Compared to when I started, my sleep rhythm feels more predictable.',
-      low: 'Much less predictable', high: 'Much more predictable' }
+    label:  'Sleep & Energy Rhythm',
+    description: 'How your body is managing its energy and sleep signals right now.',
+    questions: [
+      { id: 'q5', text: 'I feel alert in the morning without needing to push myself.' },
+      { id: 'q6', text: 'I feel naturally tired at night and fall asleep without difficulty.' },
+      { id: 'q7', text: 'My energy rises and falls at predictable times throughout the day.' },
+    ]
   },
   {
     domain: 'ali',
-    label: 'Nervous System Activation',
-    anchor:      { id: 'q11',         text: 'I feel on edge at home even when nothing is wrong.' },
-    comparative: { id: 'ali_delta_self', text: 'Compared to when I started, I feel less activated at home.',
-      low: 'Much more activated', high: 'Much less activated' }
+    label:  'Nervous System Activation',
+    description: 'How hard your nervous system is working to stay regulated at home.',
+    questions: [
+      { id: 'q10', text: 'Small changes in sound, light, or temperature quickly make me tense.' },
+      { id: 'q11', text: 'I feel on edge at home even when nothing is wrong.' },
+      { id: 'q12', text: 'I find it hard to fully relax, even when nothing is wrong.' },
+    ]
   },
   {
     domain: 'pli',
-    label: 'Spatial Clarity',
-    anchor:      { id: 'q19',         text: 'Moving through my home feels automatic rather than mentally effortful.' },
-    comparative: { id: 'pli_delta_self', text: 'Compared to when I started, my home feels easier to navigate mentally.',
-      low: 'More effortful', high: 'Less effortful' }
+    label:  'Spatial Clarity',
+    description: 'How easily your brain is reading and navigating your home.',
+    questions: [
+      { id: 'q15', text: 'When I enter a room in my home, I immediately know what it\'s for.' },
+      { id: 'q17', text: 'In most rooms, my eyes naturally settle on one main feature.' },
+      { id: 'q19', text: 'Moving through my home feels automatic rather than mentally effortful.' },
+    ]
   },
   {
     domain: 'stl',
-    label: 'Sensory Environment',
-    anchor:      { id: 'q21',         text: 'Background noise in my home makes it hard to fully relax.' },
-    comparative: { id: 'stl_delta_self', text: 'Compared to when I started, my environment feels less overwhelming.',
-      low: 'More overwhelming', high: 'Less overwhelming' }
+    label:  'Sensory Environment',
+    description: 'The cumulative impact of your home\'s sensory conditions right now.',
+    questions: [
+      { id: 'q20', text: 'Too many visible objects make it hard for me to focus.' },
+      { id: 'q21', text: 'Background noise in my home makes it hard to fully relax.' },
+      { id: 'q24', text: 'Overhead lighting feels harsh or tiring and causes strain.' },
+    ]
   },
   {
     domain: 'rci',
-    label: 'Recovery Capacity',
-    anchor:      { id: 'q33',         text: 'My home helps me recover, not just get through the day.' },
-    comparative: { id: 'rci_delta_self', text: 'Compared to when I started, I feel more restored after time at home.',
-      low: 'Less restored', high: 'More restored' }
-  }
+    label:  'Recovery Capacity',
+    description: 'How effectively your home is helping you restore right now.',
+    questions: [
+      { id: 'q28', text: 'Time at home does not always leave me feeling fully restored.' },
+      { id: 'q29', text: 'It takes me a long time to mentally wind down at night.' },
+      { id: 'q33', text: 'My home helps me recover, not just get through the day.', reverse: true },
+    ]
+  },
 ]
+
+// ─────────────────────────────────────────────
+// PART 2 — CHANGE DETECTION
+// ─────────────────────────────────────────────
 
 const CHANGE_QUESTIONS = [
   {
-    id: 'env_change_sleep',
-    text: 'Since your last assessment, have you made any changes to your bedroom or sleep setup?',
+    id:      'env_change_sleep',
+    text:    'Since your last assessment, have you made any changes to your bedroom or sleep setup?',
     options: ['Changed lighting', 'Changed bedding or temperature setup', 'Reduced noise sources', 'Rearranged furniture', 'Moved bedroom', 'No changes']
   },
   {
-    id: 'env_change_day',
-    text: 'Since your last assessment, have you made any changes to your primary daytime space?',
+    id:      'env_change_day',
+    text:    'Since your last assessment, have you made any changes to your primary daytime space?',
     options: ['Changed lighting', 'Reduced clutter or visual complexity', 'Changed acoustic conditions', 'Added natural elements', 'Moved or reorganised workspace', 'No changes']
   },
   {
-    id: 'life_context_change',
-    text: 'Has anything significant changed in your daily life since your last assessment?',
+    id:      'life_context_change',
+    text:    'Has anything significant changed in your daily life since your last assessment?',
     options: ['New or increased work demands', 'Change in household members', 'Health changes', 'Seasonal shift', 'Significant travel', 'Relationship changes', 'Nothing significant']
   }
 ]
+
+// ─────────────────────────────────────────────
+// PART 3 — SUBJECTIVE OPTIONS
+// ─────────────────────────────────────────────
 
 const SUBJECTIVE_OPTIONS = [
   { label: 'Significantly worse', value: 1 },
@@ -112,21 +158,23 @@ const SUBJECTIVE_OPTIONS = [
 
 // ─────────────────────────────────────────────
 // SCALE COMPONENT
-// Used for anchor + comparative questions (1–5)
+// Used for all domain questions (1–5)
 // ─────────────────────────────────────────────
 
 function ScaleInput({
   questionKey,
   value,
   onChange,
-  lowLabel,
-  highLabel
+  lowLabel  = 'Strongly Disagree',
+  highLabel = 'Strongly Agree',
+  reverse,
 }: {
   questionKey: string
   value:       number | null
   onChange:    (key: string, val: number) => void
   lowLabel?:   string
   highLabel?:  string
+  reverse?:    boolean
 }) {
   return (
     <div className="space-y-3">
@@ -148,12 +196,10 @@ function ScaleInput({
           </button>
         ))}
       </div>
-      {(lowLabel || highLabel) && (
-        <div className="flex justify-between text-[10px] uppercase tracking-widest text-[#c9ccbb]/30 px-1">
-          <span>{lowLabel}</span>
-          <span>{highLabel}</span>
-        </div>
-      )}
+      <div className="flex justify-between text-[10px] uppercase tracking-widest text-[#c9ccbb]/30 px-1">
+        <span>{reverse ? highLabel : lowLabel}</span>
+        <span>{reverse ? lowLabel  : highLabel}</span>
+      </div>
     </div>
   )
 }
@@ -178,12 +224,10 @@ export default function UpdateAssessmentPage() {
 
   const toggleMultiSelect = (key: string, option: string) => {
     const current: string[] = responses[key] || []
-    // "No changes" / "Nothing significant" clears all others
     if (option === 'No changes' || option === 'Nothing significant') {
       setResponse(key, [option])
       return
     }
-    // Selecting anything else clears "No changes"
     const filtered = current.filter(o => o !== 'No changes' && o !== 'Nothing significant')
     const updated  = filtered.includes(option)
       ? filtered.filter(o => o !== option)
@@ -192,7 +236,6 @@ export default function UpdateAssessmentPage() {
   }
 
   // ── Step validation ────────────────────────
-  // Returns true if the current step has minimum required answers
 
   const isStepComplete = (): boolean => {
     switch (step) {
@@ -203,13 +246,11 @@ export default function UpdateAssessmentPage() {
           !!responses.primary_strain
         )
       case 1:
-        // All 10 domain questions answered
-        return DOMAIN_SECTIONS.every(s =>
-          responses[s.anchor.id] !== undefined &&
-          responses[s.comparative.id] !== undefined
+        // All 15 domain questions answered
+        return DOMAIN_SECTIONS.every(section =>
+          section.questions.every(q => responses[q.id] !== undefined)
         )
       case 2:
-        // At least one selection per change question
         return CHANGE_QUESTIONS.every(q =>
           Array.isArray(responses[q.id]) && responses[q.id].length > 0
         )
@@ -226,7 +267,6 @@ export default function UpdateAssessmentPage() {
     setLoading(true)
     setError(null)
 
-    // Format all responses into the expected shape
     const formatted: Response[] = Object.entries(responses).map(([key, val]) => ({
       question_key: key,
       answer: { response: val }
@@ -247,7 +287,6 @@ export default function UpdateAssessmentPage() {
         return
       }
 
-      // Redirect to results page with snapshot id
       router.push(`/results/update/${data.snapshot_id}`)
 
     } catch (err) {
@@ -256,9 +295,9 @@ export default function UpdateAssessmentPage() {
     }
   }
 
-  // ── Progress bar ───────────────────────────
+  // ── Progress ───────────────────────────────
 
-  const progress = ((step) / 4) * 100
+  const progress = (step / 4) * 100
 
   // ─────────────────────────────────────────────
   // RENDER
@@ -302,6 +341,7 @@ export default function UpdateAssessmentPage() {
 
           {/* ════════════════════════════════════════
               PART 0 — NERVOUS SYSTEM SNAPSHOT
+              Unchanged from original.
           ════════════════════════════════════════ */}
           {step === 0 && (
             <div className="space-y-10 animate-fade-in">
@@ -342,7 +382,7 @@ export default function UpdateAssessmentPage() {
               {/* energy_tax */}
               <div className="space-y-4">
                 <label className="block text-sm text-[#c9ccbb]/80 leading-relaxed">
-                  What percentage of your energy still goes toward managing your environment vs. living in it?
+                  What percentage of your energy goes toward managing your environment vs. living in it?
                 </label>
                 <div className="space-y-3">
                   <div className="flex justify-between text-[10px] uppercase tracking-widest text-[#c9ccbb]/30">
@@ -393,15 +433,19 @@ export default function UpdateAssessmentPage() {
 
           {/* ════════════════════════════════════════
               PART 1 — DOMAIN RE-SURVEY
+              Present-tense questions only.
+              No comparative questions.
+              Engine computes delta from stored snapshot.
           ════════════════════════════════════════ */}
           {step === 1 && (
             <div className="space-y-10 animate-fade-in">
               <div>
                 <h1 className="text-3xl font-serif text-[#c9ccbb] mb-2">
-                  Five areas. Two questions each.
+                  Five areas. How are they right now?
                 </h1>
                 <p className="text-[#c9ccbb]/50 text-sm leading-relaxed">
-                  First, how things are now. Then, how they compare to where you started.
+                  Answer based on how things feel today. Do not try to compare
+                  to where you started — that comparison is made for you.
                 </p>
               </div>
 
@@ -410,39 +454,30 @@ export default function UpdateAssessmentPage() {
 
                   {/* Domain divider */}
                   <div className="flex items-center gap-3">
-                    <span className="text-[10px] uppercase tracking-widest text-[#b5a642]/60 font-bold">
+                    <span className="text-[10px] uppercase tracking-widest text-[#b5a642]/60 font-bold whitespace-nowrap">
                       {String(i + 1).padStart(2, '0')} — {section.label}
                     </span>
                     <div className="flex-1 h-px bg-[#c9ccbb]/10" />
                   </div>
 
-                  {/* Anchor question */}
-                  <div className="space-y-3">
-                    <label className="block text-sm text-[#c9ccbb]/80 leading-relaxed">
-                      {section.anchor.text}
-                    </label>
-                    <ScaleInput
-                      questionKey={section.anchor.id}
-                      value={responses[section.anchor.id] ?? null}
-                      onChange={setResponse}
-                      lowLabel="Strongly Disagree"
-                      highLabel="Strongly Agree"
-                    />
-                  </div>
+                  <p className="text-[#c9ccbb]/40 text-xs leading-relaxed -mt-2">
+                    {section.description}
+                  </p>
 
-                  {/* Comparative question */}
-                  <div className="space-y-3 pl-4 border-l-2 border-[#b5a642]/20">
-                    <label className="block text-sm text-[#c9ccbb]/60 leading-relaxed italic">
-                      {section.comparative.text}
-                    </label>
-                    <ScaleInput
-                      questionKey={section.comparative.id}
-                      value={responses[section.comparative.id] ?? null}
-                      onChange={setResponse}
-                      lowLabel={section.comparative.low}
-                      highLabel={section.comparative.high}
-                    />
-                  </div>
+                  {/* Present-tense questions */}
+                  {section.questions.map(q => (
+                    <div key={q.id} className="space-y-3">
+                      <label className="block text-sm text-[#c9ccbb]/80 leading-relaxed">
+                        {q.text}
+                      </label>
+                      <ScaleInput
+                        questionKey={q.id}
+                        value={responses[q.id] ?? null}
+                        onChange={setResponse}
+                        reverse={'reverse' in q ? q.reverse : false}
+                      />
+                    </div>
+                  ))}
                 </div>
               ))}
             </div>
@@ -450,6 +485,7 @@ export default function UpdateAssessmentPage() {
 
           {/* ════════════════════════════════════════
               PART 2 — CHANGE DETECTION
+              Unchanged from original.
           ════════════════════════════════════════ */}
           {step === 2 && (
             <div className="space-y-10 animate-fade-in">
@@ -458,7 +494,8 @@ export default function UpdateAssessmentPage() {
                   What has changed?
                 </h1>
                 <p className="text-[#c9ccbb]/50 text-sm leading-relaxed">
-                  This helps us understand whether shifts in your score are likely linked to your environment or to other factors. Select all that apply.
+                  This helps us understand whether shifts in your score are likely
+                  linked to your environment or to other factors. Select all that apply.
                 </p>
               </div>
 
@@ -505,6 +542,7 @@ export default function UpdateAssessmentPage() {
 
           {/* ════════════════════════════════════════
               PART 3 — SUBJECTIVE PROGRESS MARKER
+              Unchanged from original.
           ════════════════════════════════════════ */}
           {step === 3 && (
             <div className="space-y-10 animate-fade-in">
@@ -541,7 +579,6 @@ export default function UpdateAssessmentPage() {
                 </div>
               </div>
 
-              {/* Error state */}
               {error && (
                 <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20">
                   <p className="text-sm text-red-400">{error}</p>
@@ -553,7 +590,6 @@ export default function UpdateAssessmentPage() {
           {/* ── Navigation ── */}
           <div className="flex items-center justify-between mt-12 pt-8 border-t border-[#c9ccbb]/10">
 
-            {/* Back */}
             {step > 0 ? (
               <button
                 type="button"
@@ -566,7 +602,6 @@ export default function UpdateAssessmentPage() {
               <div />
             )}
 
-            {/* Next / Submit */}
             {step < 3 ? (
               <button
                 type="button"
@@ -596,15 +631,9 @@ export default function UpdateAssessmentPage() {
                 `}
               >
                 {loading ? (
-                  <>
-                    <Loader2 size={13} className="animate-spin" />
-                    Calculating...
-                  </>
+                  <><Loader2 size={13} className="animate-spin" /> Calculating...</>
                 ) : (
-                  <>
-                    <CheckCircle size={13} />
-                    See What Shifted
-                  </>
+                  <><CheckCircle size={13} /> See What Shifted</>
                 )}
               </button>
             )}
