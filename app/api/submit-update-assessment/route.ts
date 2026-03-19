@@ -4,27 +4,47 @@
 //
 // SERVER-SIDE HANDLER — Update Assessment Submission
 //
-// CHANGE LOG (this version):
+// ARCHITECTURE NOTE (this version):
 //
-//   NUMERIC CASTING (Step 7)
-//   All numeric question keys now cast to Number() before being passed to
-//   the scoring engine. Previously, values read from current_user_responses
-//   arrived as strings from Supabase and were passed to the engine uncasted.
-//   q_int1, q_int2, q_int3 added to NUMERIC_KEYS — without this, the
-//   Integration Index produces NaN and every user defaults to 'integrative'.
+//   The update assessment no longer uses comparative/delta questions.
+//   All 15 domain questions are present-tense mirrors of the onboarding
+//   assessment. The delta is computed by the engine from two snapshots —
+//   not reported by the user.
 //
-//   BASELINE RECONSTRUCTION (Step 8)
-//   integrationProfile added to the reconstructed baseline NeuroLoadResult.
-//   The delta engine reads baselineResult.integrationProfile?.integrationPattern
-//   to detect integration axis shifts between assessments. Without this,
-//   integration_pattern_change was always false regardless of what shifted.
-//   Falls back gracefully when the baseline snapshot pre-dates the new columns
-//   (integration_pattern = NULL) — existing users are unaffected.
+//   INCOMING PAYLOAD STRUCTURE:
+//     Domain questions:  q5, q6, q7, q10, q11, q12, q15, q17, q19,
+//                        q20, q21, q24, q28, q29, q33
+//     Snapshot context:  q_state, energy_tax, primary_strain
+//     Change detection:  env_change_sleep, env_change_day, life_context_change
+//     Subjective marker: subjective_alignment_score
 //
-//   SNAPSHOT INSERT (Step 11)
-//   integration_pattern and integration_index now written to the snapshot row.
-//   Required for the delta engine to detect integration axis changes on
-//   subsequent update assessments.
+//   CHANGE LOG (this version):
+//
+//   1. snapshot_type query fixed: 'baseline' → 'initial' to match the
+//      migration backfill. The route previously returned 400 for all users
+//      because the query never matched.
+//
+//   2. extractAnchorResponses / extractDeltaFields removed. These separated
+//      comparative delta keys that no longer exist in the payload. Replaced
+//      with CONTEXT_KEYS — a simple set that separates non-domain context
+//      fields from the scoreable domain questions.
+//
+//   3. formattedDeltaFields no longer populates cii_delta_self etc. Domain
+//      deltas are computed by calculateBaselineDelta from the two snapshot
+//      objects directly. Context fields (change detection, subjective score)
+//      are the only delta fields now passed explicitly.
+//
+//   4. assessment_cycle: 2 written on all upserted user_responses rows so
+//      the DB can distinguish update responses from onboarding responses
+//      using the same question key.
+//
+//   5. previous_snapshot_id stamped on the new snapshot row, creating an
+//      explicit FK link to the baseline being compared against.
+//
+//   NUMERIC CASTING:
+//   All numeric question keys cast to Number() before the scoring engine.
+//   String values from Supabase produce NaN silently — breaking domain
+//   scores and the Integration Index.
 //
 // =============================================================================
 
@@ -32,20 +52,33 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { calculateNeuroLoad } from '@/app/utils/scoring-engine'
-import { extractAnchorResponses, extractDeltaFields } from '@/app/lib/update-assessment-protocol'
 import { calculateBaselineDelta } from '@/app/lib/baseline-delta-engine'
 
-// Keys whose answer_value must be cast to Number before reaching the engine.
-// String values produce NaN in the scoring engine — silently breaking
-// domain scores and the Integration Index.
+// ─────────────────────────────────────────────────────────────────────────────
+// NUMERIC KEYS
+// All of these must be cast to Number() before reaching the scoring engine.
+// String values from Supabase produce NaN — silently breaking domain scores.
+// ─────────────────────────────────────────────────────────────────────────────
 const NUMERIC_KEYS = new Set([
   'energy_tax',
   'q_int1', 'q_int2', 'q_int3',
-  'q5','q6','q7','q8','q9',
-  'q10','q11','q12','q13','q14',
-  'q15','q16','q17','q18','q19',
-  'q20','q21','q22','q23','q24','q25','q26',
-  'q27','q28','q29','q30','q31','q32','q33'
+  'q5',  'q6',  'q7',  'q8',  'q9',
+  'q10', 'q11', 'q12', 'q13', 'q14',
+  'q15', 'q16', 'q17', 'q18', 'q19',
+  'q20', 'q21', 'q22', 'q23', 'q24', 'q25', 'q26',
+  'q27', 'q28', 'q29', 'q30', 'q31', 'q32', 'q33'
+])
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CONTEXT KEYS
+// These keys carry contextual metadata — they are not scored by the engine.
+// They are separated from domain questions and stored directly on the snapshot.
+// ─────────────────────────────────────────────────────────────────────────────
+const CONTEXT_KEYS = new Set([
+  'env_change_sleep',
+  'env_change_day',
+  'life_context_change',
+  'subjective_alignment_score',
 ])
 
 export async function POST(request: Request) {
@@ -53,67 +86,71 @@ export async function POST(request: Request) {
     const cookieStore = cookies()
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
 
-    // -------------------------------------------------------
+    // -----------------------------------------------------------------------
     // STEP 1 — AUTHENTICATE
-    // -------------------------------------------------------
+    // -----------------------------------------------------------------------
 
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
     if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorised' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
     }
 
-    // -------------------------------------------------------
+    // -----------------------------------------------------------------------
     // STEP 2 — PARSE INCOMING RESPONSES
-    // Format expected from the update form:
-    //   { responses: [{ question_key: string, answer: { response: any } }] }
-    // -------------------------------------------------------
+    // Format: { responses: [{ question_key: string, answer: { response: any } }] }
+    // -----------------------------------------------------------------------
 
     const body = await request.json()
     const allResponses: { question_key: string; answer: { response: any } }[] = body.responses
 
     if (!allResponses || allResponses.length === 0) {
-      return NextResponse.json(
-        { error: 'No responses provided' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'No responses provided' }, { status: 400 })
     }
 
-    // -------------------------------------------------------
-    // STEP 3 — SEPARATE ANCHOR RESPONSES FROM DELTA FIELDS
-    // Anchor responses → go to scoring engine + current_user_responses
-    // Delta fields     → stored directly on the snapshot record
-    // -------------------------------------------------------
+    // -----------------------------------------------------------------------
+    // STEP 3 — SEPARATE DOMAIN RESPONSES FROM CONTEXT FIELDS
+    //
+    // Domain responses → merged with existing responses → scoring engine
+    // Context fields   → stored directly on the snapshot record
+    // -----------------------------------------------------------------------
 
-    const anchorResponses = extractAnchorResponses(allResponses)
-    const deltaFields     = extractDeltaFields(allResponses)
+    const domainResponses = allResponses.filter(r => !CONTEXT_KEYS.has(r.question_key))
+    const contextFields   = Object.fromEntries(
+      allResponses
+        .filter(r => CONTEXT_KEYS.has(r.question_key))
+        .map(r => [r.question_key, r.answer.response])
+    )
 
-    // -------------------------------------------------------
-    // STEP 4 — FETCH CURRENT BASELINE SNAPSHOT
-    // -------------------------------------------------------
+    // -----------------------------------------------------------------------
+    // STEP 4 — FETCH THE MOST RECENT INITIAL SNAPSHOT (BASELINE)
+    //
+    // FIX: was querying snapshot_type = 'baseline' — corrected to 'initial'
+    // to match the migration backfill applied to all existing snapshots.
+    //
+    // We take the most recent 'initial' snapshot as the baseline, not the
+    // earliest — a user may have reset and restarted their assessment cycle.
+    // -----------------------------------------------------------------------
 
     const { data: baselineSnapshot, error: snapshotError } = await supabase
       .from('assessment_snapshots')
       .select('*')
       .eq('user_id', user.id)
-      .eq('snapshot_type', 'baseline')
-      .order('created_at', { ascending: true })
+      .eq('snapshot_type', 'initial')
+      .order('created_at', { ascending: false })
       .limit(1)
       .single()
 
     if (snapshotError || !baselineSnapshot) {
       return NextResponse.json(
-        { error: 'No baseline snapshot found. Please complete the full assessment first.' },
+        { error: 'No initial assessment found. Please complete the full assessment first.' },
         { status: 400 }
       )
     }
 
-    // -------------------------------------------------------
-    // STEP 5 — FETCH ALL CURRENT RESPONSES
-    // -------------------------------------------------------
+    // -----------------------------------------------------------------------
+    // STEP 5 — FETCH ALL CURRENT RESPONSES FROM THE VIEW
+    // -----------------------------------------------------------------------
 
     const { data: currentResponses, error: responsesError } = await supabase
       .from('current_user_responses')
@@ -121,17 +158,15 @@ export async function POST(request: Request) {
       .eq('user_id', user.id)
 
     if (responsesError || !currentResponses || currentResponses.length === 0) {
-      return NextResponse.json(
-        { error: 'Could not fetch current responses' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Could not fetch current responses' }, { status: 400 })
     }
 
-    // -------------------------------------------------------
-    // STEP 6 — MERGE ANCHOR RESPONSES INTO CURRENT RESPONSES
-    // Values from Supabase arrive as strings. Cast numeric keys
-    // here so the engine always receives the correct type.
-    // -------------------------------------------------------
+    // -----------------------------------------------------------------------
+    // STEP 6 — MERGE DOMAIN RESPONSES INTO CURRENT RESPONSES
+    //
+    // Existing responses form the base map. New domain responses overwrite
+    // any matching key. Numeric keys are cast to Number() at both stages.
+    // -----------------------------------------------------------------------
 
     const currentMap = new Map(
       currentResponses.map((r: any) => [
@@ -147,8 +182,7 @@ export async function POST(request: Request) {
       ])
     )
 
-    // Overwrite with new anchor values, applying the same numeric cast
-    anchorResponses.forEach(r => {
+    domainResponses.forEach(r => {
       currentMap.set(r.question_key, {
         question_key: r.question_key,
         answer: {
@@ -161,27 +195,24 @@ export async function POST(request: Request) {
 
     const mergedResponses = Array.from(currentMap.values())
 
-    // -------------------------------------------------------
+    // -----------------------------------------------------------------------
     // STEP 7 — RUN THE SCORING ENGINE ON MERGED RESPONSES
-    // -------------------------------------------------------
+    // -----------------------------------------------------------------------
 
     const neuroLensRaw = currentMap.get('neuro_lens')?.answer?.response || 'None'
-
     const updateResult = calculateNeuroLoad(mergedResponses, neuroLensRaw)
 
-    // -------------------------------------------------------
+    // -----------------------------------------------------------------------
     // STEP 8 — RECONSTRUCT BASELINE NEUROLOADRESULT
     //
-    // integrationProfile is included so the delta engine can detect
-    // integration axis shifts (integrative → accumulative etc.).
+    // integrationProfile included so the delta engine can detect integration
+    // axis shifts (integrative → accumulative etc.).
     //
-    // Fallback: baseline snapshots written before the integration columns
-    // were added will have integration_pattern = NULL. In that case we
-    // omit integrationProfile entirely — the delta engine handles undefined
-    // gracefully and integration_pattern_change will be false for that
-    // comparison only. Corrects itself on the next update assessment once
-    // a proper snapshot with integration data exists.
-    // -------------------------------------------------------
+    // Fallback: baseline snapshots written before integration columns were
+    // added will have integration_pattern = NULL. The delta engine handles
+    // undefined gracefully — integration_pattern_change will be false for
+    // that comparison and corrects itself on the next update assessment.
+    // -----------------------------------------------------------------------
 
     const baselineResult = {
       rawIndices:      { cii: 0, ali: 0, pli: 0, stl: 0, rci: 0 },
@@ -192,9 +223,9 @@ export async function POST(request: Request) {
         stl: baselineSnapshot.stl,
         rci: baselineSnapshot.rci
       },
-      weightedIndices: { cii: 0, ali: 0, pli: 0, stl: 0, rci: 0 },
-      finalNeuroLoad:  baselineSnapshot.neuro_load,
-      systemState:     baselineSnapshot.system_state,
+      weightedIndices:  { cii: 0, ali: 0, pli: 0, stl: 0, rci: 0 },
+      finalNeuroLoad:   baselineSnapshot.neuro_load,
+      systemState:      baselineSnapshot.system_state,
       interactionFlags: {
         restorativeDeficit:    false,
         sensoryHypervigilance: false,
@@ -209,33 +240,35 @@ export async function POST(request: Request) {
         blendApplied:          false,
         thresholdDifferential: 0
       },
-      // Integration profile — populated only when the baseline snapshot has
-      // the new columns. NULL-safe: undefined is handled by the delta engine.
       integrationProfile: baselineSnapshot.integration_pattern
         ? {
-            integrationPattern:  baselineSnapshot.integration_pattern as 'integrative' | 'mixed' | 'accumulative',
-            integrationIndex:    baselineSnapshot.integration_index ?? 50,
-            profileDescriptor:   ''
+            integrationPattern: baselineSnapshot.integration_pattern as 'integrative' | 'mixed' | 'accumulative',
+            integrationIndex:   baselineSnapshot.integration_index ?? 50,
+            profileDescriptor:  ''
           }
         : undefined,
       energyTaxBaseline: baselineSnapshot.energy_tax,
       primaryStrain:     'None of the above'
     }
 
-    // -------------------------------------------------------
+    // -----------------------------------------------------------------------
     // STEP 9 — CALCULATE THE DELTA
-    // -------------------------------------------------------
+    //
+    // Domain deltas are computed by calculateBaselineDelta from the two
+    // snapshot objects directly — not from user-reported comparative scores.
+    //
+    // Context fields passed separately:
+    //   - env_change_sleep, env_change_day, life_context_change — provide
+    //     the delta engine with context for interpreting score changes
+    //   - subjective_alignment_score — the gut-response felt-sense marker,
+    //     stored on the snapshot and surfaced in the results page
+    // -----------------------------------------------------------------------
 
-    const formattedDeltaFields = {
-      cii_delta_self:             Number(deltaFields.cii_delta_self)             || 3,
-      ali_delta_self:             Number(deltaFields.ali_delta_self)             || 3,
-      pli_delta_self:             Number(deltaFields.pli_delta_self)             || 3,
-      stl_delta_self:             Number(deltaFields.stl_delta_self)             || 3,
-      rci_delta_self:             Number(deltaFields.rci_delta_self)             || 3,
-      subjective_alignment_score: Number(deltaFields.subjective_alignment_score) || 3,
-      env_change_sleep:           deltaFields.env_change_sleep                   || [],
-      env_change_day:             deltaFields.env_change_day                     || [],
-      life_context_change:        deltaFields.life_context_change                || []
+    const contextForDelta = {
+      subjective_alignment_score: Number(contextFields.subjective_alignment_score) || 3,
+      env_change_sleep:           contextFields.env_change_sleep    || [],
+      env_change_day:             contextFields.env_change_day      || [],
+      life_context_change:        contextFields.life_context_change  || [],
     }
 
     const deltaReport = calculateBaselineDelta(
@@ -243,17 +276,21 @@ export async function POST(request: Request) {
       updateResult,
       baselineSnapshot.id,
       'pending',
-      formattedDeltaFields
+      contextForDelta
     )
 
-    // -------------------------------------------------------
-    // STEP 10 — UPSERT ANCHOR RESPONSES INTO current_user_responses
-    // -------------------------------------------------------
+    // -----------------------------------------------------------------------
+    // STEP 10 — UPSERT DOMAIN RESPONSES INTO user_responses
+    //
+    // assessment_cycle: 2 written on all rows so the DB can distinguish
+    // update responses from onboarding responses sharing the same key.
+    // -----------------------------------------------------------------------
 
-    const upsertRows = anchorResponses.map(r => ({
-      user_id:      user.id,
-      question_key: r.question_key,
-      answer:       { response: r.answer.response }
+    const upsertRows = domainResponses.map(r => ({
+      user_id:          user.id,
+      question_key:     r.question_key,
+      answer:           { response: r.answer.response },
+      assessment_cycle: 2,
     }))
 
     const { error: upsertError } = await supabase
@@ -262,55 +299,57 @@ export async function POST(request: Request) {
 
     if (upsertError) {
       console.error('Upsert error:', upsertError)
-      return NextResponse.json(
-        { error: 'Failed to update responses' },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: 'Failed to update responses' }, { status: 500 })
     }
 
-    // -------------------------------------------------------
+    // -----------------------------------------------------------------------
     // STEP 11 — WRITE UPDATE SNAPSHOT TO assessment_snapshots
     //
-    // integration_pattern and integration_index now persisted.
-    // These are the values the delta engine will read as the
-    // 'baseline' on the next update assessment for this user.
-    // -------------------------------------------------------
+    // previous_snapshot_id stamped explicitly — creates a clean FK link
+    // to the baseline being compared against. Eliminates ambiguity on
+    // subsequent update assessments.
+    //
+    // subjective_alignment_score stored directly on the snapshot row —
+    // it is a trajectory marker, not a domain question.
+    //
+    // Change detection arrays stored as JSONB for the results page.
+    // -----------------------------------------------------------------------
 
     const { data: newSnapshot, error: snapshotInsertError } = await supabase
       .from('assessment_snapshots')
       .insert({
-        user_id:             user.id,
-        snapshot_type:       'update',
-        neuro_load:          updateResult.finalNeuroLoad,
-        cii:                 Math.round(updateResult.percentIndices.cii),
-        ali:                 Math.round(updateResult.percentIndices.ali),
-        pli:                 Math.round(updateResult.percentIndices.pli),
-        stl:                 Math.round(updateResult.percentIndices.stl),
-        rci:                 Math.round(updateResult.percentIndices.rci),
-        energy_tax:          updateResult.energyTaxBaseline,
-        system_state:        updateResult.systemState,
-        sensory_pattern:     updateResult.sensoryProfile.pattern,
-        // Integration axis — new columns added in migration
-        integration_pattern: updateResult.integrationProfile?.integrationPattern ?? null,
-        integration_index:   updateResult.integrationProfile?.integrationIndex   ?? null
+        user_id:                    user.id,
+        snapshot_type:              'update',
+        previous_snapshot_id:       baselineSnapshot.id,
+        neuro_load:                 updateResult.finalNeuroLoad,
+        cii:                        Math.round(updateResult.percentIndices.cii),
+        ali:                        Math.round(updateResult.percentIndices.ali),
+        pli:                        Math.round(updateResult.percentIndices.pli),
+        stl:                        Math.round(updateResult.percentIndices.stl),
+        rci:                        Math.round(updateResult.percentIndices.rci),
+        energy_tax:                 updateResult.energyTaxBaseline,
+        system_state:               updateResult.systemState,
+        sensory_pattern:            updateResult.sensoryProfile.pattern,
+        integration_pattern:        updateResult.integrationProfile?.integrationPattern ?? null,
+        integration_index:          updateResult.integrationProfile?.integrationIndex   ?? null,
+        // Context fields from Part 2 and Part 3 of the update assessment
+        subjective_alignment_score: contextForDelta.subjective_alignment_score,
+        env_change_sleep:           contextForDelta.env_change_sleep,
+        env_change_day:             contextForDelta.env_change_day,
+        life_context_change:        contextForDelta.life_context_change,
       })
       .select()
       .single()
 
     if (snapshotInsertError || !newSnapshot) {
       console.error('Snapshot insert error:', snapshotInsertError)
-      return NextResponse.json(
-        { error: 'Failed to save snapshot' },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: 'Failed to save snapshot' }, { status: 500 })
     }
 
-    // -------------------------------------------------------
+    // -----------------------------------------------------------------------
     // STEP 12 — STORE DELTA REPORT ON THE SNAPSHOT
-    // Stored as JSONB so the results page can fetch everything
-    // in a single query. Includes integration_pattern_change
-    // and integration_pattern_shift from the updated delta engine.
-    // -------------------------------------------------------
+    // Stored as JSONB so the results page fetches everything in one query.
+    // -----------------------------------------------------------------------
 
     const finalDeltaReport = {
       ...deltaReport,
@@ -322,9 +361,9 @@ export async function POST(request: Request) {
       .update({ delta_report: finalDeltaReport })
       .eq('id', newSnapshot.id)
 
-    // -------------------------------------------------------
+    // -----------------------------------------------------------------------
     // STEP 13 — RETURN TO CLIENT
-    // -------------------------------------------------------
+    // -----------------------------------------------------------------------
 
     return NextResponse.json({
       success:                    true,
@@ -335,14 +374,11 @@ export async function POST(request: Request) {
       load_direction:             deltaReport.load_direction,
       overall_progress:           deltaReport.overall_progress,
       integration_pattern_change: deltaReport.integration_pattern_change,
-      integration_pattern_shift:  deltaReport.integration_pattern_shift
+      integration_pattern_shift:  deltaReport.integration_pattern_shift,
     })
 
   } catch (err) {
     console.error('Submit update assessment error:', err)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
