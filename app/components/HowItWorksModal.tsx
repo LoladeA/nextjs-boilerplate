@@ -243,7 +243,7 @@ export default function HowItWorksModal({ isOpen, onClose }: Props) {
                       <div className="flex items-center gap-2 mb-1">
                         <p className="text-[#b5a642] text-[9px] font-bold uppercase tracking-widest">Blueprint</p>
                         <span className="text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-full bg-[#b5a642]/15 text-[#b5a642] border border-[#b5a642]">
-                          189 euros/mo
+                          150 euros/mo
                         </span>
                       </div>
                       <h4 className="text-[#c9ccbb] font-serif text-lg">Change your environment</h4>
