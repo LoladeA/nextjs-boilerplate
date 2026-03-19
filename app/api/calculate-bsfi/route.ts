@@ -23,7 +23,7 @@ const safeNum = (val: unknown): number | null => {
 // DERIVE BASELINE INPUTS
 // -----------------------------------------------------------------------------
 const deriveIntegrationVariant = (responses: any[]): IntegrationVariant => {
-    const vals = ['q_int1', 'q_int2', 'q_int3'].map(key => 
+    const vals = ['q_int1', 'q_int2', 'q_int3'].map(key =>
         safeNum(responses.find(r => r.question_key === key)?.answer_value)
     )
     const average = vals.reduce((a, b) => a + (b ?? 3), 0) / 3
@@ -54,7 +54,7 @@ export async function POST(req: Request) {
             mood_score:      safeNum(raw.mood_score),
             morning_tags:    Array.isArray(raw.tags) ? raw.tags : [],
             evening_tags:    Array.isArray(raw.evening_tags) ? raw.evening_tags : [],
-            social_demand:   raw.social_demand || 'low',
+            social_demand:   raw.social_demand ?? 'low',
         }
 
         // 2. Fetch History (14-day window)
@@ -70,14 +70,17 @@ export async function POST(req: Request) {
 
         const historyParams: DailyLogParams[] = (historyData || []).map(log => ({
             ...log,
-            social_demand: log.social_demand || 'low'
+            social_demand: log.social_demand ?? 'low'
         }))
 
-        // 3. FETCH BASELINE CONTEXT (The V7.3 Requirement)
+        // 3. Fetch Baseline Context
         const { data: profile } = await supabase
             .from('assessment_snapshots')
             .select('sensory_pattern, energy_tax_baseline')
             .eq('user_id', userId)
+            .eq('snapshot_type', 'initial')
+            .order('created_at', { ascending: false })
+            .limit(1)
             .single()
 
         const { data: intResponses } = await supabase
@@ -87,11 +90,9 @@ export async function POST(req: Request) {
             .in('question_key', ['q_int1', 'q_int2', 'q_int3'])
 
         const integrationPattern = deriveIntegrationVariant(intResponses || [])
-        
-        // Map DossierProfile to Threshold
-        // 'sensor' = low threshold (highly reactive)
-        // 'anchor'/'seeker' = high threshold (resilient)
-        const threshold: 'low' | 'high' = profile?.sensory_pattern === 'sensor' ? 'low' : 'high'
+
+        const threshold: 'low' | 'high' =
+            profile?.sensory_pattern === 'sensor' ? 'low' : 'high'
 
         const baseline: BaselineInput = {
             threshold,
@@ -99,32 +100,37 @@ export async function POST(req: Request) {
             energyTaxBaseline: profile?.energy_tax_baseline ?? 50
         }
 
-        // 4. Execute Engine V7.3
+        // 4. Execute Engine
         const bsfiResult = calculateBSFI(todayParams, historyParams, baseline)
+
+        // ─────────────────────────────────────────────────────────────────
+        // FIX: is_internal_driver is not a column on bsfi_results.
+        // The boolean is derived from internal_driver_score and stored
+        // inside domain_scores JSONB only. Removed as a standalone column.
+        // ─────────────────────────────────────────────────────────────────
 
         // 5. Persist Results
         const { error: upsertError } = await supabase
             .from('bsfi_results')
             .upsert({
-                user_id: userId,
+                user_id:             userId,
                 calculated_for_date: raw.date,
-                session: raw.session === 'evening' ? 'evening' : 'morning',
-                total_score: bsfiResult.bsfi_total,
-                dominant_domain: bsfiResult.dominant_domain,
-                version: bsfiResult.version,
+                session:             raw.session === 'evening' ? 'evening' : 'morning',
+                total_score:         bsfiResult.bsfi_total,
+                dominant_domain:     bsfiResult.dominant_domain,
+                version:             bsfiResult.version,
                 domain_scores: {
-                    CFS: bsfiResult.cfs_score,
-                    ALS: bsfiResult.als_score, // Now includes Social/Relational load
-                    SES: bsfiResult.ses_score,
-                    RDS: bsfiResult.rds_score,
-                    // New V7.3 Attribution Data
+                    CFS:                   bsfiResult.cfs_score,
+                    ALS:                   bsfiResult.als_score,
+                    SES:                   bsfiResult.ses_score,
+                    RDS:                   bsfiResult.rds_score,
                     internal_driver_score: bsfiResult.internal_driver_score,
                     external_driver_score: bsfiResult.external_driver_score,
+                    // Boolean flag stored here — not as a standalone column
+                    is_internal_driver:    bsfiResult.internal_driver_score > 0.5,
                 },
-                // Legacy support for boolean flag
-                is_internal_driver: bsfiResult.internal_driver_score > 0.5,
                 integration_pattern: integrationPattern,
-                sensory_pattern: profile?.sensory_pattern || null,
+                sensory_pattern:     profile?.sensory_pattern || null,
             }, {
                 onConflict: 'user_id, calculated_for_date, session'
             })
