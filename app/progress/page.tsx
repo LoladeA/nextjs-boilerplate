@@ -128,8 +128,12 @@ export default function Progress() {
   // GRAPH STATE — must stay in this component
   // chartLogs feeds <CorrelationGraph /> directly as a prop.
   // fetchHistory() writes to chartLogs. Neither can be extracted.
+  // totalLogs is the full count of all log entries — used to detect the
+  // recalibration window (first 5 days of every new 14-day cycle).
   // ─────────────────────────────────────────────────────────────────────────
-  const [chartLogs, setChartLogs] = useState<any[]>([])
+  const [chartLogs, setChartLogs]         = useState<any[]>([])
+  const [totalLogs, setTotalLogs]         = useState<number>(0)
+  const [isRecalibrating, setIsRecalibrating] = useState<boolean>(false)
 
   // ─────────────────────────────────────────────────────────────────────────
   // SYNC eveningMood FROM sleepReadiness
@@ -280,17 +284,31 @@ export default function Progress() {
   // FETCH HISTORY — feeds chartLogs → CorrelationGraph
   // Also feeds dashboard mood graph indirectly via daily_logs reads.
   // Must stay in this component. Do not extract.
+  //
+  // RECALIBRATION LOGIC:
+  // Every 14 days the synthesis window resets. For the first 5 days of each
+  // new cycle, we show a recalibration message rather than the previous
+  // synthesis — creating a deliberate pause that signals renewal.
+  // daysIntoCycle = totalLogs % 14. When 1–5 and totalLogs >= 14 → recalibrating.
   // ─────────────────────────────────────────────────────────────────────────
   const fetchHistory = async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    const { data } = await supabase
+    // Get the last 14 for the graph, plus the total count for recalibration
+    const { data, count } = await supabase
       .from('daily_logs')
-      .select('date, mood_score, focus_hours, morning_tension, sleep_wakes')
+      .select('date, mood_score, focus_hours, morning_tension, sleep_wakes', { count: 'exact' })
       .eq('user_id', user.id)
       .order('date', { ascending: false })
       .limit(14)
+
+    const total = count ?? 0
+    setTotalLogs(total)
+
+    // Recalibration window: first 5 days of each new 14-day cycle
+    const daysIntoCycle = total % 14
+    setIsRecalibrating(total >= 14 && daysIntoCycle >= 1 && daysIntoCycle <= 5)
 
     if (data) {
       const formatted = [...data].reverse().map((log: any) => {
@@ -372,6 +390,7 @@ export default function Progress() {
 
       setStatus('success')
       fetchHistory()
+      fetchTodayLog() // re-fetch bsfi_results from DB as fallback if API parse fails
       setTimeout(() => setStatus('idle'), 2000)
 
       try {
@@ -1222,35 +1241,76 @@ export default function Progress() {
 
           </AnimatePresence>
 
-          {/* 14-DAY PATTERN PANEL */}
+          {/* ------------------------------------------------------------------ */}
+          {/* 14-DAY PATTERN PANEL                                               */}
+          {/* Three states:                                                       */}
+          {/*   1. Building   — fewer than 14 logs, shows progress bar           */}
+          {/*   2. Recalibrating — first 5 days of a new 14-day cycle            */}
+          {/*   3. Ready      — synthesis available, expandable for Core+         */}
+          {/* ------------------------------------------------------------------ */}
           <div className={`glass-panel p-6 rounded-3xl mb-8 border relative overflow-hidden transition-all ${
-            !macroSynthesis.ready || hasAccess
-              ? 'bg-gradient-to-r from-[#b5a642]/10 to-transparent border-[#b5a642]/20'
-              : 'bg-[#b5a642]/10 border-[#b5a642]/40 shadow-lg shadow-[#b5a642]/5'
+            isRecalibrating
+              ? 'bg-gradient-to-r from-[#b5a642]/5 to-transparent border-[#b5a642]/15'
+              : !macroSynthesis.ready || hasAccess
+                ? 'bg-gradient-to-r from-[#b5a642]/10 to-transparent border-[#b5a642]/20'
+                : 'bg-[#b5a642]/10 border-[#b5a642]/40 shadow-lg shadow-[#b5a642]/5'
           }`}>
             <div
-              className={`flex items-center justify-between w-full relative z-10 ${hasAccess && macroSynthesis.ready ? 'cursor-pointer group' : ''}`}
-              onClick={() => { if (hasAccess && macroSynthesis.ready) setIsSynthesisExpanded(!isSynthesisExpanded) }}
+              className={`flex items-center justify-between w-full relative z-10 ${hasAccess && macroSynthesis.ready && !isRecalibrating ? 'cursor-pointer group' : ''}`}
+              onClick={() => { if (hasAccess && macroSynthesis.ready && !isRecalibrating) setIsSynthesisExpanded(!isSynthesisExpanded) }}
             >
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-[#b5a642]/20 rounded-full text-[#b5a642] shrink-0">
-                  {macroSynthesis.ready && !hasAccess ? <Lock size={20} /> : <Fingerprint size={20} />}
+                  {macroSynthesis.ready && !hasAccess && !isRecalibrating
+                    ? <Lock size={20} />
+                    : <Fingerprint size={20} />
+                  }
                 </div>
                 <div>
                   <span className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-1 block">
-                    {macroSynthesis.ready ? 'Your 14-Day Pattern · Based on your last 14 days of logs' : 'Building Your Picture'}
+                    {isRecalibrating
+                      ? 'Pattern Recalibrating'
+                      : macroSynthesis.ready
+                        ? 'Your 14-Day Pattern · Based on your last 14 days of logs'
+                        : 'Building Your Picture'
+                    }
                   </span>
-                  <h4 className="text-xl font-serif text-[#c9ccbb]">{macroSynthesis.title}</h4>
+                  <h4 className="text-xl font-serif text-[#c9ccbb]">
+                    {isRecalibrating
+                      ? 'Your Next Pattern Is Being Synthesised'
+                      : macroSynthesis.title
+                    }
+                  </h4>
                 </div>
               </div>
-              {hasAccess && macroSynthesis.ready && (
+              {hasAccess && macroSynthesis.ready && !isRecalibrating && (
                 <div className="text-[#c9ccbb]/80 group-hover:text-[#b5a642] transition-colors ml-4 shrink-0">
                   {isSynthesisExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                 </div>
               )}
             </div>
 
-            {!macroSynthesis.ready ? (
+            {/* RECALIBRATING STATE */}
+            {isRecalibrating ? (
+              <div className="mt-4 pt-4 border-t border-[#b5a642]/10 w-full relative z-10">
+                <p className="text-sm text-[#c9ccbb]/70 leading-relaxed max-w-2xl mb-4">
+                  You have completed a full 14-day cycle. The previous synthesis has been cleared
+                  and a new pattern window has opened. Your next reading will be ready once
+                  {' '}{14 - (totalLogs % 14)}{' '}more days of logs have been recorded.
+                </p>
+                <p className="text-[#c9ccbb]/50 text-xs leading-relaxed max-w-2xl italic">
+                  Each new cycle looks at your environment with fresh context — without the weight
+                  of the previous window's assumptions. Continue logging consistently.
+                </p>
+                <div className="w-full max-w-md h-1 bg-[#000]/50 rounded-full mt-5 overflow-hidden">
+                  <div
+                    className="h-full bg-[#b5a642]/60 transition-all duration-1000"
+                    style={{ width: `${((totalLogs % 14) / 14) * 100}%` }}
+                  />
+                </div>
+              </div>
+
+            ) : !macroSynthesis.ready ? (
               <div className="mt-4 pt-4 border-t border-[#c9ccbb]/10 w-full relative z-10">
                 <p className="text-sm text-[#c9ccbb]/80 leading-relaxed max-w-2xl">{macroSynthesis.paragraphs[0]}</p>
                 <div className="w-full max-w-md h-1 bg-[#000]/50 rounded-full mt-4 overflow-hidden">
