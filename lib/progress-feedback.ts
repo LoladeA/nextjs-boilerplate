@@ -222,11 +222,11 @@ export function getMacroSynthesis({ chartLogs, morningBsfi, eveningBsfi }: Macro
 
   return {
     ready: true,
-    title: "Still Working Out The Pattern",
+    title: "Your Pattern Is Present. It Is Not Yet Directional",
     paragraphs: [
       "The last fourteen days show significant fluctuation across mood, tension, and focus without a consistent directional pattern. Before locating the source of that variance in your physical environment, it is worth naming what the data cannot distinguish: not all fluctuation is environmental in origin.",
-      "Hormonal shifts, periods of elevated relational or cognitive demand, and natural energy cycles produce real, measurable changes in tension, sleep quality, focus, and mood — changes that register in your logs independently of what your physical space is doing.",
-      "Continue logging consistently. The appropriate response during periods of internal fluctuation is friction reduction, not optimisation. Ask your environment to do less against you, not more for you."
+      "Hormonal shifts, periods of elevated relational or cognitive demand, and natural energy cycles produce real, measurable changes in tension, sleep quality, focus, and mood: changes that register in your logs independently of what your physical space is doing.",
+      "Continue logging consistently. The pattern will sharpen as the conditions stabilise or as one domain begins to lead. What the engine is looking for is repetition such as the same friction appearing across multiple days. That signal will emerge."
     ]
   }
 }
