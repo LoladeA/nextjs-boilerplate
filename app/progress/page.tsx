@@ -54,7 +54,7 @@ import {
   getEveningFeedback,
   getMacroSynthesis,
 } from '@/lib/progress-feedback'
-import { moods, morningTagOptions, eveningTagOptions }    from './constants'
+import { moods, morningTagOptions, eveningTagOptions }    from './daily-logs/constants'
 
 // =============================================================================
 // COMPONENT
