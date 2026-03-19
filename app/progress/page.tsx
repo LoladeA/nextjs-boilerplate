@@ -436,7 +436,7 @@ export default function Progress() {
   // FEEDBACK — now pure function calls with explicit params
   // ─────────────────────────────────────────────────────────────────────────
   const morningInsight = getMorningFeedback({ morningMood, tensionScore, wakeScore })
-  const eveningInsight = getEveningFeedback({ focusScore, eveningMood })
+  const eveningInsight = getEveningFeedback({ focusScore, eveningMood, socialDemand })
   const macroSynthesis = getMacroSynthesis({ chartLogs, morningBsfi, eveningBsfi })
 
   // =============================================================================
@@ -924,7 +924,7 @@ export default function Progress() {
                   {(() => {
                     const state = getSleepEveningCopy(sleepReadiness as 1|2|3|4|5)
                     return (
-                      <div className="p-4 rounded-xl bg-[#b5a642]/5 border border-[#b5a642]">
+                      <div className="p-4 rounded-xl bg-[#b5a642]/5 border border-[#b5a642]/15">
                         <p className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-1">{state.headline}</p>
                         <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed mb-2">{state.body}</p>
                         <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed italic">{state.environment_action}</p>
@@ -1413,7 +1413,7 @@ export default function Progress() {
                 </section>
                 <section>
                   <h3 className="text-lg font-serif text-[#b5a642] mb-2">Home Friction Score</h3>
-                  <p>This score reflects the amount of effort that your your environment required from you that day. Lower scores suggest that your home absorbed the demands placed on your body. Higher scores indicate friction such as small environmental pressures that accumulate over time. This is not a judgement, but a signal worth paying attention to.</p>
+                  <p>This score reflects how much effort your environment required from you today. Lower scores suggest that your home was able to accommodate the demands placed on your body. Higher scores, on the other hand, indicate friction, such as small environmental pressures that accumulate over time. This is not a judgement, but a signal that is worth paying attention to.</p>
                 </section>
                 <section>
                   <h3 className="text-lg font-serif text-[#b5a642] mb-2">The 14-Day Pattern</h3>
