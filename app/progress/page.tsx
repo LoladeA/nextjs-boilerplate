@@ -1,7 +1,38 @@
 'use client'
+
+// =============================================================================
+// DAILY LOGS PAGE — The Sentient Home
+// =============================================================================
+//
+// EXTRACTED MODULES (do not inline these back — keep them separate):
+//
+//   lib/progress-domains.ts    — BsfiState type, DAILY_DOMAINS, sanitiseDomain,
+//                                getDomainDisplay, getBsfiLabel
+//   lib/progress-score-utils.ts — deriveLuxScore, deriveDbScore
+//   lib/progress-feedback.ts   — getMorningFeedback, getEveningFeedback,
+//                                getMacroSynthesis
+//   app/daily-logs/constants.tsx — moods, morningTagOptions, eveningTagOptions
+//
+// GRAPH SAFETY:
+//   fetchHistory(), chartLogs state, and <CorrelationGraph /> remain in this
+//   file. They must not be extracted. The correlation graph and dashboard mood
+//   graph read from daily_logs directly — the write payload below must not
+//   change field names or omit existing fields.
+//
+// DATABASE WRITE — daily_logs upsert payload fields (do not rename):
+//   user_id, date, mood_score, tags, note, morning_tension, sleep_wakes,
+//   morning_lux, evening_lux, daytime_db, bedtime_db, bedtime_lux,
+//   sleep_readiness, lux_score, db_score, readiness_score, focus_hours,
+//   evening_mood_score, evening_tags, evening_note, social_demand
+// =============================================================================
+
 import Sidebar from '../components/Sidebar'
 import { useState, useEffect } from 'react'
-import { Heart, Wind, Sun, Volume2, CheckCircle, TrendingUp, Activity, Zap, Loader2, Moon, Sunrise, Brain, Fingerprint, ChevronDown, ChevronUp, Lock, AlertCircle, HelpCircle, X, BedDouble, Sparkles, Users } from 'lucide-react'
+import {
+  Heart, Wind, Sun, Volume2, CheckCircle, TrendingUp, Activity,
+  Zap, Loader2, Moon, Sunrise, Brain, Fingerprint, ChevronDown,
+  ChevronUp, Lock, AlertCircle, HelpCircle, X, BedDouble, Sparkles, Users
+} from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import Link from 'next/link'
@@ -14,356 +45,153 @@ import {
   getEveningFeedback as getSleepEveningCopy,
 } from '@/lib/sleep-copy'
 
+// Extracted modules
+import { sanitiseDomain, getDomainDisplay, getBsfiLabel } from '@/lib/progress-domains'
+import type { BsfiState }                                 from '@/lib/progress-domains'
+import { deriveLuxScore, deriveDbScore }                  from '@/lib/progress-score-utils'
+import {
+  getMorningFeedback,
+  getEveningFeedback,
+  getMacroSynthesis,
+} from '@/lib/progress-feedback'
+import { moods, morningTagOptions, eveningTagOptions }    from './constants'
+
+// =============================================================================
+// COMPONENT
+// =============================================================================
+
 export default function Progress() {
   const supabase = createClientComponentClient()
+
   const [activeTab, setActiveTab] = useState<'morning' | 'evening'>('morning')
+
   // --- ACCESS CONTROL ---
-  const [tier, setTier] = useState<'core' | 'blueprint' | null>(null)
+  const [tier, setTier]       = useState<'core' | 'blueprint' | null>(null)
   const [godMode, setGodMode] = useState(false)
+
   // --- LOGGING STATE ---
-  const [morningMood, setMorningMood] = useState<number | null>(null)
-  const [morningTags, setMorningTags] = useState<string[]>([])
-  const [morningNote, setMorningNote] = useState('')
+  const [morningMood, setMorningMood]   = useState<number | null>(null)
+  const [morningTags, setMorningTags]   = useState<string[]>([])
+  const [morningNote, setMorningNote]   = useState('')
+
   // --- TEMPORAL ENVIRONMENTAL INPUTS ---
   const [morningLux, setMorningLux] = useState<string>('')
-  const [daytimeDb, setDaytimeDb] = useState<string>('')
+  const [daytimeDb, setDaytimeDb]   = useState<string>('')
   const [eveningLux, setEveningLux] = useState<string>('')
+
   // --- SLEEP CONDITIONS ---
-  const [bedtimeDb, setBedtimeDb] = useState<string>('')
-  const [bedtimeLux, setBedtimeLux] = useState<string>('')
+  const [bedtimeDb, setBedtimeDb]         = useState<string>('')
+  const [bedtimeLux, setBedtimeLux]       = useState<string>('')
   const [sleepReadiness, setSleepReadiness] = useState<number>(3)
+
   // --- METER MODAL STATES ---
-  const [isLightMeterOpen, setIsLightMeterOpen] = useState(false)
+  const [isLightMeterOpen, setIsLightMeterOpen]     = useState(false)
   const [isAcousticMeterOpen, setIsAcousticMeterOpen] = useState(false)
-  const [activeMeterTarget, setActiveMeterTarget] = useState<'morningLux' | 'eveningLux' | 'daytimeDb' | 'bedtimeDb' | 'bedtimeLux' | null>(null)
+  const [activeMeterTarget, setActiveMeterTarget]   = useState<
+    'morningLux' | 'eveningLux' | 'daytimeDb' | 'bedtimeDb' | 'bedtimeLux' | null
+  >(null)
+
   const [isManualOpen, setIsManualOpen] = useState(false)
-  // BIO-METRICS
-  const [focusScore, setFocusScore] = useState<number>(0)
+
+  // --- BIO-METRICS ---
+  const [focusScore, setFocusScore]     = useState<number>(0)
   const [tensionScore, setTensionScore] = useState<number>(0)
-  const [wakeScore, setWakeScore] = useState<number>(0)
-  // ─────────────────────────────────────────────────────────────────────────
-  // SOCIAL DEMAND — evening log only
-  // Three-option selector: low | moderate | high
-  // Stored as text in daily_logs.social_demand
-  // ─────────────────────────────────────────────────────────────────────────
+  const [wakeScore, setWakeScore]       = useState<number>(0)
+
+  // --- SOCIAL DEMAND ---
   const [socialDemand, setSocialDemand] = useState<'low' | 'moderate' | 'high' | null>(null)
+
   // ─────────────────────────────────────────────────────────────────────────
-  // eveningMood is DERIVED from sleepReadiness — the two scales are
-  // semantically identical (1 = Tired but Wired / Wired, 5 = Sleep Ready).
+  // eveningMood is DERIVED from sleepReadiness
   // ─────────────────────────────────────────────────────────────────────────
-  const [eveningMood, setEveningMood] = useState<number | null>(null)
-  const [eveningTags, setEveningTags] = useState<string[]>([])
-  const [eveningNote, setEveningNote] = useState('')
-  const [status, setStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle')
+  const [eveningMood, setEveningMood]   = useState<number | null>(null)
+  const [eveningTags, setEveningTags]   = useState<string[]>([])
+  const [eveningNote, setEveningNote]   = useState('')
+
+  const [status, setStatus]           = useState<'idle' | 'saving' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState('')
   const [showAccuracyWarning, setShowAccuracyWarning] = useState(false)
-  // -------------------------------------------------------------------------
-  // CHANGE 1 — BSFI STATE TYPE
-  // -------------------------------------------------------------------------
-  const [morningBsfi, setMorningBsfi] = useState<{
-    total_score: number
-    dominant_domain: string
-    is_internal_driver: boolean
-    integration_pattern: string | null
-    sensory_pattern: string | null
-    accumulative_ali_flag: boolean
-  } | null>(null)
-  const [eveningBsfi, setEveningBsfi] = useState<{
-    total_score: number
-    dominant_domain: string
-    is_internal_driver: boolean
-    integration_pattern: string | null
-    sensory_pattern: string | null
-    accumulative_ali_flag: boolean
-  } | null>(null)
+
+  // --- BSFI STATE ---
+  const [morningBsfi, setMorningBsfi] = useState<BsfiState | null>(null)
+  const [eveningBsfi, setEveningBsfi] = useState<BsfiState | null>(null)
   const [bsfiLoading, setBsfiLoading] = useState(true)
-  // ACCORDION STATES
-  const [isMorningOpen, setIsMorningOpen] = useState(false)
-  const [isEveningOpen, setIsEveningOpen] = useState(false)
+
+  // --- ACCORDION STATES ---
+  const [isMorningOpen, setIsMorningOpen]         = useState(false)
+  const [isEveningOpen, setIsEveningOpen]         = useState(false)
   const [isSynthesisExpanded, setIsSynthesisExpanded] = useState(false)
+  const [showMorningScore, setShowMorningScore]   = useState(false)
+  const [showEveningScore, setShowEveningScore]   = useState(false)
+
   // ─────────────────────────────────────────────────────────────────────────
-  // BSFI SCORE VISIBILITY — interpretation leads, score is optional
+  // GRAPH STATE — must stay in this component
+  // chartLogs feeds <CorrelationGraph /> directly as a prop.
+  // fetchHistory() writes to chartLogs. Neither can be extracted.
   // ─────────────────────────────────────────────────────────────────────────
-  const [showMorningScore, setShowMorningScore] = useState(false)
-  const [showEveningScore, setShowEveningScore] = useState(false)
   const [chartLogs, setChartLogs] = useState<any[]>([])
+
   // ─────────────────────────────────────────────────────────────────────────
-  // FIX 1 — SYNC eveningMood FROM sleepReadiness
+  // SYNC eveningMood FROM sleepReadiness
   // ─────────────────────────────────────────────────────────────────────────
-  useEffect(() => {
-    setEveningMood(sleepReadiness)
-  }, [sleepReadiness])
+  useEffect(() => { setEveningMood(sleepReadiness) }, [sleepReadiness])
+
   useEffect(() => {
     const hour = new Date().getHours()
     if (hour >= 19) setActiveTab('evening')
   }, [])
+
   useEffect(() => {
     checkAccess()
     fetchTodayLog()
     fetchHistory()
   }, [])
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // ACCESS CONTROL
+  // ─────────────────────────────────────────────────────────────────────────
   const checkAccess = async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
+
     if (user.email === 'christchilde@gmail.com') {
       setGodMode(true)
       return
     }
+
     try {
       const res = await fetch('/api/subscription-status')
       if (res.ok) {
         const data = await res.json()
-        if (data.tier === 'core' || data.tier === 'blueprint') {
-          setTier(data.tier)
-        }
+        if (data.tier === 'core' || data.tier === 'blueprint') setTier(data.tier)
       }
     } catch (err) {
       console.error('Access check error:', err)
     }
   }
-  const hasAccess = tier !== null || godMode
+
+  const hasAccess   = tier !== null || godMode
   const isBlueprint = tier === 'blueprint' || godMode
-  // ---------------------------------------------------------------------------
-  // CIRCADIAN COHERENCE SCORE
-  // ---------------------------------------------------------------------------
-  const deriveLuxScore = (morningLux: string, eveningLux: string): number | null => {
-    const morning = morningLux !== '' ? parseInt(morningLux) : null
-    const evening = eveningLux !== '' ? parseInt(eveningLux) : null
-    if (morning === null && evening === null) return null
-    const morningComponent = morning !== null ? Math.min(morning, 1000) / 1000 * 50 : 0
-    const eveningComponent = evening !== null ? (1 - Math.min(evening, 800) / 800) * 50 : 50
-    return Math.round(morningComponent + eveningComponent)
-  }
-  // ---------------------------------------------------------------------------
-  // ACOUSTIC COMPOSITE SCORE
-  // ---------------------------------------------------------------------------
-  const deriveDbScore = (daytimeDb: string, bedtimeDb: string): number | null => {
-    const d = daytimeDb !== '' ? parseInt(daytimeDb) : null
-    const n = bedtimeDb !== '' ? parseInt(bedtimeDb) : null
-    if (d === null && n === null) return null
-    const DAYTIME_THRESHOLD = 55
-    const NIGHTTIME_THRESHOLD = 40
-    const CEILING = 100
-    const scores: number[] = []
-    if (d !== null) scores.push(Math.max(0, d - DAYTIME_THRESHOLD) / (CEILING - DAYTIME_THRESHOLD) * 100)
-    if (n !== null) scores.push(Math.max(0, n - NIGHTTIME_THRESHOLD) / (CEILING - NIGHTTIME_THRESHOLD) * 100)
-    return Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
-  }
-  // ---------------------------------------------------------------------------
-  // DOMAIN DISPLAY
-  // ---------------------------------------------------------------------------
-  const DAILY_DOMAINS = new Set([
-    'Recovery Disruption',
-    'Circadian Rhythm Index',
-    'Autonomic Load Index',
-    'Sensory Load',
-  ])
-  const sanitiseDomain = (domain: string): string | null =>
-    DAILY_DOMAINS.has(domain) ? domain : null
-  const getDomainDisplay = (domain: string): { label: string, driver: string } => {
-    const map: Record<string, { label: string, driver: string }> = {
-      'Recovery Disruption': { label: 'Overnight Recovery', driver: 'Sleep interruptions, bedtime sound level, and sleep readiness' },
-      'Circadian Rhythm Index': { label: 'Light & Sleep Timing', driver: 'Morning and evening light readings' },
-      'Autonomic Load Index': { label: 'Stress & Tension', driver: 'Body tension and mood on waking' },
-      'Sensory Load': { label: 'Sound & Visual Load', driver: 'Sound levels, light readings, and daily environment tags' },
-    }
-    return map[domain] ?? { label: 'Environmental Load', driver: 'Environmental readings today' }
-  }
-  // ---------------------------------------------------------------------------
-  // UPDATED BSFI LABEL SYSTEM — now powered by new sleep-copy.ts ranges
-  // ---------------------------------------------------------------------------
-  const getBsfiLabel = (score: number) => {
-    const ctx = getBSFIContext(score)
-    let color = 'text-[#b5a642]'
-    let border = 'border-[#b5a642]/60'
-    if (score <= 30) {
-      color = 'text-[#b5a642]'
-      border = 'border-[#b5a642]/60'
-    } else if (score <= 55) {
-      color = 'text-[#b5a642]/80'
-      border = 'border-[#b5a642]/40'
-    } else if (score <= 74) {
-      color = 'text-[#b5a642]/70'
-      border = 'border-[#b5a642]/35'
-    } else {
-      color = 'text-[#b5a642]/60'
-      border = 'border-[#b5a642]/30'
-    }
-    return { label: ctx.label, color, border }
-  }
-  // ---------------------------------------------------------------------------
-  // UPDATED FEEDBACK ENGINE — now uses the new sleep-copy framework
-  // Social demand is now fully integrated into morning feedback
-  // ---------------------------------------------------------------------------
-  const morningCopy = getSleepMorningCopy({
-    sleep_wakes: wakeScore,
-    mood_score: morningMood,
-    morning_tension: tensionScore,
-    social_demand: socialDemand ?? 'low',
-  })
 
-  const morningInsight = {
-    title: morningCopy.headline,
-    reframe: morningCopy.body + (morningCopy.score_reframe ? `\n\n${morningCopy.score_reframe}` : ''),
-    direction: morningCopy.environmental_note,
-  }
-
-  const getEveningFeedback = () => {
-    const moodScore = eveningMood ?? 3
-    if (focusScore >= 8 && moodScore <= 2) return {
-      title: "A Demanding Day. Recovery Is Non-Negotiable Tonight",
-      reframe: "Extended deep work alongside low mood regulation is a recognisable autonomic signature: you sustained performance by drawing on stress-driven energy rather than actual reserves. The output was real. So is the cost. Your brain's overnight emotional processing is carrying a heavier load into sleep than your focus score would suggest.",
-      direction: "Tonight's environment must match today's demand. Transition away from screens and bright overhead light within the next thirty minutes to warm-toned sources below 100 lux only. Remove high-stimulation zones from your evening sightline. Your body needs a firm, unhurried wind-down tonight."
-    }
-    if (focusScore >= 8 && moodScore >= 4) return {
-      title: "A Great Day. Protect the Close",
-      reframe: "Deep work sustained across the day without a corresponding drop in mood regulation indicates that your environment was supporting your cognitive load rather than extracting from it. The question now is not what today cost — it is what tonight's environment does with that state.",
-      direction: "Do not coast through the evening without a deliberate transition. Make a deliberate close: shift to warm light, step away from your work zone, and do one low-stimulation activity before you prepare for sleep."
-    }
-    if (focusScore <= 2 && moodScore <= 2) return {
-      title: "Low Focus Today Isn't About You. Let's Examine Your Space",
-      reframe: "When attentional capacity feels constrained despite effort, the instinct is to attribute it to discipline or motivation. The more precise reading — particularly when mood and focus drop together — is environmental: your space was not providing the sensory conditions required for sustained cognitive engagement.",
-      direction: "Do not attempt to recover through effort or extended hours tonight. Identify one controllable sensory variable in your primary space — noise, light quality, or visual clutter — and address only that. One intentional environmental change will do more for tomorrow than any amount of extra effort tonight."
-    }
-    return {
-      title: "A Steady Day. Keep The Transition Intentional",
-      reframe: "Output and mood regulation have remained within a functional range today: neither a high-cost performance day nor a low-capacity one. The evening's role in this context is not recovery from deficit, but maintenance of the baseline your system is already holding.",
-      direction: "Step away from high-stimulation zones within the next hour. Your evening transition does not need to be elaborate — it needs to be consistent. A reliable pre-sleep routine is cumulative in its effect: your body learns to begin winding down in response to environmental cues before you are even consciously aware of them."
-    }
-  }
-  const eveningInsight = getEveningFeedback()
-  // ---------------------------------------------------------------------------
-  // 14-DAY MACRO SYNTHESIS
-  // ---------------------------------------------------------------------------
-  const getMacroSynthesis = () => {
-    if (chartLogs.length < 14) {
-      return {
-        ready: false,
-        title: "Still Gathering Data",
-        paragraphs: [`${Math.max(0, 14 - chartLogs.length)} days of logs remaining before your pattern is readable.`]
-      }
-    }
-    const bsfiRef = morningBsfi || eveningBsfi
-    if (bsfiRef) {
-      if (bsfiRef.is_internal_driver) {
-        return {
-          ready: true,
-          title: "Your Environment Is Stable. What You're Feeling Is Coming From Inside.",
-          paragraphs: [
-            "Over the last fourteen days, your somatic tension and mood have shown significant variance, but your measured environmental conditions have remained largely consistent.",
-            "This data signature has a specific meaning: the primary source of friction right now is not your physical space. Biological fluctuations — cyclical hormonal shifts, periods of elevated emotional demand, accumulated stress — produce real, measurable changes in tension, sleep quality, focus, and mood that register in your logs independently of what your space is doing.",
-            "The appropriate response to this phase is accommodation, not optimisation. Ask your environment to do one thing: reduce the additional friction layered on top of an already-demanding internal state. Quieter, warmer, simpler."
-          ]
-        }
-      }
-      const score = bsfiRef.total_score
-      const domain = bsfiRef.dominant_domain
-      if (score <= 20) return {
-        ready: true,
-        title: "Your Home Is Supporting You",
-        paragraphs: [
-          "Across fourteen days, your Bio-Spatial Friction Index has remained exceptionally low. Your home is doing precisely what it should: absorbing daily sensory load, supporting overnight recovery, and returning your body to a settled baseline each morning.",
-          "What this data confirms is that your current sensory conditions are not accidental. Your light habits, acoustic boundaries, sleep ecology, and spatial practices are functioning as a coherent, mutually reinforcing system.",
-          "The task now is protection, not improvement. Document the specific conditions that are producing this baseline in sufficient detail that you can replicate them accurately during periods of elevated stress, travel, or seasonal change."
-        ]
-      }
-      if (score <= 60) return {
-        ready: true,
-        title: `Moderate Friction: ${getDomainDisplay(domain).label} Is The Primary Source`,
-        paragraphs: [
-          `Over the last fourteen days, your home environment has been introducing a moderate but consistent level of friction. ${getDomainDisplay(domain).label} is the source generating the greatest sustained demand. This is where the leverage is.`,
-          "The output you are producing is beginning to happen against environmental resistance rather than from regulated reserves. At moderate friction levels, this distinction is easy to miss. Performance remains intact while the underlying cost accumulates.",
-          `Address ${getDomainDisplay(domain).label} this week as a priority. A targeted change in your highest-friction area will produce a disproportionate return, reducing the load on every other area simultaneously.`
-        ]
-      }
-      return {
-        ready: true,
-        title: "High Friction Across The Board. Your Environment Needs Attention",
-        paragraphs: [
-          "Your fourteen-day pattern indicates a high-load, dysregulated environmental pattern. Across light timing, sound, spatial clarity, and overnight recovery, your home is generating friction that arrives before your day begins.",
-          "Sustained multi-domain environmental friction at this level carries a specific physiological signature: your body shifts into a low-level stress state, running on stress-fuelled performance rather than restored capacity. The reserves that sustain that are finite.",
-          "Stop optimising for output. Start optimising for environmental recovery. Three priorities in order: close and soften your sleep environment acoustically, enforce a warm dim light boundary after 8pm, and clear one low-stimulation space you can access easily during the day."
-        ]
-      }
-    }
-    const avgMood = chartLogs.reduce((acc, log) => acc + log.mood, 0) / (chartLogs.length || 1)
-    const avgTension = chartLogs.reduce((acc, log) => acc + log.tension, 0) / (chartLogs.length || 1)
-    const avgFocus = chartLogs.reduce((acc, log) => acc + log.focus, 0) / (chartLogs.length || 1)
-    if (avgTension >= 6 && avgFocus <= 4) return {
-      ready: true,
-      title: "Your Home Is Draining You Before The Day Begins",
-      paragraphs: [
-        "Fourteen days of consistently elevated somatic tension alongside constrained cognitive output describes a recognisable pattern: your body is absorbing sustained environmental friction and arriving at each day already partially depleted.",
-        "At this pattern level, the gap between how capable you are and how capable you feel is environmental in origin. Your home is spending your capacity before you have the chance to direct it.",
-        "The two most probable friction sources at this profile are your sleep ecology and the sensory load of your primary daytime environment. Both are structurally addressable."
-      ]
-    }
-    if (avgFocus >= 6 && avgMood <= 2.5) return {
-      ready: true,
-      title: "Strong Output, But Your Reserves Are Being Used Up",
-      paragraphs: [
-        "Fourteen days of sustained cognitive output alongside consistently low mood regulation carries a specific autonomic signature: your body is maintaining performance through stress-driven energy rather than from a genuinely recovered baseline.",
-        "This is a viable short-term strategy. Over weeks and months, it progressively narrows the floor it is borrowing from. The early indicators are already present in your data.",
-        "What this pattern requires is a firm boundary between your work zone and your rest zone, and a deliberate evening transition that your body can begin to recognise as a signal to wind down."
-      ]
-    }
-    if (avgMood >= 4 && avgTension <= 3) return {
-      ready: true,
-      title: "Fourteen Days of A Regulated Home",
-      paragraphs: [
-        "Across fourteen days, your somatic tension has remained consistently low and your mood regulation consistently high. This is the measurable output of a home that is absorbing daily load, supporting overnight recovery, and returning your body to a settled baseline each morning.",
-        "What the data confirms is that your current environmental conditions are not accidental. Your sensory practices, thermal ecology, sleep habits, and spatial routines are functioning as a coherent, mutually reinforcing system.",
-        "The task now is to understand what is working precisely enough to protect it — particularly during elevated stress periods, travel, or seasonal light change."
-      ]
-    }
-    return {
-      ready: true,
-      title: "Still Working Out The Pattern",
-      paragraphs: [
-        "The last fourteen days show significant fluctuation across mood, tension, and focus without a consistent directional pattern. Before locating the source of that variance in your physical environment, it is worth naming what the data cannot distinguish: not all fluctuation is environmental in origin.",
-        "Hormonal shifts, periods of elevated relational or cognitive demand, and natural energy cycles produce real, measurable changes in tension, sleep quality, focus, and mood — changes that register in your logs independently of what your physical space is doing.",
-        "Continue logging consistently. The appropriate response during periods of internal fluctuation is friction reduction, not optimisation. Ask your environment to do less against you, not more for you."
-      ]
-    }
-  }
-  const macroSynthesis = getMacroSynthesis()
-  // ---------------------------------------------------------------------------
-  // MOODS — unchanged from original
-  // ---------------------------------------------------------------------------
-  const moods = [
-    { val: 1, label: 'Burned Out', desc: 'Running on empty', color: 'bg-[#b5a642]/10 border-[#b5a642]/25 text-[#b5a642]/50' },
-    { val: 2, label: 'Tense / Edgy', desc: 'Buzzing with stress', color: 'bg-[#b5a642]/12 border-[#b5a642]/30 text-[#b5a642]/60' },
-    { val: 3, label: 'Neutral', desc: 'Holding steady', color: 'bg-[#c9ccbb]/10 border-[#c9ccbb]/30 text-[#c9ccbb]/70' },
-    { val: 4, label: 'Grounded', desc: 'Breathing deeper', color: 'bg-[#b5a642]/18 border-[#b5a642]/50 text-[#b5a642]/80' },
-    { val: 5, label: 'In Flow', desc: 'Effortless movement', color: 'bg-[#b5a642]/20 border-[#b5a642]/60 text-[#b5a642]' },
-  ]
-  const morningTagOptions = [
-    { id: 'ventilation', label: 'Opened Windows / Aired The Home', icon: <Wind size={14} /> },
-    { id: 'sunlight', label: 'Got Early Morning Sunlight', icon: <Sun size={14} /> },
-    { id: 'noise_buffer', label: 'Reduced Intrusive Noise', icon: <Volume2 size={14} /> },
-    { id: 'declutter', label: 'Cleared / Decluttered One Area', icon: <CheckCircle size={14} /> },
-  ]
-  const eveningTagOptions = [
-    { id: 'entropy_reset', label: 'Decluttered The First Surface I See In The Morning', icon: <CheckCircle size={14} /> },
-    { id: 'acoustic_seal', label: 'Reduced or Softened Noise For The Night', icon: <Volume2 size={14} /> },
-    { id: 'tactile_enclosure',label: 'Using Gentle Weight & Soft Textures for Sleep', icon: <Heart size={14} /> },
-  ]
-  // ---------------------------------------------------------------------------
+  // ─────────────────────────────────────────────────────────────────────────
   // DATA FETCHING
-  // ---------------------------------------------------------------------------
+  // ─────────────────────────────────────────────────────────────────────────
   const fetchTodayLog = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-      const todayStr = new Date().toLocaleDateString('en-CA')
+
+      const todayStr     = new Date().toLocaleDateString('en-CA')
       const startOfToday = new Date().setHours(0, 0, 0, 0)
-      const endOfToday = new Date().setHours(23, 59, 59, 999)
+      const endOfToday   = new Date().setHours(23, 59, 59, 999)
+
       const { data: logData } = await supabase
         .from('daily_logs')
         .select('*')
         .eq('user_id', user.id)
         .eq('date', todayStr)
         .single()
+
       const { data: bsfiResults } = await supabase
         .from('bsfi_results')
         .select('id, total_score, dominant_domain, domain_scores, created_at, session, integration_pattern, sensory_pattern, accumulative_ali_flag')
@@ -371,60 +199,65 @@ export default function Progress() {
         .eq('calculated_for_date', todayStr)
         .order('created_at', { ascending: true })
         .limit(2)
+
       if (bsfiResults && bsfiResults.length > 0) {
         bsfiResults.forEach((result: any) => {
           const savedHour = new Date(result.created_at).getHours()
           const isEvening =
             result.session === 'evening' ||
             (result.session == null && savedHour >= 17)
-          const entry = {
-            total_score: result.total_score,
-            dominant_domain: result.dominant_domain,
-            is_internal_driver: result.domain_scores?.is_internal_driver || false,
-            integration_pattern: result.integration_pattern ?? null,
-            sensory_pattern: result.sensory_pattern ?? null,
+
+          const entry: BsfiState = {
+            total_score:           result.total_score,
+            dominant_domain:       result.dominant_domain,
+            is_internal_driver:    result.domain_scores?.is_internal_driver || false,
+            integration_pattern:   result.integration_pattern   ?? null,
+            sensory_pattern:       result.sensory_pattern       ?? null,
             accumulative_ali_flag: result.accumulative_ali_flag ?? false,
           }
           if (isEvening) setEveningBsfi(entry)
-          else setMorningBsfi(entry)
+          else           setMorningBsfi(entry)
         })
       }
+
       const { data: scanData } = await supabase
         .from('meter_scans')
         .select('metric_type, value, created_at')
         .eq('user_id', user.id)
         .gte('created_at', new Date(startOfToday).toISOString())
         .lte('created_at', new Date(endOfToday).toISOString())
+
       let autoMorningLux = '', autoEveningLux = '', autoDaytimeDb = '', autoBedtimeDb = '', autoBedtimeLux = ''
+
       if (scanData && scanData.length > 0) {
         scanData.forEach(scan => {
           const scanHour = new Date(scan.created_at).getHours()
           if (scan.metric_type === 'lux') {
-            if (scanHour >= 4 && scanHour < 12) autoMorningLux = scan.value.toString()
+            if (scanHour >= 4  && scanHour < 12) autoMorningLux = scan.value.toString()
             if (scanHour >= 16 && scanHour < 21) autoEveningLux = scan.value.toString()
-            if (scanHour >= 21) autoBedtimeLux = scan.value.toString()
+            if (scanHour >= 21)                  autoBedtimeLux = scan.value.toString()
           }
           if (scan.metric_type === 'db') {
-            if (scanHour >= 8 && scanHour < 18) autoDaytimeDb = scan.value.toString()
-            if (scanHour >= 21) autoBedtimeDb = scan.value.toString()
+            if (scanHour >= 8  && scanHour < 18) autoDaytimeDb  = scan.value.toString()
+            if (scanHour >= 21)                  autoBedtimeDb  = scan.value.toString()
           }
         })
       }
+
       if (logData) {
         setMorningMood(logData.mood_score)
         setMorningTags(logData.tags || [])
         setMorningNote(logData.note || '')
-        setMorningLux(logData.morning_lux !== null ? logData.morning_lux.toString() : autoMorningLux)
-        setEveningLux(logData.evening_lux !== null ? logData.evening_lux.toString() : autoEveningLux)
-        setDaytimeDb(logData.daytime_db !== null ? logData.daytime_db.toString() : autoDaytimeDb)
-        setBedtimeDb(logData.bedtime_db !== null ? logData.bedtime_db.toString() : autoBedtimeDb)
-        setBedtimeLux(logData.bedtime_lux !== null ? logData.bedtime_lux.toString() : autoBedtimeLux)
+        setMorningLux(logData.morning_lux  !== null ? logData.morning_lux.toString()  : autoMorningLux)
+        setEveningLux(logData.evening_lux  !== null ? logData.evening_lux.toString()  : autoEveningLux)
+        setDaytimeDb(logData.daytime_db    !== null ? logData.daytime_db.toString()   : autoDaytimeDb)
+        setBedtimeDb(logData.bedtime_db    !== null ? logData.bedtime_db.toString()   : autoBedtimeDb)
+        setBedtimeLux(logData.bedtime_lux  !== null ? logData.bedtime_lux.toString()  : autoBedtimeLux)
         if (logData.sleep_readiness !== null) setSleepReadiness(logData.sleep_readiness)
-        if (logData.focus_hours !== null) setFocusScore(logData.focus_hours)
+        if (logData.focus_hours     !== null) setFocusScore(logData.focus_hours)
         if (logData.morning_tension !== null) setTensionScore(logData.morning_tension)
-        if (logData.sleep_wakes !== null) setWakeScore(logData.sleep_wakes)
-        // SOCIAL DEMAND — read back from daily_logs on load
-        if (logData.social_demand) setSocialDemand(logData.social_demand as 'low' | 'moderate' | 'high')
+        if (logData.sleep_wakes     !== null) setWakeScore(logData.sleep_wakes)
+        if (logData.social_demand)            setSocialDemand(logData.social_demand as 'low' | 'moderate' | 'high')
         setEveningTags(logData.evening_tags || [])
         setEveningNote(logData.evening_note || '')
       } else {
@@ -442,30 +275,39 @@ export default function Progress() {
       setBsfiLoading(false)
     }
   }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // FETCH HISTORY — feeds chartLogs → CorrelationGraph
+  // Also feeds dashboard mood graph indirectly via daily_logs reads.
+  // Must stay in this component. Do not extract.
+  // ─────────────────────────────────────────────────────────────────────────
   const fetchHistory = async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
+
     const { data } = await supabase
       .from('daily_logs')
       .select('date, mood_score, focus_hours, morning_tension, sleep_wakes')
       .eq('user_id', user.id)
       .order('date', { ascending: false })
       .limit(14)
+
     if (data) {
       const formatted = [...data].reverse().map((log: any) => {
         const [year, month, day] = log.date.split('-')
         const dateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
         return {
-          date: dateObj.toLocaleDateString('en-US', { weekday: 'short' }),
-          mood: log.mood_score || 0,
+          date:    dateObj.toLocaleDateString('en-US', { weekday: 'short' }),
+          mood:    log.mood_score      || 0,
           tension: log.morning_tension || 0,
-          focus: log.focus_hours || 0,
-          wakes: log.sleep_wakes || 0,
+          focus:   log.focus_hours     || 0,
+          wakes:   log.sleep_wakes     || 0,
         }
       })
       setChartLogs(formatted)
     }
   }
+
   const toggleTag = (id: string) => {
     if (activeTab === 'morning') {
       setMorningTags(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
@@ -473,96 +315,120 @@ export default function Progress() {
       setEveningTags(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
     }
   }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // SAVE — payload field names must not change (graph + dashboard safety)
+  // ─────────────────────────────────────────────────────────────────────────
   const handleSave = async (isForced = false) => {
     const criticalFields = activeTab === 'morning'
       ? [morningLux, daytimeDb]
       : [bedtimeDb, bedtimeLux]
     const isMissing = criticalFields.some(val => val === null || val === '')
+
     if (isMissing && isForced !== true) {
       setShowAccuracyWarning(true)
       return
     }
+
     setStatus('saving')
     setErrorMessage('')
     setShowAccuracyWarning(false)
+
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('No user logged in')
+
       const today = new Date().toLocaleDateString('en-CA')
+
       const payload = {
-        user_id: user.id,
-        date: today,
-        mood_score: morningMood,
-        tags: morningTags,
-        note: morningNote,
-        morning_tension: tensionScore,
-        sleep_wakes: wakeScore,
-        morning_lux: morningLux ? parseInt(morningLux) : null,
-        evening_lux: eveningLux ? parseInt(eveningLux) : null,
-        daytime_db: daytimeDb ? parseInt(daytimeDb) : null,
-        bedtime_db: bedtimeDb ? parseInt(bedtimeDb) : null,
-        bedtime_lux: bedtimeLux ? parseInt(bedtimeLux) : null,
-        sleep_readiness: sleepReadiness,
-        lux_score: deriveLuxScore(morningLux, eveningLux),
-        db_score: deriveDbScore(daytimeDb, bedtimeDb),
-        readiness_score: null,
-        focus_hours: Math.round(focusScore),
+        user_id:            user.id,
+        date:               today,
+        mood_score:         morningMood,
+        tags:               morningTags,
+        note:               morningNote,
+        morning_tension:    tensionScore,
+        sleep_wakes:        wakeScore,
+        morning_lux:        morningLux  ? parseInt(morningLux)  : null,
+        evening_lux:        eveningLux  ? parseInt(eveningLux)  : null,
+        daytime_db:         daytimeDb   ? parseInt(daytimeDb)   : null,
+        bedtime_db:         bedtimeDb   ? parseInt(bedtimeDb)   : null,
+        bedtime_lux:        bedtimeLux  ? parseInt(bedtimeLux)  : null,
+        sleep_readiness:    sleepReadiness,
+        lux_score:          deriveLuxScore(morningLux, eveningLux),
+        db_score:           deriveDbScore(daytimeDb, bedtimeDb),
+        readiness_score:    null,
+        focus_hours:        Math.round(focusScore),
         evening_mood_score: eveningMood,
-        evening_tags: eveningTags,
-        evening_note: eveningNote,
-        // SOCIAL DEMAND — written on every save, null when not selected
-        social_demand: socialDemand ?? null,
+        evening_tags:       eveningTags,
+        evening_note:       eveningNote,
+        social_demand:      socialDemand ?? null,
       }
+
       const { error } = await supabase
         .from('daily_logs')
         .upsert(payload, { onConflict: 'user_id, date' })
+
       if (error) throw error
+
       setStatus('success')
       fetchHistory()
       setTimeout(() => setStatus('idle'), 2000)
+
       try {
-        const res = await fetch('/api/calculate-bsfi', {
-          method: 'POST',
+        const res  = await fetch('/api/calculate-bsfi', {
+          method:  'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...payload, session: activeTab })
+          body:    JSON.stringify({ ...payload, session: activeTab })
         })
         const data = await res.json()
         if (data.success && data.bsfiResult) {
-          const entry = {
-            total_score: data.bsfiResult.bsfi_total,
-            dominant_domain: data.bsfiResult.dominant_domain,
-            is_internal_driver: data.bsfiResult.is_internal_driver,
-            integration_pattern: data.profileContext?.integration_pattern ?? null,
-            sensory_pattern: data.profileContext?.sensory_pattern ?? null,
+          const entry: BsfiState = {
+            total_score:           data.bsfiResult.bsfi_total,
+            dominant_domain:       data.bsfiResult.dominant_domain,
+            is_internal_driver:    data.bsfiResult.is_internal_driver,
+            integration_pattern:   data.profileContext?.integration_pattern   ?? null,
+            sensory_pattern:       data.profileContext?.sensory_pattern       ?? null,
             accumulative_ali_flag: data.profileContext?.accumulative_ali_flag ?? false,
           }
           if (activeTab === 'morning') setMorningBsfi(entry)
-          else setEveningBsfi(entry)
+          else                         setEveningBsfi(entry)
         }
       } catch {
         console.warn('BSFI engine skipped — save was successful.')
       }
+
     } catch (err: any) {
       console.error('Save Error:', err)
       setStatus('error')
       setErrorMessage(err.message || 'Could not save entry.')
     }
   }
-  const currentTags = activeTab === 'morning' ? morningTags : eveningTags
-  const currentNote = activeTab === 'morning' ? morningNote : eveningNote
+
+  const currentTags    = activeTab === 'morning' ? morningTags    : eveningTags
+  const currentNote    = activeTab === 'morning' ? morningNote    : eveningNote
   const setCurrentNote = activeTab === 'morning' ? setMorningNote : setEveningNote
   const currentOptions = activeTab === 'morning' ? morningTagOptions : eveningTagOptions
+
   const canSave = activeTab === 'morning'
     ? morningMood !== null && status !== 'saving'
     : status !== 'saving'
-  // ---------------------------------------------------------------------------
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // FEEDBACK — now pure function calls with explicit params
+  // ─────────────────────────────────────────────────────────────────────────
+  const morningInsight = getMorningFeedback({ morningMood, tensionScore, wakeScore })
+  const eveningInsight = getEveningFeedback({ focusScore, eveningMood })
+  const macroSynthesis = getMacroSynthesis({ chartLogs, morningBsfi, eveningBsfi })
+
+  // =============================================================================
   // RENDER
-  // ---------------------------------------------------------------------------
+  // =============================================================================
   return (
     <div className="min-h-screen bg-[#1b270e] font-sans selection:bg-[#b5a642] selection:text-[#1b270e]">
       <Sidebar />
       <div className="md:ml-64 min-h-screen p-6 md:p-12">
         <div className="max-w-4xl mx-auto">
+
           {/* PAGE HEADER */}
           <div className="mb-12 flex justify-between items-start">
             <div>
@@ -580,8 +446,10 @@ export default function Progress() {
               </p>
             </div>
           </div>
+
           {/* LOGGING PANEL */}
           <div className="glass-panel p-8 rounded-3xl mb-16 relative overflow-hidden border border-[#c9ccbb]/10">
+
             {/* MORNING / EVENING TAB */}
             <div className="flex justify-center mb-8">
               <div className="bg-[#000]/30 p-1 rounded-full flex gap-1 border border-[#c9ccbb]/10">
@@ -603,6 +471,7 @@ export default function Progress() {
                 </button>
               </div>
             </div>
+
             {/* MORNING MOOD CARDS */}
             {activeTab === 'morning' && (
               <>
@@ -610,10 +479,9 @@ export default function Progress() {
                   <div className="w-10 h-10 rounded-full bg-[#b5a642]/10 flex items-center justify-center text-[#b5a642]">
                     <Heart size={20} />
                   </div>
-                  <div>
-                    <h2 className="text-2xl font-serif text-[#c9ccbb]">How You Woke Up</h2>
-                  </div>
+                  <h2 className="text-2xl font-serif text-[#c9ccbb]">How You Woke Up</h2>
                 </div>
+
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-8">
                   {moods.map((mood) => (
                     <button
@@ -637,7 +505,8 @@ export default function Progress() {
                 </div>
               </>
             )}
-            {/* MORNING BIO-METRICS + INSIGHT — now using updated sleep-copy */}
+
+            {/* MORNING BIO-METRICS + INSIGHT */}
             {activeTab === 'morning' && (
               <div className="mb-8 p-6 bg-[#b5a642]/5 rounded-2xl border border-[#b5a642]/10 animate-fade-in">
                 <label className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-6 block flex items-center gap-2">
@@ -673,6 +542,7 @@ export default function Progress() {
                     <p className="text-[#c9ccbb]/80 text-[10px] mb-3">How many times you woke up during the night.</p>
                   </div>
                 </div>
+
                 {(tensionScore > 0 || wakeScore > 0) && (
                   <div className="mt-6 bg-[#1b270e] border-l-2 border-[#b5a642] rounded-r-xl overflow-hidden shadow-md">
                     <button
@@ -697,6 +567,20 @@ export default function Progress() {
                         >
                           <div className="space-y-0">
                             <div className="w-full h-px bg-[#b5a642]/10" />
+                            {(() => {
+                              const sleepCopy = getSleepMorningCopy({
+                                sleep_wakes:     wakeScore,
+                                mood_score:      morningMood,
+                                morning_tension: tensionScore,
+                              })
+                              return sleepCopy.environmental_note ? (
+                                <div className="px-4 pt-4 pb-2">
+                                  <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed italic">
+                                    {sleepCopy.environmental_note}
+                                  </p>
+                                </div>
+                              ) : null
+                            })()}
                             <div className="p-4">
                               <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
                                 <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Direction:</strong>
@@ -737,6 +621,7 @@ export default function Progress() {
                 )}
               </div>
             )}
+
             {/* EVENING BIO-METRICS + INSIGHT */}
             {activeTab === 'evening' && (
               <div className="mb-8 p-6 bg-[#b5a642]/5 rounded-2xl border border-[#b5a642]/10 animate-fade-in">
@@ -744,11 +629,12 @@ export default function Progress() {
                   <Brain size={12} /> How Did Your Day Go?
                 </label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
+
                   {/* FOCUSED WORK HOURS */}
                   <div>
                     <div className="flex justify-between mb-2">
                       <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb]">
-                        <Brain size={14} className="text-[#c9ccbb]" /> Focused Work (Hours)
+                        <Brain size={14} className="text-[#b5a642]" /> Focused Work (Hours)
                       </label>
                       <span className="text-[#b5a642] font-mono text-xs">{focusScore}h</span>
                     </div>
@@ -760,19 +646,20 @@ export default function Progress() {
                       className="w-full accent-[#b5a642] h-1 bg-[#000]/50 rounded-lg appearance-none cursor-pointer"
                     />
                   </div>
+
                   {/* SOCIAL DEMAND SELECTOR */}
                   <div>
                     <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb] mb-2">
-                      <Users size={14} className="text-[#c9ccbb]" /> Social Demand Today
+                      <Users size={14} className="text-[#b5a642]" /> Social Demand Today
                     </label>
                     <p className="text-[#c9ccbb]/80 text-[10px] mb-3">
-                      How much relational or social engagement did today involve?
+                      How emotionally or cognitively taxing was your social engagement today?
                     </p>
                     <div className="grid grid-cols-3 gap-2">
                       {([
-                        { value: 'low', label: 'Low to zero' },
-                        { value: 'moderate', label: 'Moderate' },
-                        { value: 'high', label: 'High demand' },
+                        { value: 'low',      label: 'Low to zero' },
+                        { value: 'moderate', label: 'Moderate'    },
+                        { value: 'high',     label: 'High demand' },
                       ] as const).map(opt => (
                         <button
                           key={opt.value}
@@ -781,7 +668,7 @@ export default function Progress() {
                           className={`py-2.5 px-2 rounded-xl border text-[10px] font-bold uppercase tracking-widest transition-all text-center ${
                             socialDemand === opt.value
                               ? 'border-[#b5a642]/60 bg-[#b5a642]/15 text-[#b5a642]'
-                              : 'border-[#c9ccbb]/10 text-[#c9ccbb]/60 hover:border-[#b5a642]/50 hover:text-[#c9ccbb]/80'
+                              : 'border-[#c9ccbb]/10 text-[#c9ccbb]/60 hover:border-[#b5a642]/30 hover:text-[#c9ccbb]/80'
                           }`}
                         >
                           {opt.label}
@@ -790,6 +677,7 @@ export default function Progress() {
                     </div>
                   </div>
                 </div>
+
                 {focusScore > 0 && (
                   <div className="mt-6 bg-[#1b270e] border-l-2 border-[#b5a642] rounded-r-xl overflow-hidden shadow-md">
                     <button
@@ -854,6 +742,7 @@ export default function Progress() {
                 )}
               </div>
             )}
+
             {/* ENVIRONMENTAL READINGS — morning */}
             {activeTab === 'morning' && (
               <div className="mb-8 p-6 bg-[#000]/20 rounded-2xl border border-[#c9ccbb]/5 animate-fade-in">
@@ -904,6 +793,7 @@ export default function Progress() {
                 </div>
               </div>
             )}
+
             {/* EVENING WIND-DOWN PROMPT */}
             {activeTab === 'evening' && (
               <button
@@ -947,6 +837,7 @@ export default function Progress() {
                 </div>
               </button>
             )}
+
             {/* ACTION TAGS */}
             <div className="flex flex-wrap gap-2 mb-8 animate-fade-in">
               {currentOptions.map((tag) => (
@@ -964,6 +855,7 @@ export default function Progress() {
                 </button>
               ))}
             </div>
+
             {/* NOTE */}
             <div className="mb-8">
               <textarea
@@ -973,6 +865,7 @@ export default function Progress() {
                 className="w-full h-24 bg-[#000]/20 border border-[#c9ccbb]/10 rounded-xl p-4 text-[#c9ccbb] text-sm placeholder:text-[#c9ccbb]/80 focus:outline-none focus:border-[#b5a642]/50 resize-none font-sans"
               />
             </div>
+
             {/* SLEEP CONDITIONS — evening only */}
             {activeTab === 'evening' && (
               <div className="mb-8 animate-fade-in">
@@ -984,20 +877,17 @@ export default function Progress() {
                     <div className="absolute inset-0 rounded-full bg-[#b5a642]/10 blur-md" />
                   </div>
                   <div>
-                    <span className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest block">
-                      Sleep Conditions
-                    </span>
-                    <span className="text-[#c9ccbb]/80 text-[10px]">
-                      These contribute to your overnight recovery score, which is your most weighted domain.
-                    </span>
+                    <span className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest block">Sleep Conditions</span>
+                    <span className="text-[#c9ccbb]/80 text-[10px]">These contribute to your overnight recovery score, which is your most weighted domain.</span>
                   </div>
                 </div>
+
                 <div className="mb-6 p-5 bg-[#000]/20 rounded-2xl border border-[#c9ccbb]/5">
                   <div className="flex justify-between mb-2">
                     <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb]">
                       <Sparkles size={13} className="text-[#b5a642]" /> How settled does your body feel?
                     </label>
-                    <span className="font-mono text-xs font-bold text-[#b5a642]/80">
+                    <span className="font-mono text-xs font-bold text-[#b5a642]">
                       {['', 'Wired', 'Restless', 'Neutral', 'Winding Down', 'Ready to Sleep'][sleepReadiness]}
                     </span>
                   </div>
@@ -1014,20 +904,15 @@ export default function Progress() {
                   {(() => {
                     const state = getSleepEveningCopy(sleepReadiness as 1|2|3|4|5)
                     return (
-                      <div className="p-4 rounded-xl bg-[#b5a642]/5 border border-[#b5a642]/80">
-                        <p className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-1">
-                          {state.headline}
-                        </p>
-                        <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed mb-2">
-                          {state.body}
-                        </p>
-                        <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed italic">
-                          {state.environment_action}
-                        </p>
+                      <div className="p-4 rounded-xl bg-[#b5a642]/5 border border-[#b5a642]/15">
+                        <p className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-1">{state.headline}</p>
+                        <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed mb-2">{state.body}</p>
+                        <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed italic">{state.environment_action}</p>
                       </div>
                     )
                   })()}
                 </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="p-5 bg-[#000]/20 rounded-2xl border border-[#c9ccbb]/5 relative overflow-hidden group hover:border-[#b5a642]/20 transition-colors">
                     <div className="absolute top-0 right-0 w-16 h-16 bg-[#b5a642]/5 rounded-full blur-2xl group-hover:bg-[#b5a642]/10 transition-all" />
@@ -1051,6 +936,7 @@ export default function Progress() {
                       className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
                     />
                   </div>
+
                   <div className="p-5 bg-[#000]/20 rounded-2xl border border-[#c9ccbb]/5 relative overflow-hidden group hover:border-[#b5a642]/20 transition-colors">
                     <div className="absolute top-0 right-0 w-16 h-16 bg-[#b5a642]/5 rounded-full blur-2xl group-hover:bg-[#b5a642]/10 transition-all" />
                     <div className="flex items-center justify-between mb-3">
@@ -1076,6 +962,7 @@ export default function Progress() {
                 </div>
               </div>
             )}
+
             {/* SAVE CONTROLS */}
             <div className="flex flex-col gap-4 pt-6 border-t border-[#c9ccbb]/10">
               <AnimatePresence>
@@ -1097,6 +984,7 @@ export default function Progress() {
                   </motion.div>
                 )}
               </AnimatePresence>
+
               <div className="flex justify-end items-center gap-4">
                 <AnimatePresence>
                   {status === 'error' && (
@@ -1116,6 +1004,7 @@ export default function Progress() {
                     </motion.span>
                   )}
                 </AnimatePresence>
+
                 <button
                   onClick={() => handleSave(false)}
                   disabled={!canSave}
@@ -1130,10 +1019,14 @@ export default function Progress() {
               </div>
             </div>
           </div>
+
           {/* ------------------------------------------------------------------ */}
-          {/* BSFI SESSION CARDS — now using new BSFI labels and context */}
+          {/* BSFI SESSION CARDS                                                  */}
+          {/* Morning card on morning tab only. Evening card on evening tab only. */}
+          {/* Interpretation leads. Score is optional accordion.                  */}
           {/* ------------------------------------------------------------------ */}
           <AnimatePresence mode="wait">
+
             {activeTab === 'morning' && morningBsfi && (
               <motion.div
                 key="morning-bsfi"
@@ -1158,7 +1051,6 @@ export default function Progress() {
                     <span className="text-[#b5a642]/70 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 mb-4">
                       <Sunrise size={11} /> Morning · What last night produced
                     </span>
-                    {/* INTERPRETATION LEADS */}
                     <h3 className="text-lg font-serif text-[#c9ccbb] mb-2">
                       {getBsfiLabel(morningBsfi.total_score).label}
                     </h3>
@@ -1191,19 +1083,13 @@ export default function Progress() {
                       <div className="mt-4 pt-4 border-t border-[#b5a642]/10 flex items-start gap-2">
                         <AlertCircle size={13} className="text-[#b5a642] shrink-0 mt-0.5" />
                         <div>
-                          <span className="text-[#b5a642] text-[9px] font-bold uppercase tracking-widest block mb-1">
-                            Acoustic Load — Context Note
-                          </span>
+                          <span className="text-[#b5a642] text-[9px] font-bold uppercase tracking-widest block mb-1">Acoustic Load — Context Note</span>
                           <p className="text-[#c9ccbb]/60 text-[9px] leading-relaxed">
-                            Although your acoustic load score appears moderate, your cumulative processing
-                            pattern means your nervous system is under more strain than the score suggests.
-                            Mid-range friction on an accumulative profile requires the same
-                            attention as high friction on an integrative one.
+                            Although your acoustic load score appears moderate, your cumulative processing pattern means your nervous system is under more strain than the score suggests. Mid-range friction on an accumulative profile requires the same attention as high friction on an integrative one.
                           </p>
                         </div>
                       </div>
                     )}
-                    {/* SCORE — optional accordion */}
                     <button
                       onClick={() => setShowMorningScore(!showMorningScore)}
                       className="mt-4 flex items-center gap-1.5 text-[#c9ccbb]/40 hover:text-[#b5a642]/60 text-[10px] font-bold uppercase tracking-widest transition-colors"
@@ -1222,9 +1108,7 @@ export default function Progress() {
                         >
                           <div className="pt-4 flex items-center gap-5">
                             <div className={`w-20 h-20 rounded-full border-4 ${getBsfiLabel(morningBsfi.total_score).border} flex flex-col items-center justify-center bg-[#1b270e] shrink-0 shadow-lg shadow-[#b5a642]/10`}>
-                              <span className={`text-2xl font-serif ${getBsfiLabel(morningBsfi.total_score).color}`}>
-                                {morningBsfi.total_score}
-                              </span>
+                              <span className={`text-2xl font-serif ${getBsfiLabel(morningBsfi.total_score).color}`}>{morningBsfi.total_score}</span>
                               <span className="text-[9px] text-[#c9ccbb]/80 font-bold uppercase tracking-widest">BSFI</span>
                             </div>
                             <p className="text-[#c9ccbb]/50 text-xs leading-relaxed">
@@ -1238,6 +1122,7 @@ export default function Progress() {
                 </motion.div>
               </motion.div>
             )}
+
             {activeTab === 'evening' && eveningBsfi && (
               <motion.div
                 key="evening-bsfi"
@@ -1262,7 +1147,6 @@ export default function Progress() {
                     <span className="text-[#b5a642]/80 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 mb-4">
                       <Moon size={11} /> Evening · What will be processed tonight
                     </span>
-                    {/* INTERPRETATION LEADS */}
                     <h3 className="text-lg font-serif text-[#c9ccbb] mb-2">
                       {getBsfiLabel(eveningBsfi.total_score).label}
                     </h3>
@@ -1295,19 +1179,13 @@ export default function Progress() {
                       <div className="mt-4 pt-4 border-t border-[#b5a642]/10 flex items-start gap-2">
                         <AlertCircle size={13} className="text-[#b5a642] shrink-0 mt-0.5" />
                         <div>
-                          <span className="text-[#b5a642] text-[9px] font-bold uppercase tracking-widest block mb-1">
-                            Acoustic Load: Context Note
-                          </span>
+                          <span className="text-[#b5a642] text-[9px] font-bold uppercase tracking-widest block mb-1">Acoustic Load: Context Note</span>
                           <p className="text-[#c9ccbb]/60 text-[9px] leading-relaxed">
-                            Your acoustic load score appears moderate, but your accumulative processing
-                            pattern means your nervous system is under more strain than the score suggests.
-                            Mid-range friction on an accumulative profile requires the same
-                            attention as high friction on an integrative one.
+                            Your acoustic load score appears moderate, but your accumulative processing pattern means your nervous system is under more strain than the score suggests. Mid-range friction on an accumulative profile requires the same attention as high friction on an integrative one.
                           </p>
                         </div>
                       </div>
                     )}
-                    {/* SCORE — optional accordion */}
                     <button
                       onClick={() => setShowEveningScore(!showEveningScore)}
                       className="mt-4 flex items-center gap-1.5 text-[#c9ccbb]/40 hover:text-[#b5a642]/60 text-[10px] font-bold uppercase tracking-widest transition-colors"
@@ -1326,9 +1204,7 @@ export default function Progress() {
                         >
                           <div className="pt-4 flex items-center gap-5">
                             <div className={`w-20 h-20 rounded-full border-4 ${getBsfiLabel(eveningBsfi.total_score).border} flex flex-col items-center justify-center bg-[#1b270e] shrink-0 shadow-lg shadow-[#b5a642]/10`}>
-                              <span className={`text-2xl font-serif ${getBsfiLabel(eveningBsfi.total_score).color}`}>
-                                {eveningBsfi.total_score}
-                              </span>
+                              <span className={`text-2xl font-serif ${getBsfiLabel(eveningBsfi.total_score).color}`}>{eveningBsfi.total_score}</span>
                               <span className="text-[9px] text-[#c9ccbb]/80 font-bold uppercase tracking-widest">BSFI</span>
                             </div>
                             <p className="text-[#c9ccbb]/50 text-xs leading-relaxed">
@@ -1342,7 +1218,9 @@ export default function Progress() {
                 </motion.div>
               </motion.div>
             )}
+
           </AnimatePresence>
+
           {/* 14-DAY PATTERN PANEL */}
           <div className={`glass-panel p-6 rounded-3xl mb-8 border relative overflow-hidden transition-all ${
             !macroSynthesis.ready || hasAccess
@@ -1370,11 +1248,10 @@ export default function Progress() {
                 </div>
               )}
             </div>
+
             {!macroSynthesis.ready ? (
               <div className="mt-4 pt-4 border-t border-[#c9ccbb]/10 w-full relative z-10">
-                <p className="text-sm text-[#c9ccbb]/80 leading-relaxed max-w-2xl">
-                  {macroSynthesis.paragraphs[0]}
-                </p>
+                <p className="text-sm text-[#c9ccbb]/80 leading-relaxed max-w-2xl">{macroSynthesis.paragraphs[0]}</p>
                 <div className="w-full max-w-md h-1 bg-[#000]/50 rounded-full mt-4 overflow-hidden">
                   <div
                     className="h-full bg-[#b5a642] transition-all duration-1000"
@@ -1413,7 +1290,11 @@ export default function Progress() {
               </div>
             )}
           </div>
-          {/* TREND CHART */}
+
+          {/* ------------------------------------------------------------------ */}
+          {/* TREND CHART — chartLogs feeds CorrelationGraph directly as a prop. */}
+          {/* fetchHistory() writes to chartLogs. Neither can be extracted.       */}
+          {/* ------------------------------------------------------------------ */}
           <div className="animate-fade-in-up delay-100 mb-12">
             <div className="flex justify-between items-end mb-6">
               <div>
@@ -1431,8 +1312,10 @@ export default function Progress() {
               </div>
             </div>
           </div>
+
         </div>
       </div>
+
       {/* HOW THIS WORKS MODAL */}
       <AnimatePresence>
         {isManualOpen && (
@@ -1465,11 +1348,11 @@ export default function Progress() {
                 </section>
                 <section>
                   <h3 className="text-lg font-serif text-[#b5a642] mb-2">Social Demand</h3>
-                  <p>How much relational engagement your day involved is a meaningful signal. High social demand draws on regulatory resources that affect both your evening state and overnight recovery, regardless of whether the interactions were welcome or difficult. This field helps the synthesis engine understand patterns that environmental data alone cannot explain.</p>
+                  <p>This field captures the cognitive and emotional cost of your social engagement, not the volume of it. Interactions that are evaluatively pressured, emotionally taxing, or require sustained emotional labour activate the autonomic nervous system in the same way that environmental stressors do. Logging this helps the engine distinguish relational load from environmental load — two distinct sources that require different responses.</p>
                 </section>
                 <section>
                   <h3 className="text-lg font-serif text-[#b5a642] mb-2">Home Friction Score</h3>
-                  <p>This score reflects the amount of effort your environment required from you that day. Lower scores suggest that your home absorbed the demands placed on your body. Higher scores indicate friction, or small environmental pressures that accumulate over time. This is not a judgement, but a signal that is worth paying attention to.</p>
+                  <p>This score reflects the amount of effort that your environment required from you that day. Lower scores suggest that your home absorbed the demands placed on your body. Higher scores indicate friction: these are small environmental pressures that accumulate over time. This is not a judgement, but a signal worth paying attention to.</p>
                 </section>
                 <section>
                   <h3 className="text-lg font-serif text-[#b5a642] mb-2">The 14-Day Pattern</h3>
@@ -1479,17 +1362,19 @@ export default function Progress() {
             </motion.div>
           </div>
         )}
+
         {isLightMeterOpen && (
           <LightSensorModal
             onClose={() => setIsLightMeterOpen(false)}
             onSave={(lux) => {
               if (activeMeterTarget === 'morningLux') setMorningLux(lux.toString())
-              if (activeMeterTarget === 'eveningLux') setEveningLux(lux.toString())
-              if (activeMeterTarget === 'bedtimeLux') setBedtimeLux(lux.toString())
+              if (activeMeterTarget === 'eveningLux')  setEveningLux(lux.toString())
+              if (activeMeterTarget === 'bedtimeLux')  setBedtimeLux(lux.toString())
               setIsLightMeterOpen(false)
             }}
           />
         )}
+
         {isAcousticMeterOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#000]/80 backdrop-blur-sm p-4">
             <motion.div
