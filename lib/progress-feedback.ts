@@ -24,8 +24,9 @@ export interface MorningFeedbackParams {
 }
 
 export interface EveningFeedbackParams {
-  focusScore:   number
-  eveningMood:  number | null
+  focusScore:    number
+  eveningMood:   number | null
+  socialDemand?: 'low' | 'moderate' | 'high' | null
 }
 
 export interface MacroSynthesisParams {
@@ -88,21 +89,40 @@ export function getMorningFeedback({ morningMood, tensionScore, wakeScore }: Mor
 // EVENING FEEDBACK ENGINE
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function getEveningFeedback({ focusScore, eveningMood }: EveningFeedbackParams): FeedbackResult {
+export function getEveningFeedback({ focusScore, eveningMood, socialDemand }: EveningFeedbackParams): FeedbackResult {
   const moodScore = eveningMood ?? 3
+  const social    = socialDemand ?? 'low'
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // COMPOUND LOAD: high cognitive output + high social demand
+  //
+  // Holding mood together through a high-demand day is a coping response,
+  // not an absence of cost. 10 hours of deep work plus sustained high social
+  // demand produces a compound autonomic load that the mood score alone
+  // does not capture. The overnight processing window carries both.
+  // This branch fires regardless of mood — the compound load is the signal.
+  // ─────────────────────────────────────────────────────────────────────────
+  if (focusScore >= 8 && social === 'high') return {
+    title:     "A High-Output, High-Demand Day. Recovery Is Non-Negotiable Tonight.",
+    reframe:   "Sustained deep work and high social demand activate the same autonomic systems through different pathways: cognitive load through prefrontal depletion, social demand through interpersonal processing and HPA axis activation. Maintaining your mood throughout both is a regulatory achievement, not evidence that the cost was low. Your nervous system has been running on two parallel loads all day. The overnight clearing window now has to process both.",
+    direction: "Your environment must create a firm boundary tonight. Transition to warm-toned light below 100 lux within the next thirty minutes. Remove yourself from high-stimulation spaces. Do not re-engage with cognitively or socially demanding content. Your body needs the environment to do the heavy lifting tonight — not you."
+  }
+
+  // High focus + low mood — recovery critical
   if (focusScore >= 8 && moodScore <= 2) return {
     title:     "A Demanding Day. Recovery Is Non-Negotiable Tonight",
     reframe:   "Extended deep work alongside low mood regulation is a recognisable autonomic signature: you sustained performance by drawing on stress-driven energy rather than actual reserves. The output was real. So is the cost. Your brain's overnight emotional processing is carrying a heavier load into sleep than your focus score would suggest.",
     direction: "Tonight's environment must match today's demand. Transition away from screens and bright overhead light within the next thirty minutes to warm-toned sources below 100 lux only. Remove high-stimulation zones from your evening sightline. Your body needs a firm, unhurried wind-down tonight."
   }
 
+  // High focus + good mood + low/moderate social demand — protect the close
   if (focusScore >= 8 && moodScore >= 4) return {
     title:     "A Great Day. Protect the Close",
     reframe:   "Deep work sustained across the day without a corresponding drop in mood regulation indicates that your environment was supporting your cognitive load rather than extracting from it. The question now is not what today cost — it is what tonight's environment does with that state.",
     direction: "Do not coast through the evening without a deliberate transition. Make a deliberate close: shift to warm light, step away from your work zone, and do one low-stimulation activity before you prepare for sleep."
   }
 
+  // Low focus + low mood — examine the space
   if (focusScore <= 2 && moodScore <= 2) return {
     title:     "Low Focus Today Isn't About You. Let's Examine Your Space",
     reframe:   "When attentional capacity feels constrained despite effort, the instinct is to attribute it to discipline or motivation. The more precise reading — particularly when mood and focus drop together — is environmental: your space was not providing the sensory conditions required for sustained cognitive engagement.",
@@ -225,8 +245,8 @@ export function getMacroSynthesis({ chartLogs, morningBsfi, eveningBsfi }: Macro
     title: "Your Pattern Is Present. It Is Not Yet Directional",
     paragraphs: [
       "The last fourteen days show significant fluctuation across mood, tension, and focus without a consistent directional pattern. Before locating the source of that variance in your physical environment, it is worth naming what the data cannot distinguish: not all fluctuation is environmental in origin.",
-      "Hormonal shifts, periods of elevated relational or cognitive demand, and natural energy cycles produce real, measurable changes in tension, sleep quality, focus, and mood: changes that register in your logs independently of what your physical space is doing.",
-      "Continue logging consistently. The pattern will sharpen as the conditions stabilise or as one domain begins to lead. What the engine is looking for is repetition such as the same friction appearing across multiple days. That signal will emerge."
+      "Hormonal shifts, periods of elevated relational or cognitive demand, and natural energy cycles produce real, measurable changes in tension, sleep quality, focus, and mood — changes that register in your logs independently of what your physical space is doing.",
+      "Continue logging consistently. The appropriate response during periods of internal fluctuation is friction reduction, not optimisation. Ask your environment to do less against you, not more for you."
     ]
   }
 }
