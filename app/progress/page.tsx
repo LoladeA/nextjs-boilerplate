@@ -54,7 +54,7 @@ import {
   getEveningFeedback,
   getMacroSynthesis,
 } from '@/lib/progress-feedback'
-import { moods, morningTagOptions, eveningTagOptions }    from './daily-logs/constants'
+import { moods, morningTagOptions, eveningTagOptions }    from '@/app/daily-logs/constants'
 
 // =============================================================================
 // COMPONENT
@@ -572,6 +572,7 @@ export default function Progress() {
                                 sleep_wakes:     wakeScore,
                                 mood_score:      morningMood,
                                 morning_tension: tensionScore,
+                                social_demand:   socialDemand,
                               })
                               return sleepCopy.environmental_note ? (
                                 <div className="px-4 pt-4 pb-2">
@@ -1352,7 +1353,7 @@ export default function Progress() {
                 </section>
                 <section>
                   <h3 className="text-lg font-serif text-[#b5a642] mb-2">Home Friction Score</h3>
-                  <p>This score reflects the amount of effort that your environment required from you that day. Lower scores suggest that your home absorbed the demands placed on your body. Higher scores indicate friction: these are small environmental pressures that accumulate over time. This is not a judgement, but a signal worth paying attention to.</p>
+                  <p>This score reflects the amount of effort that your your environment required from you that day. Lower scores suggest that your home absorbed the demands placed on your body. Higher scores indicate friction such as small environmental pressures that accumulate over time. This is not a judgement, but a signal worth paying attention to.</p>
                 </section>
                 <section>
                   <h3 className="text-lg font-serif text-[#b5a642] mb-2">The 14-Day Pattern</h3>
