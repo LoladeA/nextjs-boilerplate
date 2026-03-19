@@ -39,7 +39,7 @@ export default async function Dashboard() {
       .from('assessment_snapshots')
       .select('id, neuro_load, created_at, snapshot_type')
       .eq('user_id', user.id)
-      .eq('snapshot_type', 'baseline')
+      .eq('snapshot_type', 'initial')
       .order('created_at', { ascending: true })
       .limit(1)
       .single(),
