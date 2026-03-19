@@ -1,21 +1,37 @@
 // =============================================================================
 // BASELINE DELTA ENGINE — The Sentient Home
+// FILE: app/lib/baseline-delta-engine.ts
 // =============================================================================
 //
 // CHANGE LOG (this version):
 //
-//   INTEGRATION PATTERN TRACKING
-//   sensory_pattern_change previously only detected shifts in the threshold
-//   profile (sensor/seeker/anchor). An integration pattern shift
-//   (integrative → accumulative) is clinically distinct and equally
-//   significant — a user whose threshold profile is stable but whose
-//   integration pattern has worsened is not making progress.
+//   SELF-DELTA FIELDS REMOVED
+//   The update assessment no longer collects per-domain self-report deltas
+//   (cii_delta_self, ali_delta_self, pli_delta_self, stl_delta_self,
+//   rci_delta_self). These required the user to remember and compare their
+//   previous state, which introduced memory bias and reduced accuracy.
 //
-//   - BaselineDeltaResult gains integration_pattern_change: boolean
-//   - BaselineDeltaResult gains integration_pattern_shift: string | null
-//   - sensory_pattern_change now exclusively tracks threshold axis
-//   - overall_progress: integration worsening downgrades 'clear_progress'
-//     to 'data_progress' even when load improved
+//   The delta is now computed entirely from the two snapshot objects.
+//   Domain outcomes are resolved from the computed direction and life context
+//   alone. The subjective_alignment_score remains as a global trajectory
+//   signal — it operates at the whole-system level, not per-domain.
+//
+//   Removed from calculateBaselineDelta deltaFields parameter:
+//     - cii_delta_self, ali_delta_self, pli_delta_self, stl_delta_self,
+//       rci_delta_self
+//
+//   Removed from DomainDeltaResult:
+//     - self_delta (no longer meaningful without per-domain self-report)
+//
+//   resolveDomainOutcome simplified:
+//     - selfDirection parameter removed
+//     - outcome resolved from computed direction + lifeContextFlag only
+//
+//   Everything else unchanged:
+//     - Integration pattern tracking (both axes)
+//     - overall_progress classification
+//     - NudgeConfig and shouldShowNudge
+//     - All narrative copy
 //
 // =============================================================================
 
@@ -36,25 +52,24 @@ export type DomainNarrativeOutcome =
   | 'stable_unresolved'
 
 export interface DomainDeltaResult {
-  domain:     keyof DomainScores
-  delta:      number
-  direction:  DeltaDirection
-  self_delta: number
-  outcome:    DomainNarrativeOutcome
-  narrative:  string
+  domain:    keyof DomainScores
+  delta:     number
+  direction: DeltaDirection
+  outcome:   DomainNarrativeOutcome
+  narrative: string
 }
 
 export interface BaselineDeltaResult {
-  baseline_id:               string
-  update_id:                 string
-  domain_results:            DomainDeltaResult[]
-  load_delta:                number
-  load_direction:            DeltaDirection
-  energy_tax_delta:          number
-  system_state_change:       string
-  system_state_shifted:      boolean
+  baseline_id:                string
+  update_id:                  string
+  domain_results:             DomainDeltaResult[]
+  load_delta:                 number
+  load_direction:             DeltaDirection
+  energy_tax_delta:           number
+  system_state_change:        string
+  system_state_shifted:       boolean
   // THRESHOLD AXIS — sensor / seeker / anchor
-  sensory_pattern_change:    boolean
+  sensory_pattern_change:     boolean
   // INTEGRATION AXIS — integrative / mixed / accumulative (tracked separately)
   integration_pattern_change: boolean
   integration_pattern_shift:  string | null
@@ -81,8 +96,6 @@ export type ProgressClassification =
 
 const MEANINGFUL_LOAD_DELTA = 10
 const STABLE_BAND           = 5
-const SELF_DELTA_IMPROVED   = 4
-const SELF_DELTA_WORSENED   = 2
 
 const INTEGRATION_SEVERITY: Record<string, number> = {
   integrative: 0, mixed: 1, accumulative: 2
@@ -94,9 +107,13 @@ const getDeltaDirection = (delta: number, threshold = STABLE_BAND): DeltaDirecti
   return 'stable'
 }
 
-const getSelfDirection = (selfScore: number): DeltaDirection => {
-  if (selfScore >= SELF_DELTA_IMPROVED) return 'improved'
-  if (selfScore <= SELF_DELTA_WORSENED) return 'worsened'
+// ─────────────────────────────────────────────────────────────────────────────
+// SUBJECTIVE DIRECTION
+// Operates at the whole-system level only. 1–2 = worsened, 4–5 = improved.
+// ─────────────────────────────────────────────────────────────────────────────
+const getSubjectiveDirection = (score: number): DeltaDirection => {
+  if (score >= 4) return 'improved'
+  if (score <= 2) return 'worsened'
   return 'stable'
 }
 
@@ -138,32 +155,41 @@ const buildDomainNarrative = (
   const improvement = Math.abs(Math.round(delta))
   switch (outcome) {
     case 'confirmed_improvement':
-      return `${label} has measurably improved and you feel the difference. The changes you made are working — protect them.`
+      return `${label} has measurably improved. The changes you made are working: keep it up!`
     case 'partial_improvement':
-      return `${label} shows a quantitative shift of ${improvement} points, but your felt sense does not yet match the data. This is common in the early stages — the nervous system often lags behind environmental changes by several weeks.`
+      return `${label} shows a quantitative shift of ${improvement} points. This is common in the early stages when the nervous system often lags behind environmental changes by several weeks.`
     case 'external_pressure':
-      return `${label} has increased friction, but your context flags suggest this is being driven by ${contextFlags.join(', ').toLowerCase()} rather than an environmental failure. Hold the changes you have made.`
+      return `The friction level for ${label} has increased, but your context flags suggest that this is being driven by ${contextFlags.join(', ').toLowerCase()} rather than an environmental failure. Hold on to the changes you have made.`
     case 'intervention_insufficient':
-      return `${label} remains elevated. The current environmental changes have not addressed the friction source in this domain. A targeted intervention is recommended.`
+      return `${label} remains elevated. The current environmental changes have not resolved the source of friction in this domain. A targeted intervention is recommended.`
     case 'stable_maintained':
-      return `${label} is holding steady. If this domain was already low-friction at baseline, that is a positive outcome. If it was elevated, stability means the intervention has not yet reached this area.`
+      return `${label} is holding steady. If this domain was already low-friction at baseline, this would be a positive outcome. If it was elevated, then stability indicates that the intervention has not yet reached this area.`
     case 'stable_unresolved':
-      return `${label} scores are stable, but you report feeling worse in this area. This may indicate a friction source not yet captured by the assessment questions. Worth noting in your next session.`
+      return `${label} scores are stable but the friction in this area has not been resolved. This is worth noting for your next session.`
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// DOMAIN OUTCOME RESOLUTION
+//
+// Self-direction removed — outcomes are now resolved from the computed
+// delta direction and life context flag alone. The subjective score
+// operates at the whole-system level and does not map per-domain.
+// ─────────────────────────────────────────────────────────────────────────────
 const resolveDomainOutcome = (
   direction:       DeltaDirection,
-  selfDirection:   DeltaDirection,
   lifeContextFlag: boolean
 ): DomainNarrativeOutcome => {
-  if (direction === 'improved' && selfDirection === 'improved')   return 'confirmed_improvement'
-  if (direction === 'improved' && selfDirection !== 'improved')   return 'partial_improvement'
-  if (direction === 'worsened' && lifeContextFlag)                return 'external_pressure'
-  if (direction === 'worsened' && !lifeContextFlag)               return 'intervention_insufficient'
-  if (direction === 'stable'   && selfDirection !== 'worsened')   return 'stable_maintained'
+  if (direction === 'improved')                  return 'confirmed_improvement'
+  if (direction === 'worsened' && lifeContextFlag) return 'external_pressure'
+  if (direction === 'worsened' && !lifeContextFlag) return 'intervention_insufficient'
+  if (direction === 'stable')                    return 'stable_maintained'
   return 'stable_unresolved'
 }
+
+// =============================================================================
+// MAIN EXPORT
+// =============================================================================
 
 export const calculateBaselineDelta = (
   baselineResult: NeuroLoadResult,
@@ -171,11 +197,7 @@ export const calculateBaselineDelta = (
   baselineId:     string,
   updateId:       string,
   deltaFields: {
-    cii_delta_self:             number
-    ali_delta_self:             number
-    pli_delta_self:             number
-    stl_delta_self:             number
-    rci_delta_self:             number
+    // Per-domain self-deltas removed — computed from snapshots directly
     subjective_alignment_score: number
     env_change_sleep:           string[]
     env_change_day:             string[]
@@ -185,38 +207,31 @@ export const calculateBaselineDelta = (
 
   const lifeContextFlag = hasLifeContextChange(deltaFields.life_context_change)
 
-  const selfDeltaMap: Record<keyof DomainScores, number> = {
-    cii: deltaFields.cii_delta_self,
-    ali: deltaFields.ali_delta_self,
-    pli: deltaFields.pli_delta_self,
-    stl: deltaFields.stl_delta_self,
-    rci: deltaFields.rci_delta_self
-  }
-
+  // ── Domain results ──────────────────────────────────────────────────────
   const domainResults: DomainDeltaResult[] = (
     Object.keys(baselineResult.percentIndices) as (keyof DomainScores)[]
   ).map(domain => {
     const delta     = updateResult.percentIndices[domain] - baselineResult.percentIndices[domain]
     const direction = getDeltaDirection(delta)
-    const selfDelta = selfDeltaMap[domain]
-    const selfDir   = getSelfDirection(selfDelta)
-    const outcome   = resolveDomainOutcome(direction, selfDir, lifeContextFlag)
+    const outcome   = resolveDomainOutcome(direction, lifeContextFlag)
     const narrative = buildDomainNarrative(domain, outcome, delta, deltaFields.life_context_change)
-    return { domain, delta: Math.round(delta), direction, self_delta: selfDelta, outcome, narrative }
+    return { domain, delta: Math.round(delta), direction, outcome, narrative }
   })
 
-  const loadDelta     = updateResult.finalNeuroLoad - baselineResult.finalNeuroLoad
-  const loadDirection = getDeltaDirection(loadDelta, MEANINGFUL_LOAD_DELTA)
+  // ── Load delta ──────────────────────────────────────────────────────────
+  const loadDelta      = updateResult.finalNeuroLoad - baselineResult.finalNeuroLoad
+  const loadDirection  = getDeltaDirection(loadDelta, MEANINGFUL_LOAD_DELTA)
   const energyTaxDelta = updateResult.energyTaxBaseline - baselineResult.energyTaxBaseline
 
+  // ── System state ────────────────────────────────────────────────────────
   const systemStateChanged = updateResult.systemState !== baselineResult.systemState
   const systemStateChange  = `${baselineResult.systemState} → ${updateResult.systemState}`
 
-  // Threshold axis — sensor / seeker / anchor only
+  // ── Threshold axis — sensor / seeker / anchor ───────────────────────────
   const sensoryPatternChange =
     updateResult.sensoryProfile.pattern !== baselineResult.sensoryProfile.pattern
 
-  // Integration axis — tracked independently
+  // ── Integration axis ────────────────────────────────────────────────────
   const baselineIntPattern = baselineResult.integrationProfile?.integrationPattern
   const updateIntPattern   = updateResult.integrationProfile?.integrationPattern
 
@@ -226,8 +241,9 @@ export const calculateBaselineDelta = (
   const integrationPatternShift = getIntegrationPatternShift(baselineIntPattern, updateIntPattern)
   const intPatternWorsened      = integrationPatternWorsened(baselineIntPattern, updateIntPattern)
 
+  // ── Subjective score — whole-system signal ──────────────────────────────
   const subjectiveScore     = deltaFields.subjective_alignment_score
-  const subjectiveDirection = getSelfDirection(subjectiveScore)
+  const subjectiveDirection = getSubjectiveDirection(subjectiveScore)
 
   const subjectiveMatchesData = (
     (loadDirection === 'improved' && subjectiveDirection === 'improved') ||
@@ -235,6 +251,7 @@ export const calculateBaselineDelta = (
     (loadDirection === 'stable'   && subjectiveDirection === 'stable')
   )
 
+  // ── Overall progress classification ─────────────────────────────────────
   // Integration worsening downgrades 'clear_progress' → 'data_progress':
   // a load improvement is not a clear win if accumulation has increased.
   let overall: ProgressClassification
@@ -252,10 +269,11 @@ export const calculateBaselineDelta = (
     overall = 'needs_attention'
   }
 
+  // ── Priority domains ────────────────────────────────────────────────────
   const priorityAttention = domainResults
     .filter(r =>
       r.direction === 'worsened' ||
-      r.outcome === 'intervention_insufficient' ||
+      r.outcome   === 'intervention_insufficient' ||
       updateResult.percentIndices[r.domain] > 60
     )
     .map(r => r.domain)
@@ -263,22 +281,22 @@ export const calculateBaselineDelta = (
   const strainShift = baselineResult.primaryStrain !== updateResult.primaryStrain
 
   return {
-    baseline_id:               baselineId,
-    update_id:                 updateId,
-    domain_results:            domainResults,
-    load_delta:                Math.round(loadDelta),
-    load_direction:            loadDirection,
-    energy_tax_delta:          Math.round(energyTaxDelta),
-    system_state_change:       systemStateChange,
-    system_state_shifted:      systemStateChanged,
-    sensory_pattern_change:    sensoryPatternChange,
+    baseline_id:                baselineId,
+    update_id:                  updateId,
+    domain_results:             domainResults,
+    load_delta:                 Math.round(loadDelta),
+    load_direction:             loadDirection,
+    energy_tax_delta:           Math.round(energyTaxDelta),
+    system_state_change:        systemStateChange,
+    system_state_shifted:       systemStateChanged,
+    sensory_pattern_change:     sensoryPatternChange,
     integration_pattern_change: integrationPatternChange,
     integration_pattern_shift:  integrationPatternShift,
-    subjective_score:          subjectiveScore,
-    subjective_direction:      subjectiveDirection,
-    subjective_matches_data:   subjectiveMatchesData,
-    overall_progress:          overall,
-    priority_attention:        priorityAttention,
+    subjective_score:           subjectiveScore,
+    subjective_direction:       subjectiveDirection,
+    subjective_matches_data:    subjectiveMatchesData,
+    overall_progress:           overall,
+    priority_attention:         priorityAttention,
     context_flags: {
       env_change_sleep:    deltaFields.env_change_sleep,
       env_change_day:      deltaFields.env_change_day,
@@ -315,7 +333,9 @@ export const shouldShowNudge = (
   const baseline   = new Date(baselineCreatedAt)
 
   const referenceDate = lastUpdate ?? baseline
-  const daysElapsed   = Math.floor((today.getTime() - referenceDate.getTime()) / (1000 * 60 * 60 * 24))
+  const daysElapsed   = Math.floor(
+    (today.getTime() - referenceDate.getTime()) / (1000 * 60 * 60 * 24)
+  )
 
   if (daysElapsed < 14) {
     return { show: false, level: 'none', days_elapsed: daysElapsed, label: '', sublabel: '' }
@@ -323,14 +343,18 @@ export const shouldShowNudge = (
 
   if (daysElapsed <= 20) {
     return {
-      show: true, level: 'soft', days_elapsed: daysElapsed,
+      show:     true,
+      level:    'soft',
+      days_elapsed: daysElapsed,
       label:    'It has been two weeks. Your home has been working.',
       sublabel: 'Ready to see what shifted? The check-in takes 3–4 minutes.'
     }
   }
 
   return {
-    show: true, level: 'present', days_elapsed: daysElapsed,
+    show:     true,
+    level:    'present',
+    days_elapsed: daysElapsed,
     label:    `${daysElapsed} days since your last check-in.`,
     sublabel: 'Your progress data is waiting. It only takes 3–4 minutes.'
   }
