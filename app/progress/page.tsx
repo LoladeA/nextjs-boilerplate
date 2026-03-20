@@ -46,7 +46,7 @@ import {
 } from '@/lib/sleep-copy'
 
 // Extracted modules
-import { sanitiseDomain, getDomainDisplay, getBsfiLabel } from '@/lib/progress-domains'
+import { sanitiseDomain, getDomainDisplay, getBsfiLabel, shouldShowPrimarySource } from '@/lib/progress-domains'
 import type { BsfiState }                                 from '@/lib/progress-domains'
 import { getSynthesisState }                              from '@/lib/synthesis-state'
 import { deriveLuxScore, deriveDbScore }                  from '@/lib/progress-score-utils'
@@ -1110,7 +1110,7 @@ export default function Progress() {
                       <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed max-w-xs mb-4">
                         There is some internal friction present, but your environment appears stable. This suggests that the load is coming from within.
                       </p>
-                    ) : (() => {
+                    ) : shouldShowPrimarySource(morningBsfi.total_score) ? (() => {
                       const safeDomain = sanitiseDomain(morningBsfi.dominant_domain)
                       return safeDomain ? (
                         <div className="mb-4">
@@ -1120,7 +1120,7 @@ export default function Progress() {
                           </span>
                         </div>
                       ) : null
-                    })()}
+                    })() : null}
                     {(() => {
                       const ctx = getBSFIContext(morningBsfi.total_score)
                       return (
@@ -1206,7 +1206,7 @@ export default function Progress() {
                       <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed max-w-xs mb-4">
                         There is some internal friction present here, however your environment appears stable. Dim the lights, reduce background noise and keep the bedroom cool and quiet.
                       </p>
-                    ) : (() => {
+                    ) : shouldShowPrimarySource(eveningBsfi.total_score) ? (() => {
                       const safeDomain = sanitiseDomain(eveningBsfi.dominant_domain)
                       return safeDomain ? (
                         <div className="mb-4">
@@ -1216,7 +1216,7 @@ export default function Progress() {
                           </span>
                         </div>
                       ) : null
-                    })()}
+                    })() : null}
                     {(() => {
                       const ctx = getBSFIContext(eveningBsfi.total_score)
                       return (
