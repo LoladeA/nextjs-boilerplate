@@ -1108,7 +1108,7 @@ export default function Progress() {
                     </h3>
                     {morningBsfi.is_internal_driver ? (
                       <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed max-w-xs mb-4">
-                        There is some internal friction present, but your environment appears stable. This suggests that the load is coming from within.
+                        The friction here does not appear to be environmental. It may reflect accumulated stress, emotional load, or a biological state not yet captured in your logs. Your space is not the source, and neither is a personal failing.
                       </p>
                     ) : shouldShowPrimarySource(morningBsfi.total_score) ? (() => {
                       const safeDomain = sanitiseDomain(morningBsfi.dominant_domain)
@@ -1204,7 +1204,7 @@ export default function Progress() {
                     </h3>
                     {eveningBsfi.is_internal_driver ? (
                       <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed max-w-xs mb-4">
-                        There is some internal friction present here, however your environment appears stable. Dim the lights, reduce background noise and keep the bedroom cool and quiet.
+                        The friction here does not appear to be environmental. It may reflect accumulated stress, emotional load, or a biological state not yet captured in your logs. Your environment is holding: what it cannot do is carry what is not spatial in origin. Dim the lights, lower acoustic input, and let the space do less asking of you tonight.
                       </p>
                     ) : shouldShowPrimarySource(eveningBsfi.total_score) ? (() => {
                       const safeDomain = sanitiseDomain(eveningBsfi.dominant_domain)
