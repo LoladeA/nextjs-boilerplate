@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
-import { calculateBSFI, DailyLogParams, BSFIResult, BaselineInput } from '@/lib/bsfi-engine'
+import { calculateBSFI, DailyLogParams, BaselineInput } from '@/lib/bsfi-engine'
 
 // -----------------------------------------------------------------------------
 // TYPES & MAPPINGS
@@ -44,6 +44,7 @@ export async function POST(req: Request) {
 
         // 1. Prepare Daily Log Params
         const todayParams: DailyLogParams = {
+            // Core environmental inputs
             morning_lux:     safeNum(raw.morning_lux),
             evening_lux:     safeNum(raw.evening_lux),
             daytime_db:      safeNum(raw.daytime_db),
@@ -55,6 +56,13 @@ export async function POST(req: Request) {
             morning_tags:    Array.isArray(raw.tags) ? raw.tags : [],
             evening_tags:    Array.isArray(raw.evening_tags) ? raw.evening_tags : [],
             social_demand:   raw.social_demand ?? 'low',
+            // HealthKit biometric fields (v6) — null when not yet available
+            hrv_morning:          safeNum(raw.hrv_morning),
+            resting_heart_rate:   safeNum(raw.resting_heart_rate),
+            sleep_onset_latency:  safeNum(raw.sleep_onset_latency),
+            sleep_deep_percent:   safeNum(raw.sleep_deep_percent),
+            sleep_rem_percent:    safeNum(raw.sleep_rem_percent),
+            cycle_phase:          raw.cycle_phase ?? null,
         }
 
         // 2. Fetch History (14-day window)
@@ -70,7 +78,13 @@ export async function POST(req: Request) {
 
         const historyParams: DailyLogParams[] = (historyData || []).map(log => ({
             ...log,
-            social_demand: log.social_demand ?? 'low'
+            social_demand:        log.social_demand         ?? 'low',
+            hrv_morning:          log.hrv_morning           ?? null,
+            resting_heart_rate:   log.resting_heart_rate    ?? null,
+            sleep_onset_latency:  log.sleep_onset_latency   ?? null,
+            sleep_deep_percent:   log.sleep_deep_percent    ?? null,
+            sleep_rem_percent:    log.sleep_rem_percent      ?? null,
+            cycle_phase:          log.cycle_phase            ?? null,
         }))
 
         // 3. Fetch Baseline Context
@@ -120,14 +134,13 @@ export async function POST(req: Request) {
                 dominant_domain:     bsfiResult.dominant_domain,
                 version:             bsfiResult.version,
                 domain_scores: {
-                    CFS:                   bsfiResult.cfs_score,
-                    ALS:                   bsfiResult.als_score,
-                    SES:                   bsfiResult.ses_score,
-                    RDS:                   bsfiResult.rds_score,
-                    internal_driver_score: bsfiResult.internal_driver_score,
-                    external_driver_score: bsfiResult.external_driver_score,
-                    // Boolean flag stored here — not as a standalone column
-                    is_internal_driver:    bsfiResult.internal_driver_score > 0.5,
+                    CFS:               bsfiResult.cfs_score,
+                    ALS:               bsfiResult.als_score,
+                    SES:               bsfiResult.ses_score,
+                    RDS:               bsfiResult.rds_score,
+                    load_attribution:  bsfiResult.load_attribution,
+                    healthkit_enriched: bsfiResult.healthkit_enriched,
+                    biological_load:   bsfiResult.biological_load,
                 },
                 integration_pattern: integrationPattern,
                 sensory_pattern:     profile?.sensory_pattern || null,
