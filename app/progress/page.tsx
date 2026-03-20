@@ -956,7 +956,7 @@ export default function Progress() {
                   {(() => {
                     const state = getSleepEveningCopy(sleepReadiness as 1|2|3|4|5)
                     return (
-                      <div className="p-4 rounded-xl bg-[#b5a642]/5 border border-[#b5a642]/15">
+                      <div className="p-4 rounded-xl bg-[#b5a642]/5 border border-[#b5a642]">
                         <p className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-1">{state.headline}</p>
                         <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed mb-2">{state.body}</p>
                         <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed italic">{state.environment_action}</p>
