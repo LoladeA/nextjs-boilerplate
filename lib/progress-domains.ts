@@ -48,13 +48,41 @@ export const getDomainDisplay = (domain: string): { label: string; driver: strin
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// BSFI LABEL SYSTEM — unchanged from original
+// PRIMARY SOURCE VISIBILITY
+//
+// When the total score is in the Low Friction band (0–30), no single domain
+// meaningfully dominates — the environment is well-aligned. Showing a primary
+// source in this state contradicts the reframe copy ("well-aligned today").
+//
+// The primary source tag is only shown when the score exceeds this threshold,
+// meaning the dominant domain is actually contributing meaningful friction.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const PRIMARY_SOURCE_THRESHOLD = 30
+
+export const shouldShowPrimarySource = (score: number): boolean =>
+  score > PRIMARY_SOURCE_THRESHOLD
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BSFI LABEL SYSTEM
+//
+// Bands aligned with BSFI_SCORE_CONTEXTS in sleep-copy.ts:
+//   0–30:   Low Friction  (was 0–20)
+//   31–55:  Mild Friction (was 21–40)
+//   56–74:  Elevated Load (was 41–60)
+//   75–100: High Load     (was 81–100)
+//
+// Previously used five bands (0/20/40/60/80) which diverged from the four
+// bands in sleep-copy.ts (0/30/55/74), causing contradictory label and copy
+// text for scores in the overlap zones (e.g. 26 = "Mild Friction" label
+// but "Low Friction" copy). Now uses four bands, both systems agree.
+//
 // Colours and opacities are intentional brand decisions. Do not modify.
 // ─────────────────────────────────────────────────────────────────────────────
+
 export const getBsfiLabel = (score: number) => {
-  if (score <= 20) return { label: 'Your Home Is Supporting You',   color: 'text-[#b5a642]',    border: 'border-[#b5a642]/60' }
-  if (score <= 40) return { label: 'Mild Friction Present',         color: 'text-[#b5a642]/80', border: 'border-[#b5a642]/40' }
-  if (score <= 60) return { label: 'Moderate Environmental Load',   color: 'text-[#b5a642]/70', border: 'border-[#b5a642]/35' }
-  if (score <= 80) return { label: 'Significant Friction Detected', color: 'text-[#b5a642]/60', border: 'border-[#b5a642]/30' }
-  return             { label: 'High Environmental Load',            color: 'text-[#b5a642]/50', border: 'border-[#b5a642]/25' }
+  if (score <= 30) return { label: 'Your Home Is Supporting You', color: 'text-[#b5a642]',    border: 'border-[#b5a642]/60' }
+  if (score <= 55) return { label: 'Mild Friction Present',       color: 'text-[#b5a642]/80', border: 'border-[#b5a642]/40' }
+  if (score <= 74) return { label: 'Elevated Environmental Load', color: 'text-[#b5a642]/70', border: 'border-[#b5a642]/35' }
+  return                   { label: 'High Environmental Load',    color: 'text-[#b5a642]/50', border: 'border-[#b5a642]/25' }
 }
