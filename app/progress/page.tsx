@@ -48,6 +48,7 @@ import {
 // Extracted modules
 import { sanitiseDomain, getDomainDisplay, getBsfiLabel } from '@/lib/progress-domains'
 import type { BsfiState }                                 from '@/lib/progress-domains'
+import { getSynthesisState }                              from '@/lib/synthesis-state'
 import { deriveLuxScore, deriveDbScore }                  from '@/lib/progress-score-utils'
 import {
   getMorningFeedback,
@@ -128,12 +129,13 @@ export default function Progress() {
   // GRAPH STATE — must stay in this component
   // chartLogs feeds <CorrelationGraph /> directly as a prop.
   // fetchHistory() writes to chartLogs. Neither can be extracted.
-  // totalLogs is the full count of all log entries — used to detect the
-  // recalibration window (first 5 days of every new 14-day cycle).
+  // synthesisState drives the 14-day pattern panel — computed from
+  // last_synthesis_acknowledged_at and logs-since-acknowledged.
   // ─────────────────────────────────────────────────────────────────────────
-  const [chartLogs, setChartLogs]         = useState<any[]>([])
-  const [totalLogs, setTotalLogs]         = useState<number>(0)
-  const [isRecalibrating, setIsRecalibrating] = useState<boolean>(false)
+  const [chartLogs,      setChartLogs]      = useState<any[]>([])
+  const [synthesisState, setSynthesisState] = useState<'building' | 'ready' | 'recalibrating'>('building')
+  const [logsSinceAck,   setLogsSinceAck]   = useState<number>(0)
+  const [logsUntilReady, setLogsUntilReady] = useState<number>(14)
 
   // ─────────────────────────────────────────────────────────────────────────
   // SYNC eveningMood FROM sleepReadiness
@@ -284,34 +286,64 @@ export default function Progress() {
   // FETCH HISTORY — feeds chartLogs → CorrelationGraph
   // Also feeds dashboard mood graph indirectly via daily_logs reads.
   // Must stay in this component. Do not extract.
+  // ─────────────────────────────────────────────────────────────────────────
+  // FETCH HISTORY — feeds chartLogs → CorrelationGraph + synthesis state
   //
-  // RECALIBRATION LOGIC:
-  // Every 14 days the synthesis window resets. For the first 5 days of each
-  // new cycle, we show a recalibration message rather than the previous
-  // synthesis — creating a deliberate pause that signals renewal.
-  // daysIntoCycle = totalLogs % 14. When 1–5 and totalLogs >= 14 → recalibrating.
+  // Queries in parallel:
+  //   1. Last 14 logs for the graph
+  //   2. Total log count for synthesis threshold check
+  //   3. last_synthesis_acknowledged_at from user_profiles
+  //   4. Count of logs after acknowledged date (if acknowledged)
+  //
+  // getSynthesisState() receives all four inputs and returns the correct
+  // panel state without any modulo arithmetic.
   // ─────────────────────────────────────────────────────────────────────────
   const fetchHistory = async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    // Get the last 14 for the graph, plus the total count for recalibration
-    const { data, count } = await supabase
-      .from('daily_logs')
-      .select('date, mood_score, focus_hours, morning_tension, sleep_wakes', { count: 'exact' })
-      .eq('user_id', user.id)
-      .order('date', { ascending: false })
-      .limit(14)
+    // Run graph query + total count + profile in parallel
+    const [historyRes, countRes, profileRes] = await Promise.all([
+      supabase
+        .from('daily_logs')
+        .select('date, mood_score, focus_hours, morning_tension, sleep_wakes')
+        .eq('user_id', user.id)
+        .order('date', { ascending: false })
+        .limit(14),
+      supabase
+        .from('daily_logs')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id),
+      supabase
+        .from('user_profiles')
+        .select('last_synthesis_acknowledged_at')
+        .eq('user_id', user.id)
+        .single(),
+    ])
 
-    const total = count ?? 0
-    setTotalLogs(total)
+    const totalLogs          = countRes.count ?? 0
+    const lastAcknowledgedAt = profileRes.data?.last_synthesis_acknowledged_at ?? null
 
-    // Recalibration window: first 5 days of each new 14-day cycle
-    const daysIntoCycle = total % 14
-    setIsRecalibrating(total >= 14 && daysIntoCycle >= 1 && daysIntoCycle <= 5)
+    // Count logs after the acknowledged date (only if acknowledged)
+    let logsSinceAcknowledged = 0
+    if (lastAcknowledgedAt) {
+      const { count } = await supabase
+        .from('daily_logs')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .gt('date', lastAcknowledgedAt.split('T')[0])
+      logsSinceAcknowledged = count ?? 0
+    }
 
-    if (data) {
-      const formatted = [...data].reverse().map((log: any) => {
+    // Compute synthesis state from durable inputs
+    const result = getSynthesisState(totalLogs, lastAcknowledgedAt, logsSinceAcknowledged)
+    setSynthesisState(result.state)
+    setLogsSinceAck(logsSinceAcknowledged)
+    setLogsUntilReady(result.logsUntilReady)
+
+    // Feed graph
+    if (historyRes.data) {
+      const formatted = [...historyRes.data].reverse().map((log: any) => {
         const [year, month, day] = log.date.split('-')
         const dateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
         return {
@@ -924,7 +956,7 @@ export default function Progress() {
                   {(() => {
                     const state = getSleepEveningCopy(sleepReadiness as 1|2|3|4|5)
                     return (
-                      <div className="p-4 rounded-xl bg-[#b5a642]/5 border border-[#b5a642]">
+                      <div className="p-4 rounded-xl bg-[#b5a642]/5 border border-[#b5a642]/15">
                         <p className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-1">{state.headline}</p>
                         <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed mb-2">{state.body}</p>
                         <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed italic">{state.environment_action}</p>
@@ -1243,74 +1275,80 @@ export default function Progress() {
 
           {/* ------------------------------------------------------------------ */}
           {/* 14-DAY PATTERN PANEL                                               */}
-          {/* Three states:                                                       */}
-          {/*   1. Building   — fewer than 14 logs, shows progress bar           */}
-          {/*   2. Recalibrating — first 5 days of a new 14-day cycle            */}
-          {/*   3. Ready      — synthesis available, expandable for Core+         */}
+          {/* Two states:                                                         */}
+          {/*   1. Building — fewer than 14 logs, shows progress bar             */}
+          {/*   2. Ready    — synthesis available, expandable for Core+           */}
           {/* ------------------------------------------------------------------ */}
           <div className={`glass-panel p-6 rounded-3xl mb-8 border relative overflow-hidden transition-all ${
-            isRecalibrating
+            synthesisState === 'recalibrating'
               ? 'bg-gradient-to-r from-[#b5a642]/5 to-transparent border-[#b5a642]/15'
-              : !macroSynthesis.ready || hasAccess
+              : synthesisState === 'building' || hasAccess
                 ? 'bg-gradient-to-r from-[#b5a642]/10 to-transparent border-[#b5a642]/20'
                 : 'bg-[#b5a642]/10 border-[#b5a642]/40 shadow-lg shadow-[#b5a642]/5'
           }`}>
             <div
-              className={`flex items-center justify-between w-full relative z-10 ${hasAccess && macroSynthesis.ready && !isRecalibrating ? 'cursor-pointer group' : ''}`}
-              onClick={() => { if (hasAccess && macroSynthesis.ready && !isRecalibrating) setIsSynthesisExpanded(!isSynthesisExpanded) }}
+              className={`flex items-center justify-between w-full relative z-10 ${hasAccess && macroSynthesis.ready && synthesisState === 'ready' ? 'cursor-pointer group' : ''}`}
+              onClick={async () => {
+                if (!hasAccess || !macroSynthesis.ready) return
+                const wasExpanded = isSynthesisExpanded
+                setIsSynthesisExpanded(!isSynthesisExpanded)
+                // Stamp acknowledgement when user collapses after having opened
+                if (wasExpanded) {
+                  await fetch('/api/acknowledge-synthesis', { method: 'POST' })
+                  fetchHistory() // recompute synthesis state immediately
+                }
+              }}
             >
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-[#b5a642]/20 rounded-full text-[#b5a642] shrink-0">
-                  {macroSynthesis.ready && !hasAccess && !isRecalibrating
+                  {macroSynthesis.ready && !hasAccess && synthesisState === 'ready'
                     ? <Lock size={20} />
                     : <Fingerprint size={20} />
                   }
                 </div>
                 <div>
                   <span className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-1 block">
-                    {isRecalibrating
+                    {synthesisState === 'recalibrating'
                       ? 'Pattern Recalibrating'
-                      : macroSynthesis.ready
+                      : synthesisState === 'ready'
                         ? 'Your 14-Day Pattern · Based on your last 14 days of logs'
                         : 'Building Your Picture'
                     }
                   </span>
                   <h4 className="text-xl font-serif text-[#c9ccbb]">
-                    {isRecalibrating
+                    {synthesisState === 'recalibrating'
                       ? 'Your Next Pattern Is Being Synthesised'
                       : macroSynthesis.title
                     }
                   </h4>
                 </div>
               </div>
-              {hasAccess && macroSynthesis.ready && !isRecalibrating && (
+              {hasAccess && macroSynthesis.ready && synthesisState === 'ready' && (
                 <div className="text-[#c9ccbb]/80 group-hover:text-[#b5a642] transition-colors ml-4 shrink-0">
                   {isSynthesisExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                 </div>
               )}
             </div>
 
-            {/* RECALIBRATING STATE */}
-            {isRecalibrating ? (
+            {synthesisState === 'recalibrating' ? (
               <div className="mt-4 pt-4 border-t border-[#b5a642]/10 w-full relative z-10">
                 <p className="text-sm text-[#c9ccbb]/70 leading-relaxed max-w-2xl mb-4">
-                  You have completed a full 14-day cycle. The previous synthesis has been cleared
-                  and a new pattern window has opened. Your next reading will be ready once
-                  {' '}{14 - (totalLogs % 14)}{' '}more days of logs have been recorded.
+                  You have acknowledged your current pattern. Your next synthesis will be ready
+                  once {logsUntilReady} more {logsUntilReady === 1 ? 'day' : 'days'} of logs have been recorded.
                 </p>
                 <p className="text-[#c9ccbb]/50 text-xs leading-relaxed max-w-2xl italic">
-                  Each new cycle looks at your environment with fresh context — without the weight
+                  Each new cycle reads your environment with fresh context — without the weight
                   of the previous window's assumptions. Continue logging consistently.
                 </p>
                 <div className="w-full max-w-md h-1 bg-[#000]/50 rounded-full mt-5 overflow-hidden">
                   <div
                     className="h-full bg-[#b5a642]/60 transition-all duration-1000"
-                    style={{ width: `${((totalLogs % 14) / 14) * 100}%` }}
+                    style={{ width: `${(logsSinceAck / 14) * 100}%` }}
                   />
                 </div>
               </div>
 
-            ) : !macroSynthesis.ready ? (
+            ) : synthesisState === 'building' ? (
               <div className="mt-4 pt-4 border-t border-[#c9ccbb]/10 w-full relative z-10">
                 <p className="text-sm text-[#c9ccbb]/80 leading-relaxed max-w-2xl">{macroSynthesis.paragraphs[0]}</p>
                 <div className="w-full max-w-md h-1 bg-[#000]/50 rounded-full mt-4 overflow-hidden">
