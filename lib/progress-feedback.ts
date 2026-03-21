@@ -206,7 +206,7 @@ export function getMacroSynthesis({ chartLogs }: MacroSynthesisParams): MacroSyn
       paragraphs: [
         `Over the last fourteen days, ${highDemandDays} out of 14 were logged as high social demand. High social demand activates the autonomic nervous system through evaluative pressure, emotional labour, and relational complexity — the same physiological pathways as environmental stressors, but with a different origin.`,
         `Your tension average of ${avgTension.toFixed(1)} and mood average of ${avgMood.toFixed(1)} are reflecting this load. The friction is not coming from your space. Your home can reduce the cost of what the day produces, but it cannot undo what continues to arrive relationally.`,
-        'The intervention is not spatial. It is two-part: manage the volume and nature of high-demand engagement where possible, and use your lowest-friction space deliberately for decompression. Your environment's role right now is to reduce the metabolic cost of processing, not to address the source.'
+        'The intervention is not spatial. It is two-part: manage the volume and nature of high-demand engagement where possible, and use your lowest-friction space deliberately for decompression. Your environments role right now is to reduce the metabolic cost of processing, not to address the source.'
       ]
     }
   }
