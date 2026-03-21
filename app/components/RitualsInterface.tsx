@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { getCurrentTimeOfDay } from '../lib/sensory-logic'
 import { RITUALS, resolveRitualVariant } from '../data/protocols'
 import type { SensoryProfile, IntegrationVariant } from '../data/protocols'
-import { Clock, ExternalLink, ChevronDown, ChevronUp, Zap, Check } from 'lucide-react'
+import { Clock, ExternalLink, ChevronDown, ChevronUp, Zap, Check, Music } from 'lucide-react'
 import Link from 'next/link'
 
 // NeuroLoad threshold above which the high-load ritual variant is served
@@ -36,9 +36,9 @@ export default function RitualsInterface({
   integrationPattern = 'integrative'
 }: Props) {
 
-  const [timeOfDay, setTimeOfDay]       = useState<'morning' | 'afternoon' | 'evening'>('morning')
-  const [mounted, setMounted]           = useState(false)
-  const [isOpen, setIsOpen]             = useState(false)
+  const [timeOfDay, setTimeOfDay]           = useState<'morning' | 'afternoon' | 'evening'>('morning')
+  const [mounted, setMounted]               = useState(false)
+  const [isOpen, setIsOpen]                 = useState(false)
   const [completedSteps, setCompletedSteps] = useState<number[]>([])
 
   useEffect(() => {
@@ -47,8 +47,8 @@ export default function RitualsInterface({
   }, [])
 
   // Select ritual ID based on time of day and load level
-  const isHighLoad    = neuroLoadScore > HIGH_LOAD_THRESHOLD
-  const ritualIds     = RITUAL_ID_MAP[timeOfDay]
+  const isHighLoad     = neuroLoadScore > HIGH_LOAD_THRESHOLD
+  const ritualIds      = RITUAL_ID_MAP[timeOfDay]
   const activeRitualId = isHighLoad ? ritualIds.high : ritualIds.normal
 
   const parentRitual = RITUALS[activeRitualId] || RITUALS['morning-activation']
@@ -57,10 +57,18 @@ export default function RitualsInterface({
   // Falls back to {profile}_integrative for users without integration data.
   const activeVariant = resolveRitualVariant(parentRitual, profile, integrationPattern)
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // FIX: Pull variant-level links alongside steps.
+  // Previously activeProtocol only carried steps — activeVariant.spotifyLink
+  // and activeVariant.toolLink were silently discarded, so variant-level
+  // playlist and tool links never rendered in the UI.
+  // ─────────────────────────────────────────────────────────────────────────
   const activeProtocol = {
     name:        parentRitual.name,
     tagline:     activeVariant.tagline,
     description: activeVariant.description,
+    spotifyLink: activeVariant.spotifyLink ?? null,
+    toolLink:    activeVariant.toolLink    ?? null,
     steps:       activeVariant.steps
   }
 
@@ -72,8 +80,8 @@ export default function RitualsInterface({
     )
   }
 
-  const progress    = Math.round((completedSteps.length / activeProtocol.steps.length) * 100)
-  const isComplete  = progress === 100
+  const progress   = Math.round((completedSteps.length / activeProtocol.steps.length) * 100)
+  const isComplete = progress === 100
 
   const profileLabel     = profile.charAt(0).toUpperCase() + profile.slice(1)
   const integrationLabel = INTEGRATION_LABELS[integrationPattern] ?? integrationPattern
@@ -89,7 +97,6 @@ export default function RitualsInterface({
         <div className="text-[#c9ccbb]/40 text-xs font-bold uppercase tracking-widest flex items-center gap-2">
           <Zap size={12} className="text-[#b5a642]" />
           {profileLabel} Protocol
-          {/* Integration pattern label — surfaces the second axis */}
           <span className="px-1.5 py-0.5 rounded-full border border-[#b5a642]/20 bg-[#b5a642]/5 text-[#b5a642]/70 text-[9px] font-bold uppercase tracking-widest">
             {integrationLabel}
           </span>
@@ -139,7 +146,6 @@ export default function RitualsInterface({
                 }`}>
                   {timeOfDay} Ritual
                 </span>
-                {/* High-load indicator badge */}
                 {isHighLoad && (
                   <span className="text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-full border border-[#b5a642]/30 bg-[#b5a642]/10 text-[#b5a642]">
                     High Load
@@ -184,14 +190,48 @@ export default function RitualsInterface({
                 onClick={e => e.stopPropagation()}
               >
 
-                {/* Description */}
+                {/* Description + variant-level links */}
                 <div className="py-6">
                   <p className="text-[#b5a642] text-xs font-bold uppercase tracking-widest mb-3">
                     {activeProtocol.tagline}
                   </p>
-                  <p className="text-[#c9ccbb]/80 text-base leading-relaxed max-w-3xl">
+                  <p className="text-[#c9ccbb]/80 text-base leading-relaxed max-w-3xl mb-4">
                     {activeProtocol.description}
                   </p>
+
+                  {/* ── Variant-level links ────────────────────────────────
+                      Playlist or guided audio for the whole ritual window.
+                      Rendered here so they are visible before the steps,
+                      inviting the user to start the audio before beginning.
+                  ──────────────────────────────────────────────────────── */}
+                  {(activeProtocol.spotifyLink || activeProtocol.toolLink) && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {activeProtocol.spotifyLink && (
+                        <Link
+                          href={activeProtocol.spotifyLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={e => e.stopPropagation()}
+                        >
+                          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full border border-[#b5a642]/80 bg-[#b5a642]/10 text-[#b5a642] hover:bg-[#b5a642]/20 hover:border-[#b5a642]/80 transition-all cursor-pointer">
+                            <Music size={11} /> Listen to Playlist
+                          </span>
+                        </Link>
+                      )}
+                      {activeProtocol.toolLink && (
+                        <Link
+                          href={activeProtocol.toolLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={e => e.stopPropagation()}
+                        >
+                          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full border border-[#c9ccbb]/20 bg-[#c9ccbb]/5 text-[#c9ccbb]/70 hover:text-[#b5a642] hover:border-[#b5a642]/80 transition-all cursor-pointer">
+                            <ExternalLink size={11} /> Guided Audio
+                          </span>
+                        </Link>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* INTERACTIVE STEPS GRID */}
@@ -238,7 +278,7 @@ export default function RitualsInterface({
                                 </span>
                               )}
                               {step.toolLink && (
-                                <Link href={step.toolLink} onClick={e => e.stopPropagation()}>
+                                <Link href={step.toolLink} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>
                                   <span className={`flex items-center gap-1 text-[10px] uppercase font-bold border px-2 py-0.5 rounded transition-colors cursor-pointer ${
                                     isChecked
                                       ? 'text-[#c9ccbb]/30 border-[#c9ccbb]/10'
@@ -249,7 +289,7 @@ export default function RitualsInterface({
                                 </Link>
                               )}
                               {step.spotifyLink && !step.toolLink && (
-                                <Link href={step.spotifyLink} onClick={e => e.stopPropagation()}>
+                                <Link href={step.spotifyLink} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>
                                   <span className={`flex items-center gap-1 text-[10px] uppercase font-bold border px-2 py-0.5 rounded transition-colors cursor-pointer ${
                                     isChecked
                                       ? 'text-[#c9ccbb]/30 border-[#c9ccbb]/10'
