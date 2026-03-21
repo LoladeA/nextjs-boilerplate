@@ -29,7 +29,7 @@ export const morningTagOptions = [
   { id: 'sunlight',        label: 'Got Early Morning Sunlight',         icon: <Sun size={14} />         },
   { id: 'noise_buffer',    label: 'Reduced Intrusive Noise',            icon: <Volume2 size={14} />     },
   { id: 'declutter',       label: 'Cleared / Decluttered One Area',     icon: <CheckCircle size={14} /> },
-  { id: 'hydration_first', label: 'Water Before Caffeine',              icon: <Droplets size={14} />    },
+  { id: 'hydration_first', label: 'Water Before Caffeine',              icon: <Droplet size={14} />     },
 ]
 
 // ─────────────────────────────────────────────────────────────────────────────
