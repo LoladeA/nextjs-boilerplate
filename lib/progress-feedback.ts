@@ -148,7 +148,7 @@ export function getMacroSynthesis({ chartLogs }: MacroSynthesisParams): MacroSyn
       title:      'Still Gathering Data',
       paragraphs: [
         `${Math.max(0, 14 - chartLogs.length)} more ${14 - chartLogs.length === 1 ? 'day' : 'days'} of logs before your pattern becomes readable.`,
-        'Each entry adds signal. The pattern emerges from consistency, not from any single day's reading.'
+        'Each entry adds signal. The pattern emerges from consistency, not from any single days reading.'
       ]
     }
   }
