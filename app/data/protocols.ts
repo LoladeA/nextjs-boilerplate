@@ -92,7 +92,7 @@ export const RITUALS: Record<string, Ritual> = {
       sensor_integrative: {
         tagline:     'The Gentle Ascent: Waking Without Overwhelm.',
         description: 'For the highly sensitive system, the standard alarm-and-blast morning routine is assaultive, triggering an immediate cortisol spike that registers as anxiety. Your protocol prioritises a Soft Start: titrating sensory input slowly so your nervous system comes online without tripping the threat-detection wires. When recovery conditions were adequate overnight, your system arrives ready to use a gentle morning well.',
-        spotifyLink: 'https://open.spotify.com/playlist/37i9dQZF1DZ06evO1A8iR2?si=fefd25a5476e4952',
+        spotifyLink: 'https://open.spotify.com/playlist/37i9dQZF1DXcgZcN2HVMoe?si=b5de500358ea4a7d',
         steps: [
           {
             type: 'light',
@@ -141,7 +141,7 @@ export const RITUALS: Record<string, Ritual> = {
       // -----------------------------------------------------------------------
       sensor_accumulative: {
         tagline:     'Carrying Yesterday: The Residue-Aware Morning.',
-        description: 'Your system does not arrive at each morning fully reset. What the previous day held -- its noise, its demands, its unresolved moments -- is still present in your nervous system when you wake. The morning protocol must account for this prior-day load before attempting any activation. The goal is not to begin the day. The goal is to discharge what the night did not clear, and then begin.',
+        description: 'Your system does not arrive at each morning fully reset. What the previous day held [its noise, its demands, its unresolved moments] is still present in your nervous system when you wake. The morning protocol must account for this prior-day load before attempting any activation. The goal is not to begin the day. The goal is to discharge what the night did not clear, and then begin.',
         spotifyLink: 'https://open.spotify.com/playlist/37i9dQZF1DZ06evO1A8iR2?si=fefd25a5476e4952',
         steps: [
           {
@@ -193,7 +193,7 @@ export const RITUALS: Record<string, Ritual> = {
       seeker_mixed: {
         tagline:     'The Unpredictable Engine: Reading the Threshold Before Activating.',
         description: 'Your stimulation needs are real but they shift. The same activation protocol that produces clarity on a high-capacity morning can produce scattered overwhelm when your system is carrying variable load. The Seeker with a mixed integration pattern needs to check the engine before flooring the accelerator. Some mornings need ignition. Others need a gentler ramp.',
-        spotifyLink: 'https://open.spotify.com/playlist/2TwygCUmV9hogNFqZZ4to2?si=0e20cd0bc7684d86',
+        spotifyLink: 'https://open.spotify.com/playlist/37i9dQZF1DZ06evO3YvhXa?si=bf3de439385949a5',
         steps: [
           {
             type: 'somatic',
@@ -218,12 +218,12 @@ export const RITUALS: Record<string, Ritual> = {
       seeker_accumulative: {
         tagline:     'The Loaded Engine: Activation Without Compounding.',
         description: 'Your system needs stimulation to function -- but it is also carrying a backlog from prior exposures that have not fully cleared. Adding more stimulation to a loaded system does not produce activation. It compounds the backlog. The morning priority is a controlled discharge of residual load before any activation attempt. The ignition comes second, not first.',
-        spotifyLink: 'https://open.spotify.com/playlist/2TwygCUmV9hogNFqZZ4to2?si=0e20cd0bc7684d86',
+        spotifyLink: 'https://open.spotify.com/album/3PcQ6nRD17dBvMspFwXIx4?si=J25A9fn6RWWEIc_Ed7ZfUA',
         steps: [
           {
             type: 'somatic',
             label: 'Physical Discharge First',
-            instruction: '10 minutes of moderate movement before any stimulation input -- a slow walk, light stretching, or gentle joint rotation. This is not activation. It is metabolisation of the residual load your system arrived with. Until this step is done, stimulation will scatter rather than focus.',
+            instruction: 'Engage in 10 minutes of moderate movement before any stimulation input, such as a slow walk, light stretching or gentle joint rotation. This is not activation. It is the metabolism of the residual load that your system arrived with. Until this step is complete, stimulation will be scattered rather than focused.',
             duration: '10 min'
           },
           {
@@ -234,7 +234,7 @@ export const RITUALS: Record<string, Ritual> = {
           {
             type: 'sound',
             label: 'Rhythmic Anchor, Not Volume',
-            instruction: 'Use steady rhythmic music at moderate tempo. The goal is entrainment to a stable beat -- not the dopamine spike of high-intensity audio. Rhythm regulates. Volume, at this stage, loads.'
+            instruction: 'Use steady rhythmic music at moderate tempo. The goal is entrainment to a stable beat, not the dopamine spike of high-intensity audio. Rhythm regulates. Volume, at this stage, loads.'
           }
         ]
       },
@@ -330,7 +330,7 @@ export const RITUALS: Record<string, Ritual> = {
       // -----------------------------------------------------------------------
       sensor_integrative: {
         tagline:     'Zero Demands. Full Containment.',
-        description: 'A high-load morning for the Sensor with an integrative pattern means the sensory bucket arrived full -- likely from poor sleep, overnight noise, or emotional residue. The integrative pattern means recovery is available, but only when the conditions genuinely support it. Do not attempt to push through. The only productive move is decompression before any environmental exposure.',
+        description: 'For the Sensor, a high-load morning with an integrative pattern means that the sensory bucket is full, likely due to poor sleep, overnight noise or emotional residue. Although recovery is available when the conditions genuinely support it, it is best not to push through. Do not attempt to push through. The only productive move is to decompress before any environmental exposure.',
         toolLink: 'https://insig.ht/eu6G6KYTm1b',
         steps: [
           {
@@ -356,6 +356,7 @@ export const RITUALS: Record<string, Ritual> = {
       sensor_mixed: {
         tagline:     'High Load, Unknown Capacity: Assume the Harder Day.',
         description: 'On a high-load morning, your mixed integration pattern means you cannot predict whether today will resolve with recovery or compound further. When the answer is unknown, calibrate for the harder scenario. A morning designed for a difficult day will not harm you on an easier one. A morning that assumes capacity you do not have will compound the load you are already carrying.',
+        toolLink: 'https://insig.ht/rQC9fMIrG1b',
         steps: [
           {
             type: 'space',
@@ -379,8 +380,8 @@ export const RITUALS: Record<string, Ritual> = {
       // -----------------------------------------------------------------------
       sensor_accumulative: {
         tagline:     'The Full Bucket: Discharging Before the Day Begins.',
-        description: 'For the Sensor with an accumulative pattern, a high-load morning is not a temporary state caused by a difficult night. It is the result of several days of input that has not cleared. This morning does not just need containment -- it needs a longer discharge window than a single morning protocol can fully deliver. What the protocol can do is prevent compounding and give your system the most recovery-friendly conditions available.',
-        toolLink: 'https://insig.ht/eu6G6KYTm1b',
+        description: 'For the Sensor with an accumulative pattern, a high-load morning is not a temporary state caused by a difficult night. It is the result of several days of input that has not cleared. This morning does not just need containment, it needs a longer discharge window than a single morning protocol can fully deliver. What the protocol can do is prevent compounding and give your system the most recovery-friendly conditions available.',
+        toolLink: 'https://app.declutterthemind.com/?meditation=1667764972208x231304055037624320',
         steps: [
           {
             type: 'space',
@@ -396,7 +397,7 @@ export const RITUALS: Record<string, Ritual> = {
           {
             type: 'light',
             label: 'Darkness as a Starting Point',
-            instruction: 'Begin in near-darkness and introduce light only when the body visibly softens -- a loosening of jaw or shoulder tension. Do not use time as the trigger for light introduction. Use your body state. Your system sets the schedule today.'
+            instruction: 'Start in near-darkness and only introduce light when there is a visible softening of the body, such as a loosening of the jaw or shoulders. Do not use time as the trigger for introducing light. Use your bodys state as the trigger. Your body will set the schedule today.'
           }
         ]
       },
@@ -405,18 +406,18 @@ export const RITUALS: Record<string, Ritual> = {
       seeker_integrative: {
         tagline:     'Burn It Off First.',
         description: 'For your system, anxiety and restlessness are often the same signal. When the morning arrives with high load, the most direct regulatory tool available is physical discharge. Move the stress through the body before attempting any cognitive task. With your integrative pattern, the discharge window will produce a genuine reset rather than a temporary distraction.',
-        toolLink: 'https://insig.ht/D7GHJJRTm1b',
+        toolLink: 'https://app.declutterthemind.com/?meditation=1667765819764x345910268725559300',
         steps: [
           {
             type: 'somatic',
             label: 'Discharge Protocol',
-            instruction: '10 to 15 minutes of vigorous physical movement -- jumping jacks, a brisk walk, or weighted stretching. Your nervous system needs to metabolise the stress hormones before it can regulate. This is not optional. It is the mechanism, not a warm-up.',
+            instruction: '10 to 15 minutes of vigorous physical movement such as jumping jacks, a brisk walk, or weighted stretching. Your nervous system needs to metabolise the stress hormones before it can regulate. This is not optional. It is the mechanism, not a warm-up.',
             duration: '15 min'
           },
           {
             type: 'sound',
             label: 'Rhythmic Anchor',
-            instruction: 'Play steady, rhythmic music -- structured and pulse-driven, not chaotic. Rhythm entrains the nervous system. It provides predictability without understimulation. After discharge, rhythm is the bridge back to a working baseline.'
+            instruction: 'Play steady, rhythmic music that is structured and pulse-driven, rather than chaotic. Rhythm entrains the nervous system. It provides predictability without understimulation. After discharge, rhythm acts as a bridge back to a working baseline.'
           },
           {
             type: 'space',
@@ -430,11 +431,12 @@ export const RITUALS: Record<string, Ritual> = {
       seeker_mixed: {
         tagline:     'High Load, Variable System: Discharge With Awareness.',
         description: 'On a high-load morning, your mixed integration pattern means the discharge that usually resets your system may land differently today. Some mornings the movement protocol produces rapid regulation. Others it increases agitation. The protocol stays the same but the intensity is modulated by what you observe in the first two minutes of movement.',
+        toolLink: 'https://app.declutterthemind.com/?meditation=1667765819764x345910268725559300',
         steps: [
           {
             type: 'somatic',
             label: 'Modulated Discharge',
-            instruction: 'Begin with 5 minutes of moderate movement -- a brisk walk or light jumping. Assess after 5 minutes. If agitation decreases, continue and increase intensity. If agitation increases, drop to slow rhythmic movement such as walking or gentle stretching. Your system is telling you which direction discharge needs to go today.',
+            instruction: 'Start with five minutes of moderate movement, such as a brisk walk or light jumping. Assess your progress after five minutes. If your agitation has decreased, continue and increase the intensity. If your agitation increases, switch to slow, rhythmic movements such as walking, meditation or gentle stretching. Your body is telling you which direction it needs to go in today.',
             duration: '10 min'
           },
           {
@@ -454,17 +456,18 @@ export const RITUALS: Record<string, Ritual> = {
       seeker_accumulative: {
         tagline:     'The Backlog Morning: Discharge What Arrived, Not Just What Is Here.',
         description: 'A high-load morning for the Seeker with an accumulative pattern means the morning arrived with the residue of prior days already present, and today has added to it. Standard discharge protocols address current load. Your pattern requires addressing carried load first, at lower intensity, before any standard activation sequence. Forcing high-output discharge into a loaded accumulative system compounds the backlog rather than clearing it.',
+        toolLink: 'https://app.declutterthemind.com/?meditation=1667765819764x345910268725559300',
         steps: [
           {
             type: 'somatic',
             label: 'Low-Intensity Discharge First',
-            instruction: '10 minutes of slow walking or gentle rhythmic movement -- nothing vigorous. This is not the full discharge protocol. This is the pre-discharge: giving accumulated load a route out before the system is asked to produce more. Only once this window is complete should you assess whether higher-intensity movement is appropriate.',
+            instruction: 'Do 10 minutes of slow walking or gentle, rhythmic movement; nothing vigorous. This is not the full discharge protocol. It is a pre-discharge process, providing an outlet for accumulated load before the system is asked to produce more. Only once this process is complete should you consider whether higher-intensity movement is appropriate.',
             duration: '10 min'
           },
           {
             type: 'space',
             label: 'One Controlled Variable',
-            instruction: 'Choose one element of your morning environment that you control completely -- a chair position, a window you open or close, a single lamp. For your pattern, agency over one concrete variable reduces the sensation of being managed by your environment rather than managing it.'
+            instruction: 'Choose one element of your morning environment that you can control completely, such as the position of a chair, whether you open or close a window, or the use of a single lamp. Having agency over one concrete variable in this way reduces the sensation of being managed by your environment rather than managing it.'
           },
           {
             type: 'sound',
@@ -504,22 +507,23 @@ export const RITUALS: Record<string, Ritual> = {
       anchor_mixed: {
         tagline:     'High Load, Uncertain Capacity: Regulate Before Assuming Resilience.',
         description: 'Your system is broadly resilient, but a high-load morning with a mixed integration pattern means you cannot assume your usual tolerance is available. The mornings where your pattern shifts toward accumulation are rarely signalled clearly in advance. A high-load morning is the most likely context for that shift. Regulate first and test your resilience second, rather than the other way around.',
+        toolLink: 'https://app.declutterthemind.com/?meditation=1728331909613x189005917071605760',
         steps: [
           {
             type: 'somatic',
             label: 'Sigh and Scan',
-            instruction: 'Five rounds of the physiological sigh -- two sharp inhales, one long exhale -- followed by a 60-second body scan. Notice whether tension releases after the sigh or stays present. Staying present means today is a variable-pattern day and the protocol needs to stay regulatory rather than activating.',
-            duration: '5 min'
+            instruction: 'Complete five rounds of the physiological sigh [two sharp inhales followed by one long exhale] and then perform a 60-second body scan or a morning Vipassana meditation. Notice whether any tension releases after the sigh or remains present. If you are still tense, today is a variable-pattern day and the protocol needs to be regulatory rather than activating.',
+            duration: '15 min'
           },
           {
             type: 'light',
             label: 'Indirect First',
-            instruction: 'Indirect morning light for 10 minutes before any direct exposure. On most high-load mornings for your system, this is sufficient to establish a regulated baseline. The step exists to prevent loading a potentially depleted system with an unnecessary stimulation ramp.'
+            instruction: 'Allow 10 minutes of indirect morning light before any direct exposure. For most high-load mornings, this is sufficient to establish a regulated baseline for your system. This step is designed to prevent an unnecessary stimulation ramp from being loaded onto a potentially depleted system.'
           },
           {
             type: 'space',
             label: 'Low-Demand Window',
-            instruction: 'Delay the first high-demand transition -- a meeting, a conversation, a complex task -- by at least 20 minutes. Your system does not signal distress readily, but that does not mean it is not present. Give the regulation window time to work before asking your resilience to carry the morning.',
+            instruction: 'Postpone the first high-demand activity such as a meeting, conversation or complex task by at least 20 minutes. Your system does not readily signal distress, but that does not mean it is not present. Allow the regulation window time to work before expecting your resilience to carry you through the morning.',
             duration: '20 min'
           }
         ]
@@ -529,22 +533,23 @@ export const RITUALS: Record<string, Ritual> = {
       anchor_accumulative: {
         tagline:     'The Silent Overflow: Managing What You Cannot Yet Feel.',
         description: 'A high-load morning for the Anchor with an accumulative pattern is the context where the absence of distress signals is most misleading. Your system is likely carrying significant load without advertising it. The morning protocol is not about managing what you feel. It is about managing what is present whether you feel it or not.',
+        toolLink: 'https://app.declutterthemind.com/?meditation=1728331909613x189005917071605760',
         steps: [
           {
             type: 'somatic',
             label: 'Extended Stillness',
-            instruction: 'A minimum of 10 minutes of complete inactivity before any transition. No devices, no decisions, no movement beyond breathing. This is not rest -- it is load assessment. Your system uses this window to surface what it is carrying even when it has not been volunteering that information.',
+            instruction: 'Allow yourself a minimum of 10 minutes of complete inactivity before any transition. This means no devices, no decisions and no movement beyond breathing. This is not rest; it is a load assessment. During this time, your system will reveal what it is carrying, even if it has not volunteered that information.',
             duration: '10 min'
           },
           {
             type: 'space',
             label: 'Reduction Before Entry',
-            instruction: 'Before moving into any shared or high-stimulus space, reduce the immediate environment by one sensory variable -- close a door, lower a blind, remove an object from your sight line. Reduction is the first regulatory tool for your pattern, not the last.'
+            instruction: 'Before moving into any shared or high-stimulus space, reduce the sensory input in your immediate environment by one sensory variable: close a door, lower a blind or remove an object from your line of sight. Reduction is the first regulatory tool, not the last.'
           },
           {
             type: 'light',
             label: 'Minimum Functional Light',
-            instruction: 'Use the least light that allows you to function rather than the most you can tolerate. Your threshold is not the correct calibration point for a high-load accumulative morning. Your actual system state is -- and that state is carrying more than your threshold suggests.'
+            instruction: 'Use the minimum amount of light that allows you to function, rather than the maximum amount that you can tolerate. Your threshold is not the correct calibration point for an intense morning with a high workload. Your actual system state is carrying more than your threshold suggests.'
           }
         ]
       }
@@ -565,8 +570,8 @@ export const RITUALS: Record<string, Ritual> = {
       // -----------------------------------------------------------------------
       sensor_integrative: {
         tagline:     'The Shielded Focus: Reducing Sensory Friction.',
-        description: 'Your afternoon distraction is likely caused by sensory fatigue -- the exhaust of processing too much environmental data across the morning. A well-supported integrative morning means you arrive at the afternoon with reasonable capacity remaining, but that capacity is not infinite. The protocol does not add stimulation. It subtracts friction, liberating the processing power needed for sustained focus.',
-        spotifyLink: 'https://insig.ht/UVO8dS7QP0b',
+        description: 'Your afternoon distraction is probably due to sensory fatigue, which is the result of processing too much environmental data during the morning. If you have a well-structured morning, you will arrive at the afternoon with some capacity remaining, but this is not infinite. The protocol does not introduce additional stimulation. It reduces friction, freeing up the processing power needed for sustained focus.',
+        spotifyLink: 'https://app.declutterthemind.com/?meditation=1678059799227x776951858712019000',
         steps: [
           {
             type: 'light',
@@ -590,6 +595,7 @@ export const RITUALS: Record<string, Ritual> = {
       sensor_mixed: {
         tagline:     'The Variable Afternoon: Adapting the Focus Protocol to Available Capacity.',
         description: 'Your afternoon capacity is not predictable from your morning. A manageable morning may have consumed more than you realise, leaving less available for afternoon focus than you expected. The mixed integration pattern means the same friction-reduction protocol produces different results on different days. Build in a brief assessment before committing to the depth of focus you are asking for.',
+        spotifyLink: 'https://app.declutterthemind.com/?meditation=1678059799227x776951858712019000',
         steps: [
           {
             type: 'somatic',
@@ -614,6 +620,7 @@ export const RITUALS: Record<string, Ritual> = {
       sensor_accumulative: {
         tagline:     'The Compounding Afternoon: Focus Within Reduced Capacity.',
         description: 'By afternoon, your accumulative pattern means the sensory and cognitive load of the morning has not cleared -- it has built. The focus window available to you is real but narrower than it would be for an integrative system at the same point in the day. The protocol does not try to extend this window artificially. It protects what remains and reduces the rate of further accumulation.',
+        spotifyLink: 'https://app.declutterthemind.com/?meditation=1678059799227x776951858712019000',
         steps: [
           {
             type: 'space',
@@ -624,12 +631,12 @@ export const RITUALS: Record<string, Ritual> = {
           {
             type: 'light',
             label: 'Lowest Functional Lux',
-            instruction: 'Use the least light that allows reading without strain. Do not compensate for fatigue with brighter light -- bright light adds processing demand. The goal is minimum input to sustain the task, not optimal environment for peak performance.'
+            instruction: 'Use the minimum amount of light required for reading without straining your eyes. Do not compensate for fatigue by using brighter light, as this increases the processing demand. The goal is to sustain the task with minimum input, not to create an optimal environment for peak performance.'
           },
           {
             type: 'somatic',
             label: 'Sustained Pressure and Warmth',
-            instruction: 'Weighted lap pad and warm drink at hand throughout the focus block. For your pattern, these are not comfort items -- they are active regulatory inputs that slow the rate of further accumulation across the session.'
+            instruction: 'Keep a weighted lap pad and a warm drink to hand throughout the focus block. These are not comfort items for you; they are active regulatory inputs that slow the rate of further accumulation across the session.'
           }
         ]
       },
@@ -648,7 +655,7 @@ export const RITUALS: Record<string, Ritual> = {
           {
             type: 'sound',
             label: 'Brown Noise Wall',
-            instruction: 'Play brown noise -- rougher and deeper than white noise. It occupies the distraction centre of your auditory cortex so the rest of your brain can work. Your integrative system can sustain this input without loading from it.'
+            instruction: 'Play brown noise, which is rougher and deeper than white noise, or the flow state link provided here. It occupies the distraction centre of your auditory cortex, allowing the rest of your brain to function. Your integrative system can process this input without being overwhelmed by it.'
           },
           {
             type: 'somatic',
@@ -662,6 +669,7 @@ export const RITUALS: Record<string, Ritual> = {
       seeker_mixed: {
         tagline:     'The Shifting Spotlight: Stimulation That Adapts to Carried Load.',
         description: 'Your afternoon stimulation needs vary with what you are carrying. On lower-load afternoons, the standard Seeker focus protocol produces reliable results. On higher-load afternoons, the same stimulation profile can tip into scattered overactivation. The protocol stays structured but the intensity of each element is modulated by a brief assessment at the outset.',
+        spotifyLink: 'https://insig.ht/skmY1CZQP0b',
         steps: [
           {
             type: 'somatic',
@@ -672,12 +680,12 @@ export const RITUALS: Record<string, Ritual> = {
           {
             type: 'light',
             label: 'Adaptive Vignette',
-            instruction: 'On focused-restlessness afternoons, use the full vignette effect -- overhead lights off, task lamp high. On scattered afternoons, soften the contrast slightly: task lamp on but not at full intensity. The contrast cues attention; the degree depends on what your system can absorb today.'
+            instruction: 'When you are feeling restless in the afternoon, make the most of the full vignette effect by switching off the overhead lights and turning up the task lamp. On more scattered afternoons, soften the contrast slightly by leaving the task lamp on, but not at full intensity. The degree of contrast depends on what your system can absorb today.'
           },
           {
             type: 'sound',
             label: 'Tiered Noise',
-            instruction: 'Start with brown noise at medium volume. Increase if focus sharpens after 5 minutes. Hold if it does not. On variable-load afternoons, the noise wall provides containment first -- stimulation is secondary to that function.'
+            instruction: 'Start with brown noise or the provided flow state music at a medium volume. Increase the volume if your focus sharpens after five minutes. Hold if it does not. On variable-load afternoons, the noise walls primary function is containment; stimulation is secondary.'
           }
         ]
       },
@@ -686,21 +694,22 @@ export const RITUALS: Record<string, Ritual> = {
       seeker_accumulative: {
         tagline:     'Focus Through the Backlog: Sustainable Output Over Forced Activation.',
         description: 'By afternoon, your accumulative pattern means stimulation from the morning has layered rather than cleared. Adding more stimulation to pursue focus compounds the backlog rather than producing clarity. The afternoon focus protocol for your pattern is not about activation -- it is about creating the right conditions for sustained output within a system that is already running a higher baseline load than it appears to be.',
+        spotifyLink: 'https://insig.ht/skmY1CZQP0b',
         steps: [
           {
             type: 'space',
             label: 'Agency Over One Variable',
-            instruction: 'Before beginning, make one deliberate environmental adjustment that increases your sense of control over the space -- open a window, position a chair differently, clear one surface. For your pattern, perceived agency over the environment reduces the vigilance cost of being in it, which directly increases available focus.'
+            instruction: 'Before you begin, make one deliberate environmental adjustment that will increase your sense of control over the space. This could be as simple as opening a window, moving a chair, or clearing a surface. Having perceived agency over the environment reduces the cost of vigilance, which increases available focus.'
           },
           {
             type: 'light',
             label: 'Predictable Contrast',
-            instruction: 'Task lamp on, overhead off. Same as the standard Seeker protocol -- but the goal here is predictability of the visual field rather than stimulation of attention. A stable, controlled lighting environment gives your accumulated system fewer variables to track.'
+            instruction: 'Turn on the task lamp and turn off the overhead light. The aim is to make the visual field predictable rather than stimulating attention. A stable, controlled lighting environment reduces the number of variables your accumulated system has to track.'
           },
           {
             type: 'sound',
             label: 'Rhythmic Containment',
-            instruction: 'Steady, medium-tempo music or brown noise at moderate volume. For an accumulative afternoon, the sound should anchor rather than activate. Rhythm provides structure. Volume is kept below your usual preference -- not because of sensitivity, but because adding more input to a loaded system reduces output rather than increasing it.'
+            instruction: 'Play steady, medium-tempo music or brown noise at a moderate volume. For a productive afternoon, the sound should provide a sense of stability rather than stimulation. Rhythm provides structure. The volume should be kept below your usual preference not because of sensitivity, but because adding more input to a loaded system reduces output rather than increasing it.'
           }
         ]
       },
@@ -733,22 +742,23 @@ export const RITUALS: Record<string, Ritual> = {
       anchor_mixed: {
         tagline:     'The Adaptive Second Wind: Performance With Variable Awareness.',
         description: 'Your system is capable of a strong afternoon focus block, but your mixed integration pattern means the available capacity varies. On most afternoons the standard Anchor protocol produces solid results. On afternoons where prior load has been quietly higher than usual, the same activation attempt produces diminishing returns. Build in a brief assessment before choosing your activation intensity.',
+        spotifyLink: 'https://insig.ht/TcOSceRQP0b',
         steps: [
           {
             type: 'somatic',
             label: 'Sigh and Assess',
-            instruction: 'Three rounds of the physiological sigh before committing to the focus session. Notice whether the third sigh produces visible relaxation or whether the body stays in the same state. Relaxation response means your system is available for activation. No response means this afternoon needs a restorative window before a focus attempt.',
+            instruction: 'Do three rounds of the physiological sigh before committing to the focus session. Observe whether the third sigh produces visible relaxation, or if the body remains in the same state. A relaxation response means that your system is ready to be activated. If there is no response, this afternoon will require a restorative period before attempting to focus.',
             duration: '3 min'
           },
           {
             type: 'sound',
             label: 'Modulated Frequency',
-            instruction: 'On responsive afternoons, proceed to 40Hz Gamma as usual. On non-responsive afternoons, use Theta binaural beats instead -- these support consolidation and moderate restoration rather than activation. Your output on a partially loaded afternoon is higher from a rested baseline than from a pushed one.'
+            instruction: 'On responsive afternoons, proceed as usual with 40 Hz gamma. On non-responsive afternoons, use Theta binaural beats instead, as these support consolidation and moderate restoration rather than activation. Your output on a partially loaded afternoon is higher from a rested baseline than from a pushed one.'
           },
           {
             type: 'space',
             label: 'Upright and Open',
-            instruction: 'Standing or upright seated position with a wide visual field. For your profile this activates the RAS without requiring additional sensory input. On variable-load afternoons, the posture change alone may be sufficient to shift the state.'
+            instruction: 'Adopt a standing or upright seated position that provides a wide visual field. On afternoons with variable loads, changing your posture alone may be enough to shift your state.'
           }
         ]
       },
@@ -757,22 +767,23 @@ export const RITUALS: Record<string, Ritual> = {
       anchor_accumulative: {
         tagline:     'Sustained Output, Managed Load: Focus Without Adding to the Stack.',
         description: 'Your afternoon cognitive capacity is present but it is being sustained by a system that is carrying more than it appears to be. The focus protocol does not attempt to activate past that load. It creates the conditions for sustained output within it -- and prioritises not adding further to what is already accumulated.',
+        spotifyLink: 'https://insig.ht/TcOSceRQP0b',
         steps: [
           {
             type: 'somatic',
             label: 'Passive Reset First',
-            instruction: 'Five minutes of complete inactivity before beginning -- no screens, no movement, no input. For your accumulative pattern, this window gives the system a brief route for discharge before another demand is added. The focus block following a passive reset produces more output than one begun immediately after a transition.',
+            instruction: 'You must allow five minutes of complete inactivity before beginning. This means no screens, no movement, no input. For your accumulative pattern, this window allows the system to discharge briefly before another layer of demand is added. A focus block following a passive reset produces more output than one that begins immediately after a transition.',
             duration: '5 min'
           },
           {
             type: 'space',
             label: 'Reduced Input Field',
-            instruction: 'Before beginning, remove one non-essential item from your immediate environment -- an object, a notification source, an open application. Your system is tracking more background data than you are aware of. Reducing one variable reduces the vigilance cost without requiring you to feel it first.'
+            instruction: 'Before you begin, remove one non-essential item from your immediate environment. This could be an object, a notification source or an open application. Your system is tracking more background data than you realise. Reducing one variable lowers the cost of vigilance without you having to experience it first.'
           },
           {
             type: 'sound',
             label: 'Low-Frequency Anchor',
-            instruction: 'Brown noise or steady low-frequency music at moderate volume. The goal is masking of unpredictable environmental sound, not activation. For your pattern, predictability of the auditory field is more valuable than stimulation of attention.'
+            instruction: 'Play brown noise or steady, low-frequency music at a moderate volume. The aim is to mask unpredictable environmental sounds, not to activate attention. In your case, predictability of the auditory field is more important than stimulating attention.'
           }
         ]
       }
@@ -799,18 +810,18 @@ export const RITUALS: Record<string, Ritual> = {
           {
             type: 'space',
             label: 'The Retreat Room',
-            instruction: 'Move to the quietest available space. Lie down or sit fully supported. No phone, no background sound, no open doors. If sharing the space, use noise-cancelling headphones even in silence. Minimum 15 minutes.',
+            instruction: 'Move to the quietest available space. Lie down or sit in a fully supported position. There should be no phones, background sounds or open doors. If you already practise meditation, you may do so. If you are sharing the space, wear noise cancelling headphones, even if you are not listening to anything.',
             duration: '15 min'
           },
           {
             type: 'light',
             label: 'Near-Darkness',
-            instruction: 'Dim to the lowest tolerable level or use an eye mask. Visual input is one of the highest-bandwidth sensory channels. Taking it offline provides the most significant processing relief available to your pattern in the shortest amount of time.'
+            instruction: 'Dim the light to the lowest tolerable level, or wear an eye mask. Visual input is one of the highest-bandwidth sensory channels. Taking it offline provides the most significant processing relief for your brain in the shortest amount of time.'
           },
           {
             type: 'somatic',
             label: 'Weight and Warmth',
-            instruction: 'A heavy blanket or cushion over your legs and torso. Proprioceptive pressure tells the nervous system it is physically contained and not under threat. This is a direct input to the autonomic regulation pathway. For your integrative pattern, it creates the conditions for genuine reset within the window.'
+            instruction: 'Place a heavy blanket or cushion over your legs and torso. This proprioceptive pressure tells the nervous system that the body is physically contained and not under threat. This provides direct input to the autonomic regulation pathway. For your integrative pattern, it creates the conditions for a genuine reset within the window.'
           }
         ]
       },
@@ -819,23 +830,24 @@ export const RITUALS: Record<string, Ritual> = {
       sensor_mixed: {
         tagline:     'Variable Afternoon Load: Withdrawal Calibrated to Current State.',
         description: 'A high-load afternoon with a mixed integration pattern requires withdrawal -- but the depth and duration of that withdrawal depends on which version of your processing pattern is active. If today has been compounding, you need deeper withdrawal. If the load arrived recently rather than across the day, a shorter window may be sufficient. Assess before choosing the duration.',
+        toolLink: 'https://insig.ht/SGjhihjUm1b',
         steps: [
           {
             type: 'somatic',
             label: 'State Assessment',
-            instruction: 'Before lying down, take 60 seconds to notice whether your depletion feels shallow or deep. Shallow depletion -- arriving in the last hour or two -- responds to a 10-minute retreat. Deep depletion -- present since mid-morning or building across days -- requires 20 minutes minimum and will not fully respond to a single window.',
+            instruction: 'Before lying down, take 60 seconds to notice whether your depletion feels shallow or deep. Shallow depletion, which arrives in the last hour or two, responds to a 10-minute retreat. Deep depletion, present since mid-morning or building over several days, requires a minimum of 20 minutes and will not fully respond to a single session.',
             duration: '1 min'
           },
           {
             type: 'space',
             label: 'Scaled Retreat',
-            instruction: 'For shallow depletion: quietest available room, door closed, 10 minutes. For deep depletion: full sensory withdrawal with eye mask and weighted blanket, 20 minutes minimum. Do not use the shorter window on a day that requires the longer one.',
+            instruction: 'For shallow depletion, use the quietest available room with the door closed for 10 minutes. For deep depletion, full sensory withdrawal is required, using an eye mask and a weighted blanket for a minimum of 20 minutes. Do not use the shorter time frame on a day when the longer one is required.',
             duration: '10-20 min'
           },
           {
             type: 'light',
             label: 'Darkness as Default',
-            instruction: 'On any high-load afternoon, default to near-darkness regardless of which depletion depth applies. The visual channel is always the first to withdraw and the last to re-engage. It costs nothing to close it and restores faster than any other input channel.'
+            instruction: 'On any high-load afternoon, default to near-darkness. This applies regardless of which depletion depth applies. The visual channel is always the first to be withdrawn and the last to be re-engaged. Closing it incurs no cost and it restores faster than any other input channel.'
           }
         ]
       },
@@ -844,22 +856,23 @@ export const RITUALS: Record<string, Ritual> = {
       sensor_accumulative: {
         tagline:     'The Compounded Afternoon: Withdrawal as Biological Necessity.',
         description: 'For the Sensor with an accumulative pattern, a high-load afternoon is not a temporary depletion event. It is the cumulative result of days of input that has not cleared. A single retreat window will not fully restore capacity -- but it will prevent further accumulation and reduce the load carried into the evening and the following day. That is the goal. Complete restoration is a longer arc.',
+        toolLink: 'https://insig.ht/SGjhihjUm1b',
         steps: [
           {
             type: 'space',
             label: 'Maximum Withdrawal',
-            instruction: 'The fullest retreat available to you in this moment -- quietest room, closed door, lowest light, no devices, no sound. Minimum 20 minutes. For your pattern, a partial retreat compounds rather than restores: a space that is almost quiet continues to demand processing. All the way or not at all.',
+            instruction: 'The most restful retreat available to you right now is a quiet room with the door closed, the lights turned down low, and no electronic devices or sounds. Minimum 20 minutes. For you, a partial retreat has the opposite effect of a full retreat: a space that is almost quiet continues to demand processing. Go all the way or not at all.',
             duration: '20 min'
           },
           {
             type: 'somatic',
             label: 'Full-Body Pressure',
-            instruction: 'Weighted blanket covering the full body including arms. Pillow under the knees to release the lumbar spine. The goal is total proprioceptive containment -- a physical signal to the nervous system that it does not need to maintain postural vigilance. Your accumulative pattern needs this signal held for the full duration, not just the opening minutes.'
+            instruction: 'Use a weighted blanket that covers the whole body, including the arms. Place a pillow under the knees to release the lumbar spine. The goal is to achieve total proprioceptive containment, which sends a physical signal to the nervous system that it does not need to maintain postural vigilance. This signal must be held for the full duration, not just the opening minutes, to break your accumulative pattern.'
           },
           {
             type: 'light',
             label: 'Complete Visual Closure',
-            instruction: 'Eye mask, not just dimmed lighting. A partially darkened room still requires passive visual processing. Complete visual closure is the only input that genuinely stops the visual channel rather than merely reducing it. For your pattern, partial measures produce partial results.'
+            instruction: 'Use an eye mask rather than just dimmed lighting. Even in a partially darkened room, passive visual processing is still required. Only complete visual closure genuinely stops the visual channel rather than merely reducing it. For your pattern, partial measures produce partial results.'
           }
         ]
       },
@@ -867,12 +880,13 @@ export const RITUALS: Record<string, Ritual> = {
       // -----------------------------------------------------------------------
       seeker_integrative: {
         tagline:     'Pattern Interrupt: The Hard Reset.',
-        description: 'For the Seeker with an integrative pattern, afternoon overload is often disguised as restlessness or boredom. The brain has exhausted available dopamine and is cycling through distraction in search of more. The reset is not stillness -- it is a deliberate pattern interrupt that breaks the depletion loop. Your integrative pattern means the discharge and descent will produce a genuine reset within the window.',
+        description: 'For the Seeker with an integrative pattern, afternoon fatigue is often mistaken for restlessness or boredom. The brain has exhausted its supply of dopamine and is seeking distraction in an attempt to replenish it. This reset does not involve stillness; rather, it is a deliberate pattern interruption that breaks the depletion loop. Your integrative pattern means that the discharge and descent will produce a genuine reset within the timeframe.',
+        toolLink: 'https://open.spotify.com/track/2cvmmQpGZW79o4Yq8cZeXF?si=2d4ad5046071436f',
         steps: [
           {
             type: 'somatic',
             label: 'Movement Flush',
-            instruction: 'Leave your workspace completely. 10 minutes of vigorous movement -- a fast walk, stairs, dynamic stretching. This metabolises stress hormones and triggers a dopamine reset rather than waiting passively for a state shift that will not arrive on its own.',
+            instruction: 'Leave your workspace completely. Do 10 minutes of vigorous movement, such as a fast walk, going up and down the stairs or doing dynamic stretches. This metabolises stress hormones and triggers a dopamine reset, rather than passively waiting for a state shift that will not happen by itself.',
             duration: '10 min'
           },
           {
@@ -883,7 +897,7 @@ export const RITUALS: Record<string, Ritual> = {
           {
             type: 'sound',
             label: 'Binaural Theta Reset',
-            instruction: 'After movement, 10 minutes of Theta binaural beats at 4 to 8Hz with eyes closed. This pulls the brain from Beta toward Theta -- rest and consolidation -- without requiring sleep. Your integrative pattern means the descent will be genuine rather than resisted.',
+            instruction: 'After movement, listen to 10 minutes of Theta binaural beats at 4–8 Hz with your eyes closed. This shifts the brain from beta to theta, promoting rest and consolidation, without requiring sleep. Your integrative pattern means that the descent will be genuine rather than resisted.',
             duration: '10 min',
             toolLink: 'https://insig.ht/7mS0eZaUm1b'
           }
@@ -898,7 +912,7 @@ export const RITUALS: Record<string, Ritual> = {
           {
             type: 'somatic',
             label: 'Modulated Movement Flush',
-            instruction: 'Begin with 5 minutes of moderate-intensity movement -- a brisk walk, not a sprint. Assess after 5 minutes: if agitation has decreased, continue for a further 5 minutes and increase intensity slightly. If agitation has increased, transition immediately to slow rhythmic movement for the remaining time. The flush is real for your profile -- its intensity must match what is actually present.',
+            instruction: 'Start with five minutes of moderate-intensity movement, such as a brisk walk. After 5 minutes, assess whether your agitation has decreased. If so, continue for a further 5 minutes, increasing the intensity slightly. If your agitation has increased, transition immediately to slow, rhythmic movement for the remainder of the time. The flush is real for your profile so its intensity must match what is actually present.',
             duration: '10 min'
           },
           {
@@ -909,7 +923,7 @@ export const RITUALS: Record<string, Ritual> = {
           {
             type: 'sound',
             label: 'Theta or Delta Based on Response',
-            instruction: 'If the movement flush produced visible regulation, use Theta binaural beats for 10 minutes -- rest and consolidation. If regulation was partial or absent, use Delta instead -- deeper deactivation at 0.5 to 4Hz. For a mixed pattern under high load, the descent may need to go deeper than a standard afternoon reset.',
+            instruction: 'If the movement flush produced visible regulation, use the Theta binaural beats for ten minutes, then rest to consolidate. If the regulation was partial or absent, use the Delta frequency instead for deeper deactivation at 0.5 to 4 Hz. For a mixed pattern under high load, the descent may need to go deeper than a standard afternoon reset.',
             duration: '10 min',
             toolLink: 'https://insig.ht/7mS0eZaUm1b'
           }
@@ -924,18 +938,18 @@ export const RITUALS: Record<string, Ritual> = {
           {
             type: 'somatic',
             label: 'Low-Intensity Sustained Movement',
-            instruction: '15 minutes of slow, rhythmic movement -- walking at conversation pace, gentle stretching, or slow floor-based movement. The goal is metabolisation of accumulated load at a rate the system can process, not a fast dump that exceeds processing capacity. Stay at this pace for the full duration regardless of how your system is responding.',
+            instruction: 'Engage in 15 minutes of slow, rhythmic movement, such as walking at a conversational pace, gentle stretching or slow floor-based exercises. The goal is to metabolise accumulated load at a rate that the system can process; not to dump it all too quickly and exceed the processing capacity. Maintain this pace for the full duration, regardless of how your body responds.',
             duration: '15 min'
           },
           {
             type: 'space',
             label: 'Controlled Novel Environment',
-            instruction: 'Move to a space that offers a mild change of visual field -- a different room, an outdoor seat, a window you do not usually sit near. Minimal novelty is sufficient for the RAS signal. A high-stimulation new environment adds to the backlog. A calm new environment provides the shift without the cost.'
+            instruction: 'Move to a space that offers a slight change in your visual field, such as a different room, an outdoor seat or a window that you do not usually sit near. A new environment with high stimulation adds to the backlog. A calm new environment provides the shift without the cost.'
           },
           {
             type: 'sound',
             label: 'Delta Descent',
-            instruction: '15 minutes of Delta binaural beats at 0.5 to 4Hz with eyes closed. For an accumulative high-load afternoon, Theta is insufficient -- your system needs to be pulled deeper to access genuine rest. Delta is the appropriate target regardless of whether it feels accessible from where you currently are.',
+            instruction: 'Listen to 15 minutes of Delta binaural beats at 0.5–4 Hz with your eyes closed. For a high-load afternoon, Theta is insufficient as your system needs to be pulled deeper to achieve genuine rest. Delta is the appropriate target, even if it does not currently feel accessible.',
             duration: '15 min',
             toolLink: 'https://insig.ht/7mS0eZaUm1b'
           }
@@ -952,7 +966,7 @@ export const RITUALS: Record<string, Ritual> = {
             label: 'NSDR Protocol',
             instruction: 'Lie flat or recline fully. Use a Yoga Nidra or body scan audio. You do not need to fall asleep. The goal is deliberate nervous system downregulation. 20 minutes of NSDR produces restoration equivalent to several hours of light sleep for a system that processes and releases as well as yours.',
             duration: '20 min',
-            toolLink: 'https://insig.ht/TRHQ0iERP0b'
+            toolLink: 'https://insig.ht/N6VKvNwvG1b'
           },
           {
             type: 'light',
@@ -977,7 +991,7 @@ export const RITUALS: Record<string, Ritual> = {
             label: 'NSDR or Passive Rest',
             instruction: 'Lie flat or recline. Use a body scan or Yoga Nidra audio if available. If the mind is too active for guided audio, close your eyes and focus solely on the breath. On a variable-load afternoon, passive rest without complete shutdown is still restorative -- partial recovery is better than no recovery.',
             duration: '20 min',
-            toolLink: 'https://insig.ht/TRHQ0iERP0b'
+            toolLink: 'https://insig.ht/N6VKvNwvG1b'
           },
           {
             type: 'light',
@@ -1000,19 +1014,19 @@ export const RITUALS: Record<string, Ritual> = {
           {
             type: 'space',
             label: 'Extended NSDR',
-            instruction: 'A minimum of 25 minutes -- not 20 -- in complete inactivity. Reclined, door closed, no devices. Your accumulative pattern means the standard 20-minute window clears less than it does for an integrative system. The additional five minutes is not optional padding. It is the portion of the window where genuine discharge begins for your pattern.',
+            instruction: 'You must spend a minimum of 25 minutes in complete inactivity. You must be reclined with the door closed and no devices. Due to your accumulative pattern, the standard 20-minute window clears less frequently than it does for an integrative system. The additional five minutes are not optional. It is the period during which genuine discharge begins for your pattern.',
             duration: '25 min',
-            toolLink: 'https://insig.ht/TRHQ0iERP0b'
+            toolLink: 'https://insig.ht/ML24YLQvG1b'
           },
           {
             type: 'light',
             label: 'Full Dimming',
-            instruction: 'Minimum light for the full duration. For an accumulative system under high load, even moderate ambient light maintains a low level of visual processing that competes with the discharge the rest protocol is trying to produce. Darker is not a comfort choice -- it is a condition for the protocol to work.'
+            instruction: 'The light must be kept as low as possible for the whole time. For a accumulative system under high load, even moderate ambient light maintains a low level of visual processing, which competes with the discharge that the rest protocol is trying to produce. Darker conditions are a prerequisite for the protocol to work.'
           },
           {
             type: 'somatic',
             label: 'Weighted and Supported',
-            instruction: 'Weighted blanket if available. Full body supported. The proprioceptive containment signal reduces the postural vigilance cost your system maintains even at rest. For your accumulative pattern, removing this background cost is what makes the rest window genuinely restorative rather than merely inactive.'
+            instruction: 'If available, use a weighted blanket. Make sure your whole body is fully supported; the proprioceptive containment signal reduces the postural vigilance your system maintains, even at rest. For your accumulative pattern, it is the removal of this background cost that makes the rest window genuinely restorative rather than merely inactive.'
           }
         ]
       }
@@ -1033,13 +1047,13 @@ export const RITUALS: Record<string, Ritual> = {
       // -----------------------------------------------------------------------
       sensor_integrative: {
         tagline:     'Sensory Decompression: Emptying the Bucket Before Sleep.',
-        description: 'The modern day is loud and bright. By evening, your sensory processing system has been working at capacity for many hours. This protocol is not only about sleep preparation -- it is about emptying the accumulated input of the day so that it does not carry into sleep and into tomorrow. Your integrative pattern means the emptying is available when the conditions are right. The conditions must be built, not hoped for.',
+        description: 'The modern world is loud and bright. By evening, your sensory processing system has been working at full capacity for hours on end. This protocol is not only about preparing for sleep; it is also about clearing the accumulated input of the day so that it does not affect your sleep or tomorrow. Your integrative pattern means that emptying is possible when the conditions are right. These conditions must be created, not just hoped for.',
         spotifyLink: 'https://app.declutterthemind.com/?meditation=1677352314447x311753051750268900',
         steps: [
           {
             type: 'space',
             label: 'The Compression Cocoon',
-            instruction: 'Get into bed or your quietest space earlier than feels necessary. Heavy blanket on. A small, enclosed physical space. You need physical containment to feel safe enough to release the vigilance your nervous system has been maintaining all day.'
+            instruction: 'Go to bed or retreat to your quietest space earlier than you think necessary. Put the heavy blanket on. Create a small, enclosed physical space. You need physical containment in order to feel safe enough to relax after maintaining your nervous systems vigilance all day.'
           },
           {
             type: 'light',
@@ -1049,7 +1063,7 @@ export const RITUALS: Record<string, Ritual> = {
           {
             type: 'sound',
             label: 'Noise Masking',
-            instruction: 'Silence can register as loud when every background creak and shift is audible. Use steady nature sound to smooth the auditory edges of the room. This is acoustic containment, not stimulation -- the sound removes unpredictability from the auditory field.',
+            instruction: 'When every background creak and shift is audible, silence can register as loud. Use steady nature sounds to soften the rooms acoustic edges. This removes unpredictability from the soundscape.',
             toolLink: 'https://insig.ht/oiIEJeSRP0b'
           }
         ]
@@ -1058,12 +1072,13 @@ export const RITUALS: Record<string, Ritual> = {
       // -----------------------------------------------------------------------
       sensor_mixed: {
         tagline:     'The Variable Evening: Building Down at the Right Pace.',
-        description: 'Your evening descent cannot follow a fixed timetable because your residual load varies. Some evenings the day has discharged reasonably well and a standard taper is sufficient. Others the load has been building since morning and the taper needs to begin earlier and run longer. The protocol provides the structure -- you set the pace based on what the day has actually been.',
+        description: 'Your evening descent cannot follow a fixed timetable because your residual load varies. On some evenings, the day has progressed reasonably well and a standard taper is sufficient. On other days, the load has been building up since the morning, so the taper needs to start earlier and continue for longer. The protocol provides the structure, you set the pace based on how the day has actually gone.',
+        spotifyLink: 'https://app.declutterthemind.com/?meditation=1677352314447x311753051750268900',
         steps: [
           {
             type: 'light',
             label: 'Early Kelvin Drop',
-            instruction: 'Transition to warm-spectrum lighting -- below 2700K -- at least 90 minutes before your intended sleep time. On higher-load evenings, begin this transition two hours out. Your mixed pattern means the descent takes longer on some days than others. More time, not more effort, is the solution.'
+            instruction: 'Switch to warm-spectrum lighting (below 2700K) at least 90 minutes before your intended bedtime. On evenings when you have more to do, begin this transition two hours beforehand. Due to your mixed pattern, the descent takes longer on some days than others. The solution is to allow more time, not to try harder.'
           },
           {
             type: 'space',
@@ -1073,7 +1088,7 @@ export const RITUALS: Record<string, Ritual> = {
           {
             type: 'somatic',
             label: 'Contained and Warm',
-            instruction: 'Heavy blanket, warm temperature in the sleep space, and if available a warm drink 30 minutes before sleep. On evenings where the day has been harder, add proprioceptive pressure -- a cushion against your back or a weighted blanket across the full body. Contain the nervous system physically before asking it to rest cognitively.'
+            instruction: 'Use a heavy blanket and keep the sleep space warm. If available, have a warm drink 30 minutes before sleep. On evenings when the day has been particularly challenging, try applying proprioceptive pressure, such as placing a cushion against your back or using a weighted blanket across your whole body. Physically contain the nervous system before asking it to rest cognitively.'
           }
         ]
       },
@@ -1081,23 +1096,23 @@ export const RITUALS: Record<string, Ritual> = {
       // -----------------------------------------------------------------------
       sensor_accumulative: {
         tagline:     'The Long Descent: Unwinding What the Day Left Behind.',
-        description: 'For the Sensor with an accumulative pattern, the evening is not simply the end of today -- it is also carrying what the previous days did not fully clear. A standard evening taper is insufficient. The descent must begin earlier, run longer, and go deeper than it would for a system that clears between exposures. The goal is not perfect reset -- it is maximum discharge before sleep, so that tomorrow begins with less carried load than today did.',
+        description: 'For the Sensor with an accumulative pattern, evening does not simply mark the end of the day; it also carries forward what the previous days did not fully clear. A standard evening taper is therefore insufficient. The descent must begin earlier, last longer and go deeper than it would for a system that clears between exposures. The goal is not a perfect reset, but rather maximum discharge before sleep so that tomorrow begins with a lighter load than today.',
         steps: [
           {
             type: 'light',
             label: 'Two-Hour Kelvin Drop',
-            instruction: 'Begin the warm-spectrum transition two full hours before sleep. Switch all lighting to below 2700K and below eye level. For your accumulative pattern, the circadian shutdown signal needs more lead time than a standard taper because your system has more to discharge before it can transition into rest.',
+            instruction: 'Start the transition to a warm spectrum two hours before going to sleep. Switch all lighting to below 2700K and below eye level. Due to the accumulative nature of your pattern, the circadian shutdown signal requires more lead time than a standard taper because your system has more to discharge before it can transition to rest.',
             duration: '120 min'
           },
           {
             type: 'space',
             label: 'Complete Environmental Closure',
-            instruction: 'Every room in the home closed and darkened before you enter your sleep space. The goal is that by the time you lie down, your nervous system has not encountered a new sensory demand in at least 30 minutes. The sleep space must be the quietest environment of the entire day, not just of the hour.'
+            instruction: 'Close and darken every room in the house before you enter your sleep space. Ideally, your nervous system should not have encountered any new sensory demands for at least 30 minutes by the time you lie down. Your sleep space should be the quietest place you visited all day.'
           },
           {
             type: 'somatic',
             label: 'Maximum Containment',
-            instruction: 'Heaviest available blanket. Blackout mask. Acoustic masking with steady nature sound at low volume. For your accumulative pattern, each of these is a non-negotiable layer rather than an optional comfort add. The combination creates a sensory environment where your nervous system encounters nothing that requires processing -- the only condition under which genuine overnight clearing can begin.',
+            instruction: 'Use the heaviest blanket available and a blackout mask. Achieve acoustic masking with steady nature sounds at low volume. Each of these is a non-negotiable layer for your accumulative pattern, rather than an optional comfort addition. Together, they create a sensory environment in which your nervous system encounters nothing that requires processing. The only condition under which genuine overnight clearing can begin.',
             toolLink: 'https://insig.ht/oiIEJeSRP0b'
           }
         ]
@@ -1106,7 +1121,7 @@ export const RITUALS: Record<string, Ritual> = {
       // -----------------------------------------------------------------------
       seeker_integrative: {
         tagline:     'The Dopamine Detox: Landing the Plane.',
-        description: 'Your brain resists the evening transition because rest feels understimulating compared to the high-dopamine engagement of the day. You need to transition from high-dopamine to low-dopamine using tools that are complex enough to keep the active mind occupied while the body shuts down. Your integrative pattern means the descent is available -- the challenge is bridging the gap between where your system is and where sleep requires it to be.',
+        description: 'Your brain resists the transition to evening because rest feels under-stimulating compared to the high-dopamine engagement of the day. You need tools that are complex enough to keep an active mind occupied while the body shuts down, to transition from high-dopamine to low-dopamine. Your integrative pattern means the descent is possible: the challenge lies in bridging the gap between where your system is and where sleep onset requires it to be.',
         spotifyLink: 'https://insig.ht/j0QXp1mRP0b',
         steps: [
           {
@@ -1118,13 +1133,13 @@ export const RITUALS: Record<string, Ritual> = {
           {
             type: 'sound',
             label: 'Complex Harmonic Sound',
-            instruction: 'Tibetan gongs or layered harmonic soundscapes. Unlike white noise, these contain complex harmonics that satisfy the active mind with sufficient novelty while dragging brainwave frequency down toward Theta. The ADHD brain will track the sound rather than spiral into tomorrow.',
+            instruction: 'Play tibetan gongs or layered harmonic soundscapes. These are not like white noise. They contain complex harmonics that satisfy the active mind with sufficient novelty while dragging brainwave frequency down toward theta. The ADHD brain will track the sound, not spiral into the future.',
             toolLink: 'https://insig.ht/Uk4k9dwRP0b'
           },
           {
             type: 'somatic',
             label: 'NSDR Backup',
-            instruction: 'If sleep does not arrive within 20 minutes, switch to Yoga Nidra or Non-Sleep Deep Rest audio. This systematically shuts down the nervous system even when the mind is still partially active. 20 minutes produces restoration equivalent to 3 to 4 hours of recovery-quality sleep. For your integrative pattern, it is a reliable bridge to sleep rather than a substitute for it.',
+            instruction: 'If sleep does not arrive within 20 minutes, switch to Yoga Nidra or Non-Sleep Deep Rest audio. This systematically shuts down the nervous system even when the mind is still partially active. 20 minutes of restoration is equivalent to 3 to 4 hours of recovery-quality sleep. Your integrative pattern is a reliable bridge to sleep, not a substitute.',
             toolLink: 'https://insig.ht/TRHQ0iERP0b'
           }
         ]
@@ -1133,24 +1148,24 @@ export const RITUALS: Record<string, Ritual> = {
       // -----------------------------------------------------------------------
       seeker_mixed: {
         tagline:     'The Variable Descent: Matching the Landing to the Current Load.',
-        description: 'Your evening dopamine transition is real but its difficulty varies with what you are already carrying. On lower-load evenings, the standard body scan and harmonic sound produces a clean descent. On evenings where load has been higher, the same tools may not be sufficient to bridge from your current activation level to rest. The protocol adapts the descent depth to the day.',
+        description: 'Your evening dopamine transition is real, but its difficulty varies depending on what you are already carrying. On lower-load evenings, the standard body scan and harmonic sound reliably produces a clean descent. It is clear that on evenings where load has been higher, the same tools are simply not enough to bridge from your current activation level to rest. The protocol adapts the descent depth to the day.',
         steps: [
           {
             type: 'light',
             label: 'Adaptive Kelvin Timing',
-            instruction: 'On standard evenings, begin the warm-spectrum transition 60 minutes before sleep. On higher-load evenings, begin 90 minutes out. Your mixed pattern means the circadian shutdown signal needs more lead time on the days where your system has been carrying more -- but you may not feel the difference until the window has already closed.'
+            instruction: 'On standard evenings, begin the warm-spectrum transition 60 minutes before sleep. On higher-load evenings, begin 90 minutes earlier. Your mixed pattern means the circadian shutdown signal needs more lead time on the days where your system has been carrying more, but you may not feel the difference until the window has already closed.'
           },
           {
             type: 'somatic',
             label: 'Tiered Scan Protocol',
-            instruction: 'Begin with the full Vipassana body scan. If relaxation is visible after one pass, you are on a lower-load evening and the standard protocol is sufficient. If the mind remains active after one pass, conduct a second slower scan and add the harmonic sound layer simultaneously. The double-pass is the variable-load adjustment.',
-            toolLink: 'https://insig.ht/47MXPahRP0b'
+            instruction: 'Begin with the full body scan. If relaxation is tangible after one pass, you are on a lower-load evening and the standard protocol is sufficient. If the mind remains active after one pass, conduct a second slower scan and add the harmonic sound layer simultaneously. The double-pass is the variable-load adjustment.',
+            toolLink: 'https://insig.ht/cEolRaexG1b'
           },
           {
             type: 'sound',
             label: 'Harmonic or Delta Based on State',
-            instruction: 'If the scan produces visible softening, stay with Tibetan gongs or harmonic sound. If it does not, transition to Delta binaural beats. For a mixed-pattern Seeker, some evenings the brain needs to be pulled down to Delta rather than guided there through harmonic engagement.',
-            toolLink: 'https://insig.ht/Uk4k9dwRP0b'
+            instruction: 'If the scan produces visible softening, stay with Tibetan gongs or a harmonic sound of your choice. If it does not, transition to Delta binaural beats. For a mixed-pattern Seeker, some evenings the brain needs to be pulled down to Delta rather than guided there through harmonic engagement.',
+            toolLink: 'https://insig.ht/Psm1vYmxG1b'
           }
         ]
       },
@@ -1158,12 +1173,12 @@ export const RITUALS: Record<string, Ritual> = {
       // -----------------------------------------------------------------------
       seeker_accumulative: {
         tagline:     'The Backlog Evening: Descent Through a Loaded System.',
-        description: 'For the Seeker with an accumulative pattern, the evening challenge is not simply transitioning from high stimulation to rest. It is transitioning from high stimulation while carrying accumulated load that has not cleared across the day. The active mind cannot be occupied into rest when the nervous system is simultaneously managing a backlog. The backlog must be addressed first, the descent second.',
+        description: 'For the Seeker with an accumulative pattern, the evening challenge is not just transitioning from high stimulation to rest. It is transitioning from high stimulation while carrying accumulated load that has not cleared across the day. The active mind cannot be occupied with rest when the nervous system is simultaneously managing a backlog. The backlog must be addressed first, the descent second.',
         steps: [
           {
             type: 'somatic',
             label: 'Physical Pre-Discharge',
-            instruction: '10 minutes of slow, sustained movement before any wind-down begins -- gentle floor stretching, a slow walk, or progressive joint rotation. This is not activation. It is giving accumulated load a physical route out before the system is asked to shut down. Attempting descent without this step produces restlessness that harmonic sound cannot bridge.',
+            instruction: 'Engage in 10 minutes of slow, sustained movement before winding down. This can be gentle floor stretching, a slow walk or progressive joint rotation. This is not activation. It gives accumulated load a physical route out before the system is asked to shut down. Attempting descent without this step produces restlessness that harmonic sound cannot bridge.',
             duration: '10 min'
           },
           {
@@ -1175,8 +1190,8 @@ export const RITUALS: Record<string, Ritual> = {
           {
             type: 'sound',
             label: 'Delta Entrainment',
-            instruction: 'Delta binaural beats at 0.5 to 4Hz for the full sleep-onset window. For your accumulative pattern, Theta is an intermediate state your system may not sustain -- the target is Delta directly. The active mind will track the frequency as it descends, which is the mechanism rather than an obstacle to it.',
-            spotifyLink: 'https://insig.ht/SbedT0EUm1b'
+            instruction: 'Play Delta binaural beats at 0.5 to 4Hz for the full sleep-onset window. For your accumulative pattern, Theta is an intermediate state your system may not sustain; the target is Delta directly. The active mind will track the frequency as it descends, which is the mechanism rather than an obstacle to it.',
+            spotifyLink: 'https://insig.ht/z0x4OVExG1b'
           }
         ]
       },
@@ -1209,6 +1224,7 @@ export const RITUALS: Record<string, Ritual> = {
       anchor_mixed: {
         tagline:     'The Consistent Descent: Building Rest on a Variable Foundation.',
         description: 'Your system is broadly resilient and the evening transition usually follows its course without significant effort. But your mixed integration pattern means some evenings arrive with more accumulated load than is visible from the outside. On those evenings, the standard taper is necessary but not sufficient. The protocol builds in the consistency that your nervous system needs on both types of evening.',
+        spotifyLink: 'https://open.spotify.com/playlist/37i9dQZF1DWXSyfX6gqDNp?si=4e071e2e23394ff5',
         steps: [
           {
             type: 'light',
@@ -1218,12 +1234,12 @@ export const RITUALS: Record<string, Ritual> = {
           {
             type: 'space',
             label: 'Reliable Environmental Anchors',
-            instruction: 'The same sequence of closures every evening -- the same blinds, the same doors, in the same order. Repetition builds a conditioned shutdown response in your nervous system over time. On variable-load evenings, the conditioned response does the work that your internal signals may not be providing.'
+            instruction: 'The sequence of closures is always the same every evening: the same blinds, the same doors, in the same order. Repetition builds a conditioned shutdown response in your nervous system over time. The conditioned response is key to ensuring the work is done on variable-load evenings, especially when your internal signals are lacking.'
           },
           {
             type: 'somatic',
             label: 'Breathing as a Baseline Check',
-            instruction: 'Five rounds of the physiological sigh before sleep. On standard evenings, this produces a visible relaxation response and sleep follows. If the relaxation response is absent after five rounds, tonight is a higher-load evening and the sleep space needs to be quieter and darker than usual before attempting rest.'
+            instruction: 'Do five rounds of the physiological sigh before sleep. On standard evenings, this produces a visible relaxation response and sleep follows. If the relaxation response is absent after five rounds, tonights sleep will be a higher-load evening. The sleep space must be quieter and darker than usual before you attempt to rest.'
           }
         ]
       },
@@ -1236,19 +1252,19 @@ export const RITUALS: Record<string, Ritual> = {
           {
             type: 'light',
             label: 'Extended Kelvin Transition',
-            instruction: 'Begin the warm-spectrum transition 90 minutes before sleep -- not 60. For your accumulative pattern, the earlier start gives the circadian shutdown signal more lead time to work through what your system has been carrying. The difference between a 60 and 90 minute ramp is most significant on the days you cannot feel the difference.',
+            instruction: 'Start the warm-spectrum transition 90 minutes before sleep, not 60. For your body clock, starting earlier gives it more time to process what your body has been dealing with.',
             duration: '90 min'
           },
           {
             type: 'space',
             label: 'Load-Reduction Sweep',
-            instruction: 'Before entering your sleep space, spend 5 minutes reducing background demand in the adjacent spaces -- close doors, lower any remaining lights, remove objects from visible surfaces. Your accumulative pattern means your nervous system is tracking more environmental data than you are consciously registering. Reducing that data reduces the load your system carries into sleep.'
+            instruction: 'Before entering your sleep space,  take 5 minutes to make sure that other rooms are as tidy as possible. Close doors, turn off any lights that are still on and move things off the surfaces you can see. Your nervous system is tracking more environmental data than you are consciously aware of. If you reduce that data, it will reduce the load on your system when it is in sleep mode.'
           },
           {
             type: 'somatic',
             label: 'Passive Grounding',
-            instruction: 'Lie down with one hand on your chest and one on your abdomen. Take 10 slow, deliberate breaths noticing the rise and fall. This is not a relaxation technique -- it is a load-awareness practice. For your profile, connecting to body sensation before sleep surfaces what the day has deposited and gives the nervous system permission to begin clearing it.',
-            spotifyLink: 'https://insig.ht/cT2RQ9xUm1b'
+            instruction: 'Lie down with one hand on your chest and one on your stomach. Take 10 slow, deep breaths, noticing the rise and fall.  When you connect with your bodys sensory experiences before bed, it helps you process everything you have experienced during the day.',
+            spotifyLink: 'https://app.declutterthemind.com/?meditation=1699207765523x297746389593489400'
           }
         ]
       }
@@ -1279,13 +1295,13 @@ export const RITUALS: Record<string, Ritual> = {
           {
             type: 'sound',
             label: 'Acoustic Sealing',
-            instruction: 'Foam or silicone earplugs first, then noise-cancelling headphones over them if available. Pink noise or nature sound at very low volume if complete silence increases hypervigilance rather than reducing it. The goal is a sealed auditory environment -- unpredictable sound eliminated, optional masking sound at the minimum volume that prevents silence from registering as threat.',
-            toolLink: 'https://insig.ht/oiIEJeSRP0b'
+            instruction: 'Start with foam or silicone earplugs, and then put noise-cancelling headphones on top if you have them. Pink noise or nature sounds at a very low volume can help to stop you being so watchful. The aim is to create an environment where you can only hear sounds that are meant to be there. This means that any unexpected sounds are stopped, and there is just enough masking sound to stop the silence from sounding too quiet.',
+            toolLink: 'https://insig.ht/S3CKJKnyG1b'
           },
           {
             type: 'somatic',
             label: 'Maximum Containment',
-            instruction: 'Full weighted blanket coverage. Body fully supported. A body pillow or cushion against any side that feels exposed. Your nervous system reads physical enclosure as biological safety and reduces autonomic vigilance accordingly. For your integrative pattern, this is the condition that allows the overnight clearing your system is capable of.'
+            instruction: 'Make sure you are covered from head to toe with a full weighted blanket and that your body is fully supported. Use a body pillow or cushion to support any side that feels exposed. When you are in an enclosed space, your nervous system thinks that it is safe and you will not worry as much. This is the condition that lets your body recover overnight.'
           }
         ]
       },
@@ -1293,22 +1309,23 @@ export const RITUALS: Record<string, Ritual> = {
       // -----------------------------------------------------------------------
       sensor_mixed: {
         tagline:     'Variable High Load: Full Shelter, Adjusted Duration.',
-        description: 'A high-load evening with a mixed integration pattern requires complete shelter -- but the duration and depth of recovery available within that shelter varies. On evenings where the load has arrived recently and sharply, the full sanctuary protocol will produce substantial overnight clearing. On evenings where load has been building across several days, the same environment will reduce further accumulation without fully clearing what is already present. Both are valid outcomes. The protocol does not change based on which one tonight is.',
+        description: 'A high-load evening with a mixed integration pattern requires complete shelter, but the duration and depth of recovery available within that shelter varies. On evenings where the load has arrived recently and suddenly, the full sanctuary protocol will produce substantial overnight clearing. On evenings where load has been building across several days, the same environment will reduce further accumulation without fully clearing what is already present. Both are valid outcomes. The protocol does not change based on which one tonight is.',
+        spotifyLink: 'https://app.declutterthemind.com/?meditation=1699207765523x297746389593489400',
         steps: [
           {
             type: 'space',
             label: 'Full Environmental Closure',
-            instruction: 'Every door and blind closed. Sleep space cleared of any visible objects that carry cognitive or emotional association -- work items, unfinished tasks, pending decisions. For your mixed pattern under high load, every object in the visual field that carries association adds to the processing demand your nervous system carries into sleep.'
+            instruction: 'Keep every door and blind closed. Clear your sleep space of any visible objects that carry cognitive or emotional association such as work items, unfinished tasks, pending decisions. For your mixed pattern under high load, every object in the visual field that carries association, adds to the processing demand your nervous system carries into sleep.'
           },
           {
             type: 'light',
             label: 'Complete Visual Shutdown',
-            instruction: 'Blackout mask regardless of how dark the room appears. On a high-load evening with a variable integration pattern, residual ambient light that feels tolerable at the start of the window will register differently at 2am when processing capacity is lower. Eliminate it at the outset.'
+            instruction: 'Use a blackout mask regardless of how dark the room appears. On a high-load evening with a variable integration pattern, residual ambient light that feels tolerable at the start of the window will register differently at 2am when processing capacity is lower. Eliminate it at the outset.'
           },
           {
             type: 'somatic',
             label: 'Layered Physical Containment',
-            instruction: 'Weighted blanket, earplugs or masking sound, and warm temperature in the sleep space. Each layer addresses a different sensory channel. On a mixed-pattern high-load evening, the layers collectively reduce the threshold of input that can interrupt your rest without any single layer needing to carry the full burden.'
+            instruction: 'Use a weighted blanket and earplugs, and make sure your sleep environment is warm. Each layer addresses a different sensory channel. On a mixed-pattern high-load evening, the layers collectively reduce the threshold of input that can interrupt your rest without any single layer needing to carry the full burden.'
           }
         ]
       },
@@ -1316,23 +1333,23 @@ export const RITUALS: Record<string, Ritual> = {
       // -----------------------------------------------------------------------
       sensor_accumulative: {
         tagline:     'The Accumulated Evening: Shelter as Multi-Day Recovery.',
-        description: 'For the Sensor with an accumulative pattern, a high-load evening is not an acute event. It is the visible surface of what several days have deposited. The shelter protocol will not clear this overnight. What it will do is stop the accumulation from continuing, provide the deepest available clearing conditions, and give your system the best chance of arriving at tomorrow with less than it carries today. Consistency of this protocol across several nights is the arc. Tonight is one step of it.',
+        description: 'For the Sensor with an accumulative pattern, a high-load evening is not an acute event. It is the visible surface of what several days have deposited. The shelter protocol will not clear this overnight. What it will do is stop the accumulation from continuing, provide the deepest available clearing conditions, and give your nervous system the best chance of waking up tomorrow with less than it carries today. Consistency of this protocol across several nights is the arc. Tonight is one step of it.',
         steps: [
           {
             type: 'space',
             label: 'The Complete Sanctuary',
-            instruction: 'Every sensory variable in the sleep environment controlled to its minimum state: darkness, silence or steady masking sound, cool temperature, closed door, no devices. For your pattern, approximations compound. The sanctuary must be complete to function as one. Identify the one element that is usually left incomplete and address it tonight.',
+            instruction: 'Make sure that every sensory variable in the sleep is environment controlled to its minimum state: darkness, silence or steady masking sound, cool temperature, closed door, no devices. For your pattern, approximations compound. The sanctuary must be complete to function as one. Identify the one element that is usually left incomplete and address it tonight.',
           },
           {
             type: 'somatic',
             label: 'Extended Containment',
-            instruction: 'Heaviest available blanket. Full body supported including neck and arms. If a body pillow is available, use it to eliminate the sensation of open space on any side. For your accumulative pattern, the physical containment signal needs to be present at the start of the sleep window and maintained through it -- not applied briefly as a comfort measure.',
+            instruction: 'Use your heaviest available blanket. Fully support your body, including neck and arms. If a body pillow is available, use it to eliminate the sensation of open space on any side. For your accumulative pattern, the physical containment signal needs to be present at the start of the sleep window and maintained through it, not applied briefly as a comfort measure.',
           },
           {
             type: 'sound',
             label: 'Sustained Acoustic Masking',
-            instruction: 'Nature sound or pink noise running throughout the entire sleep window -- not just at the start. For your pattern, acoustic unpredictability in the early hours of the morning registers as a new input on a system that has been attempting to clear overnight. The masking sound removes that variable for the full duration.',
-            toolLink: 'https://insig.ht/oiIEJeSRP0b'
+            instruction: 'Keep nature sounds or pink noise running throughout the entire sleep window, not just at the start. If sounds interfere with sleep onset, adjust it to play for a longer period that you envisage you would be awake for. For your pattern, acoustic unpredictability in the early hours of the morning may register as a new input on a system that has been attempting to clear overnight. The masking sound removes that variable for the full duration.',
+            toolLink: 'https://insig.ht/ORMNOrezG1b'
           }
         ]
       },
@@ -1345,20 +1362,20 @@ export const RITUALS: Record<string, Ritual> = {
           {
             type: 'somatic',
             label: 'Physical Release',
-            instruction: '10 to 15 minutes of vigorous physical exertion before wind-down begins -- not exercise for fitness, but stress hormone metabolisation. The goal is to arrive at your sleep space with the sympathetic tank meaningfully emptied. Your integrative pattern means this discharge will produce a genuine shift rather than a temporary suppression.',
+            instruction: 'Engage in 10 to 15 minutes of vigorous physical exertion before wind-down begins: not exercise for fitness, but stress hormone metabolisation. The goal is to arrive at your sleep space with the sympathetic tank meaningfully emptied. Your integrative pattern means this discharge will produce a genuine shift rather than a temporary suppression.',
             duration: '15 min'
           },
           {
             type: 'somatic',
             label: 'Progressive Muscle Release',
-            instruction: 'Lying down, systematically tense and release each muscle group from feet to face. Hold each tension for 5 seconds and release for 10. This brings a hyper-aroused nervous system into parasympathetic range through physical mechanism rather than cognitive effort. Your active mind does not need to cooperate -- the body leads.',
+            instruction: 'Lying down, systematically tense and release each muscle group from feet to face. Hold each tension for 5 seconds and release for 10. This brings a hyper-aroused nervous system into parasympathetic range through physical mechanism rather than cognitive effort. Your active mind does not need to cooperate, let your body lead.',
             duration: '10 min'
           },
           {
             type: 'sound',
             label: 'Delta Entrainment',
-            instruction: 'Binaural beats in the Delta range at 0.5 to 4Hz. Your active brain will track the frequency as it descends. This is the mechanism -- not an obstacle to it. Allow the tracking to happen rather than trying to stop it.',
-            spotifyLink: 'https://insig.ht/SbedT0EUm1b'
+            instruction: 'Play binaural beats in the Delta range at 0.5 to 4Hz or listen to a sleep talk down. Your active brain will track the frequency as it descends. This is the mechanism and not an obstacle to it. Allow the tracking to happen rather than trying to stop it.',
+            spotifyLink: 'https://insig.ht/n2NvswtzG1b'
           }
         ]
       },
@@ -1371,20 +1388,20 @@ export const RITUALS: Record<string, Ritual> = {
           {
             type: 'somatic',
             label: 'Discharge Intensity Assessment',
-            instruction: 'Before any movement, take 2 minutes of stillness and notice whether the restlessness feels energised or depleted. Energised restlessness means today is an acute high-load evening -- proceed with vigorous discharge. Depleted restlessness means load has been accumulating and discharge should be slow and sustained rather than intense.',
+            instruction: 'Before any movement, take 2 minutes of stillness and notice whether the restlessness feels energised or depleted. Energised restlessness means today is an acute high-load evening; so proceed with vigorous discharge. Depleted restlessness means the load has been accumulating and discharge should be slow and sustained rather than intense.',
             duration: '2 min'
           },
           {
             type: 'somatic',
             label: 'Appropriate Discharge',
-            instruction: 'For energised restlessness: 10 to 15 minutes of vigorous movement followed by progressive muscle release. For depleted restlessness: 15 minutes of slow walking or gentle floor stretching followed by a full-body supported rest with weighted blanket. The goal in both cases is metabolisation of carried load -- the route differs.',
+            instruction: 'For energised restlessness: engage in 10 to 15 minutes of vigorous movement followed by progressive muscle release. For depleted restlessness: engage in 15 minutes of slow walking or gentle floor stretching followed by a full-body supported rest with weighted blanket. The goal in both cases is metabolisation of carried load; how you arrive at the result differs.',
             duration: '15 min'
           },
           {
             type: 'sound',
             label: 'Delta as the Consistent Target',
-            instruction: 'Regardless of which discharge path was used, end with Delta binaural beats for the sleep-onset window. For a mixed-pattern Seeker on a high-load evening, Delta is the appropriate target in both scenarios -- it is deep enough to serve as genuine descent for an acute load and as a container for the slower clearing of an accumulative state.',
-            spotifyLink: 'https://insig.ht/SbedT0EUm1b'
+            instruction: 'Whatever discharge path you used, end with delta binaural beats in the sleep-onset window. For a mixed-pattern Seeker on a busy evening when a lot is going on, Delta is the right choice. It is deep enough to be used for real descent for a big load and as a storage space for the slower clearance of an accumulation.',
+            spotifyLink: 'https://insig.ht/muntQtOzG1b'
           }
         ]
       },
@@ -1392,24 +1409,24 @@ export const RITUALS: Record<string, Ritual> = {
       // -----------------------------------------------------------------------
       seeker_accumulative: {
         tagline:     'The Backlog Shelter: Clearing What Cannot Be Rushed.',
-        description: 'A high-load evening for the Seeker with an accumulative pattern is the point where the backlog is most visible -- the racing mind is running on accumulated load that has nowhere to go. The shelter protocol does not attempt to clear the backlog tonight. It creates the conditions under which the maximum possible clearing can occur, prevents further accumulation, and gives the active mind a structure to work within rather than against.',
+        description: 'The Seeker has a lot on their plate this evening, with a pattern that has built up over time. This makes it hard for them to focus, as they feel like they have a lot on their mind all at once. The shelter protocol will not try to clear the backlog tonight. It creates the conditions under which the most possible clearing can occur, prevents further accumulation, and gives the active mind a structure to work within rather than against.',
         steps: [
           {
             type: 'somatic',
             label: 'Low-Intensity Sustained Discharge',
-            instruction: '15 to 20 minutes of slow, rhythmic movement -- floor stretching, a slow walk, or gentle progressive joint rotation. This is the only discharge protocol appropriate for a fully loaded accumulative system. Vigorous movement on top of a significant backlog produces a temporary dopamine spike that delays rest rather than enabling it.',
+            instruction: 'Do 15 to 20 minutes of gentle, rhythmic exercise. This could be floor stretching, a slow walk or gentle joint rotation. This is the only discharge method that is right for a fully loaded accumulative system. When you move around a lot, even when you are tired, it can make you feel good. But this can actually make it harder to get to sleep.',
             duration: '20 min'
           },
           {
             type: 'space',
             label: 'The Stripped Environment',
-            instruction: 'Sleep space at its minimum state: complete darkness, sealed acoustics, cool temperature, all devices removed or covered. For your accumulative pattern, each sensory variable that remains active in the sleep environment is something your system will continue processing. The environment must offer nothing for it to engage with.'
+            instruction: 'The best sleep space is one with no light, no noise and a cool temperature. All devices should be removed or covered. When you are asleep, your brain keeps processing information from your environment. The environment must offer nothing for it to engage with.'
           },
           {
             type: 'sound',
             label: 'Delta for the Full Night',
-            instruction: 'Set Delta binaural beats to run for the full intended sleep duration rather than just the onset window. For your accumulative pattern, the overnight clearing that needs to occur is deeper and longer than for other profiles. Maintaining the Delta frequency environment through the night supports deeper sleep phases rather than allowing the system to return to lighter processing states.',
-            spotifyLink: 'https://insig.ht/SbedT0EUm1b'
+            instruction: 'Set Delta binaural beats to run for part of, or the full intended sleep duration rather than just the onset window. For your accumulative pattern, the overnight clearing that needs to occur is deeper and longer than for other profiles. Maintaining the Delta frequency environment through the night supports deeper sleep phases rather than allowing the system to return to lighter processing states.',
+            spotifyLink: 'https://insig.ht/1NK7nv5zG1b'
           }
         ]
       },
@@ -1433,7 +1450,7 @@ export const RITUALS: Record<string, Ritual> = {
           {
             type: 'somatic',
             label: 'Somatic Grounding',
-            instruction: 'Lie down. One hand on your chest, one on your abdomen. Ten slow, deliberate breaths noticing the rise and fall. This body-contact grounding activates interoceptive awareness and redirects attention from ruminative thought to physical presence -- the most reliable on-ramp to rest for your integrative pattern.',
+            instruction: 'Lie down, with one hand on your chest and one on your stomach. Take 10 slow, deep breaths, noticing the rise and fall of your chest. This grounding technique, which involves touching the body, helps you to become more aware of your bodily sensations and directs your attention away from negative thoughts and towards your physical experience. It is a reliable way to find rest for your integrative pattern.',
             spotifyLink: 'https://insig.ht/cT2RQ9xUm1b'
           }
         ]
@@ -1442,23 +1459,23 @@ export const RITUALS: Record<string, Ritual> = {
       // -----------------------------------------------------------------------
       anchor_mixed: {
         tagline:     'High-Load Shelter: Protection for the Nights When Resilience Is Not Available.',
-        description: 'A high-load evening with a mixed integration pattern is one of the contexts where your system is most likely to be carrying more than it is showing. Your usual resilience is not guaranteed tonight. The shelter protocol does not assume resilience -- it builds the conditions that allow whatever capacity remains to work as effectively as possible. Protection now prevents a harder recovery across the following days.',
+        description: 'A high-load evening with a mixed integration pattern is one of the contexts where your system is most likely to be carrying more than it is showing. Your usual resilience is not guaranteed tonight. The shelter protocol does not assume resilience, it builds the conditions that allow whatever capacity remains to work as effectively as possible. Protection now prevents a harder recovery across the following days.',
         steps: [
           {
             type: 'somatic',
             label: 'Thermal Descent and Sigh Sequence',
-            instruction: 'Warm shower or bath followed by 10 rounds of the physiological sigh after lying down. The thermal descent creates the biological cooling signal. The sigh sequence resets the CO2 balance and engages the parasympathetic brake. For a mixed-pattern system under high load, these two tools in sequence are more effective than either alone.',
+            instruction: 'Take a warm shower or bath followed by 10 rounds of the physiological sigh after lying down. The thermal descent creates the biological cooling signal. The sigh sequence resets the CO2 balance and engages the parasympathetic brake. For a mixed-pattern system under high load, these two tools in sequence are more effective than either alone.',
             duration: '20 min'
           },
           {
             type: 'space',
             label: 'Complete Closure',
-            instruction: 'Every door and blind. No devices visible or audible. For a mixed-pattern high-load evening, the environmental closure matters more than it appears to on ordinary nights -- your internal warning system is not reliably providing the signals that would tell you this.'
+            instruction: 'Close every door and window blind. Make sure no devices are visible or audible. For a mixed-pattern high-load evening, the environmental closure matters more than it appears to on ordinary nights, as your internal warning system is not reliably providing the signals that would tell you this.'
           },
           {
             type: 'somatic',
             label: 'Grounding and Supported Rest',
-            instruction: 'One hand on chest, one on abdomen, 10 deliberate breaths. Then heavy blanket and full body supported. The grounding practice surfaces the actual state. The containment provides the response to whatever it surfaces. Together they form the complete shelter for your pattern.',
+            instruction: 'Place one hand on your chest and one on your stomach. Breathe in and out, making a total of 10 breaths. Then cover the body completely with a thick blanket. The grounding practice shows the real state of things. The containment provides a response to whatever it surfaces. Together they form the complete shelter for your pattern.',
             spotifyLink: 'https://insig.ht/cT2RQ9xUm1b'
           }
         ]
@@ -1467,23 +1484,23 @@ export const RITUALS: Record<string, Ritual> = {
       // -----------------------------------------------------------------------
       anchor_accumulative: {
         tagline:     'The Invisible Full: Shelter for What You Cannot Measure.',
-        description: 'A high-load evening for the Anchor with an accumulative pattern is the moment where the gap between what is present and what is visible is largest. Your system is carrying significant accumulated load without advertising it and is now approaching sleep without the capacity to clear it that a fully reset system would have. The shelter protocol creates the deepest available overnight clearing conditions. Tonight begins a recovery arc -- not a single event.',
+        description: 'A high-load evening for the Anchor with an accumulative pattern is the moment where the gap between what is present and what is visible is largest. Your system is carrying significant accumulated load without advertising it and is now approaching sleep without the capacity to clear it that a fully reset system would have. The shelter protocol creates the deepest available overnight clearing conditions. Tonight begins a recovery arc, not a single event.',
         steps: [
           {
             type: 'somatic',
             label: 'Extended Thermal Protocol',
-            instruction: 'Warm bath of at least 20 minutes, 90 minutes before sleep. The longer duration produces a more substantial body temperature drop in the subsequent hour, which creates a stronger biological sleep-onset signal. For an accumulative system under high load, the standard 15-minute shower produces a weaker version of this signal than the situation requires.',
+            instruction: 'Take a long, warm bath 90 minutes before sleep. The longer duration produces a more substantial body temperature drop in the subsequent hour, which creates a stronger biological sleep-onset signal. For an accumulative system under high load, the standard 15-minute shower produces a weaker version of this signal than the situation requires.',
             duration: '20 min'
           },
           {
             type: 'space',
             label: 'Maximum Load Reduction',
-            instruction: 'Full environmental closure. Additionally: remove or cover any object in the sleep space that carries cognitive association -- work items, unread messages, pending tasks. For your accumulative pattern, these objects are not background neutral. They are active low-level processing demands your system will maintain across the night without any signal that it is doing so.'
+            instruction: 'Create a full environmental closure. Additionally: remove or store away any object in your sleep environment that carries cognitive association such as work items, unread messages and pending tasks. For your accumulative pattern, these objects are not background neutral. They are active low-level processing demands your system will maintain across the night without any signal that it is doing so.'
           },
           {
             type: 'somatic',
             label: 'Full Physical Grounding',
-            instruction: 'Heaviest available blanket. Full body supported. One hand on chest, one on abdomen. Ten deliberate breaths. Then release all intentional effort. For your pattern, the grounding practice is the handover point -- the moment you give the rest of the recovery work to the environment you have built rather than continuing to manage it consciously.',
+            instruction: 'Use your heaviest available blanket, making sure yout entire body is supported. Place one hand on your chest and one on your abdomen. Take 10, deep breaths, then release all effort. For your pattern, the grounding practice is the handover point, which is the moment you hand over the rest of the recovery work to the environment you have built rather than continuing to manage it consciously.',
             spotifyLink: 'https://insig.ht/cT2RQ9xUm1b'
           }
         ]
