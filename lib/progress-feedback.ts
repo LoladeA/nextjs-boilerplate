@@ -11,7 +11,6 @@
 // main progress page component.
 
 import { getDomainDisplay } from './progress-domains'
-import type { BsfiState }   from './progress-domains'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PARAMETER TYPES
@@ -30,9 +29,11 @@ export interface EveningFeedbackParams {
 }
 
 export interface MacroSynthesisParams {
-  chartLogs:   any[]
-  morningBsfi: BsfiState | null
-  eveningBsfi: BsfiState | null
+  chartLogs: any[]
+  // morningBsfi and eveningBsfi removed — getMacroSynthesis computes
+  // entirely from 14-day chartLogs history. Today's BSFI state belongs
+  // on the daily cards only. Using today's score to title a 14-day
+  // synthesis caused the panel to reflect a single day's reading.
 }
 
 export interface FeedbackResult {
@@ -57,7 +58,7 @@ export function getMorningFeedback({ morningMood, tensionScore, wakeScore }: Mor
   if (moodScore <= 2 && tensionScore >= 7 && wakeScore >= 3) return {
     title:     "You Slept, But Your Body Didn't Fully Recover",
     reframe:   "Three or more wake events alongside high somatic tension and low mood on rising is a specific stress pattern — not a reflection of how well you slept in a subjective sense, but of how much biological work your system was required to do overnight. Fragmented sleep prevents full progression through deep and dream sleep, leaving stress hormones elevated and your body already on alert before the day begins.",
-    direction: "Your sleep envelope is the priority — not optimisation, but structural protection. Tonight: close the doors, draw the curtains, use soft weighted bedding, and switch to warm dim light at least 90 minutes before bed. Do not attempt to compensate for last night through output today. Your body needs less asked of it today, not more."
+    direction: "Your sleep environment is the priority, not optimisation, but structural protection. Tonight, close the doors and draw the curtains. Use soft, weighted bedding and switch to a warm, dim light source at least 90 minutes before bedtime. Do not try to make up for last night by overdoing it today. Your body needs less to be asked of it today, not more."
   }
 
   if (moodScore <= 2 && tensionScore >= 7) return {
@@ -93,36 +94,27 @@ export function getEveningFeedback({ focusScore, eveningMood, socialDemand }: Ev
   const moodScore = eveningMood ?? 3
   const social    = socialDemand ?? 'low'
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // COMPOUND LOAD: high cognitive output + high social demand
-  //
-  // Holding mood together through a high-demand day is a coping response,
-  // not an absence of cost. 10 hours of deep work plus sustained high social
-  // demand produces a compound autonomic load that the mood score alone
-  // does not capture. The overnight processing window carries both.
-  // This branch fires regardless of mood — the compound load is the signal.
-  // ─────────────────────────────────────────────────────────────────────────
+  // Compound load: high cognitive output + high social demand
+  // Fires before all other branches — mood cannot mask this combination.
+  // Restored after being inadvertently removed during synthesis rebuild.
   if (focusScore >= 8 && social === 'high') return {
     title:     "A High-Output, High-Demand Day. Recovery Is Non-Negotiable Tonight.",
-    reframe:   "Sustained deep work and high social demand activate the same autonomic systems through different pathways: cognitive load through prefrontal depletion, social demand through interpersonal processing and HPA axis activation. Maintaining your mood throughout both is a regulatory achievement, not evidence that the cost was low. Your nervous system has been running on two parallel loads all day. The overnight clearing window now has to process both.",
+    reframe:   "Sustained deep work and high social demand activate the same autonomic systems through different pathways — cognitive load through prefrontal depletion, social demand through interpersonal processing and HPA axis activation. Holding your mood together through both is a regulatory achievement, not evidence that the cost was low. Your nervous system has been running on two parallel loads all day. The overnight clearing window now has to process both.",
     direction: "Your environment must create a firm boundary tonight. Transition to warm-toned light below 100 lux within the next thirty minutes. Remove yourself from high-stimulation spaces. Do not re-engage with cognitively or socially demanding content. Your body needs the environment to do the heavy lifting tonight — not you."
   }
 
-  // High focus + low mood — recovery critical
   if (focusScore >= 8 && moodScore <= 2) return {
     title:     "A Demanding Day. Recovery Is Non-Negotiable Tonight",
     reframe:   "Extended deep work alongside low mood regulation is a recognisable autonomic signature: you sustained performance by drawing on stress-driven energy rather than actual reserves. The output was real. So is the cost. Your brain's overnight emotional processing is carrying a heavier load into sleep than your focus score would suggest.",
     direction: "Tonight's environment must match today's demand. Transition away from screens and bright overhead light within the next thirty minutes to warm-toned sources below 100 lux only. Remove high-stimulation zones from your evening sightline. Your body needs a firm, unhurried wind-down tonight."
   }
 
-  // High focus + good mood + low/moderate social demand — protect the close
   if (focusScore >= 8 && moodScore >= 4) return {
     title:     "A Great Day. Protect the Close",
     reframe:   "Deep work sustained across the day without a corresponding drop in mood regulation indicates that your environment was supporting your cognitive load rather than extracting from it. The question now is not what today cost — it is what tonight's environment does with that state.",
     direction: "Do not coast through the evening without a deliberate transition. Make a deliberate close: shift to warm light, step away from your work zone, and do one low-stimulation activity before you prepare for sleep."
   }
 
-  // Low focus + low mood — examine the space
   if (focusScore <= 2 && moodScore <= 2) return {
     title:     "Low Focus Today Isn't About You. Let's Examine Your Space",
     reframe:   "When attentional capacity feels constrained despite effort, the instinct is to attribute it to discipline or motivation. The more precise reading — particularly when mood and focus drop together — is environmental: your space was not providing the sensory conditions required for sustained cognitive engagement.",
@@ -147,106 +139,144 @@ export function getEveningFeedback({ focusScore, eveningMood, socialDemand }: Ev
 // component is completely unaffected.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function getMacroSynthesis({ chartLogs, morningBsfi, eveningBsfi }: MacroSynthesisParams): MacroSynthesisResult {
+export function getMacroSynthesis({ chartLogs }: MacroSynthesisParams): MacroSynthesisResult {
 
+  // ── Building state ─────────────────────────────────────────────────────
   if (chartLogs.length < 14) {
     return {
       ready:      false,
-      title:      "Still Gathering Data",
-      paragraphs: [`${Math.max(0, 14 - chartLogs.length)} days of logs remaining before your pattern is readable.`]
+      title:      'Still Gathering Data',
+      paragraphs: [
+        `${Math.max(0, 14 - chartLogs.length)} more ${14 - chartLogs.length === 1 ? 'day' : 'days'} of logs before your pattern becomes readable.`,
+        'Each entry adds signal. The pattern emerges from consistency, not from any single day's reading.'
+      ]
     }
   }
 
-  const bsfiRef = morningBsfi || eveningBsfi
+  // ── 14-day signal aggregation ───────────────────────────────────────────
+  //
+  // All five signals computed from the 14-day chartLogs window.
+  // No external state. No today's BSFI. No shortcuts.
+  //
+  // Signal definitions:
+  //   avgMood         — average morning mood (1–5 scale)
+  //   avgTension      — average somatic tension on waking (0–10 scale)
+  //   avgFocus        — average focused work hours (0–12)
+  //   avgWakes        — average nightly wake events
+  //   highDemandDays  — count of days logged as high social demand
+  //   moderateDemandDays — count of days logged as moderate social demand
+  //
+  // Pattern classification fires in priority order. The first match wins.
+  // Priority: regulated → relational → sleep → output/recovery → environmental → variable
+  // ─────────────────────────────────────────────────────────────────────────
 
-  if (bsfiRef) {
-    if (bsfiRef.is_internal_driver) {
-      return {
-        ready: true,
-        title: "Your Environment Is Stable. What You're Feeling Is Coming From Inside.",
-        paragraphs: [
-          "Over the last fourteen days, your somatic tension and mood have shown significant variance, but your measured environmental conditions have remained largely consistent.",
-          "This data signature has a specific meaning: the primary source of friction right now is not your physical space. Biological fluctuations — cyclical hormonal shifts, periods of elevated emotional demand, accumulated stress — produce real, measurable changes in tension, sleep quality, focus, and mood that register in your logs independently of what your space is doing.",
-          "The appropriate response to this phase is accommodation, not optimisation. Ask your environment to do one thing: reduce the additional friction layered on top of an already-demanding internal state. Quieter, warmer, simpler."
-        ]
-      }
-    }
+  const n = chartLogs.length
 
-    const score  = bsfiRef.total_score
-    const domain = bsfiRef.dominant_domain
+  const avgMood    = chartLogs.reduce((s, l) => s + (l.mood    || 0), 0) / n
+  const avgTension = chartLogs.reduce((s, l) => s + (l.tension || 0), 0) / n
+  const avgFocus   = chartLogs.reduce((s, l) => s + (l.focus   || 0), 0) / n
+  const avgWakes   = chartLogs.reduce((s, l) => s + (l.wakes   || 0), 0) / n
 
-    if (score <= 20) return {
-      ready: true,
-      title: "Your Home Is Supporting You",
-      paragraphs: [
-        "Across fourteen days, your Bio-Spatial Friction Index has remained exceptionally low. Your home is doing precisely what it should: absorbing daily sensory load, supporting overnight recovery, and returning your body to a settled baseline each morning.",
-        "What this data confirms is that your current sensory conditions are not accidental. Your light habits, acoustic boundaries, sleep ecology, and spatial practices are functioning as a coherent, mutually reinforcing system.",
-        "The task now is protection, not improvement. Document the specific conditions that are producing this baseline in sufficient detail that you can replicate them accurately during periods of elevated stress, travel, or seasonal change."
-      ]
-    }
+  const highDemandDays     = chartLogs.filter(l => l.socialDemand === 'high').length
+  const moderateDemandDays = chartLogs.filter(l => l.socialDemand === 'moderate').length
+  const totalDemandDays    = highDemandDays + moderateDemandDays
 
-    if (score <= 60) return {
-      ready: true,
-      title: `Moderate Friction: ${getDomainDisplay(domain).label} Is The Primary Source`,
-      paragraphs: [
-        `Over the last fourteen days, your home environment has been introducing a moderate but consistent level of friction. ${getDomainDisplay(domain).label} is the source generating the greatest sustained demand. This is where the leverage is.`,
-        "The output you are producing is beginning to happen against environmental resistance rather than from regulated reserves. At moderate friction levels, this distinction is easy to miss. Performance remains intact while the underlying cost accumulates.",
-        `Address ${getDomainDisplay(domain).label} this week as a priority. A targeted change in your highest-friction area will produce a disproportionate return, reducing the load on every other area simultaneously.`
-      ]
-    }
-
+  // ── PATTERN 1: Regulated ──────────────────────────────────────────────
+  // Mood is stable, tension is low, sleep is largely uninterrupted.
+  // The environment is absorbing load rather than generating it.
+  if (avgMood >= 3.5 && avgTension <= 4 && avgWakes <= 1.2) {
     return {
       ready: true,
-      title: "High Friction Across The Board. Your Environment Needs Attention",
+      title: 'Your Home Is Working For You',
       paragraphs: [
-        "Your fourteen-day pattern indicates a high-load, dysregulated environmental pattern. Across light timing, sound, spatial clarity, and overnight recovery, your home is generating friction that arrives before your day begins.",
-        "Sustained multi-domain environmental friction at this level carries a specific physiological signature: your body shifts into a low-level stress state, running on stress-fuelled performance rather than restored capacity. The reserves that sustain that are finite.",
-        "Stop optimising for output. Start optimising for environmental recovery. Three priorities in order: close and soften your sleep environment acoustically, enforce a warm dim light boundary after 8pm, and clear one low-stimulation space you can access easily during the day."
+        `Across fourteen days, your morning mood has averaged ${avgMood.toFixed(1)} out of 5, somatic tension ${avgTension.toFixed(1)} out of 10, and sleep interruptions ${avgWakes.toFixed(1)} per night. These are not accident figures — they are the measurable output of an environment that is doing its job.`,
+        'A regulated pattern at this level means your sensory conditions, sleep ecology, and spatial habits are functioning as a coherent system. Your home is absorbing daily load rather than adding to it, and returning your body to a workable baseline each morning.',
+        'The task now is not to improve but to understand precisely what is producing this. Document the specific habits and conditions so you can replicate them accurately when elevated stress, travel, or seasonal change puts pressure on the baseline.'
       ]
     }
   }
 
-  const avgMood    = chartLogs.reduce((acc, log) => acc + log.mood,    0) / (chartLogs.length || 1)
-  const avgTension = chartLogs.reduce((acc, log) => acc + log.tension, 0) / (chartLogs.length || 1)
-  const avgFocus   = chartLogs.reduce((acc, log) => acc + log.focus,   0) / (chartLogs.length || 1)
-
-  if (avgTension >= 6 && avgFocus <= 4) return {
-    ready: true,
-    title: "Your Home Is Draining You Before The Day Begins",
-    paragraphs: [
-      "Fourteen days of consistently elevated somatic tension alongside constrained cognitive output describes a recognisable pattern: your body is absorbing sustained environmental friction and arriving at each day already partially depleted.",
-      "At this pattern level, the gap between how capable you are and how capable you feel is environmental in origin. Your home is spending your capacity before you have the chance to direct it.",
-      "The two most probable friction sources at this profile are your sleep ecology and the sensory load of your primary daytime environment. Both are structurally addressable."
-    ]
+  // ── PATTERN 2: Relational load dominant ──────────────────────────────
+  // High social demand on 5+ days signals relational load as the primary
+  // source — distinct from environmental friction, requires a different response.
+  if (highDemandDays >= 5) {
+    return {
+      ready: true,
+      title: 'Your Environment Is Stable. Your Relational Load Is Not.',
+      paragraphs: [
+        `Over the last fourteen days, ${highDemandDays} out of 14 were logged as high social demand. High social demand activates the autonomic nervous system through evaluative pressure, emotional labour, and relational complexity — the same physiological pathways as environmental stressors, but with a different origin.`,
+        `Your tension average of ${avgTension.toFixed(1)} and mood average of ${avgMood.toFixed(1)} are reflecting this load. The friction is not coming from your space. Your home can reduce the cost of what the day produces, but it cannot undo what continues to arrive relationally.`,
+        'The intervention is not spatial. It is two-part: manage the volume and nature of high-demand engagement where possible, and use your lowest-friction space deliberately for decompression. Your environment's role right now is to reduce the metabolic cost of processing, not to address the source.'
+      ]
+    }
   }
 
-  if (avgFocus >= 6 && avgMood <= 2.5) return {
-    ready: true,
-    title: "Strong Output, But Your Reserves Are Being Used Up",
-    paragraphs: [
-      "Fourteen days of sustained cognitive output alongside consistently low mood regulation carries a specific autonomic signature: your body is maintaining performance through stress-driven energy rather than from a genuinely recovered baseline.",
-      "This is a viable short-term strategy. Over weeks and months, it progressively narrows the floor it is borrowing from. The early indicators are already present in your data.",
-      "What this pattern requires is a firm boundary between your work zone and your rest zone, and a deliberate evening transition that your body can begin to recognise as a signal to wind down."
-    ]
+  // ── PATTERN 3: Sleep disruption dominant ─────────────────────────────
+  // Elevated wakes alongside tension signals a recovery failure pattern.
+  // Sleep ecology is the primary addressable lever.
+  if (avgWakes >= 2 && avgTension >= 5) {
+    return {
+      ready: true,
+      title: 'Disrupted Sleep Is The Primary Source Of Friction',
+      paragraphs: [
+        `Over fourteen days, you have averaged ${avgWakes.toFixed(1)} wake events per night alongside a somatic tension score of ${avgTension.toFixed(1)} on waking. These two signals together describe a recovery pattern that is not completing overnight. Your body is arriving at each morning already carrying load from the previous day.`,
+        'Interrupted sleep prevents full progression through the deep and REM stages that clear cortisol, consolidate emotional memory, and restore autonomic balance. The result is not simply tiredness — it is a narrowed capacity for regulation that accumulates across days.',
+        'The sleep environment is the primary lever here: acoustic conditions after 9pm, evening lux levels, bedroom temperature, and the sensory complexity of the space you move through in the final hour before sleep. One precise change in your highest-friction sleep variable will produce a disproportionate return.'
+      ]
+    }
   }
 
-  if (avgMood >= 4 && avgTension <= 3) return {
-    ready: true,
-    title: "Fourteen Days of A Regulated Home",
-    paragraphs: [
-      "Across fourteen days, your somatic tension has remained consistently low and your mood regulation consistently high. This is the measurable output of a home that is absorbing daily load, supporting overnight recovery, and returning your body to a settled baseline each morning.",
-      "What the data confirms is that your current environmental conditions are not accidental. Your sensory practices, thermal ecology, sleep habits, and spatial routines are functioning as a coherent, mutually reinforcing system.",
-      "The task now is to understand what is working precisely enough to protect it — particularly during elevated stress periods, travel, or seasonal light change."
-    ]
+  // ── PATTERN 4: High output, low recovery ─────────────────────────────
+  // Performance is sustained but mood regulation is low — stress-driven output.
+  if (avgFocus >= 7 && avgMood <= 2.5) {
+    return {
+      ready: true,
+      title: 'Strong Output. Diminishing Reserves.',
+      paragraphs: [
+        `Fourteen days of sustained cognitive output — averaging ${avgFocus.toFixed(1)} focused hours — alongside consistently low mood regulation at ${avgMood.toFixed(1)} out of 5 carries a specific signature. Your body is maintaining performance through stress-driven energy rather than from a genuinely recovered baseline.`,
+        'This is a viable short-term strategy. It is not a stable one. The early indicators are present in your data now — low mood despite functional output, tension that does not fully clear overnight, a narrowing of the floor the system is borrowing from.',
+        'What the pattern requires is a structural separation between your work zone and your rest zone, and a deliberate evening transition your nervous system can learn to recognise. The environment needs to change register clearly enough that your body receives an unambiguous wind-down signal.'
+      ]
+    }
   }
 
+  // ── PATTERN 5: Environmental friction dominant ────────────────────────
+  // Tension is high, focus is constrained — space is spending capacity.
+  if (avgTension >= 6 && avgFocus <= 4) {
+    return {
+      ready: true,
+      title: 'Your Environment Is Spending Your Capacity Before You Can.',
+      paragraphs: [
+        `Across fourteen days, somatic tension has averaged ${avgTension.toFixed(1)} out of 10 on waking, and focused output has averaged ${avgFocus.toFixed(1)} hours. This pattern has a structural cause: your environment is generating friction that the nervous system must absorb before the day begins.`,
+        'When tension is consistently elevated at waking, the body did not fully recover overnight. When focus is constrained despite intention, the sensory conditions of the daytime space are creating resistance. The gap between how capable you are and how capable you feel is environmental in origin.',
+        'The two highest-leverage interventions at this profile are your sleep ecology — acoustic conditions, evening light, and thermal comfort — and the sensory load of your primary daytime environment. A targeted change in either will reduce the cost your body is paying before it reaches the work.'
+      ]
+    }
+  }
+
+  // ── PATTERN 6: Mixed / high social demand + low mood ─────────────────
+  // Sustained moderate-to-high relational load affecting baseline.
+  if (totalDemandDays >= 8 && avgMood <= 3) {
+    return {
+      ready: true,
+      title: 'Sustained Relational Demand Is Affecting Your Baseline.',
+      paragraphs: [
+        `Over fourteen days, ${totalDemandDays} were logged as moderate or high social demand. Alongside a mood average of ${avgMood.toFixed(1)}, this pattern suggests your nervous system is carrying a relational load that is not fully clearing overnight — even when your environment is structurally sound.`,
+        'This is not a spatial problem and it is not a personal one. Sustained social and cognitive demand across days activates the same autonomic systems as environmental stressors. When that load arrives each evening without adequate decompression time, the overnight clearing window cannot complete its work.',
+        'The appropriate response is two-part: where possible, reduce the density of high-demand social engagement during the week, and protect deliberate decompression time in your lowest-stimulation space each evening. Your environment can support this — it cannot substitute for it.'
+      ]
+    }
+  }
+
+  // ── PATTERN 7: Variable / inconclusive ───────────────────────────────
+  // Signals present but no dominant pattern. Genuine variability.
   return {
     ready: true,
-    title: "Your Pattern Is Present. It Is Not Yet Directional",
+    title: 'Your Pattern Is Present. It Is Not Yet Directional.',
     paragraphs: [
-      "The last fourteen days show significant fluctuation across mood, tension, and focus without a consistent directional pattern. Before locating the source of that variance in your physical environment, it is worth naming what the data cannot distinguish: not all fluctuation is environmental in origin.",
-      "Hormonal shifts, periods of elevated relational or cognitive demand, and natural energy cycles produce real, measurable changes in tension, sleep quality, focus, and mood — changes that register in your logs independently of what your physical space is doing.",
-      "Continue logging consistently. The appropriate response during periods of internal fluctuation is friction reduction, not optimisation. Ask your environment to do less against you, not more for you."
+      'The last fourteen days show significant fluctuation across mood, tension, and focus without a consistent directional pattern. Before locating the source of that variance in your physical environment, it is worth naming what the data cannot distinguish: not all fluctuation is environmental in origin.',
+      'Hormonal shifts, periods of heightened emotional or cognitive demand, and natural energy cycles can produce real, measurable changes in tension, sleep quality, focus and mood. These changes are recorded in your logs, regardless of what is happening in your physical space.',
+      'Continue logging consistently. The pattern will become clearer as conditions stabilise or one domain begins to lead. For now, reduce unnecessary sensory friction across all domains, protect sleep ecology and continue to accumulate data. The signal will emerge.'
     ]
   }
 }
