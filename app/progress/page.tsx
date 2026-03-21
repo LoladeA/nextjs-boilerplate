@@ -306,7 +306,7 @@ export default function Progress() {
     const [historyRes, countRes, profileRes] = await Promise.all([
       supabase
         .from('daily_logs')
-        .select('date, mood_score, focus_hours, morning_tension, sleep_wakes')
+        .select('date, mood_score, focus_hours, morning_tension, sleep_wakes, social_demand')
         .eq('user_id', user.id)
         .order('date', { ascending: false })
         .limit(14),
@@ -347,11 +347,12 @@ export default function Progress() {
         const [year, month, day] = log.date.split('-')
         const dateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
         return {
-          date:    dateObj.toLocaleDateString('en-US', { weekday: 'short' }),
-          mood:    log.mood_score      || 0,
-          tension: log.morning_tension || 0,
-          focus:   log.focus_hours     || 0,
-          wakes:   log.sleep_wakes     || 0,
+          date:         dateObj.toLocaleDateString('en-US', { weekday: 'short' }),
+          mood:         log.mood_score      || 0,
+          tension:      log.morning_tension || 0,
+          focus:        log.focus_hours     || 0,
+          wakes:        log.sleep_wakes     || 0,
+          socialDemand: log.social_demand   || 'low',
         }
       })
       setChartLogs(formatted)
@@ -469,7 +470,7 @@ export default function Progress() {
   // ─────────────────────────────────────────────────────────────────────────
   const morningInsight = getMorningFeedback({ morningMood, tensionScore, wakeScore })
   const eveningInsight = getEveningFeedback({ focusScore, eveningMood, socialDemand })
-  const macroSynthesis = getMacroSynthesis({ chartLogs, morningBsfi, eveningBsfi })
+  const macroSynthesis = getMacroSynthesis({ chartLogs })
 
   // =============================================================================
   // RENDER
@@ -956,7 +957,7 @@ export default function Progress() {
                   {(() => {
                     const state = getSleepEveningCopy(sleepReadiness as 1|2|3|4|5)
                     return (
-                      <div className="p-4 rounded-xl bg-[#b5a642]/5 border border-[#b5a642]">
+                      <div className="p-4 rounded-xl bg-[#b5a642]/5 border border-[#b5a642]/90">
                         <p className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-1">{state.headline}</p>
                         <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed mb-2">{state.body}</p>
                         <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed italic">{state.environment_action}</p>
@@ -1108,7 +1109,7 @@ export default function Progress() {
                     </h3>
                     {morningBsfi.is_internal_driver ? (
                       <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed max-w-xs mb-4">
-                        The friction here does not appear to be environmental. It may reflect accumulated stress, emotional load, or a biological state not yet captured in your logs. Your space is not the source, and neither is a personal failing.
+                        The friction here does not appear to be environmental. It may reflect accumulated stress, emotional load, or a biological state not yet captured in your logs. Your space is not the source — and neither is a personal failing.
                       </p>
                     ) : shouldShowPrimarySource(morningBsfi.total_score) ? (() => {
                       const safeDomain = sanitiseDomain(morningBsfi.dominant_domain)
@@ -1204,7 +1205,7 @@ export default function Progress() {
                     </h3>
                     {eveningBsfi.is_internal_driver ? (
                       <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed max-w-xs mb-4">
-                        The friction here does not appear to be environmental. It may reflect accumulated stress, emotional load, or a biological state not yet captured in your logs. Your environment is holding: what it cannot do is carry what is not spatial in origin. Dim the lights, lower acoustic input, and let the space do less asking of you tonight.
+                        The friction here does not appear to be environmental. It may reflect accumulated stress, emotional load, or a biological state not yet captured in your logs. Your environment is holding — what it cannot do is carry what is not spatial in origin. Dim the lights, lower acoustic input, and let the space do less asking of you tonight.
                       </p>
                     ) : shouldShowPrimarySource(eveningBsfi.total_score) ? (() => {
                       const safeDomain = sanitiseDomain(eveningBsfi.dominant_domain)
