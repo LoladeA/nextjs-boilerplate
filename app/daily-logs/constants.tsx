@@ -4,7 +4,7 @@
 // Contains JSX so this file must use the .tsx extension.
 // No state. No side effects. Safe to import anywhere.
 
-import { Wind, Sun, Volume2, CheckCircle, Heart } from 'lucide-react'
+import { Wind, Sun, Volume2, CheckCircle, Heart, Droplet} from 'lucide-react'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MOOD CARDS
@@ -36,7 +36,7 @@ export const morningTagOptions = [
 // EVENING ACTION TAGS
 // ─────────────────────────────────────────────────────────────────────────────
 export const eveningTagOptions = [
-  { id: 'warm_shower_pm',    label: 'Warm Shower or Bath Before Bed',                     icon: <Droplets size={14} />    },
+  { id: 'warm_shower_pm',    label: 'Warm Shower or Bath Before Bed',                     icon: <Droplet size={14} />    },
   { id: 'screens_closed',    label: 'Turn On Red Light Filter On Screens',                icon: <Flame size={14} />       },
   { id: 'entropy_reset',     label: 'Decluttered The First Surface I See In The Morning', icon: <CheckCircle size={14} /> },
   { id: 'acoustic_seal',     label: 'Reduced or Softened Noise For The Night',            icon: <Volume2 size={14} />     },
