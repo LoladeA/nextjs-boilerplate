@@ -1109,7 +1109,7 @@ export default function Progress() {
                     </h3>
                     {morningBsfi.is_internal_driver ? (
                       <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed max-w-xs mb-4">
-                        The friction here does not appear to be environmental. It may reflect accumulated stress, emotional load, or a biological state not yet captured in your logs. Your space is not the source — and neither is a personal failing.
+                        The friction here does not appear to be environmental. It may reflect accumulated stress, emotional load, or a biological state not yet captured in your logs. Your home environment is not the source, and neither one is a personal failing.
                       </p>
                     ) : shouldShowPrimarySource(morningBsfi.total_score) ? (() => {
                       const safeDomain = sanitiseDomain(morningBsfi.dominant_domain)
@@ -1205,7 +1205,7 @@ export default function Progress() {
                     </h3>
                     {eveningBsfi.is_internal_driver ? (
                       <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed max-w-xs mb-4">
-                        The friction here does not appear to be environmental. It may reflect accumulated stress, emotional load, or a biological state not yet captured in your logs. Your environment is holding — what it cannot do is carry what is not spatial in origin. Dim the lights, lower acoustic input, and let the space do less asking of you tonight.
+                        The friction here does not appear to be environmental. It may reflect accumulated stress, emotional load, or a biological state not yet captured in your logs. Your environment is holding: however it cannot support what is not spatial in origin. Dim the lights, lower acoustic input, and let the space do less asking of you tonight.
                       </p>
                     ) : shouldShowPrimarySource(eveningBsfi.total_score) ? (() => {
                       const safeDomain = sanitiseDomain(eveningBsfi.dominant_domain)
@@ -1333,12 +1333,12 @@ export default function Progress() {
 
             {synthesisState === 'recalibrating' ? (
               <div className="mt-4 pt-4 border-t border-[#b5a642]/10 w-full relative z-10">
-                <p className="text-sm text-[#c9ccbb]/70 leading-relaxed max-w-2xl mb-4">
-                  You have acknowledged your current pattern. Your next synthesis will be ready
+                <p className="text-sm text-[#c9ccbb]/80 leading-relaxed max-w-2xl mb-4">
+                  Current 14 day synthesis read. Your next synthesis will be ready
                   once {logsUntilReady} more {logsUntilReady === 1 ? 'day' : 'days'} of logs have been recorded.
                 </p>
-                <p className="text-[#c9ccbb]/50 text-xs leading-relaxed max-w-2xl italic">
-                  Each new cycle reads your environment with fresh context — without the weight
+                <p className="text-[#c9ccbb]/80 text-xs leading-relaxed max-w-2xl italic">
+                  Each new cycle reads your environment with fresh context without the weight
                   of the previous window's assumptions. Continue logging consistently.
                 </p>
                 <div className="w-full max-w-md h-1 bg-[#000]/50 rounded-full mt-5 overflow-hidden">
@@ -1380,7 +1380,7 @@ export default function Progress() {
             ) : (
               <div className="mt-6 pt-6 border-t border-[#c9ccbb]/10 flex flex-col md:flex-row md:items-center justify-between gap-6 w-full relative z-10">
                 <p className="text-sm text-[#c9ccbb]/80 leading-relaxed max-w-xl">
-                  14 days of data collected. Your home's friction pattern is ready. Unlock now to see what it means for you.
+                  14 days of data collected. Your home's synthesis is ready. Unlock now to see what that means for you.
                 </p>
                 <Link href="/upgrade" className="shrink-0 w-full md:w-auto">
                   <button className="w-full md:w-auto px-8 py-3 bg-[#b5a642] text-[#1b270e] text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-white transition-all shadow-lg shadow-[#b5a642]/20">
