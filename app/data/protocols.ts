@@ -422,7 +422,7 @@ export const RITUALS: Record<string, Ritual> = {
           {
             type: 'space',
             label: 'Command Point',
-            instruction: 'After movement, position yourself at your primary workspace with your back to a wall, facing the room. Control of your visual field reduces background vigilance and allows your executive brain to re-engage.'
+            instruction: 'After movement, position yourself at your primary workspace with your back to a wall, facing the room. Control of your visual field reduces background vigilance and allows your executive brain to re-engage with work.'
           }
         ]
       },
@@ -1247,7 +1247,7 @@ export const RITUALS: Record<string, Ritual> = {
       // -----------------------------------------------------------------------
       anchor_accumulative: {
         tagline:     'The Proactive Evening: Reducing Load Before It Compounds Overnight.',
-        description: 'For the Anchor with an accumulative pattern, the evening is the most important regulatory window of the day. Your system does not signal depletion clearly enough for you to catch it at the point of onset. By evening, accumulated load is present whether you can locate it or not. The taper is not about winding down from a feeling -- it is about creating conditions that allow overnight clearing to begin as early as possible.',
+        description: 'For the Anchor with an accumulative pattern, the evening is the most important regulatory window of the day. Your system does not signal depletion clearly enough for you to catch it at the point of onset. By evening, accumulated load is present whether you can locate it or not. The taper is not about winding down from a feeling, it is about creating conditions that allow overnight clearing to begin as early as possible.',
         steps: [
           {
             type: 'light',
@@ -1258,7 +1258,7 @@ export const RITUALS: Record<string, Ritual> = {
           {
             type: 'space',
             label: 'Load-Reduction Sweep',
-            instruction: 'Before entering your sleep space,  take 5 minutes to make sure that other rooms are as tidy as possible. Close doors, turn off any lights that are still on and move things off the surfaces you can see. Your nervous system is tracking more environmental data than you are consciously aware of. If you reduce that data, it will reduce the load on your system when it is in sleep mode.'
+            instruction: 'Before entering your sleep space, take 5 minutes to make sure that other rooms are as tidy as possible. Close doors, turn off any lights that are still on and move things off the surfaces you can see. Your nervous system is tracking more environmental data than you are consciously aware of. If you reduce that data, it will reduce the load on your system when it is in sleep mode.'
           },
           {
             type: 'somatic',
@@ -1500,7 +1500,7 @@ export const RITUALS: Record<string, Ritual> = {
           {
             type: 'somatic',
             label: 'Full Physical Grounding',
-            instruction: 'Use your heaviest available blanket, making sure yout entire body is supported. Place one hand on your chest and one on your abdomen. Take 10, deep breaths, then release all effort. For your pattern, the grounding practice is the handover point, which is the moment you hand over the rest of the recovery work to the environment you have built rather than continuing to manage it consciously.',
+            instruction: 'Use your heaviest available blanket, making sure your entire body is supported. Place one hand on your chest and one on your abdomen. Take 10, deep breaths, then release all effort. For your pattern, the grounding practice is the handover point, which is the moment you hand over the rest of the recovery work to the environment you have built rather than continuing to manage it consciously.',
             spotifyLink: 'https://insig.ht/cT2RQ9xUm1b'
           }
         ]
