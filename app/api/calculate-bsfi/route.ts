@@ -138,6 +138,11 @@ export async function POST(req: Request) {
                     ALS:               bsfiResult.als_score,
                     SES:               bsfiResult.ses_score,
                     RDS:               bsfiResult.rds_score,
+                    // is_internal_driver stored here so the DB fetch path
+                    // in fetchTodayLog can read it after page reload.
+                    // Also available directly on bsfiResult for the
+                    // immediate API response path.
+                    is_internal_driver: bsfiResult.is_internal_driver,
                     load_attribution:  bsfiResult.load_attribution,
                     healthkit_enriched: bsfiResult.healthkit_enriched,
                     biological_load:   bsfiResult.biological_load,
