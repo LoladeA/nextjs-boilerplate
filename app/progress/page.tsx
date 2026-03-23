@@ -1022,7 +1022,7 @@ export default function Progress() {
                 {showAccuracyWarning && (
                   <motion.div
                     initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                    className="flex justify-between items-center p-4 bg-[#b5a642]/10 border border-[#b5a642]/30 rounded-xl"
+                    className="flex justify-between items-center p-4 bg-[#b5a642]/80 border border-[#b5a642]/30 rounded-xl"
                   >
                     <p className="text-sm text-[#c9ccbb] leading-relaxed">
                       <strong className="text-[#b5a642] uppercase tracking-widest text-[10px] mr-2 block mb-1">Data Accuracy Notice:</strong>
