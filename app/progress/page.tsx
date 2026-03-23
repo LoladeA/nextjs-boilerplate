@@ -618,7 +618,7 @@ export default function Progress() {
                           className="overflow-hidden"
                         >
                           <div className="space-y-0">
-                            <div className="w-full h-px bg-[#b5a642]/10" />
+                            <div className="w-full h-px bg-[#b5a642]/70" />
                             {(() => {
                               const sleepCopy = getSleepMorningCopy({
                                 sleep_wakes:     wakeScore,
@@ -642,7 +642,7 @@ export default function Progress() {
                             </div>
                             {hasAccess ? (
                               <div className="px-4 pb-4">
-                                <div className="w-full h-px bg-[#b5a642]/80 mb-4" />
+                                <div className="w-full h-px bg-[#b5a642]/70 mb-4" />
                                 <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
                                   <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Why this is happening:</strong>
                                   {morningInsight.reframe}
@@ -650,7 +650,7 @@ export default function Progress() {
                               </div>
                             ) : (
                               <div className="relative px-4 pb-4">
-                                <div className="w-full h-px bg-[#b5a642]/80 mb-4" />
+                                <div className="w-full h-px bg-[#b5a642]/70 mb-4" />
                                 <div className="filter blur-[3px] opacity-30 select-none pointer-events-none text-xs leading-relaxed text-[#c9ccbb]/80">
                                   <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Why this is happening:</strong>
                                   {morningInsight.reframe}
