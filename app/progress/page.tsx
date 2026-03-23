@@ -628,7 +628,7 @@ export default function Progress() {
                               })
                               return sleepCopy.environmental_note ? (
                                 <div className="px-4 pt-4 pb-2">
-                                  <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed italic">
+                                  <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed">
                                     {sleepCopy.environmental_note}
                                   </p>
                                 </div>
@@ -642,7 +642,7 @@ export default function Progress() {
                             </div>
                             {hasAccess ? (
                               <div className="px-4 pb-4">
-                                <div className="w-full h-px bg-[#b5a642]/10 mb-4" />
+                                <div className="w-full h-px bg-[#b5a642]/80 mb-4" />
                                 <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
                                   <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Why this is happening:</strong>
                                   {morningInsight.reframe}
@@ -650,7 +650,7 @@ export default function Progress() {
                               </div>
                             ) : (
                               <div className="relative px-4 pb-4">
-                                <div className="w-full h-px bg-[#b5a642]/10 mb-4" />
+                                <div className="w-full h-px bg-[#b5a642]/80 mb-4" />
                                 <div className="filter blur-[3px] opacity-30 select-none pointer-events-none text-xs leading-relaxed text-[#c9ccbb]/80">
                                   <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Why this is happening:</strong>
                                   {morningInsight.reframe}
