@@ -55,33 +55,80 @@ export interface MacroSynthesisResult {
 export function getMorningFeedback({ morningMood, tensionScore, wakeScore }: MorningFeedbackParams): FeedbackResult {
   const moodScore = morningMood ?? 3
 
+  // ── BRANCH 1: Compound severe ─────────────────────────────────────────────
+  // Low mood + high tension + fragmented sleep.
+  // Threshold: wakeScore >= 3 — PSQI (Buysse 1989) classifies >= 3 awakenings
+  // as "quite a problem." Ohayon et al. (2010) Sleep Med Rev N=35,327 confirms
+  // >= 3 awakenings associated with significant next-day impairment.
+  // Wüst et al. (2000) Psychoneuroendocrinology — flattened CAR in elevated
+  // morning tension.
   if (moodScore <= 2 && tensionScore >= 7 && wakeScore >= 3) return {
     title:     "You Slept, But Your Body Didn't Fully Recover",
     reframe:   "Three or more wake events alongside high somatic tension and low mood on rising is a specific stress pattern — not a reflection of how well you slept in a subjective sense, but of how much biological work your system was required to do overnight. Fragmented sleep prevents full progression through deep and dream sleep, leaving stress hormones elevated and your body already on alert before the day begins.",
     direction: "Your sleep environment is the priority, not optimisation, but structural protection. Tonight, close the doors and draw the curtains. Use soft, weighted bedding and switch to a warm, dim light source at least 90 minutes before bedtime. Do not try to make up for last night by overdoing it today. Your body needs less to be asked of it today, not more."
   }
 
+  // ── BRANCH 2: Low mood + high tension, sleep intact ──────────────────────
+  // Elevated waking tension with low mood even without fragmented sleep
+  // indicates ANS remained activated overnight. Pruessner et al. (1997) Life
+  // Sciences: waking tension is a reliable proxy for overnight sympathetic load.
   if (moodScore <= 2 && tensionScore >= 7) return {
     title:     "You Slept Through, But Not Restfully",
-    reframe:   "Sleep continuity is a necessary condition for restoration, but it is not sufficient. Sustained body tension on waking, alongside low mood, indicates that your body's regulation system remained on alert overnight. Without your body's calm-down response needed for deep sleep, you continue processing stress and emotional load rather than clearing it. You slept through. Your body did not fully let go.",
-    direction: "Work backwards from pre-sleep conditions: unresolved physical tension in the hour before bed typically originates from temperature discomfort, unresolved mental activity, or the absence of physical grounding. Introduce soft, weighted bedding tonight and reduce your pre-sleep light exposure to warm-toned sources below 50 lux."
+    reframe:   "Sleep continuity is a necessary condition for restoration, but it is not sufficient. Sustained body tension on waking, alongside low mood, indicates that your body's regulation system remained on alert overnight. Without your body's calm-down response needed for deep sleep, you continue processing stress and emotional load rather than clearing it. You slept through the night. Your body may not have fully let go.",
+    direction: "Work backwards from pre-sleep conditions. Unresolved physical tension in the hour before bed often reflects temperature discomfort, unresolved mental activity, or lack of physical grounding. Introduce soft weighted bedding tonight and reduce pre-sleep light exposure to warm-toned sources below 50 lux."
   }
 
-  if (moodScore >= 3 && wakeScore >= 3) return {
+  // ── BRANCH 3: Fragmented sleep (standalone) ───────────────────────────────
+  // Wakes >= 3 regardless of mood or tension.
+  // Threshold restored to original >= 3: PSQI (Buysse 1989) classifies
+  // >= 3 awakenings as "quite a problem" on the gold-standard scale.
+  // Ohayon et al. (2010): >= 3 awakenings associated with significant
+  // next-day impairment across N=35,327.
+  if (wakeScore >= 3) return {
     title:     "Sleep Interruptions Are Worth Investigating",
-    reframe:   "Waking three or more times through the night, in the presence of stable mood, is more reliably an environmental pattern than a dysregulation one. The most common causes are temperature disruption and sounds that pull you partially awake without fully waking you. You are coping well with the disruption. The disruption itself is still worth addressing.",
-    direction: "Audit your sleep environment for two variables tonight: ambient temperature and acoustic consistency. The ideal sleep temperature for most adults is 17–19°C. For acoustic disruption, notice whether the waking pattern is tied to a specific time and introduce low-level white or pink noise to soften those disruptions."
+    reframe:   "Waking three or more times through the night often reflects an environmental pattern rather than a personal one. Common contributors include temperature shifts, acoustic inconsistency, and light signals that partially activate the brain. Even when you feel relatively functional this morning, the disruption is still meaningful, as fragmented sleep can limit full progression through restorative stages.",
+    direction: "Audit your sleep environment for two variables tonight: ambient temperature and acoustic consistency. The optimal sleep temperature for most adults is typically around 17–19°C. Notice whether waking patterns cluster at certain times and consider introducing low-level pink or white noise."
   }
 
-  if (moodScore >= 4 && tensionScore <= 3) return {
+  // ── BRANCH 4: Elevated tension, neutral mood ──────────────────────────────
+  // tensionScore >= 5 with neutral or low mood, sleep largely intact.
+  // This is the silent accumulative load pattern — the user does not feel
+  // bad enough to register it, but waking tension at this level reflects
+  // incomplete ANS recovery regardless of subjective state.
+  // Evidence: Pruessner et al. (1997); Wüst et al. (2000) — morning tension
+  // correlates with flattened CAR independent of mood report.
+  if (tensionScore >= 5 && moodScore <= 3) return {
+    title:     "Your Body Is Carrying More Than You Are Registering",
+    reframe:   "Somatic tension on waking is not primarily a mood indicator. It is a physiological signal often reflecting how active your nervous system remained overnight. At this level, it can suggest incomplete autonomic recovery even when you feel broadly functional. The body is not signalling distress. It is signalling that restoration may have occurred under some resistance.",
+    direction: "This does not require an acute intervention today. What it warrants is attention to your pre-sleep environment tonight. Look at temperature, acoustic consistency, light sources, and the quality of the hour before bed. One structural condition is often the primary contributor."
+  }
+
+  // ── BRANCH 5: Genuinely good night ───────────────────────────────────────
+  // Good mood + low tension + sleep largely uninterrupted.
+  // wakeScore <= 1 added: Ohayon et al. (2010) — 2 awakenings is meaningful
+  // fragmentation even when subjectively tolerated. The positive label should
+  // only fire when sleep was genuinely intact.
+  if (moodScore >= 4 && tensionScore <= 3 && wakeScore <= 1) return {
     title:     "A Genuinely Good Night",
-    reframe:   "Low body tension and elevated mood on waking are the measurable output of a sleep environment that genuinely supported you overnight. Your natural morning energy signal is following its arc, deep sleep likely proceeded without disruption, and your thinking capacity is arriving at the day fully charged.",
-    direction: "Identify and record what was consistent yesterday evening. Your light habits, temperature, and pre-sleep routine are currently functioning as an aligned system. Protect those conditions — especially during periods of elevated schedule demand, travel, or seasonal light change."
+    reframe:   "Low body tension and elevated mood on waking are the measurable output of a sleep environment that genuinely supported you overnight. our morning energy signal appears to be following a natural arc, and your system is likely arriving from a relatively recovered baseline.",
+    direction: "Identify and record what was consistent yesterday evening. Your light habits, temperature, and pre-sleep routine are currently functioning as an aligned system. Protect those conditions, especially during periods of elevated schedule demand, travel, or seasonal light change."
   }
 
+  // ── BRANCH 6: Exhaustion without clear cause ──────────────────────────────
+  // moodScore = 1 (Exhausted) with low tension and few wakes.
+  // Exhaustion that cannot be attributed to environmental disruption or
+  // somatic tension warrants acknowledgement — it may reflect biological
+  // load, accumulative fatigue, or a state not yet captured in the logs.
+  if (moodScore === 1 && tensionScore <= 4 && wakeScore <= 2) return {
+    title:     "Exhausted Without A Clear Environmental Cause",
+    reframe:   "Arriving at the morning feeling exhausted without high somatic tension or significant sleep fragmentation suggests a pattern that often reflects accumulated load across multiple days rather than a single night. The environment may not be the sole driver, but it remains the most accessible lever.",
+    direction: "Do not push through the tiredness with stimulation. Keep today's sensory environment low-demand: quieter spaces, warmer light, reduced acoustic load. Log consistently this week. The pattern across several days will be more informative than any single morning entry."
+  }
+
+  // ── FALLBACK ──────────────────────────────────────────────────────────────
   return {
     title:     "Nothing Unusual This Morning",
-    reframe:   "Your morning readings sit within a neutral functional range today: no acute recovery deficit, no clear environmental signal in either direction. Neutral is not absence of data. It is the system in maintenance mode: not under significant load, not in peak restoration. The pattern becomes legible over time, not in a single morning.",
+    reframe:   "Your morning readings sit within a neutral functional range today. Neutral is not the absence of data, it suggests the system is in maintenance mode, without a strong directional signal. The pattern becomes clearer over time rather than from a single entry.",
     direction: "Log your environmental readings accurately: light levels, sounds, and sleep conditions. No acute intervention is required today. Use this session to build the baseline your fourteen-day synthesis will draw from."
   }
 }
@@ -94,37 +141,71 @@ export function getEveningFeedback({ focusScore, eveningMood, socialDemand }: Ev
   const moodScore = eveningMood ?? 3
   const social    = socialDemand ?? 'low'
 
-  // Compound load: high cognitive output + high social demand
-  // Fires before all other branches — mood cannot mask this combination.
-  // Restored after being inadvertently removed during synthesis rebuild.
-  if (focusScore >= 8 && social === 'high') return {
+  // ── BRANCH 1: High cognitive output + high social demand ──────────────────
+  // Two parallel ANS loads. Fires first — mood cannot mask this combination.
+  // Focus threshold lowered to >= 6: Van Dongen et al. (2003) Sleep shows
+  // cognitive performance after 6h sustained effort = 24h sleep deprivation.
+  // Lim & Dinges (2010) Ann Rev Psych: sustained attention declines at 4-6h.
+  // Dickerson & Kemeny (2004): high social demand produces robust ANS
+  // activation independent of cognitive load.
+  if (focusScore >= 6 && social === 'high') return {
     title:     "A High-Output, High-Demand Day. Recovery Is Non-Negotiable Tonight.",
-    reframe:   "Sustained deep work and high social demand activate the same autonomic systems through different pathways — cognitive load through prefrontal depletion, social demand through interpersonal processing and HPA axis activation. Holding your mood together through both is a regulatory achievement, not evidence that the cost was low. Your nervous system has been running on two parallel loads all day. The overnight clearing window now has to process both.",
-    direction: "Your environment must create a firm boundary tonight. Transition to warm-toned light below 100 lux within the next thirty minutes. Remove yourself from high-stimulation spaces. Do not re-engage with cognitively or socially demanding content. Your body needs the environment to do the heavy lifting tonight — not you."
+    reframe:   "Both sustained focused work and high social demand place a load on the autonomic nervous system, albeit through different pathways: cognitive effort through sustained attentional demand and social engagement through evaluative and relational processing. Maintaining your mood through both suggests strong regulation, not low cost. It is likely that your system is carrying a dual load into the evening.",
+    direction: "Your environment must establish a clear boundary tonight. Within the next thirty minutes, transition to warm-toned light below 100 lux. Remove yourself from high-stimulation spaces. Do not engage with cognitively or socially demanding content this evening. Your body needs the environment to take the strain tonight, not you."
   }
 
-  if (focusScore >= 8 && moodScore <= 2) return {
-    title:     "A Demanding Day. Recovery Is Non-Negotiable Tonight",
-    reframe:   "Extended deep work alongside low mood regulation is a recognisable autonomic signature: you sustained performance by drawing on stress-driven energy rather than actual reserves. The output was real. So is the cost. Your brain's overnight emotional processing is carrying a heavier load into sleep than your focus score would suggest.",
-    direction: "Tonight's environment must match today's demand. Transition away from screens and bright overhead light within the next thirty minutes to warm-toned sources below 100 lux only. Remove high-stimulation zones from your evening sightline. Your body needs a firm, unhurried wind-down tonight."
+  // ── BRANCH 2: High cognitive output + low mood ────────────────────────────
+  // Sustained output with depleted affect = stress-driven performance pattern.
+  // Focus threshold lowered to >= 6 (same evidence base as Branch 1).
+  if (focusScore >= 6 && moodScore <= 2) return {
+    title:     "A Demanding Day. Recovery Is Non-Negotiable Tonight.",
+    reframe:   "Sustained focused output alongside low mood regulation suggests your system may have relied on stress-driven energy rather than recovered reserves. The output was real, and the cost is likely present even if not immediately obvious.",
+    direction: "Tonight's environment must match today's demand. Transition away from screens and bright overhead light within the next thirty minutes to warm-toned sources below 100 lux. Remove high-stimulation zones from your sightline. Your body needs a firm, unhurried wind-down, not an efficient one."
   }
 
-  if (focusScore >= 8 && moodScore >= 4) return {
-    title:     "A Great Day. Protect the Close",
-    reframe:   "Deep work sustained across the day without a corresponding drop in mood regulation indicates that your environment was supporting your cognitive load rather than extracting from it. The question now is not what today cost — it is what tonight's environment does with that state.",
-    direction: "Do not coast through the evening without a deliberate transition. Make a deliberate close: shift to warm light, step away from your work zone, and do one low-stimulation activity before you prepare for sleep."
+  // ── BRANCH 3: High cognitive output + stable or good mood ─────────────────
+  // Focus threshold lowered to >= 6. A well-regulated high-output day.
+  if (focusScore >= 6 && moodScore >= 4) return {
+    title:     "A Strong Day. Protect The Close.",
+    reframe:   "If you were able to maintain a sustained level of focus throughout the day without experiencing a corresponding drop in mood regulation, it suggests that your environment was supporting your cognitive load rather than competing with it. The question now is not what today cost, but what tonight's environment does with that state. A well-regulated, high-output day can turn into a poorly recovered one if the transition into the evening is not deliberate.",
+    direction: "Do not coast through the evening without a deliberate close. Shift to warm light, step away from your work zone, and do one low-stimulation activity before preparing for sleep. The transition is the work now."
   }
 
+  // ── BRANCH 4: High social demand + low or zero output ─────────────────────
+  // Relational load is an ANS load even when cognitive output is low.
+  // A high-demand day that was relationally rather than cognitively expensive.
+  // Evidence: Dickerson & Kemeny (2004) Psych Bulletin N=8,452 — evaluative
+  // social demand produces largest effect sizes for ANS and HPA activation.
+  if (social === 'high' && focusScore <= 3) return {
+    title:     "A High-Demand Day That Did Not Look Like One.",
+    reframe:   "High social demand can activate the nervous system through evaluative and relational processing. Even with low visible output, the physiological cost may still be present. The day may have been more demanding than it appeared.",
+    direction: "Your environment's role tonight is decompression, not recovery from output. Lower the acoustic and visual complexity of your evening space. Reduce relational stimulation, including passive social media. Your nervous system spent today processing people energies. Give it an evening that asks nothing of that system."
+  }
+
+  // ── BRANCH 5: Moderate output + low mood ─────────────────────────────────
+  // focus=3-5 with moodScore <= 2 — output present but affect depleted.
+  // Van Dongen (2003), Lim & Dinges (2010): 3-5h focused work is a
+  // meaningful cognitive day. Low mood alongside it = cost not being
+  // offset by recovery.
+  if (focusScore >= 3 && focusScore <= 5 && moodScore <= 2) return {
+    title:     "The Output Was Real. So Is The Cost.",
+    reframe:   "Moderate output alongside low mood suggests your system maintained function while drawing on reserves. This is an early signal of imbalance between demand and recovery.",
+    direction: "Tonight is for consolidation rather than compensation. Avoid high-stimulation inputs in the final two hours before sleep. Protect the sleep environment: acoustic consistency, temperature, and darkness matter more tonight than on a neutral day. One structural improvement to your sleep conditions this week will change this pattern more reliably than any effort-based response."
+  }
+
+  // ── BRANCH 6: Low focus + low mood ───────────────────────────────────────
+  // Both attentional and affective capacity constrained — environmental lens.
   if (focusScore <= 2 && moodScore <= 2) return {
-    title:     "Low Focus Today Isn't About You. Let's Examine Your Space",
-    reframe:   "When attentional capacity feels constrained despite effort, the instinct is to attribute it to discipline or motivation. The more precise reading — particularly when mood and focus drop together — is environmental: your space was not providing the sensory conditions required for sustained cognitive engagement.",
-    direction: "Do not attempt to recover through effort or extended hours tonight. Identify one controllable sensory variable in your primary space — noise, light quality, or visual clutter — and address only that. One intentional environmental change will do more for tomorrow than any amount of extra effort tonight."
+    title:     "Low Focus Today Isn't About You. Let's Examine Your Space.",
+    reframe:   "When your attention feels limited despite your efforts, you may be inclined to attribute this to a lack of discipline or motivation. A more precise interpretation, particularly when mood and focus decline simultaneously, is environmental: your surroundings did not provide the sensory conditions necessary for sustained cognitive engagement..",
+    direction: "Do not attempt to recover through effort or extended hours tonight. Identify one controllable sensory variable in your primary space — noise, light quality, or visual clutter — and address only that. One intentional environmental change will do more for tomorrow than any amount of extended effort tonight."
   }
 
+  // ── FALLBACK ──────────────────────────────────────────────────────────────
   return {
-    title:     "A Steady Day. Keep The Transition Intentional",
-    reframe:   "Output and mood regulation have remained within a functional range today: neither a high-cost performance day nor a low-capacity one. The evening's role in this context is not recovery from deficit, but maintenance of the baseline your system is already holding.",
-    direction: "Step away from high-stimulation zones within the next hour. Your evening transition does not need to be elaborate — it needs to be consistent. A reliable pre-sleep routine is cumulative in its effect: your body learns to begin winding down in response to environmental cues before you are even consciously aware of them."
+    title:     "A Steady Day. Keep The Transition Intentional.",
+    reframe:   "Output and mood regulation have remained within a functional range today. This suggests a relatively stable day without strong directional load. The evening's role in this context is not recovery from deficit but maintenance of the baseline your system is already holding.",
+    direction: "Step away from high-stimulation zones within the next hour. Your evening transition does not need to be elaborate, but it needs to be consistent. A reliable pre-sleep routine is cumulative in its effect: your body learns to begin winding down in response to environmental cues before you are consciously aware of them."
   }
 }
 
@@ -148,7 +229,7 @@ export function getMacroSynthesis({ chartLogs }: MacroSynthesisParams): MacroSyn
       title:      'Still Gathering Data',
       paragraphs: [
         `${Math.max(0, 14 - chartLogs.length)} more ${14 - chartLogs.length === 1 ? 'day' : 'days'} of logs before your pattern becomes readable.`,
-        'Each entry adds signal. The pattern emerges from consistency, not from any single days reading.'
+        "Each entry adds signal. The pattern emerges from consistency, not from any single day's reading."
       ]
     }
   }
@@ -206,7 +287,7 @@ export function getMacroSynthesis({ chartLogs }: MacroSynthesisParams): MacroSyn
       paragraphs: [
         `Over the last fourteen days, ${highDemandDays} out of 14 were logged as high social demand. High social demand activates the autonomic nervous system through evaluative pressure, emotional labour, and relational complexity — the same physiological pathways as environmental stressors, but with a different origin.`,
         `Your tension average of ${avgTension.toFixed(1)} and mood average of ${avgMood.toFixed(1)} are reflecting this load. The friction is not coming from your space. Your home can reduce the cost of what the day produces, but it cannot undo what continues to arrive relationally.`,
-        'The intervention is not spatial. It is two-part: manage the volume and nature of high-demand engagement where possible, and use your lowest-friction space deliberately for decompression. Your environments role right now is to reduce the metabolic cost of processing, not to address the source.'
+        "The intervention is not spatial. It is two-part: manage the volume and nature of high-demand engagement where possible, and use your lowest-friction space deliberately for decompression. Your environment's role right now is to reduce the metabolic cost of processing, not to address the source."
       ]
     }
   }
