@@ -588,7 +588,7 @@ export default function Progress() {
                       <div className="flex gap-3">
                         <button onClick={() => setWakeScore(Math.max(0, wakeScore - 1))} className="text-[#c9ccbb] hover:text-[#b5a642]">−</button>
                         <span className="text-[#b5a642] font-mono text-xs">{wakeScore}</span>
-                        <button onClick={() => setWakeScore(wakeScore + 1)} className="text-[#c9ccbb] hover:text-[#b5a642]">+</button>
+                        <button onClick={() => setWakeScore(Math.min(8, wakeScore + 1))} className="text-[#c9ccbb] hover:text-[#b5a642]">+</button>
                       </div>
                     </div>
                     <p className="text-[#c9ccbb]/80 text-[10px] mb-3">How many times you woke up during the night.</p>
