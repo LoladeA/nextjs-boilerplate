@@ -65,6 +65,7 @@ export interface BSFIResult {
 const cap25 = (n: number) => Math.min(Math.max(n, 0), 25);
 const safe = (v: number | null | undefined, d = 0) => v ?? d;
 
+
 // --- MANUAL SRI (Sleep Regularity Index proxy) ---
 
 const calculateSRI = (history: DailyLogParams[]): number => {
@@ -73,13 +74,22 @@ const calculateSRI = (history: DailyLogParams[]): number => {
     const times = history
         .map(h => h.wake_time)
         .filter(Boolean)
-        .map(t => new Date(t as string).getHours());
+        .map(t => {
+            /**
+             * TIMEZONE FIX: Extract the literal hour from the ISO string (e.g., "T07:")
+             * This prevents the Date object from shifting the hour based on 
+             * the server's local time (Vercel/UTC).
+             */
+            const match = (t as string).match(/T(\d{2}):/);
+            return match ? parseInt(match[1], 10) : new Date(t as string).getHours();
+        });
 
     if (times.length < 3) return 85;
 
     const mean = times.reduce((a, b) => a + b, 0) / times.length;
     const variance = times.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / times.length;
 
+    // Returns a score where lower variance equals a higher regularity index.
     return Math.max(100 - variance * 2, 60);
 };
 
