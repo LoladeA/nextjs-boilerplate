@@ -41,7 +41,7 @@ import { LightSensorModal } from '../tools/light-meter/page'
 import { NoiseSensorModal } from '../tools/noise-meter/page'
 import {
   getBSFIContext,
-  getMorningFeedback as getSleepMorningCopy,
+  getMorningEnvironmentalNote as getSleepMorningCopy,
   getEveningFeedback as getSleepEveningCopy,
 } from '@/lib/sleep-copy'
 
@@ -468,7 +468,7 @@ export default function Progress() {
   // ─────────────────────────────────────────────────────────────────────────
   // FEEDBACK — now pure function calls with explicit params
   // ─────────────────────────────────────────────────────────────────────────
-  const morningInsight = getMorningFeedback({ morningMood, tensionScore, wakeScore })
+  const morningInsight = getMorningFeedback({ morningMood, tensionScore, wakeScore, socialDemand })
   const eveningInsight = getEveningFeedback({ focusScore, eveningMood, socialDemand })
   const macroSynthesis = getMacroSynthesis({ chartLogs })
 
@@ -1105,7 +1105,7 @@ export default function Progress() {
                       <Sunrise size={11} /> Morning · What last night produced
                     </span>
                     <h3 className="text-lg font-serif text-[#c9ccbb] mb-2">
-                      {getBsfiLabel(morningBsfi.total_score).label}
+                      getBsfiLabel(morningBsfi.total_score, 'morning')
                     </h3>
                     {morningBsfi.is_internal_driver ? (
                       <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed max-w-xs mb-4">
@@ -1123,7 +1123,7 @@ export default function Progress() {
                       ) : null
                     })() : null}
                     {(() => {
-                      const ctx = getBSFIContext(morningBsfi.total_score)
+                      const ctx = getBSFIContext(morningBsfi.total_score, 'morning')
                       return (
                         <div className="mt-4 pt-4 border-t border-[#b5a642]/10">
                           <p className="text-[10px] font-bold uppercase tracking-widest text-[#b5a642] mb-2">What this means</p>
@@ -1201,7 +1201,7 @@ export default function Progress() {
                       <Moon size={11} /> Evening · What will be processed tonight
                     </span>
                     <h3 className="text-lg font-serif text-[#c9ccbb] mb-2">
-                      {getBsfiLabel(eveningBsfi.total_score).label}
+                      getBsfiLabel(eveningBsfi.total_score, 'evening')
                     </h3>
                     {eveningBsfi.is_internal_driver ? (
                       <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed max-w-xs mb-4">
@@ -1219,7 +1219,7 @@ export default function Progress() {
                       ) : null
                     })() : null}
                     {(() => {
-                      const ctx = getBSFIContext(eveningBsfi.total_score)
+                      const ctx = getBSFIContext(eveningBsfi.total_score, 'evening')
                       return (
                         <div className="mt-4 pt-4 border-t border-[#b5a642]/10">
                           <p className="text-[10px] font-bold uppercase tracking-widest text-[#b5a642] mb-2">What this means</p>
