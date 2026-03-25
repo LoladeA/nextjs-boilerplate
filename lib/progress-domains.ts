@@ -58,31 +58,69 @@ export const getDomainDisplay = (domain: string): { label: string; driver: strin
 // meaning the dominant domain is actually contributing meaningful friction.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const PRIMARY_SOURCE_THRESHOLD = 30
+// ─────────────────────────────────────────────────────────────────────────────
+// PRIMARY SOURCE VISIBILITY
+//
+// When the score is in the lowest band for the session type, no single domain
+// meaningfully dominates — showing a primary source would contradict the
+// label copy. The threshold is session-aware because morning-only entries
+// produce structurally lower scores (~0–37 realistic range) than full-day
+// entries (~0–100). Using a single threshold of 30 for both sessions meant
+// the primary source was suppressed on virtually every morning entry.
+//
+// Morning threshold: 10  (below this = genuinely supported recovery)
+// Evening threshold: 30  (existing calibration, unchanged)
+// ─────────────────────────────────────────────────────────────────────────────
 
-export const shouldShowPrimarySource = (score: number): boolean =>
-  score > PRIMARY_SOURCE_THRESHOLD
+export const shouldShowPrimarySource = (
+  score:   number,
+  session: 'morning' | 'evening' = 'evening'
+): boolean => score > (session === 'morning' ? 10 : 30)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BSFI LABEL SYSTEM
 //
-// Bands aligned with BSFI_SCORE_CONTEXTS in sleep-copy.ts:
-//   0–30:   Low Friction  (was 0–20)
-//   31–55:  Mild Friction (was 21–40)
-//   56–74:  Elevated Load (was 41–60)
-//   75–100: High Load     (was 81–100)
+// Session-aware bands. Morning-only entries are structurally capped at ~37
+// because ~60% of scoring inputs are evening-dependent (evening_lux,
+// nighttime_db, bedtime_lux, tactile_enclosure, CFS compound, RDS
+// co-occurrence). Using the evening bands (0/30/55/74) for morning entries
+// caused the vast majority of morning scores to land in "Your Home Is
+// Supporting You" regardless of severity — a direct contradiction of the data.
 //
-// Previously used five bands (0/20/40/60/80) which diverged from the four
-// bands in sleep-copy.ts (0/30/55/74), causing contradictory label and copy
-// text for scores in the overlap zones (e.g. 26 = "Mild Friction" label
-// but "Low Friction" copy). Now uses four bands, both systems agree.
+// MORNING BANDS (calibrated to 0–37 realistic range):
+//   0–10:  Your Body Recovered Well
+//   11–20: Some Recovery Friction Present
+//   21–30: Elevated Recovery Load
+//   31+:   Significant Recovery Disruption
+//
+// EVENING / FULL-DAY BANDS (calibrated to 0–100):
+//   0–30:  Your Home Is Supporting You
+//   31–55: Mild Friction Present
+//   56–74: Elevated Environmental Load
+//   75+:   High Environmental Load
 //
 // Colours and opacities are intentional brand decisions. Do not modify.
+// Minimum safe opacity for gold (#b5a642) to render visibly on the dark green
+// background: /20 for backgrounds, /30 for borders, /50 for text.
+// Values below these thresholds wash out to near-white.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const getBsfiLabel = (score: number) => {
+export const getBsfiLabel = (
+  score:   number,
+  session: 'morning' | 'evening' = 'evening'
+) => {
+  if (session === 'morning') {
+    if (score <= 10) return { label: 'Your Body Recovered Well',          color: 'text-[#b5a642]',    border: 'border-[#b5a642]/60' }
+    if (score <= 20) return { label: 'Some Recovery Friction Present',    color: 'text-[#b5a642]/80', border: 'border-[#b5a642]/50' }
+    if (score <= 30) return { label: 'Elevated Recovery Load',            color: 'text-[#b5a642]/70', border: 'border-[#b5a642]/40' }
+    return                   { label: 'Significant Recovery Disruption',  color: 'text-[#b5a642]',    border: 'border-[#b5a642]/60' }
+    //                         ↑ Band 4 morning uses full gold — highest severity should be most visible
+  }
+
+  // Evening / full-day bands
   if (score <= 30) return { label: 'Your Home Is Supporting You', color: 'text-[#b5a642]',    border: 'border-[#b5a642]/60' }
-  if (score <= 55) return { label: 'Mild Friction Present',       color: 'text-[#b5a642]/80', border: 'border-[#b5a642]/40' }
-  if (score <= 74) return { label: 'Elevated Environmental Load', color: 'text-[#b5a642]/70', border: 'border-[#b5a642]/35' }
-  return                   { label: 'High Environmental Load',    color: 'text-[#b5a642]/50', border: 'border-[#b5a642]/25' }
+  if (score <= 55) return { label: 'Mild Friction Present',       color: 'text-[#b5a642]/80', border: 'border-[#b5a642]/50' }
+  if (score <= 74) return { label: 'Elevated Environmental Load', color: 'text-[#b5a642]/70', border: 'border-[#b5a642]/40' }
+  return                   { label: 'High Environmental Load',    color: 'text-[#b5a642]',    border: 'border-[#b5a642]/60' }
+  //                         ↑ Same principle: highest severity bands use full gold, not the most faded value
 }
