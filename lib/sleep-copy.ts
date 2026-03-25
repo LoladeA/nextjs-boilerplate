@@ -30,11 +30,12 @@
 
 export type MorningSleepQuality = 'restorative' | 'variable' | 'disrupted' | 'fragmented'
 
-interface MorningFeedback {
-  headline: string
-  body: string
+interface MorningEnvironmentalNoteResult {
   environmental_note: string
-  score_reframe?: string // shown when user has BSFI access
+  // score_reframe and direction removed — these fields were never rendered
+  // in the UI. All insight copy (title, direction, reframe) is handled by
+  // progress-feedback.getMorningFeedback. This function's sole output is
+  // the environmental context note rendered in italic above the direction.
 }
 
 export const MORNING_FEEDBACK: Record<MorningSleepQuality, MorningFeedback> = {
@@ -195,73 +196,61 @@ export const EVENING_FEEDBACK: Record<EveningMoodLevel, EveningFeedback> = {
 }
 
 
-// =============================================================================
-// SECTION 3 — BSFI SCORE CONTEXTUAL FRAMING
-// Shown alongside BSFI scores to prevent performance anxiety.
-// Applied at: dashboard sleep panel, progress view, weekly summary.
-// =============================================================================
+// ─────────────────────────────────────────────────────────────────────────────
+// BSFI CONTEXT COPY
+//
+// Session-aware. Morning entries are structurally capped at ~37 because
+// evening-dependent inputs are absent. Using evening thresholds for morning
+// scores causes the "What this means" copy to contradict the morning insight
+// accordion — Conflict 3 in the engine audit.
+//
+// MORNING BANDS:  0–10 / 11–20 / 21–30 / 31+
+// EVENING BANDS:  0–30 / 31–55 / 56–74 / 75+
+// ─────────────────────────────────────────────────────────────────────────────
 
-export interface BSFIScoreContext {
-  range: [number, number]
-  label: string
-  reframe: string
-  environment_lens: string
-}
+export function getBSFIContext(
+  score:   number,
+  session: 'morning' | 'evening' = 'evening'
+): { reframe: string; environment_lens: string } {
 
-export const BSFI_SCORE_CONTEXTS: BSFIScoreContext[] = [
-  {
-    range: [0, 30],
-    label: 'Low Friction',
-    reframe:
-      'Your environment and nervous system are well-aligned today. ' +
-      'This reflects conditions, not a fixed state. Take note what made this possible.',
-    environment_lens:
-      'Low friction scores tend to correlate with good circadian light anchoring ' +
-      'and low ambient sensory load across the day.',
-  },
-  {
-    range: [31, 55],
-    label: 'Moderate Friction',
-    reframe:
-      'Moderate friction is within the normal range of daily variation for most people. ' +
-      'The body is responding to its current conditions. This is adaptive, not problematic.',
-    environment_lens:
-      'Moderate scores often reflect a slight mismatch between your autonomic load' +
-      '(social or environmental) and your current sensory threshold. These may be slightly misaligned with your nervous system\'s current needs. ' ,
-  },
-  {
-    range: [56, 74],
-    label: 'Elevated Friction',
-    reframe:
-      'An elevated score is a signal, not a diagnosis. ' +
-      'It means your system is working harder than usual against its current environment. ' +
-      'One difficult night or one high-demand day can move a score significantly. ' +
-      'Remember that a single data point is not a pattern.',
-    environment_lens:
-      'Elevated friction most often traces back to light environment, acoustic load, ' +
-      'or temperature conditions during sleep. ',
-  },
-  {
-    range: [75, 100],
-    label: 'High Friction',
-    reframe:
-      'A high friction score is your nervous system communicating that the gap between ' +
-      'its needs and its current environment is significant. ' +
-      'This is useful information, not a failure state. ' +
-      'The question this score asks is not: what is wrong with me? ' +
-      'It is: what in my environment is maintaining this load?',
-    environment_lens:
-      'High friction is rarely caused by a single factor. ' +
-      'Your domain breakdown will identify which systems are carrying the most load ' +
-      'and where environmental intervention will have the greatest leverage.',
-  },
-]
+  if (session === 'morning') {
+    if (score <= 10) return {
+      reframe:          "Your sleep environment supported your recovery overnight. The conditions present — light, sound, temperature, and pre-sleep routine — appear to have allowed your nervous system to downregulate and clear.",
+      environment_lens: "Protect what is working. Recovery at this level is not accidental — it is structural. Note what was consistent last night."
+    }
+    if (score <= 20) return {
+      reframe:          "Some overnight friction is present. Your nervous system completed its basic restoration cycle but encountered resistance — likely from one or two environmental conditions that prevented full downregulation.",
+      environment_lens: "Look at what was present in your sleep environment last night: acoustic consistency, temperature, and light levels in the hour before sleep. One variable is usually responsible for friction at this level."
+    }
+    if (score <= 30) return {
+      reframe:          "Your overnight recovery was working against resistance. The load registered in your body this morning reflects conditions in your sleep environment that prevented your autonomic system from completing its full restoration arc.",
+      environment_lens: "Your sleep ecology needs a structural review. The most common sources at this level are: sound inconsistency after midnight, elevated light exposure in the pre-sleep hour, or thermal discomfort. Address one variable tonight."
+    }
+    // score >= 31 — significant disruption
+    return {
+      reframe:          "Significant overnight load is present. What you are feeling this morning is not a mood state — it is a physiological one. Your nervous system did not complete its recovery arc, and the conditions that prevented it are environmental and addressable.",
+      environment_lens: "Tonight's environment is the immediate priority. Acoustic protection, darkness, and thermal comfort are the three highest-leverage variables. One deliberate change to your sleep conditions tonight will begin to shift this pattern."
+    }
+  }
 
-export function getBSFIContext(score: number): BSFIScoreContext {
-  return (
-    BSFI_SCORE_CONTEXTS.find(c => score >= c.range[0] && score <= c.range[1]) ||
-    BSFI_SCORE_CONTEXTS[BSFI_SCORE_CONTEXTS.length - 1]
-  )
+  // ── Evening / full-day bands ──────────────────────────────────────────────
+  if (score <= 30) return {
+    reframe:          "Your home is currently absorbing the load you bring into it rather than adding to it. The sensory conditions across your environment are aligned with your nervous system's functional range.",
+    environment_lens: "Maintain your current environmental conditions and continue logging. A consistent baseline here builds the fourteen-day pattern that reveals which specific habits are producing this outcome."
+  }
+  if (score <= 55) return {
+    reframe:          "Mild environmental friction is present. Your autonomic load — whether acoustic, spatial, or relational — and your current sensory threshold are showing early signs of misalignment. This is not acute, but it is worth addressing before it accumulates.",
+    environment_lens: "Identify the highest-friction variable in your environment today: sound level, light quality, or visual complexity. One targeted adjustment at this level typically shifts the pattern within a few days."
+  }
+  if (score <= 74) return {
+    reframe:          "Elevated environmental load is present. Your nervous system is spending meaningful capacity processing the conditions of your space — capacity that would otherwise support focus, emotional regulation, and recovery.",
+    environment_lens: "Your sleep ecology and daytime sensory environment both warrant attention. Prioritise acoustic conditions and evening light levels tonight. Elevated load at this band, sustained across several days, has measurable effects on sleep quality and cognitive performance."
+  }
+  // score >= 75
+  return {
+    reframe:          "High environmental load. Your space is currently generating more friction than your nervous system can absorb without cost. The signals present in your data today describe a system under sustained pressure from its environment.",
+    environment_lens: "An immediate environmental audit is warranted. The three highest-leverage variables to address are: acoustic load after 8pm, evening lux levels above 100, and temperature regulation in your sleep space. This is not about optimisation — it is about removing the sources of load that are preventing recovery."
+  }
 }
 
 
@@ -363,7 +352,7 @@ interface MorningLogInputs {
   social_demand?: 'low' | 'moderate' | 'high' | null
 }
 
-export function getMorningFeedback(inputs: MorningLogInputs): MorningFeedback {
+export function getMorningEnvironmentalNote(inputs: MorningLogInputs): MorningEnvironmentalNoteResult {
   const { sleep_wakes, mood_score, morning_tension, social_demand } = inputs
 
   const wakes = sleep_wakes ?? 0
