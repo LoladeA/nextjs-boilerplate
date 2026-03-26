@@ -1079,7 +1079,6 @@ export default function Progress() {
           {/* Interpretation leads. Score is optional accordion.                  */}
           {/* ------------------------------------------------------------------ */}
           <AnimatePresence mode="wait">
-
             {activeTab === 'morning' && morningBsfi && (
               <motion.div
                 key="morning-bsfi"
@@ -1105,7 +1104,7 @@ export default function Progress() {
                       <Sunrise size={11} /> Morning · What last night produced
                     </span>
                     <h3 className="text-lg font-serif text-[#c9ccbb] mb-2">
-                      getBsfiLabel(morningBsfi.total_score, 'morning')
+                      {getBsfiLabel(morningBsfi.total_score, 'morning').label}
                     </h3>
                     {morningBsfi.is_internal_driver ? (
                       <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed max-w-xs mb-4">
@@ -1160,8 +1159,8 @@ export default function Progress() {
                           className="overflow-hidden"
                         >
                           <div className="pt-4 flex items-center gap-5">
-                            <div className={`w-20 h-20 rounded-full border-4 ${getBsfiLabel(morningBsfi.total_score).border} flex flex-col items-center justify-center bg-[#1b270e] shrink-0 shadow-lg shadow-[#b5a642]/10`}>
-                              <span className={`text-2xl font-serif ${getBsfiLabel(morningBsfi.total_score).color}`}>{morningBsfi.total_score}</span>
+                            <div className={`w-20 h-20 rounded-full border-4 ${getBsfiLabel(morningBsfi.total_score, 'morning').border} flex flex-col items-center justify-center bg-[#1b270e] shrink-0 shadow-lg shadow-[#b5a642]/10`}>
+                              <span className={`text-2xl font-serif ${getBsfiLabel(morningBsfi.total_score, 'morning').color}`}>{morningBsfi.total_score}</span>
                               <span className="text-[9px] text-[#c9ccbb]/80 font-bold uppercase tracking-widest">BSFI</span>
                             </div>
                             <p className="text-[#c9ccbb]/50 text-xs leading-relaxed">
@@ -1201,7 +1200,7 @@ export default function Progress() {
                       <Moon size={11} /> Evening · What will be processed tonight
                     </span>
                     <h3 className="text-lg font-serif text-[#c9ccbb] mb-2">
-                      getBsfiLabel(eveningBsfi.total_score, 'evening')
+                      {getBsfiLabel(eveningBsfi.total_score, 'evening').label}
                     </h3>
                     {eveningBsfi.is_internal_driver ? (
                       <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed max-w-xs mb-4">
@@ -1256,8 +1255,8 @@ export default function Progress() {
                           className="overflow-hidden"
                         >
                           <div className="pt-4 flex items-center gap-5">
-                            <div className={`w-20 h-20 rounded-full border-4 ${getBsfiLabel(eveningBsfi.total_score).border} flex flex-col items-center justify-center bg-[#1b270e] shrink-0 shadow-lg shadow-[#b5a642]/10`}>
-                              <span className={`text-2xl font-serif ${getBsfiLabel(eveningBsfi.total_score).color}`}>{eveningBsfi.total_score}</span>
+                            <div className={`w-20 h-20 rounded-full border-4 ${getBsfiLabel(eveningBsfi.total_score, 'evening').border} flex flex-col items-center justify-center bg-[#1b270e] shrink-0 shadow-lg shadow-[#b5a642]/10`}>
+                              <span className={`text-2xl font-serif ${getBsfiLabel(eveningBsfi.total_score, 'evening').color}`}>{eveningBsfi.total_score}</span>
                               <span className="text-[9px] text-[#c9ccbb]/80 font-bold uppercase tracking-widest">BSFI</span>
                             </div>
                             <p className="text-[#c9ccbb]/50 text-xs leading-relaxed">
@@ -1271,7 +1270,6 @@ export default function Progress() {
                 </motion.div>
               </motion.div>
             )}
-
           </AnimatePresence>
 
           {/* ------------------------------------------------------------------ */}
