@@ -40,7 +40,7 @@ export interface DailyLogParams {
 
     // Biological
     cycle_phase?: 'menstrual' | 'follicular' | 'ovulatory' | 'luteal' | null;
-    gender?: 'female' | 'male' | 'other';
+    gender?: 'female' | 'male' ;
     morning_vitality?: number | null;
 }
 
