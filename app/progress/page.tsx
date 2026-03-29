@@ -216,10 +216,10 @@ export default function Progress() {
           const entry: BsfiState = {
             total_score:           result.total_score,
             dominant_domain:       result.dominant_domain,
-            is_internal_driver:    result.domain_scores?.is_internal_driver || false,
+            load_attribution:      result.domain_scores?.load_attribution ?? 'environmental',
+            biological_load:       result.domain_scores?.biological_load  ?? false,
             integration_pattern:   result.integration_pattern   ?? null,
             sensory_pattern:       result.sensory_pattern       ?? null,
-            accumulative_ali_flag: result.accumulative_ali_flag ?? false,
           }
           if (isEvening) setEveningBsfi(entry)
           else           setMorningBsfi(entry)
@@ -437,10 +437,10 @@ export default function Progress() {
           const entry: BsfiState = {
             total_score:           data.bsfiResult.bsfi_total,
             dominant_domain:       data.bsfiResult.dominant_domain,
-            is_internal_driver:    data.bsfiResult.is_internal_driver,
+            load_attribution:      data.bsfiResult.load_attribution    ?? 'environmental',
+            biological_load:       data.bsfiResult.biological_load     ?? false,
             integration_pattern:   data.profileContext?.integration_pattern   ?? null,
             sensory_pattern:       data.profileContext?.sensory_pattern       ?? null,
-            accumulative_ali_flag: data.profileContext?.accumulative_ali_flag ?? false,
           }
           if (activeTab === 'morning') setMorningBsfi(entry)
           else                         setEveningBsfi(entry)
