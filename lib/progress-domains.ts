@@ -15,12 +15,18 @@
 // profile context fields stamped by the calculate-bsfi route.
 // ─────────────────────────────────────────────────────────────────────────────
 export interface BsfiState {
-  total_score:           number
-  dominant_domain:       string
-  is_internal_driver:    boolean
-  integration_pattern:   string | null
-  sensory_pattern:       string | null
-  accumulative_ali_flag: boolean
+  total_score:         number
+  dominant_domain:     string
+  // load_attribution replaces is_internal_driver (v7).
+  // Three states: 'environmental' | 'internal' | 'biological'
+  // Read from domain_scores JSONB on page load; set directly from
+  // the API response on save. Defaults to 'environmental' if absent
+  // (legacy records written before v7).
+  load_attribution:    'environmental' | 'internal' | 'biological'
+  biological_load:     boolean
+  integration_pattern: string | null
+  sensory_pattern:     string | null
+  // accumulative_ali_flag removed — engine no longer produces this signal
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
