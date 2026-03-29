@@ -1,14 +1,16 @@
 // /app/api/calculate-bsfi/route.ts
+
 import { NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
-import { calculateBSFI, DailyLogParams, BaselineInput } from '@/lib/bsfi-engine'
+import { calculateBSFI, DailyLogParams } from '@/lib/bsfi-engine'
+// BaselineInput removed — v7 engine takes (today, history) only.
+// HealthKit biometric fields removed — not in v7 DailyLogParams.
 
 // -----------------------------------------------------------------------------
 // TYPES & MAPPINGS
 // -----------------------------------------------------------------------------
 type IntegrationVariant = 'integrative' | 'mixed' | 'accumulative'
-type DossierProfile     = 'anchor' | 'seeker' | 'sensor'
 
 const safeNum = (val: unknown): number | null => {
     if (val === null || val === undefined || typeof val === 'boolean') return null
@@ -20,7 +22,9 @@ const safeNum = (val: unknown): number | null => {
 }
 
 // -----------------------------------------------------------------------------
-// DERIVE BASELINE INPUTS
+// DERIVE INTEGRATION VARIANT
+// Still used — integrationPattern is persisted in bsfi_results and read by
+// the 14-day macro synthesis and the rituals protocol selector.
 // -----------------------------------------------------------------------------
 const deriveIntegrationVariant = (responses: any[]): IntegrationVariant => {
     const vals = ['q_int1', 'q_int2', 'q_int3'].map(key =>
@@ -42,9 +46,19 @@ export async function POST(req: Request) {
         const userId = session.user.id
         const raw = await req.json()
 
-        // 1. Prepare Daily Log Params
+        // ─────────────────────────────────────────────────────────────────────
+        // 1. PREPARE DAILY LOG PARAMS (v7)
+        //
+        // wake_time: used by the SRI (Sleep Regularity Index) calculation.
+        // The API receives a date string from the client. We reconstruct an
+        // ISO timestamp using the raw.created_at value if present, which is
+        // the actual log submission time and the closest proxy for wake time
+        // when users log immediately on waking.
+        //
+        // If raw.created_at is absent (unlikely but safe), wake_time is null
+        // and the SRI defaults to 85 — no penalty applied.
+        // ─────────────────────────────────────────────────────────────────────
         const todayParams: DailyLogParams = {
-            // Core environmental inputs
             morning_lux:     safeNum(raw.morning_lux),
             evening_lux:     safeNum(raw.evening_lux),
             daytime_db:      safeNum(raw.daytime_db),
@@ -53,21 +67,20 @@ export async function POST(req: Request) {
             sleep_wakes:     safeNum(raw.sleep_wakes),
             focus_hours:     safeNum(raw.focus_hours),
             mood_score:      safeNum(raw.mood_score),
-            morning_tags:    Array.isArray(raw.tags) ? raw.tags : [],
+            morning_tags:    Array.isArray(raw.tags)         ? raw.tags         : [],
             evening_tags:    Array.isArray(raw.evening_tags) ? raw.evening_tags : [],
-            social_demand:   raw.social_demand ?? 'low',
-            // HealthKit biometric fields (v6) — null when not yet available
-            hrv_morning:          safeNum(raw.hrv_morning),
-            resting_heart_rate:   safeNum(raw.resting_heart_rate),
-            sleep_onset_latency:  safeNum(raw.sleep_onset_latency),
-            sleep_deep_percent:   safeNum(raw.sleep_deep_percent),
-            sleep_rem_percent:    safeNum(raw.sleep_rem_percent),
-            cycle_phase:          raw.cycle_phase ?? null,
+            social_demand:   raw.social_demand  ?? null,
+            cycle_phase:     raw.cycle_phase    ?? null,
+            // SRI input — log submission time as ISO string
+            wake_time:       raw.created_at     ?? null,
         }
 
-        // 2. Fetch History (14-day window)
+        // ─────────────────────────────────────────────────────────────────────
+        // 2. FETCH HISTORY (14-day window, excluding today)
+        // ─────────────────────────────────────────────────────────────────────
         const windowStart = new Date()
         windowStart.setDate(windowStart.getDate() - 13)
+
         const { data: historyData } = await supabase
             .from('daily_logs')
             .select('*')
@@ -77,17 +90,28 @@ export async function POST(req: Request) {
             .order('date', { ascending: false })
 
         const historyParams: DailyLogParams[] = (historyData || []).map(log => ({
-            ...log,
-            social_demand:        log.social_demand         ?? 'low',
-            hrv_morning:          log.hrv_morning           ?? null,
-            resting_heart_rate:   log.resting_heart_rate    ?? null,
-            sleep_onset_latency:  log.sleep_onset_latency   ?? null,
-            sleep_deep_percent:   log.sleep_deep_percent    ?? null,
-            sleep_rem_percent:    log.sleep_rem_percent      ?? null,
-            cycle_phase:          log.cycle_phase            ?? null,
+            morning_lux:     log.morning_lux     ?? null,
+            evening_lux:     log.evening_lux     ?? null,
+            daytime_db:      log.daytime_db      ?? null,
+            nighttime_db:    log.bedtime_db      ?? null,
+            morning_tension: log.morning_tension ?? null,
+            sleep_wakes:     log.sleep_wakes     ?? null,
+            focus_hours:     log.focus_hours     ?? null,
+            mood_score:      log.mood_score      ?? null,
+            morning_tags:    log.tags            ?? [],
+            evening_tags:    log.evening_tags    ?? [],
+            social_demand:   log.social_demand   ?? null,
+            cycle_phase:     log.cycle_phase     ?? null,
+            // SRI: use the created_at timestamp from each historical log
+            wake_time:       log.created_at      ?? null,
         }))
 
-        // 3. Fetch Baseline Context
+        // ─────────────────────────────────────────────────────────────────────
+        // 3. FETCH PROFILE CONTEXT
+        // integrationPattern and sensoryPattern are persisted in bsfi_results
+        // for use by the 14-day synthesis and rituals protocol selector.
+        // They are not passed into calculateBSFI (v7 baseline param removed).
+        // ─────────────────────────────────────────────────────────────────────
         const { data: profile } = await supabase
             .from('assessment_snapshots')
             .select('sensory_pattern, energy_tax_baseline')
@@ -105,25 +129,21 @@ export async function POST(req: Request) {
 
         const integrationPattern = deriveIntegrationVariant(intResponses || [])
 
-        const threshold: 'low' | 'high' =
-            profile?.sensory_pattern === 'sensor' ? 'low' : 'high'
+        // ─────────────────────────────────────────────────────────────────────
+        // 4. EXECUTE ENGINE (v7 — two-argument signature)
+        // ─────────────────────────────────────────────────────────────────────
+        const bsfiResult = calculateBSFI(todayParams, historyParams)
 
-        const baseline: BaselineInput = {
-            threshold,
-            integrationPattern,
-            energyTaxBaseline: profile?.energy_tax_baseline ?? 50
-        }
-
-        // 4. Execute Engine
-        const bsfiResult = calculateBSFI(todayParams, historyParams, baseline)
-
-        // ─────────────────────────────────────────────────────────────────
-        // FIX: is_internal_driver is not a column on bsfi_results.
-        // The boolean is derived from internal_driver_score and stored
-        // inside domain_scores JSONB only. Removed as a standalone column.
-        // ─────────────────────────────────────────────────────────────────
-
-        // 5. Persist Results
+        // ─────────────────────────────────────────────────────────────────────
+        // 5. PERSIST RESULTS
+        //
+        // is_internal_driver: derived from load_attribution for backwards
+        // compatibility with any existing queries that read this field from
+        // the domain_scores JSONB. True when attribution === 'internal'.
+        //
+        // healthkit_enriched: removed from engine. Stored as false so
+        // existing reads of this field from JSONB don't return undefined.
+        // ─────────────────────────────────────────────────────────────────────
         const { error: upsertError } = await supabase
             .from('bsfi_results')
             .upsert({
@@ -138,14 +158,11 @@ export async function POST(req: Request) {
                     ALS:               bsfiResult.als_score,
                     SES:               bsfiResult.ses_score,
                     RDS:               bsfiResult.rds_score,
-                    // is_internal_driver stored here so the DB fetch path
-                    // in fetchTodayLog can read it after page reload.
-                    // Also available directly on bsfiResult for the
-                    // immediate API response path.
-                    is_internal_driver: bsfiResult.is_internal_driver,
                     load_attribution:  bsfiResult.load_attribution,
-                    healthkit_enriched: bsfiResult.healthkit_enriched,
                     biological_load:   bsfiResult.biological_load,
+                    // Backwards-compatible fields — derived, not engine outputs
+                    is_internal_driver:  bsfiResult.load_attribution === 'internal',
+                    healthkit_enriched:  false,
                 },
                 integration_pattern: integrationPattern,
                 sensory_pattern:     profile?.sensory_pattern || null,
