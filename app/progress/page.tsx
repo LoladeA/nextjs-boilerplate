@@ -44,6 +44,7 @@ import {
   getMorningEnvironmentalNote as getSleepMorningCopy,
   getEveningFeedback as getSleepEveningCopy,
 } from '@/lib/sleep-copy'
+import { getAttributionCopy } from '@/lib/bsfi-attribution-copy'
 
 // Extracted modules
 import { sanitiseDomain, getDomainDisplay, getBsfiLabel, shouldShowPrimarySource } from '@/lib/progress-domains'
@@ -102,6 +103,11 @@ export default function Progress() {
   // --- SOCIAL DEMAND ---
   const [socialDemand, setSocialDemand] = useState<'low' | 'moderate' | 'high' | null>(null)
 
+  // --- CYCLE PHASE ---
+  const [cyclePhase, setCyclePhase] = useState
+  'menstrual' | 'follicular' | 'ovulatory' | 'luteal' | null
+>(null)
+  
   // ─────────────────────────────────────────────────────────────────────────
   // eveningMood is DERIVED from sleepReadiness
   // ─────────────────────────────────────────────────────────────────────────
@@ -264,6 +270,7 @@ export default function Progress() {
         if (logData.morning_tension !== null) setTensionScore(logData.morning_tension)
         if (logData.sleep_wakes     !== null) setWakeScore(logData.sleep_wakes)
         if (logData.social_demand)            setSocialDemand(logData.social_demand as 'low' | 'moderate' | 'high')
+        if (logData.cycle_phase)              setCyclePhase(logData.cycle_phase as 'menstrual' | 'follicular' | 'ovulatory' | 'luteal')
         setEveningTags(logData.evening_tags || [])
         setEveningNote(logData.evening_note || '')
       } else {
@@ -413,6 +420,7 @@ export default function Progress() {
         evening_tags:       eveningTags,
         evening_note:       eveningNote,
         social_demand:      socialDemand ?? null,
+        cycle_phase:        cyclePhase ?? null,
       }
 
       const { error } = await supabase
@@ -919,7 +927,7 @@ export default function Progress() {
               />
             </div>
 
-            {/* SLEEP CONDITIONS — evening only */}
+           {/* SLEEP CONDITIONS — evening only */}
             {activeTab === 'evening' && (
               <div className="mb-8 animate-fade-in">
                 <div className="flex items-center gap-3 mb-5">
@@ -935,6 +943,7 @@ export default function Progress() {
                   </div>
                 </div>
 
+                {/* SLEEP READINESS SLIDER */}
                 <div className="mb-6 p-5 bg-[#000]/20 rounded-2xl border border-[#c9ccbb]/5">
                   <div className="flex justify-between mb-2">
                     <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb]">
@@ -966,6 +975,44 @@ export default function Progress() {
                   })()}
                 </div>
 
+                {/* CYCLE PHASE — optional biological context for the engine */}
+                <div className="mb-6 p-5 bg-[#000]/20 rounded-2xl border border-[#c9ccbb]/5">
+                  <div className="flex items-center gap-2 mb-1">
+                    <label className="text-xs font-bold text-[#c9ccbb]">Cycle Phase</label>
+                    <span className="text-[#c9ccbb]/40 text-[10px] uppercase tracking-widest font-bold">· Optional</span>
+                  </div>
+                  <p className="text-[#c9ccbb]/60 text-[10px] leading-relaxed mb-4">
+                    If relevant, logging your cycle phase helps the engine distinguish physiological load from environmental load in your score.
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {([
+                      { value: 'menstrual',  label: 'Menstrual',  note: 'Days 1–5'   },
+                      { value: 'follicular', label: 'Follicular', note: 'Days 6–13'  },
+                      { value: 'ovulatory',  label: 'Ovulatory',  note: 'Days 13–15' },
+                      { value: 'luteal',     label: 'Luteal',     note: 'Days 16–28' },
+                    ] as const).map(phase => (
+                      <button
+                        key={phase.value}
+                        type="button"
+                        onClick={() => setCyclePhase(cyclePhase === phase.value ? null : phase.value)}
+                        className={`flex flex-col p-3 rounded-xl border text-left transition-all ${
+                          cyclePhase === phase.value
+                            ? 'border-[#b5a642]/60 bg-[#b5a642]/10 text-[#b5a642]'
+                            : 'border-[#c9ccbb]/10 text-[#c9ccbb]/60 hover:border-[#b5a642]/20 hover:text-[#c9ccbb]/80'
+                        }`}
+                      >
+                        <span className="text-[10px] font-bold uppercase tracking-widest block mb-0.5">
+                          {phase.label}
+                        </span>
+                        <span className={`text-[9px] ${cyclePhase === phase.value ? 'text-[#b5a642]/70' : 'text-[#c9ccbb]/40'}`}>
+                          {phase.note}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* BEDROOM READINGS */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="p-5 bg-[#000]/20 rounded-2xl border border-[#c9ccbb]/5 relative overflow-hidden group hover:border-[#b5a642]/20 transition-colors">
                     <div className="absolute top-0 right-0 w-16 h-16 bg-[#b5a642]/5 rounded-full blur-2xl group-hover:bg-[#b5a642]/10 transition-all" />
@@ -1073,204 +1120,273 @@ export default function Progress() {
             </div>
           </div>
 
-          {/* ------------------------------------------------------------------ */}
-          {/* BSFI SESSION CARDS                                                  */}
-          {/* Morning card on morning tab only. Evening card on evening tab only. */}
-          {/* Interpretation leads. Score is optional accordion.                  */}
-          {/* ------------------------------------------------------------------ */}
-          <AnimatePresence mode="wait">
-            {activeTab === 'morning' && morningBsfi && (
-              <motion.div
-                key="morning-bsfi"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="mb-8"
-              >
-                <div className="flex items-center gap-2 mb-3 px-1">
-                  <Sparkles size={12} className="text-[#b5a642]/60" />
-                  <span className="text-[#b5a642]/70 text-[10px] font-bold uppercase tracking-widest">
-                    Today's Bio-Spatial Rhythm
-                  </span>
-                </div>
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="glass-panel p-6 rounded-3xl border border-[#b5a642]/20 relative overflow-hidden bg-gradient-to-br from-[#b5a642]/8 to-transparent"
-                >
-                  <div className="absolute -top-6 -right-6 w-24 h-24 bg-[#b5a642]/10 rounded-full blur-2xl pointer-events-none" />
-                  <div className="relative z-10">
-                    <span className="text-[#b5a642]/70 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 mb-4">
-                      <Sunrise size={11} /> Morning · What last night produced
-                    </span>
-                    <h3 className="text-lg font-serif text-[#c9ccbb] mb-2">
-                      {getBsfiLabel(morningBsfi.total_score, 'morning').label}
-                    </h3>
-                    {morningBsfi.is_internal_driver ? (
-                      <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed max-w-xs mb-4">
-                        The friction here does not appear to be environmental. It may reflect accumulated stress, emotional load, or a biological state not yet captured in your logs. Your home environment is not the source, and neither one is a personal failing.
-                      </p>
-                    ) : shouldShowPrimarySource(morningBsfi.total_score) ? (() => {
-                      const safeDomain = sanitiseDomain(morningBsfi.dominant_domain)
-                      return safeDomain ? (
-                        <div className="mb-4">
-                          <span className="text-[#c9ccbb]/80 text-[10px] block mb-1 uppercase tracking-widest font-bold">Primary source</span>
-                          <span className="text-white bg-[#000]/30 px-2.5 py-1 rounded text-[10px] font-bold inline-block">
-                            {getDomainDisplay(safeDomain).label}
-                          </span>
-                        </div>
-                      ) : null
-                    })() : null}
-                    {(() => {
-                      const ctx = getBSFIContext(morningBsfi.total_score, 'morning')
-                      return (
-                        <div className="mt-4 pt-4 border-t border-[#b5a642]/10">
-                          <p className="text-[10px] font-bold uppercase tracking-widest text-[#b5a642] mb-2">What this means</p>
-                          <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed mb-2">{ctx.reframe}</p>
-                          <p className="text-[#c9ccbb]/70 text-[10px] leading-relaxed italic">{ctx.environment_lens}</p>
-                        </div>
-                      )
-                    })()}
-                    {morningBsfi.accumulative_ali_flag && (
-                      <div className="mt-4 pt-4 border-t border-[#b5a642]/10 flex items-start gap-2">
-                        <AlertCircle size={13} className="text-[#b5a642] shrink-0 mt-0.5" />
-                        <div>
-                          <span className="text-[#b5a642] text-[9px] font-bold uppercase tracking-widest block mb-1">Acoustic Load — Context Note</span>
-                          <p className="text-[#c9ccbb]/60 text-[9px] leading-relaxed">
-                            Although your acoustic load score appears moderate, your cumulative processing pattern means your nervous system is under more strain than the score suggests. Mid-range friction on an accumulative profile requires the same attention as high friction on an integrative one.
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                    <button
-                      onClick={() => setShowMorningScore(!showMorningScore)}
-                      className="mt-4 flex items-center gap-1.5 text-[#c9ccbb]/40 hover:text-[#b5a642]/60 text-[10px] font-bold uppercase tracking-widest transition-colors"
-                    >
-                      <ChevronDown size={11} className={`transition-transform duration-300 ${showMorningScore ? 'rotate-180' : ''}`} />
-                      {showMorningScore ? 'Hide score' : 'See your score'}
-                    </button>
-                    <AnimatePresence>
-                      {showMorningScore && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.25 }}
-                          className="overflow-hidden"
-                        >
-                          <div className="pt-4 flex items-center gap-5">
-                            <div className={`w-20 h-20 rounded-full border-4 ${getBsfiLabel(morningBsfi.total_score, 'morning').border} flex flex-col items-center justify-center bg-[#1b270e] shrink-0 shadow-lg shadow-[#b5a642]/10`}>
-                              <span className={`text-2xl font-serif ${getBsfiLabel(morningBsfi.total_score, 'morning').color}`}>{morningBsfi.total_score}</span>
-                              <span className="text-[9px] text-[#c9ccbb]/80 font-bold uppercase tracking-widest">BSFI</span>
-                            </div>
-                            <p className="text-[#c9ccbb]/50 text-xs leading-relaxed">
-                              Your Bio-Spatial Friction Index for this morning. Lower is better. This score reflects how much environmental load your nervous system absorbed overnight.
-                            </p>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                </motion.div>
-              </motion.div>
-            )}
+{/* BSFI SESSION CARDS                                                  */}
+{/* Morning card on morning tab only. Evening card on evening tab only. */}
+{/* Interpretation leads. Score is optional accordion.                  */}
+{/* ------------------------------------------------------------------ */}
+<AnimatePresence mode="wait">
 
-            {activeTab === 'evening' && eveningBsfi && (
-              <motion.div
-                key="evening-bsfi"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="mb-8"
-              >
-                <div className="flex items-center gap-2 mb-3 px-1">
-                  <Sparkles size={12} className="text-[#b5a642]/60" />
-                  <span className="text-[#b5a642]/70 text-[10px] font-bold uppercase tracking-widest">
-                    Today's Bio-Spatial Rhythm
-                  </span>
-                </div>
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="glass-panel p-6 rounded-3xl border border-[#b5a642]/20 relative overflow-hidden bg-gradient-to-br from-[#b5a642]/8 to-transparent"
-                >
-                  <div className="absolute -top-6 -right-6 w-24 h-24 bg-[#b5a642]/8 rounded-full blur-2xl pointer-events-none" />
-                  <div className="relative z-10">
-                    <span className="text-[#b5a642]/80 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 mb-4">
-                      <Moon size={11} /> Evening · What will be processed tonight
-                    </span>
-                    <h3 className="text-lg font-serif text-[#c9ccbb] mb-2">
-                      {getBsfiLabel(eveningBsfi.total_score, 'evening').label}
-                    </h3>
-                    {eveningBsfi.is_internal_driver ? (
-                      <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed max-w-xs mb-4">
-                        The friction here does not appear to be environmental. It may reflect accumulated stress, emotional load, or a biological state not yet captured in your logs. Your environment is holding: however it cannot support what is not spatial in origin. Dim the lights, lower acoustic input, and let the space do less asking of you tonight.
-                      </p>
-                    ) : shouldShowPrimarySource(eveningBsfi.total_score) ? (() => {
-                      const safeDomain = sanitiseDomain(eveningBsfi.dominant_domain)
-                      return safeDomain ? (
-                        <div className="mb-4">
-                          <span className="text-[#c9ccbb]/80 text-[10px] block mb-1 uppercase tracking-widest font-bold">Primary source</span>
-                          <span className="text-white bg-[#000]/30 px-2.5 py-1 rounded text-[10px] font-bold inline-block">
-                            {getDomainDisplay(safeDomain).label}
-                          </span>
-                        </div>
-                      ) : null
-                    })() : null}
-                    {(() => {
-                      const ctx = getBSFIContext(eveningBsfi.total_score, 'evening')
-                      return (
-                        <div className="mt-4 pt-4 border-t border-[#b5a642]/10">
-                          <p className="text-[10px] font-bold uppercase tracking-widest text-[#b5a642] mb-2">What this means</p>
-                          <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed mb-2">{ctx.reframe}</p>
-                          <p className="text-[#c9ccbb]/70 text-[10px] leading-relaxed italic">{ctx.environment_lens}</p>
-                        </div>
-                      )
-                    })()}
-                    {eveningBsfi.accumulative_ali_flag && (
-                      <div className="mt-4 pt-4 border-t border-[#b5a642]/10 flex items-start gap-2">
-                        <AlertCircle size={13} className="text-[#b5a642] shrink-0 mt-0.5" />
-                        <div>
-                          <span className="text-[#b5a642] text-[9px] font-bold uppercase tracking-widest block mb-1">Acoustic Load: Context Note</span>
-                          <p className="text-[#c9ccbb]/60 text-[9px] leading-relaxed">
-                            Your acoustic load score appears moderate, but your accumulative processing pattern means your nervous system is under more strain than the score suggests. Mid-range friction on an accumulative profile requires the same attention as high friction on an integrative one.
-                          </p>
-                        </div>
+  {activeTab === 'morning' && morningBsfi && (
+    <motion.div
+      key="morning-bsfi"
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: 'auto' }}
+      exit={{ opacity: 0, height: 0 }}
+      className="mb-8"
+    >
+      <div className="flex items-center gap-2 mb-3 px-1">
+        <Sparkles size={12} className="text-[#b5a642]/60" />
+        <span className="text-[#b5a642]/70 text-[10px] font-bold uppercase tracking-widest">
+          Today's Bio-Spatial Rhythm
+        </span>
+      </div>
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="glass-panel p-6 rounded-3xl border border-[#b5a642]/20 relative overflow-hidden bg-gradient-to-br from-[#b5a642]/8 to-transparent"
+      >
+        <div className="absolute -top-6 -right-6 w-24 h-24 bg-[#b5a642]/10 rounded-full blur-2xl pointer-events-none" />
+        <div className="relative z-10">
+          <span className="text-[#b5a642]/70 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 mb-4">
+            <Sunrise size={11} /> Morning · What last night produced
+          </span>
+
+          <h3 className="text-lg font-serif text-[#c9ccbb] mb-2">
+            {getBsfiLabel(morningBsfi.total_score, 'morning').label}
+          </h3>
+
+          {/* ── ATTRIBUTION SOURCE NOTE + PRIMARY SOURCE TAG ────────────── */}
+          {(() => {
+            const attribution = getAttributionCopy(
+              morningBsfi.load_attribution ?? 'environmental',
+              'morning'
+            )
+            return (
+              <>
+                <p className="text-[#c9ccbb]/60 text-[10px] leading-relaxed mb-3 italic">
+                  {attribution.source_note}
+                </p>
+
+                {/* Primary source tag — only when environmental and score warrants it */}
+                {morningBsfi.load_attribution === 'environmental' &&
+                  shouldShowPrimarySource(morningBsfi.total_score, 'morning') &&
+                  (() => {
+                    const safeDomain = sanitiseDomain(morningBsfi.dominant_domain)
+                    return safeDomain ? (
+                      <div className="mb-4">
+                        <span className="text-[#c9ccbb]/80 text-[10px] block mb-1 uppercase tracking-widest font-bold">
+                          Primary source
+                        </span>
+                        <span className="text-white bg-[#000]/30 px-2.5 py-1 rounded text-[10px] font-bold inline-block">
+                          {getDomainDisplay(safeDomain).label}
+                        </span>
                       </div>
-                    )}
-                    <button
-                      onClick={() => setShowEveningScore(!showEveningScore)}
-                      className="mt-4 flex items-center gap-1.5 text-[#c9ccbb]/40 hover:text-[#b5a642]/60 text-[10px] font-bold uppercase tracking-widest transition-colors"
-                    >
-                      <ChevronDown size={11} className={`transition-transform duration-300 ${showEveningScore ? 'rotate-180' : ''}`} />
-                      {showEveningScore ? 'Hide score' : 'See your score'}
-                    </button>
-                    <AnimatePresence>
-                      {showEveningScore && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.25 }}
-                          className="overflow-hidden"
-                        >
-                          <div className="pt-4 flex items-center gap-5">
-                            <div className={`w-20 h-20 rounded-full border-4 ${getBsfiLabel(eveningBsfi.total_score, 'evening').border} flex flex-col items-center justify-center bg-[#1b270e] shrink-0 shadow-lg shadow-[#b5a642]/10`}>
-                              <span className={`text-2xl font-serif ${getBsfiLabel(eveningBsfi.total_score, 'evening').color}`}>{eveningBsfi.total_score}</span>
-                              <span className="text-[9px] text-[#c9ccbb]/80 font-bold uppercase tracking-widest">BSFI</span>
-                            </div>
-                            <p className="text-[#c9ccbb]/50 text-xs leading-relaxed">
-                              Your Bio-Spatial Friction Index for this evening. Lower is better. This score reflects the environmental load your nervous system will carry into tonight's sleep.
-                            </p>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                    ) : null
+                  })()
+                }
+              </>
+            )
+          })()}
+
+          {/* ── WHAT THIS MEANS — BSFI context + attribution copy ───────── */}
+          {(() => {
+            const ctx         = getBSFIContext(morningBsfi.total_score, 'morning')
+            const attribution = getAttributionCopy(
+              morningBsfi.load_attribution ?? 'environmental',
+              'morning'
+            )
+            return (
+              <div className="mt-4 pt-4 border-t border-[#b5a642]/10">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[#b5a642] mb-2">
+                  What this means
+                </p>
+                <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed mb-2">
+                  {ctx.reframe}
+                </p>
+                <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed mb-3">
+                  {attribution.reframe}
+                </p>
+                {attribution.direction && (
+                  <p className="text-[#c9ccbb]/70 text-[10px] leading-relaxed italic">
+                    {attribution.direction}
+                  </p>
+                )}
+              </div>
+            )
+          })()}
+
+          {/* ── SCORE TOGGLE ─────────────────────────────────────────────── */}
+          <button
+            onClick={() => setShowMorningScore(!showMorningScore)}
+            className="mt-4 flex items-center gap-1.5 text-[#c9ccbb]/40 hover:text-[#b5a642]/60 text-[10px] font-bold uppercase tracking-widest transition-colors"
+          >
+            <ChevronDown
+              size={11}
+              className={`transition-transform duration-300 ${showMorningScore ? 'rotate-180' : ''}`}
+            />
+            {showMorningScore ? 'Hide score' : 'See your score'}
+          </button>
+          <AnimatePresence>
+            {showMorningScore && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                className="overflow-hidden"
+              >
+                <div className="pt-4 flex items-center gap-5">
+                  <div className={`w-20 h-20 rounded-full border-4 ${getBsfiLabel(morningBsfi.total_score, 'morning').border} flex flex-col items-center justify-center bg-[#1b270e] shrink-0 shadow-lg shadow-[#b5a642]/10`}>
+                    <span className={`text-2xl font-serif ${getBsfiLabel(morningBsfi.total_score, 'morning').color}`}>
+                      {morningBsfi.total_score}
+                    </span>
+                    <span className="text-[9px] text-[#c9ccbb]/80 font-bold uppercase tracking-widest">BSFI</span>
                   </div>
-                </motion.div>
+                  <p className="text-[#c9ccbb]/50 text-xs leading-relaxed">
+                    Your Bio-Spatial Friction Index for this morning. Lower is better.
+                    This score reflects how much environmental load your nervous system absorbed overnight.
+                  </p>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
+
+        </div>
+      </motion.div>
+    </motion.div>
+  )}
+
+  {activeTab === 'evening' && eveningBsfi && (
+    <motion.div
+      key="evening-bsfi"
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: 'auto' }}
+      exit={{ opacity: 0, height: 0 }}
+      className="mb-8"
+    >
+      <div className="flex items-center gap-2 mb-3 px-1">
+        <Sparkles size={12} className="text-[#b5a642]/60" />
+        <span className="text-[#b5a642]/70 text-[10px] font-bold uppercase tracking-widest">
+          Today's Bio-Spatial Rhythm
+        </span>
+      </div>
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="glass-panel p-6 rounded-3xl border border-[#b5a642]/20 relative overflow-hidden bg-gradient-to-br from-[#b5a642]/8 to-transparent"
+      >
+        <div className="absolute -top-6 -right-6 w-24 h-24 bg-[#b5a642]/8 rounded-full blur-2xl pointer-events-none" />
+        <div className="relative z-10">
+          <span className="text-[#b5a642]/80 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 mb-4">
+            <Moon size={11} /> Evening · What will be processed tonight
+          </span>
+
+          <h3 className="text-lg font-serif text-[#c9ccbb] mb-2">
+            {getBsfiLabel(eveningBsfi.total_score, 'evening').label}
+          </h3>
+
+          {/* ── ATTRIBUTION SOURCE NOTE + PRIMARY SOURCE TAG ────────────── */}
+          {(() => {
+            const attribution = getAttributionCopy(
+              eveningBsfi.load_attribution ?? 'environmental',
+              'evening'
+            )
+            return (
+              <>
+                <p className="text-[#c9ccbb]/60 text-[10px] leading-relaxed mb-3 italic">
+                  {attribution.source_note}
+                </p>
+
+                {/* Primary source tag — only when environmental and score warrants it */}
+                {eveningBsfi.load_attribution === 'environmental' &&
+                  shouldShowPrimarySource(eveningBsfi.total_score, 'evening') &&
+                  (() => {
+                    const safeDomain = sanitiseDomain(eveningBsfi.dominant_domain)
+                    return safeDomain ? (
+                      <div className="mb-4">
+                        <span className="text-[#c9ccbb]/80 text-[10px] block mb-1 uppercase tracking-widest font-bold">
+                          Primary source
+                        </span>
+                        <span className="text-white bg-[#000]/30 px-2.5 py-1 rounded text-[10px] font-bold inline-block">
+                          {getDomainDisplay(safeDomain).label}
+                        </span>
+                      </div>
+                    ) : null
+                  })()
+                }
+              </>
+            )
+          })()}
+
+          {/* ── WHAT THIS MEANS — BSFI context + attribution copy ───────── */}
+          {(() => {
+            const ctx         = getBSFIContext(eveningBsfi.total_score, 'evening')
+            const attribution = getAttributionCopy(
+              eveningBsfi.load_attribution ?? 'environmental',
+              'evening'
+            )
+            return (
+              <div className="mt-4 pt-4 border-t border-[#b5a642]/10">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[#b5a642] mb-2">
+                  What this means
+                </p>
+                <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed mb-2">
+                  {ctx.reframe}
+                </p>
+                <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed mb-3">
+                  {attribution.reframe}
+                </p>
+                {attribution.direction && (
+                  <p className="text-[#c9ccbb]/70 text-[10px] leading-relaxed italic">
+                    {attribution.direction}
+                  </p>
+                )}
+              </div>
+            )
+          })()}
+
+          {/* ── SCORE TOGGLE ─────────────────────────────────────────────── */}
+          <button
+            onClick={() => setShowEveningScore(!showEveningScore)}
+            className="mt-4 flex items-center gap-1.5 text-[#c9ccbb]/40 hover:text-[#b5a642]/60 text-[10px] font-bold uppercase tracking-widest transition-colors"
+          >
+            <ChevronDown
+              size={11}
+              className={`transition-transform duration-300 ${showEveningScore ? 'rotate-180' : ''}`}
+            />
+            {showEveningScore ? 'Hide score' : 'See your score'}
+          </button>
+          <AnimatePresence>
+            {showEveningScore && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                className="overflow-hidden"
+              >
+                <div className="pt-4 flex items-center gap-5">
+                  <div className={`w-20 h-20 rounded-full border-4 ${getBsfiLabel(eveningBsfi.total_score, 'evening').border} flex flex-col items-center justify-center bg-[#1b270e] shrink-0 shadow-lg shadow-[#b5a642]/10`}>
+                    <span className={`text-2xl font-serif ${getBsfiLabel(eveningBsfi.total_score, 'evening').color}`}>
+                      {eveningBsfi.total_score}
+                    </span>
+                    <span className="text-[9px] text-[#c9ccbb]/80 font-bold uppercase tracking-widest">BSFI</span>
+                  </div>
+                  <p className="text-[#c9ccbb]/50 text-xs leading-relaxed">
+                    Your Bio-Spatial Friction Index for this evening. Lower is better.
+                    This score reflects the environmental load your nervous system will carry into tonight's sleep.
+                  </p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+        </div>
+      </motion.div>
+    </motion.div>
+  )}
+
+</AnimatePresence>
 
           {/* ------------------------------------------------------------------ */}
           {/* 14-DAY PATTERN PANEL                                               */}
