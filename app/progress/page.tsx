@@ -104,9 +104,7 @@ export default function Progress() {
   const [socialDemand, setSocialDemand] = useState<'low' | 'moderate' | 'high' | null>(null)
 
   // --- CYCLE PHASE ---
-  const [cyclePhase, setCyclePhase] = useState
-  'menstrual' | 'follicular' | 'ovulatory' | 'luteal' | null
->(null)
+  const [cyclePhase, setCyclePhase] = useState<'menstrual' | 'follicular' | 'ovulatory' | 'luteal' | null>(null)
   
   // ─────────────────────────────────────────────────────────────────────────
   // eveningMood is DERIVED from sleepReadiness
