@@ -976,10 +976,10 @@ export default function Progress() {
                 {/* CYCLE PHASE — optional biological context for the engine */}
                 <div className="mb-6 p-5 bg-[#000]/20 rounded-2xl border border-[#c9ccbb]/5">
                   <div className="flex items-center gap-2 mb-1">
-                    <label className="text-xs font-bold text-[#c9ccbb]">Cycle Phase</label>
+                    <label className="text-xs font-bold text-[#b5a642]">CYCLE PHASE</label>
                     <span className="text-[#c9ccbb]/40 text-[10px] uppercase tracking-widest font-bold">· Optional</span>
                   </div>
-                  <p className="text-[#c9ccbb]/60 text-[10px] leading-relaxed mb-4">
+                  <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed mb-4">
                     If relevant, logging your cycle phase helps the engine distinguish physiological load from environmental load in your score.
                   </p>
                   <div className="grid grid-cols-2 gap-2">
@@ -995,8 +995,8 @@ export default function Progress() {
                         onClick={() => setCyclePhase(cyclePhase === phase.value ? null : phase.value)}
                         className={`flex flex-col p-3 rounded-xl border text-left transition-all ${
                           cyclePhase === phase.value
-                            ? 'border-[#b5a642]/60 bg-[#b5a642]/10 text-[#b5a642]'
-                            : 'border-[#c9ccbb]/10 text-[#c9ccbb]/60 hover:border-[#b5a642]/20 hover:text-[#c9ccbb]/80'
+                            ? 'border-[#b5a642]/70 bg-[#b5a642]/10 text-[#b5a642]'
+                            : 'border-[#c9ccbb]/10 text-[#c9ccbb]/60 hover:border-[#b5a642]/60 hover:text-[#c9ccbb]/80'
                         }`}
                       >
                         <span className="text-[10px] font-bold uppercase tracking-widest block mb-0.5">
@@ -1015,7 +1015,7 @@ export default function Progress() {
                   <div className="p-5 bg-[#000]/20 rounded-2xl border border-[#c9ccbb]/5 relative overflow-hidden group hover:border-[#b5a642]/20 transition-colors">
                     <div className="absolute top-0 right-0 w-16 h-16 bg-[#b5a642]/5 rounded-full blur-2xl group-hover:bg-[#b5a642]/10 transition-all" />
                     <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2 text-[#c9ccbb]/60 text-xs font-bold uppercase tracking-widest">
+                      <div className="flex items-center gap-2 text-[#c9ccbb]/80 text-xs font-bold uppercase tracking-widest">
                         <Volume2 size={13} className="text-[#b5a642]/80" /> Bedroom Sound
                       </div>
                       <button
@@ -1108,7 +1108,7 @@ export default function Progress() {
                   disabled={!canSave}
                   className={`px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-all flex items-center gap-2 ${
                     canSave
-                      ? 'bg-[#c9ccbb] text-[#1b270e] hover:bg-white'
+                      ? 'bg-[#b5a642] text-[#c9ccbb] hover:bg-[#b5a642]'
                       : 'bg-[#c9ccbb]/10 text-[#c9ccbb]/80 cursor-not-allowed'
                   }`}
                 >
@@ -1510,7 +1510,7 @@ export default function Progress() {
           <div className="animate-fade-in-up delay-100 mb-12">
             <div className="flex justify-between items-end mb-6">
               <div>
-                <div className="flex items-center gap-2 text-[#c9ccbb]/60 text-xs font-bold uppercase tracking-widest mb-1">
+                <div className="flex items-center gap-2 text-[#b5a642]/80 text-xs font-bold uppercase tracking-widest mb-1">
                   <TrendingUp size={14} /> Your Daily Pattern
                 </div>
                 <h3 className="text-xl font-serif text-[#c9ccbb]">Mood, Tension & Focus Over Time</h3>
@@ -1545,7 +1545,7 @@ export default function Progress() {
                 <X size={20} />
               </button>
               <h2 className="text-3xl font-serif text-[#c9ccbb] mb-8 border-b border-[#c9ccbb]/10 pb-6">Why We Log</h2>
-              <div className="space-y-8 text-[#c9ccbb]/70 text-sm leading-relaxed font-light">
+              <div className="space-y-8 text-[#c9ccbb]/80 text-sm leading-relaxed font-light">
                 <section>
                   <h3 className="text-lg font-serif text-[#b5a642] mb-2">The Purpose of Logging</h3>
                   <p>This isn't about optimising yourself. It's about understanding the subtle dialogue between your nervous system and your environment. One day tells you very little. However, when you record consistently, patterns begin to appear, showing which parts of your home restore you and which quietly ask your body to compensate.</p>
