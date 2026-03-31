@@ -94,7 +94,7 @@ export default function RitualsInterface({
       {/* SECTION HEADER */}
       <div className="flex items-center gap-3 mb-4">
         <div className="h-px bg-[#c9ccbb]/10 flex-grow" />
-        <div className="text-[#c9ccbb]/40 text-xs font-bold uppercase tracking-widest flex items-center gap-2">
+        <div className="text-[#c9ccbb]/70 text-xs font-bold uppercase tracking-widest flex items-center gap-2">
           <Zap size={12} className="text-[#b5a642]" />
           {profileLabel} Protocol
           <span className="px-1.5 py-0.5 rounded-full border border-[#b5a642]/20 bg-[#b5a642]/5 text-[#b5a642]/70 text-[9px] font-bold uppercase tracking-widest">
