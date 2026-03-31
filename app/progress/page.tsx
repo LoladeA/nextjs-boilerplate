@@ -1108,7 +1108,7 @@ export default function Progress() {
                   disabled={!canSave}
                   className={`px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-all flex items-center gap-2 ${
                     canSave
-                      ? 'bg-[#b5a642] text-[#c9ccbb] hover:bg-[#b5a642]'
+                      ? 'bg-[#b5a642]/80 text-[#1b270e] hover:bg-[#b5a642]'
                       : 'bg-[#c9ccbb]/10 text-[#c9ccbb]/80 cursor-not-allowed'
                   }`}
                 >
