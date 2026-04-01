@@ -4,7 +4,8 @@ import { NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { calculateBSFI, DailyLogParams } from '@/lib/bsfi-engine'
-import { getAttributionCopy } from '@/lib/bsfi-attribution-copy'
+// BaselineInput removed — v7 engine takes (today, history) only.
+// HealthKit biometric fields removed — not in v7 DailyLogParams.
 
 // -----------------------------------------------------------------------------
 // TYPES & MAPPINGS
@@ -22,6 +23,8 @@ const safeNum = (val: unknown): number | null => {
 
 // -----------------------------------------------------------------------------
 // DERIVE INTEGRATION VARIANT
+// Still used — integrationPattern is persisted in bsfi_results and read by
+// the 14-day macro synthesis and the rituals protocol selector.
 // -----------------------------------------------------------------------------
 const deriveIntegrationVariant = (responses: any[]): IntegrationVariant => {
     const vals = ['q_int1', 'q_int2', 'q_int3'].map(key =>
@@ -37,14 +40,23 @@ const deriveIntegrationVariant = (responses: any[]): IntegrationVariant => {
 export async function POST(req: Request) {
     try {
         const supabase = createRouteHandlerClient({ cookies })
-        const { data: { session: userSession } } = await supabase.auth.getSession()
-        if (!userSession) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-        const userId = userSession.user.id
+        const userId = session.user.id
         const raw = await req.json()
 
         // ─────────────────────────────────────────────────────────────────────
-        // 1. PREPARE DAILY LOG PARAMS (v7.1)
+        // 1. PREPARE DAILY LOG PARAMS (v7)
+        //
+        // wake_time: used by the SRI (Sleep Regularity Index) calculation.
+        // The API receives a date string from the client. We reconstruct an
+        // ISO timestamp using the raw.created_at value if present, which is
+        // the actual log submission time and the closest proxy for wake time
+        // when users log immediately on waking.
+        //
+        // If raw.created_at is absent (unlikely but safe), wake_time is null
+        // and the SRI defaults to 85 — no penalty applied.
         // ─────────────────────────────────────────────────────────────────────
         const todayParams: DailyLogParams = {
             morning_lux:     safeNum(raw.morning_lux),
@@ -59,11 +71,12 @@ export async function POST(req: Request) {
             evening_tags:    Array.isArray(raw.evening_tags) ? raw.evening_tags : [],
             social_demand:   raw.social_demand  ?? null,
             cycle_phase:     raw.cycle_phase    ?? null,
+            // SRI input — log submission time as ISO string
             wake_time:       raw.created_at     ?? null,
         }
 
         // ─────────────────────────────────────────────────────────────────────
-        // 2. FETCH HISTORY (14-day window)
+        // 2. FETCH HISTORY (14-day window, excluding today)
         // ─────────────────────────────────────────────────────────────────────
         const windowStart = new Date()
         windowStart.setDate(windowStart.getDate() - 13)
@@ -89,11 +102,15 @@ export async function POST(req: Request) {
             evening_tags:    log.evening_tags    ?? [],
             social_demand:   log.social_demand   ?? null,
             cycle_phase:     log.cycle_phase     ?? null,
+            // SRI: use the created_at timestamp from each historical log
             wake_time:       log.created_at      ?? null,
         }))
 
         // ─────────────────────────────────────────────────────────────────────
         // 3. FETCH PROFILE CONTEXT
+        // integrationPattern and sensoryPattern are persisted in bsfi_results
+        // for use by the 14-day synthesis and rituals protocol selector.
+        // They are not passed into calculateBSFI (v7 baseline param removed).
         // ─────────────────────────────────────────────────────────────────────
         const { data: profile } = await supabase
             .from('assessment_snapshots')
@@ -113,23 +130,28 @@ export async function POST(req: Request) {
         const integrationPattern = deriveIntegrationVariant(intResponses || [])
 
         // ─────────────────────────────────────────────────────────────────────
-        // 4. EXECUTE ENGINE (v7.1 — session-aware)
+        // 4. EXECUTE ENGINE (v7 — session-aware)
+        // session gates focus and entropy_reset penalties to evening entries only.
         // ─────────────────────────────────────────────────────────────────────
-        const sessionType = raw.session === 'evening' ? 'evening' : 'morning'
-        const bsfiResult = calculateBSFI(todayParams, historyParams, sessionType)
-        
-        // 5. GENERATE ATTRIBUTION COPY (Mirror → Reframe → Direction)
-        const attributionCopy = getAttributionCopy(bsfiResult.load_attribution)
+        const session = raw.session === 'evening' ? 'evening' : 'morning'
+        const bsfiResult = calculateBSFI(todayParams, historyParams, session)
 
         // ─────────────────────────────────────────────────────────────────────
-        // 6. PERSIST RESULTS
+        // 5. PERSIST RESULTS
+        //
+        // is_internal_driver: derived from load_attribution for backwards
+        // compatibility with any existing queries that read this field from
+        // the domain_scores JSONB. True when attribution === 'internal'.
+        //
+        // healthkit_enriched: removed from engine. Stored as false so
+        // existing reads of this field from JSONB don't return undefined.
         // ─────────────────────────────────────────────────────────────────────
         const { error: upsertError } = await supabase
             .from('bsfi_results')
             .upsert({
                 user_id:             userId,
                 calculated_for_date: raw.date,
-                session:             sessionType,
+                session:             raw.session === 'evening' ? 'evening' : 'morning',
                 total_score:         bsfiResult.bsfi_total,
                 dominant_domain:     bsfiResult.dominant_domain,
                 version:             bsfiResult.version,
@@ -140,11 +162,9 @@ export async function POST(req: Request) {
                     RDS:               bsfiResult.rds_score,
                     load_attribution:  bsfiResult.load_attribution,
                     biological_load:   bsfiResult.biological_load,
+                    // Backwards-compatible fields — derived, not engine outputs
                     is_internal_driver:  bsfiResult.load_attribution === 'internal',
                     healthkit_enriched:  false,
-                    // Persist the narrative within domain_scores for historical stability
-                    // This does not overwrite frontend logic but provides a baseline for synthesis.
-                    attribution_copy:    attributionCopy, 
                 },
                 integration_pattern: integrationPattern,
                 sensory_pattern:     profile?.sensory_pattern || null,
@@ -154,7 +174,7 @@ export async function POST(req: Request) {
 
         if (upsertError) throw upsertError
 
-        return NextResponse.json({ success: true, bsfiResult, attributionCopy })
+        return NextResponse.json({ success: true, bsfiResult })
 
     } catch (error: any) {
         console.error('BSFI Route Error:', error)
