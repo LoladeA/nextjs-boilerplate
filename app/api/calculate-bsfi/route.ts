@@ -133,8 +133,8 @@ export async function POST(req: Request) {
         // 4. EXECUTE ENGINE (v7 — session-aware)
         // session gates focus and entropy_reset penalties to evening entries only.
         // ─────────────────────────────────────────────────────────────────────
-        const session = raw.session === 'evening' ? 'evening' : 'morning'
-        const bsfiResult = calculateBSFI(todayParams, historyParams, session)
+        const logSession: 'morning' | 'evening' = raw.session === 'evening' ? 'evening' : 'morning'
+        const bsfiResult = calculateBSFI(todayParams, historyParams, logSession)
 
         // ─────────────────────────────────────────────────────────────────────
         // 5. PERSIST RESULTS
