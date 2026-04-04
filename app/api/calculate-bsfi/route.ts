@@ -1,16 +1,23 @@
 // /app/api/calculate-bsfi/route.ts
+// v8 — clean rebuild
 
 import { NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
-import { calculateBSFI, DailyLogParams } from '@/lib/bsfi-engine'
-import { getAttributionCopy } from '@/lib/bsfi-attribution-copy'
+import {
+    calculateMorningBSFI,
+    calculateEveningBSFI,
+    DailyLogParams,
+} from '@/lib/bsfi-engine'
 
-// -----------------------------------------------------------------------------
-// TYPES & MAPPINGS
-// -----------------------------------------------------------------------------
+// ─────────────────────────────────────────────────────────────────────────────
+// TYPES
+// ─────────────────────────────────────────────────────────────────────────────
 type IntegrationVariant = 'integrative' | 'mixed' | 'accumulative'
 
+// ─────────────────────────────────────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────────────────────────────────────
 const safeNum = (val: unknown): number | null => {
     if (val === null || val === undefined || typeof val === 'boolean') return null
     if (typeof val === 'string') {
@@ -20,9 +27,6 @@ const safeNum = (val: unknown): number | null => {
     return typeof val === 'number' && isFinite(val) ? val : null
 }
 
-// -----------------------------------------------------------------------------
-// DERIVE INTEGRATION VARIANT
-// -----------------------------------------------------------------------------
 const deriveIntegrationVariant = (responses: any[]): IntegrationVariant => {
     const vals = ['q_int1', 'q_int2', 'q_int3'].map(key =>
         safeNum(responses.find(r => r.question_key === key)?.answer_value)
@@ -34,6 +38,49 @@ const deriveIntegrationVariant = (responses: any[]): IntegrationVariant => {
     return 'mixed'
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// BACKWARD COMPATIBILITY — V7 FIELD MAPPING
+//
+// Old fields in the payload or database map to new v8 field names.
+// Priority: v8 field name wins if present; falls back to legacy name.
+//
+//   daytime_db  → daytime_db_avg (old single dB → average)
+//   bedtime_db  → nighttime_db   (old bedtime measure → morning ambient)
+//
+// Fields with no v7 equivalent default to null (spatial_reset defaults false).
+// ─────────────────────────────────────────────────────────────────────────────
+const mapToV8Params = (src: any): DailyLogParams => ({
+    // Morning fields
+    morning_lux:      safeNum(src.morning_lux),
+    wake_time:        src.created_at ?? null,
+    sleep_wakes:      safeNum(src.sleep_wakes),
+    nighttime_db:     safeNum(src.nighttime_db  ?? src.bedtime_db),  // v8 new / v7 bedtime_db
+    morning_tension:  safeNum(src.morning_tension),
+    morning_mood:     safeNum(src.mood_score),   // daily log field name
+    morning_tags:     Array.isArray(src.tags) ? src.tags : [],
+
+    // Evening fields
+    evening_lux:      safeNum(src.evening_lux),
+    daytime_db_avg:   safeNum(src.daytime_db_avg ?? src.daytime_db), // v8 new / v7 legacy
+    daytime_db_peak:  safeNum(src.daytime_db_peak  ?? null),         // v8 new, no v7 equivalent
+    noise_character:  src.noise_character  ?? null,
+    social_demand:    src.social_demand    ?? null,
+    spatial_reset:    typeof src.spatial_reset === 'boolean'
+                        ? src.spatial_reset
+                        // backward compat: derive from entropy_reset tag presence
+                        : Array.isArray(src.evening_tags) && src.evening_tags.includes('entropy_reset'),
+    task_init_drag:   src.task_init_drag   ?? null,
+    focus_hours:      safeNum(src.focus_hours),
+    environmental_control_score: safeNum(src.environmental_control_score ?? null),
+    evening_tags:     Array.isArray(src.evening_tags) ? src.evening_tags : [],
+
+    // Biological
+    cycle_phase:      src.cycle_phase ?? null,
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ROUTE HANDLER
+// ─────────────────────────────────────────────────────────────────────────────
 export async function POST(req: Request) {
     try {
         const supabase = createRouteHandlerClient({ cookies })
@@ -41,30 +88,12 @@ export async function POST(req: Request) {
         if (!userSession) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
         const userId = userSession.user.id
-        const raw = await req.json()
+        const raw    = await req.json()
 
-        // ─────────────────────────────────────────────────────────────────────
-        // 1. PREPARE DAILY LOG PARAMS (v7.2)
-        // ─────────────────────────────────────────────────────────────────────
-        const todayParams: DailyLogParams = {
-            morning_lux:     safeNum(raw.morning_lux),
-            evening_lux:     safeNum(raw.evening_lux),
-            daytime_db:      safeNum(raw.daytime_db),
-            nighttime_db:    safeNum(raw.bedtime_db),
-            morning_tension: safeNum(raw.morning_tension),
-            sleep_wakes:     safeNum(raw.sleep_wakes),
-            focus_hours:     safeNum(raw.focus_hours),
-            mood_score:      safeNum(raw.mood_score),
-            morning_tags:    Array.isArray(raw.tags)         ? raw.tags         : [],
-            evening_tags:    Array.isArray(raw.evening_tags) ? raw.evening_tags : [],
-            social_demand:   raw.social_demand  ?? null,
-            cycle_phase:     raw.cycle_phase    ?? null,
-            wake_time:       raw.created_at     ?? null,
-        }
+        // ── 1. MAP PARAMS ──────────────────────────────────────────────────
+        const todayParams = mapToV8Params(raw)
 
-        // ─────────────────────────────────────────────────────────────────────
-        // 2. FETCH HISTORY (14-day window)
-        // ─────────────────────────────────────────────────────────────────────
+        // ── 2. FETCH HISTORY ───────────────────────────────────────────────
         const windowStart = new Date()
         windowStart.setDate(windowStart.getDate() - 13)
 
@@ -76,25 +105,9 @@ export async function POST(req: Request) {
             .lt('date', raw.date)
             .order('date', { ascending: false })
 
-        const historyParams: DailyLogParams[] = (historyData || []).map(log => ({
-            morning_lux:     log.morning_lux     ?? null,
-            evening_lux:     log.evening_lux     ?? null,
-            daytime_db:      log.daytime_db      ?? null,
-            nighttime_db:    log.bedtime_db      ?? null,
-            morning_tension: log.morning_tension ?? null,
-            sleep_wakes:     log.sleep_wakes     ?? null,
-            focus_hours:     log.focus_hours     ?? null,
-            mood_score:      log.mood_score      ?? null,
-            morning_tags:    log.tags            ?? [],
-            evening_tags:    log.evening_tags    ?? [],
-            social_demand:   log.social_demand   ?? null,
-            cycle_phase:     log.cycle_phase     ?? null,
-            wake_time:       log.created_at      ?? null,
-        }))
+        const historyParams: DailyLogParams[] = (historyData || []).map(mapToV8Params)
 
-        // ─────────────────────────────────────────────────────────────────────
-        // 3. FETCH PROFILE CONTEXT
-        // ─────────────────────────────────────────────────────────────────────
+        // ── 3. FETCH PROFILE CONTEXT ───────────────────────────────────────
         const { data: profile } = await supabase
             .from('assessment_snapshots')
             .select('sensory_pattern, energy_tax_baseline')
@@ -112,18 +125,16 @@ export async function POST(req: Request) {
 
         const integrationPattern = deriveIntegrationVariant(intResponses || [])
 
-        // ─────────────────────────────────────────────────────────────────────
-        // 4. EXECUTE ENGINE (v7.2 — session-aware)
-        // ─────────────────────────────────────────────────────────────────────
+        // ── 4. EXECUTE ENGINE ──────────────────────────────────────────────
+        // Morning and evening are now separate functions.
+        // No session parameter. No contamination possible.
         const logSession: 'morning' | 'evening' = raw.session === 'evening' ? 'evening' : 'morning'
-        const bsfiResult = calculateBSFI(todayParams, historyParams, logSession)
-        
-        // 5. GENERATE ATTRIBUTION COPY (Mirror → Reframe → Direction)
-        const attributionCopy = getAttributionCopy(bsfiResult.load_attribution)
 
-        // ─────────────────────────────────────────────────────────────────────
-        // 6. PERSIST RESULTS
-        // ─────────────────────────────────────────────────────────────────────
+        const bsfiResult = logSession === 'morning'
+            ? calculateMorningBSFI(todayParams, historyParams)
+            : calculateEveningBSFI(todayParams, historyParams)
+
+        // ── 5. PERSIST ─────────────────────────────────────────────────────
         const { error: upsertError } = await supabase
             .from('bsfi_results')
             .upsert({
@@ -134,16 +145,17 @@ export async function POST(req: Request) {
                 dominant_domain:     bsfiResult.dominant_domain,
                 version:             bsfiResult.version,
                 domain_scores: {
-                    CFS:               bsfiResult.cfs_score,
-                    ALS:               bsfiResult.als_score,
-                    SES:               bsfiResult.ses_score,
-                    RDS:               bsfiResult.rds_score,
-                    load_attribution:  bsfiResult.load_attribution,
-                    biological_load:   bsfiResult.biological_load,
+                    CFS:                 bsfiResult.cfs_score,
+                    ALS:                 bsfiResult.als_score,
+                    SES:                 bsfiResult.ses_score,
+                    RDS:                 bsfiResult.rds_score,
+                    raw_total:           bsfiResult.raw_total,
+                    biological_capacity: bsfiResult.biological_capacity,
+                    load_attribution:    bsfiResult.load_attribution,
+                    biological_load:     bsfiResult.biological_load,
+                    // Backward-compatible fields for legacy JSONB reads
                     is_internal_driver:  bsfiResult.load_attribution === 'internal',
                     healthkit_enriched:  false,
-                    // Persist the narrative within domain_scores for historical stability
-                    attribution_copy:    attributionCopy, 
                 },
                 integration_pattern: integrationPattern,
                 sensory_pattern:     profile?.sensory_pattern || null,
@@ -153,7 +165,7 @@ export async function POST(req: Request) {
 
         if (upsertError) throw upsertError
 
-        return NextResponse.json({ success: true, bsfiResult, attributionCopy })
+        return NextResponse.json({ success: true, bsfiResult })
 
     } catch (error: any) {
         console.error('BSFI Route Error:', error)
