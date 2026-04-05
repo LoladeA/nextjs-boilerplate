@@ -999,8 +999,8 @@ export default function Progress() {
               <input
                 type="number" min="0" max="140"
                 placeholder="e.g. 85"
-                value={daytimePeakDb}
-                onChange={(e) => setDaytimePeakDb(e.target.value)}
+                value={daytimeDbPeak}
+                onChange={(e) => setDaytimeDbPeak(e.target.value)}
                 className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
               />
             </div>
