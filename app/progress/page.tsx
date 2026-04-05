@@ -61,10 +61,9 @@ import { moods, morningTagOptions, eveningTagOptions }    from '@/app/daily-logs
 
 // --- UI CONFIGURATION CONSTANTS (V8) ---
 const NOISE_CHARACTER_OPTIONS = [
-  { value: 'steady',       label: 'Steady / Drone' },
-  { value: 'intermittent', label: 'Intermittent'   },
-  { value: 'sharp',        label: 'Sharp / Sudden' },
-  { value: 'voices',       label: 'Human Voices'   },
+  { value: 'continuous_hum', label: 'Continuous Hum' },
+  { value: 'intermittent_loud', label: 'Intermittent Loud' },
+  { value: 'unpredictable_startling', label: 'Unpredictable Startling' },
 ] as const;
 
 const TASK_DRAG_OPTIONS = [
@@ -99,6 +98,8 @@ export default function Progress() {
   const [daytimeDb, setDaytimeDb]   = useState<string>('')
   const [eveningLux, setEveningLux] = useState<string>('')
   const [daytimeDbPeak, setDaytimeDbPeak] = useState<string>('')
+  const [daytimeDbAvg, setDaytimeDbAvg] = useState<string>('')     // ← v8 exact name
+  const [nighttimeDb, setNighttimeDb] = useState<string>('')       // ← v8 (replaces bedtimeDb for engine)
   const [noiseCharacter, setNoiseCharacter] = useState<NoiseCharacter | null>(null)
   
   // --- SLEEP CONDITIONS ---
@@ -120,7 +121,7 @@ export default function Progress() {
   const [tensionScore, setTensionScore] = useState<number>(0)
   const [wakeScore, setWakeScore]       = useState<number>(0)
   const [taskInitDrag, setTaskInitDrag] = useState<string | null>(null)
-  const [spatialReset, setSpatialReset] = useState<string | number>(0)
+  const [spatialReset, setSpatialReset] = useState<boolean>(false)
   const [environmentalControlScore, setEnvironmentalControlScore] = useState<number>(5)
   const [focusHours, setFocusHours] = useState<number>(0) // Replaces focusScore for v8 math
   // --- SOCIAL DEMAND ---
@@ -402,11 +403,10 @@ export default function Progress() {
   // --- V8 CRITICAL FIELD VALIDATION ---
   // Morning: Light + Waking Noise. Evening: Day Avg + Peak + Agency.
   const criticalFields = activeTab === 'morning'
-    ? [morningLux, nighttimeDb] 
-    : [daytimeDbAvg, daytimeDbPeak, environmentalControlScore]
-    
-  const isMissing = criticalFields.some(val => val === null || val === '')
+    ? [morningLux, nighttimeDb]                                      // morning engine
+    : [daytimeDbAvg, daytimeDbPeak, environmentalControlScore]       // evening engine
 
+  const isMissing = criticalFields.some(val => val === null || val === '' || val === undefined)
   if (isMissing && isForced !== true) {
     setShowAccuracyWarning(true)
     return
@@ -422,7 +422,7 @@ export default function Progress() {
 
     const today = new Date().toLocaleDateString('en-CA')
 
-    // --- V8 PAYLOAD CONSTRUCTION ---
+   // --- V8 PAYLOAD CONSTRUCTION ---
     const payload = {
       user_id: user.id,
       date: today,
@@ -846,28 +846,30 @@ export default function Progress() {
                   </div>
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-[#c9ccbb] block">Spatial Resets</label>
-                  <span className="text-[#c9ccbb]/80 text-[10px]">How many times did you have to change environments today to regain focus or regulation?</span>
+                  <label className="text-xs font-bold text-[#c9ccbb] block">Spatial Reset</label>
+                  <span className="text-[#c9ccbb]/80 text-[10px]">Did often did you have to move things around in order to regulate?</span>
                 </div>
               </div>
-  
-              <div className="grid grid-cols-5 gap-2">
-                {([0, 1, 2, 3, '4+'] as const).map(count => (
-                  <button
-                    key={count}
-                    type="button"
-                    onClick={() => setSpatialResetCount(count)}
-                    className={`py-3 rounded-xl border text-sm font-bold transition-all ${
-                      spatialResetCount === count
-                        ? 'border-[#b5a642] bg-[#b5a642]/20 text-[#b5a642]'
-                        : 'border-[#c9ccbb]/10 text-[#c9ccbb]/80 hover:text-[#c9ccbb] hover:border-[#b5a642]/30'
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setSpatialReset(true)}
+                  className={`flex-1 py-3 rounded-xl border text-sm font-bold transition-all ${
+                    spatialReset === true ? 'border-[#b5a642] bg-[#b5a642]/20 text-[#b5a642]' : 'border-[#c9ccbb]/10 text-[#c9ccbb]/80 hover:border-[#b5a642]/30'
                   }`}
                 >
-                  {count}
+                  Yes, I reset
                 </button>
-              ))}
+                <button
+                  onClick={() => setSpatialReset(false)}
+                  className={`flex-1 py-3 rounded-xl border text-sm font-bold transition-all ${
+                    spatialReset === false ? 'border-[#b5a642] bg-[#b5a642]/20 text-[#b5a642]' : 'border-[#c9ccbb]/10 text-[#c9ccbb]/80 hover:border-[#b5a642]/30'
+                  }`}
+                >
+                  No reset
+                </button>
+              </div>
             </div>
-          </div>                
+          )}              
                 
                 {focusScore > 0 && (
                   <div className="mt-6 bg-[#1b270e] border-l-2 border-[#b5a642] rounded-r-xl overflow-hidden shadow-md">
@@ -1008,30 +1010,26 @@ export default function Progress() {
                 <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb] mb-2">
                   <Waves size={14} className="text-[#b5a642]" /> Noise Character
                 </label>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                  {([
-                    { value: 'steady', label: 'Steady / Drone' },
-                    { value: 'intermittent', label: 'Intermittent' },
-                    { value: 'sharp', label: 'Sharp / Sudden' },
-                    { value: 'voices', label: 'Human Voices' },
-                  ] as const).map(opt => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => setNoiseCharacter(noiseCharacter === opt.value ? null : opt.value)}
-                      className={`py-2 px-2 rounded-xl border text-[9px] font-bold uppercase tracking-widest transition-all text-center ${
-                        noiseCharacter === opt.value
-                          ? 'border-[#b5a642]/60 bg-[#b5a642]/15 text-[#b5a642]'
-                          : 'border-[#c9ccbb]/10 text-[#c9ccbb]/80 hover:border-[#b5a642]/30 hover:text-[#c9ccbb]/90'
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>            
+                <div className="grid grid-cols-3 gap-2">
+                 {NOISE_CHARACTER_OPTIONS.map(opt => (
+                   <button
+                     key={opt.value}
+                     type="button"
+                     onClick={() => setNoiseCharacter(noiseCharacter === opt.value ? null : opt.value)}
+                     className={`py-2 px-2 rounded-xl border text-[9px] font-bold uppercase tracking-widest transition-all text-center ${
+                       noiseCharacter === opt.value
+                         ? 'border-[#b5a642]/60 bg-[#b5a642]/15 text-[#b5a642]'
+                         : 'border-[#c9ccbb]/10 text-[#c9ccbb]/80 hover:border-[#b5a642]/30 hover:text-[#c9ccbb]/90'
+                     }`}
+                   >
+                     {opt.label}
+                   </button>
+                 ))}
+               </div>
+             </div>
+           </div>
+         </div>
+       )}   
             
             {/* EVENING WIND-DOWN PROMPT */}
             {activeTab === 'evening' && (
