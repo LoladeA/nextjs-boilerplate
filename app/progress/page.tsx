@@ -31,7 +31,8 @@ import { useState, useEffect } from 'react'
 import {
   Heart, Wind, Sun, Volume2, CheckCircle, TrendingUp, Activity,
   Zap, Loader2, Moon, Sunrise, Brain, Fingerprint, ChevronDown,
-  ChevronUp, Lock, AlertCircle, HelpCircle, X, BedDouble, Sparkles, Users
+  ChevronUp, Lock, AlertCircle, HelpCircle, X, BedDouble, Sparkles, 
+  Users, MapPin, Waves
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
@@ -58,6 +59,23 @@ import {
 } from '@/lib/progress-feedback'
 import { moods, morningTagOptions, eveningTagOptions }    from '@/app/daily-logs/constants'
 
+// --- UI CONFIGURATION CONSTANTS (V8) ---
+const NOISE_CHARACTER_OPTIONS = [
+  { value: 'steady',       label: 'Steady / Drone' },
+  { value: 'intermittent', label: 'Intermittent'   },
+  { value: 'sharp',        label: 'Sharp / Sudden' },
+  { value: 'voices',       label: 'Human Voices'   },
+] as const;
+
+const TASK_DRAG_OPTIONS = [
+  { value: 'none',     label: 'None' },
+  { value: 'light',    label: 'Light' },
+  { value: 'moderate', label: 'Moderate' },
+  { value: 'heavy',    label: 'Heavy' },
+] as const;
+
+const SPATIAL_RESET_OPTIONS = [0, 1, 2, 3, '4+'] as const;
+
 // =============================================================================
 // COMPONENT
 // =============================================================================
@@ -80,7 +98,9 @@ export default function Progress() {
   const [morningLux, setMorningLux] = useState<string>('')
   const [daytimeDb, setDaytimeDb]   = useState<string>('')
   const [eveningLux, setEveningLux] = useState<string>('')
-
+  const [daytimeDbPeak, setDaytimeDbPeak] = useState<string>('')
+  const [noiseCharacter, setNoiseCharacter] = useState<NoiseCharacter | null>(null)
+  
   // --- SLEEP CONDITIONS ---
   const [bedtimeDb, setBedtimeDb]         = useState<string>('')
   const [bedtimeLux, setBedtimeLux]       = useState<string>('')
@@ -99,7 +119,10 @@ export default function Progress() {
   const [focusScore, setFocusScore]     = useState<number>(0)
   const [tensionScore, setTensionScore] = useState<number>(0)
   const [wakeScore, setWakeScore]       = useState<number>(0)
-
+  const [taskInitDrag, setTaskInitDrag] = useState<string | null>(null)
+  const [spatialReset, setSpatialReset] = useState<string | number>(0)
+  const [environmentalControlScore, setEnvironmentalControlScore] = useState<number>(5)
+  const [focusHours, setFocusHours] = useState<number>(0) // Replaces focusScore for v8 math
   // --- SOCIAL DEMAND ---
   const [socialDemand, setSocialDemand] = useState<'low' | 'moderate' | 'high' | null>(null)
 
@@ -376,91 +399,113 @@ export default function Progress() {
   // SAVE — payload field names must not change (graph + dashboard safety)
   // ─────────────────────────────────────────────────────────────────────────
   const handleSave = async (isForced = false) => {
-    const criticalFields = activeTab === 'morning'
-      ? [morningLux, daytimeDb]
-      : [bedtimeDb, bedtimeLux]
-    const isMissing = criticalFields.some(val => val === null || val === '')
+  // --- V8 CRITICAL FIELD VALIDATION ---
+  // Morning: Light + Waking Noise. Evening: Day Avg + Peak + Agency.
+  const criticalFields = activeTab === 'morning'
+    ? [morningLux, nighttimeDb] 
+    : [daytimeDbAvg, daytimeDbPeak, environmentalControlScore]
+    
+  const isMissing = criticalFields.some(val => val === null || val === '')
 
-    if (isMissing && isForced !== true) {
-      setShowAccuracyWarning(true)
-      return
-    }
-
-    setStatus('saving')
-    setErrorMessage('')
-    setShowAccuracyWarning(false)
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('No user logged in')
-
-      const today = new Date().toLocaleDateString('en-CA')
-
-      const payload = {
-        user_id:            user.id,
-        date:               today,
-        mood_score:         morningMood,
-        tags:               morningTags,
-        note:               morningNote,
-        morning_tension:    tensionScore,
-        sleep_wakes:        wakeScore,
-        morning_lux:        morningLux  ? parseInt(morningLux)  : null,
-        evening_lux:        eveningLux  ? parseInt(eveningLux)  : null,
-        daytime_db:         daytimeDb   ? parseInt(daytimeDb)   : null,
-        bedtime_db:         bedtimeDb   ? parseInt(bedtimeDb)   : null,
-        bedtime_lux:        bedtimeLux  ? parseInt(bedtimeLux)  : null,
-        sleep_readiness:    sleepReadiness,
-        lux_score:          deriveLuxScore(morningLux, eveningLux),
-        db_score:           deriveDbScore(daytimeDb, bedtimeDb),
-        readiness_score:    null,
-        focus_hours:        Math.round(focusScore),
-        evening_mood_score: eveningMood,
-        evening_tags:       eveningTags,
-        evening_note:       eveningNote,
-        social_demand:      socialDemand ?? null,
-        cycle_phase:        cyclePhase ?? null,
-      }
-
-      const { error } = await supabase
-        .from('daily_logs')
-        .upsert(payload, { onConflict: 'user_id, date' })
-
-      if (error) throw error
-
-      setStatus('success')
-      fetchHistory()
-      fetchTodayLog() // re-fetch bsfi_results from DB as fallback if API parse fails
-      setTimeout(() => setStatus('idle'), 2000)
-
-      try {
-        const res  = await fetch('/api/calculate-bsfi', {
-          method:  'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ ...payload, session: activeTab })
-        })
-        const data = await res.json()
-        if (data.success && data.bsfiResult) {
-          const entry: BsfiState = {
-            total_score:           data.bsfiResult.bsfi_total,
-            dominant_domain:       data.bsfiResult.dominant_domain,
-            load_attribution:      data.bsfiResult.load_attribution    ?? 'environmental',
-            biological_load:       data.bsfiResult.biological_load     ?? false,
-            integration_pattern:   data.profileContext?.integration_pattern   ?? null,
-            sensory_pattern:       data.profileContext?.sensory_pattern       ?? null,
-          }
-          if (activeTab === 'morning') setMorningBsfi(entry)
-          else                         setEveningBsfi(entry)
-        }
-      } catch {
-        console.warn('BSFI engine skipped — save was successful.')
-      }
-
-    } catch (err: any) {
-      console.error('Save Error:', err)
-      setStatus('error')
-      setErrorMessage(err.message || 'Could not save entry.')
-    }
+  if (isMissing && isForced !== true) {
+    setShowAccuracyWarning(true)
+    return
   }
+
+  setStatus('saving')
+  setErrorMessage('')
+  setShowAccuracyWarning(false)
+
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('No user logged in')
+
+    const today = new Date().toLocaleDateString('en-CA')
+
+    // --- V8 PAYLOAD CONSTRUCTION ---
+    const payload = {
+      user_id: user.id,
+      date: today,
+      
+      // Clinical Metadata
+      version: 'bsfi_v8',
+      cycle_phase: cyclePhase ?? null,
+
+      // Morning Domain (Anchor & Recovery)
+      morning_mood: morningMood,
+      morning_tags: morningTags,
+      morning_note: morningNote,
+      morning_tension: tensionScore,
+      sleep_wakes: wakeScore,
+      morning_lux: morningLux ? parseInt(morningLux) : null,
+      nighttime_db: nighttimeDb ? parseInt(nighttimeDb) : null, // v8: measured at waking
+
+      // Evening Domain (Acoustic & Cognitive Load)
+      evening_lux: eveningLux ? parseInt(eveningLux) : null,
+      daytime_db_avg: daytimeDbAvg ? parseInt(daytimeDbAvg) : null, // v8 rename
+      daytime_db_peak: daytimeDbPeak ? parseInt(daytimeDbPeak) : null, // new v8 field
+      noise_character: noiseCharacter, // new v8 field
+      social_demand: socialDemand ?? null,
+      
+      // Proprietary Signals
+      environmental_control_score: environmentalControlScore, // 0-10
+      task_init_drag: taskInitDrag, // 'none' | 'light' | 'moderate' | 'heavy'
+      spatial_reset: spatialReset, // boolean
+      focus_hours: focusHours, // v8 uses raw hours, not a 0-10 score
+      
+      // Evening Feedback
+      evening_tags: eveningTags,
+      evening_note: eveningNote,
+      
+      // Legacy UI Score Fallbacks (for the correlation graph)
+      lux_score: deriveLuxScore(morningLux, eveningLux),
+      db_score: deriveDbScore(daytimeDbAvg, nighttimeDb),
+    }
+
+    // Upsert to Supabase
+    const { error } = await supabase
+      .from('daily_logs')
+      .upsert(payload, { onConflict: 'user_id, date' })
+
+    if (error) throw error
+
+    setStatus('success')
+    fetchHistory()
+    fetchTodayLog()
+
+    // --- BSFI CALCULATION TRIGGER ---
+    try {
+      const res = await fetch('/api/calculate-bsfi', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...payload, session: activeTab })
+      })
+      const data = await res.json()
+      
+      if (data.success && data.bsfiResult) {
+        const entry: BsfiState = {
+          total_score: data.bsfiResult.bsfi_total,
+          dominant_domain: data.bsfiResult.dominant_domain,
+          load_attribution: data.bsfiResult.load_attribution ?? 'environmental',
+          biological_load: data.bsfiResult.biological_load ?? false,
+          // Preservation of UI context
+          integration_pattern: data.profileContext?.integration_pattern ?? null,
+          sensory_pattern: data.profileContext?.sensory_pattern ?? null,
+        }
+        
+        if (activeTab === 'morning') setMorningBsfi(entry)
+        else setEveningBsfi(entry)
+      }
+    } catch {
+      console.warn('BSFI engine skipped — save was successful.')
+    }
+
+  } catch (err: any) {
+    console.error('Save Error:', err)
+    setStatus('error')
+    setErrorMessage(err.message || 'Could not save entry.')
+  }
+}
 
   const currentTags    = activeTab === 'morning' ? morningTags    : eveningTags
   const currentNote    = activeTab === 'morning' ? morningNote    : eveningNote
@@ -687,8 +732,9 @@ export default function Progress() {
                 <label className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-6 block flex items-center gap-2">
                   <Brain size={12} /> How Did Your Day Go?
                 </label>
+                
+                {/* ROW 1: PERFORMANCE METRICS */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
-
                   {/* FOCUSED WORK HOURS */}
                   <div>
                     <div className="flex justify-between mb-2">
@@ -727,7 +773,7 @@ export default function Progress() {
                           className={`py-2.5 px-2 rounded-xl border text-[10px] font-bold uppercase tracking-widest transition-all text-center ${
                             socialDemand === opt.value
                               ? 'border-[#b5a642]/60 bg-[#b5a642]/15 text-[#b5a642]'
-                              : 'border-[#c9ccbb]/10 text-[#c9ccbb]/60 hover:border-[#b5a642]/30 hover:text-[#c9ccbb]/80'
+                              : 'border-[#c9ccbb]/10 text-[#c9ccbb]/80 hover:border-[#b5a642]/30 hover:text-[#c9ccbb]/80'
                           }`}
                         >
                           {opt.label}
@@ -737,6 +783,92 @@ export default function Progress() {
                   </div>
                 </div>
 
+                {/* ROW 2: NERVOUS SYSTEM SIGNALS */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 mb-6 border-t border-[#b5a642]/10">
+                  
+                  {/* TASK INITIATION DRAG */}
+                  <div>
+                    <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb] mb-2">
+                      <Fingerprint size={14} className="text-[#b5a642]" /> Task Initiation Drag
+                    </label>
+                    <p className="text-[#c9ccbb]/80 text-[10px] mb-3">
+                      How much friction did you feel when starting new tasks today?
+                    </p>
+                    <div className="grid grid-cols-4 gap-2">
+                      {([
+                        { value: 'none',     label: 'None' },
+                        { value: 'light',    label: 'Light' },
+                        { value: 'moderate', label: 'Moderate' },
+                        { value: 'heavy',    label: 'Heavy' },
+                      ] as const).map(opt => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => setTaskInitDrag(taskInitDrag === opt.value ? null : opt.value)}
+                          className={`py-2.5 px-2 rounded-xl border text-[10px] font-bold uppercase tracking-widest transition-all text-center ${
+                            taskInitDrag === opt.value
+                              ? 'border-[#b5a642]/60 bg-[#b5a642]/15 text-[#b5a642]'
+                              : 'border-[#c9ccbb]/10 text-[#c9ccbb]/80 hover:border-[#b5a642]/30 hover:text-[#c9ccbb]/80'
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* ENVIRONMENTAL AGENCY */}
+                  <div>
+                    <div className="flex justify-between mb-2">
+                      <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb]">
+                        <Zap size={14} className="text-[#b5a642]" /> Environmental Agency
+                      </label>
+                      <span className="text-[#b5a642] font-mono text-xs">{environmentalControlScore}/10</span>
+                    </div>
+                    <p className="text-[#c9ccbb]/80 text-[10px] mb-3">
+                      On a scale of 1 - 10, how much control do you feel you had over your environment today?
+                    </p>
+                    <input
+                      type="range" min="0" max="10" step="1"
+                      value={environmentalControlScore || 0}
+                      onChange={(e) => setEnvironmentalControlScore(parseInt(e.target.value))}
+                      className="w-full accent-[#b5a642] h-1 bg-[#000]/50 rounded-lg appearance-none cursor-pointer"
+                    />
+                  </div>
+                </div>
+
+                {/* ROW 3: SPATIAL RESET (Insert below the Environmental Agency row in Evening Tab) */}
+                <div className="mt-8 mb-6 p-5 bg-[#000]/20 rounded-2xl border border-[#c9ccbb]/5">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="relative">
+                      <div className="w-8 h-8 rounded-full bg-[#b5a642]/15 flex items-center justify-center text-[#b5a642]">
+                        <MapPin size={15} />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-[#c9ccbb] block">Spatial Resets</label>
+                  <span className="text-[#c9ccbb]/80 text-[10px]">How many times did you have to change environments today to regain focus or regulation?</span>
+                </div>
+              </div>
+  
+              <div className="grid grid-cols-5 gap-2">
+                {([0, 1, 2, 3, '4+'] as const).map(count => (
+                  <button
+                    key={count}
+                    type="button"
+                    onClick={() => setSpatialResetCount(count)}
+                    className={`py-3 rounded-xl border text-sm font-bold transition-all ${
+                      spatialResetCount === count
+                        ? 'border-[#b5a642] bg-[#b5a642]/20 text-[#b5a642]'
+                        : 'border-[#c9ccbb]/10 text-[#c9ccbb]/80 hover:text-[#c9ccbb] hover:border-[#b5a642]/30'
+                  }`}
+                >
+                  {count}
+                </button>
+              ))}
+            </div>
+          </div>                
+                
                 {focusScore > 0 && (
                   <div className="mt-6 bg-[#1b270e] border-l-2 border-[#b5a642] rounded-r-xl overflow-hidden shadow-md">
                     <button
@@ -853,6 +985,54 @@ export default function Progress() {
               </div>
             )}
 
+            {/* NOISE CHARACTER & PEAK DB (Insert below existing Daytime DB input) */}
+            
+            <div className="mt-4 pt-4 border-t border-[#c9ccbb]/10">
+            <div className="flex flex-col md:flex-row gap-6">
+            {/* PEAK DB */}
+            <div className="w-full md:w-1/3">
+              <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb] mb-2">
+                <Activity size={14} className="text-[#b5a642]" /> Peak DB Hit
+              </label>
+              <input
+                type="number" min="0" max="140"
+                placeholder="e.g. 85"
+                value={daytimePeakDb}
+                onChange={(e) => setDaytimePeakDb(e.target.value)}
+                className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
+              />
+            </div>
+
+              {/* NOISE CHARACTER */}
+              <div className="w-full md:w-2/3">
+                <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb] mb-2">
+                  <Waves size={14} className="text-[#b5a642]" /> Noise Character
+                </label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  {([
+                    { value: 'steady', label: 'Steady / Drone' },
+                    { value: 'intermittent', label: 'Intermittent' },
+                    { value: 'sharp', label: 'Sharp / Sudden' },
+                    { value: 'voices', label: 'Human Voices' },
+                  ] as const).map(opt => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setNoiseCharacter(noiseCharacter === opt.value ? null : opt.value)}
+                      className={`py-2 px-2 rounded-xl border text-[9px] font-bold uppercase tracking-widest transition-all text-center ${
+                        noiseCharacter === opt.value
+                          ? 'border-[#b5a642]/60 bg-[#b5a642]/15 text-[#b5a642]'
+                          : 'border-[#c9ccbb]/10 text-[#c9ccbb]/80 hover:border-[#b5a642]/30 hover:text-[#c9ccbb]/90'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>            
+            
             {/* EVENING WIND-DOWN PROMPT */}
             {activeTab === 'evening' && (
               <button
