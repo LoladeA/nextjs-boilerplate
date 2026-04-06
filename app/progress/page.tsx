@@ -6,24 +6,29 @@
 //
 // EXTRACTED MODULES (do not inline these back — keep them separate):
 //
-//   lib/progress-domains.ts    — BsfiState type, DAILY_DOMAINS, sanitiseDomain,
-//                                getDomainDisplay, getBsfiLabel
-//   lib/progress-score-utils.ts — deriveLuxScore, deriveDbScore
-//   lib/progress-feedback.ts   — getMorningFeedback, getEveningFeedback,
-//                                getMacroSynthesis
+//   lib/progress-domains.ts      — BsfiState type, DAILY_DOMAINS, sanitiseDomain,
+//                                  getDomainDisplay, getBsfiLabel
+//   lib/progress-score-utils.ts  — deriveLuxScore, deriveDbScore
+//   lib/progress-feedback.ts     — getMorningFeedback, getEveningFeedback,
+//                                  getMacroSynthesis
 //   app/daily-logs/constants.tsx — moods, morningTagOptions, eveningTagOptions
 //
 // GRAPH SAFETY:
 //   fetchHistory(), chartLogs state, and <CorrelationGraph /> remain in this
 //   file. They must not be extracted. The correlation graph and dashboard mood
-//   graph read from daily_logs directly — the write payload below must not
-//   change field names or omit existing fields.
+//   graph read from daily_logs directly — the write payload must preserve
+//   all legacy field names alongside v8 additions.
 //
-// DATABASE WRITE — daily_logs upsert payload fields (do not rename):
-//   user_id, date, mood_score, tags, note, morning_tension, sleep_wakes,
-//   morning_lux, evening_lux, daytime_db, bedtime_db, bedtime_lux,
-//   sleep_readiness, lux_score, db_score, readiness_score, focus_hours,
-//   evening_mood_score, evening_tags, evening_note, social_demand
+// DATABASE WRITE — all fields in the upsert payload:
+//   LEGACY (graph + existing consumers — must always be written):
+//     user_id, date, mood_score, tags, note, morning_tension, sleep_wakes,
+//     morning_lux, evening_lux, daytime_db, bedtime_db, bedtime_lux,
+//     sleep_readiness, lux_score, db_score, readiness_score, focus_hours,
+//     evening_mood_score, evening_tags, evening_note, social_demand
+//   V8 ADDITIONS:
+//     cycle_phase, nighttime_db, daytime_db_avg, daytime_db_peak,
+//     noise_character, environmental_control_score, task_init_drag,
+//     spatial_reset, morning_mood, morning_tags, morning_note
 // =============================================================================
 
 import Sidebar from '../components/Sidebar'
@@ -31,7 +36,7 @@ import { useState, useEffect } from 'react'
 import {
   Heart, Wind, Sun, Volume2, CheckCircle, TrendingUp, Activity,
   Zap, Loader2, Moon, Sunrise, Brain, Fingerprint, ChevronDown,
-  ChevronUp, Lock, AlertCircle, HelpCircle, X, BedDouble, Sparkles, 
+  ChevronUp, Lock, AlertCircle, HelpCircle, X, BedDouble, Sparkles,
   Users, MapPin, Waves
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -59,21 +64,19 @@ import {
 } from '@/lib/progress-feedback'
 import { moods, morningTagOptions, eveningTagOptions }    from '@/app/daily-logs/constants'
 
-// --- UI CONFIGURATION CONSTANTS (V8) ---
+// --- UI CONFIGURATION CONSTANTS (v8) ---
 const NOISE_CHARACTER_OPTIONS = [
-  { value: 'continuous_hum', label: 'Continuous Hum' },
-  { value: 'intermittent_loud', label: 'Intermittent Loud' },
-  { value: 'unpredictable_startling', label: 'Unpredictable Startling' },
-] as const;
+  { value: 'continuous_hum',           label: 'Continuous Hum'          },
+  { value: 'intermittent_loud',        label: 'Intermittent Loud'       },
+  { value: 'unpredictable_startling',  label: 'Unpredictable Startling' },
+] as const
 
 const TASK_DRAG_OPTIONS = [
-  { value: 'none',     label: 'None' },
-  { value: 'light',    label: 'Light' },
+  { value: 'none',     label: 'None'     },
+  { value: 'light',    label: 'Light'    },
   { value: 'moderate', label: 'Moderate' },
-  { value: 'heavy',    label: 'Heavy' },
-] as const;
-
-const SPATIAL_RESET_OPTIONS = [0, 1, 2, 3, '4+'] as const;
+  { value: 'heavy',    label: 'Heavy'    },
+] as const
 
 // =============================================================================
 // COMPONENT
@@ -88,58 +91,66 @@ export default function Progress() {
   const [tier, setTier]       = useState<'core' | 'blueprint' | null>(null)
   const [godMode, setGodMode] = useState(false)
 
-  // --- LOGGING STATE ---
-  const [morningMood, setMorningMood]   = useState<number | null>(null)
-  const [morningTags, setMorningTags]   = useState<string[]>([])
-  const [morningNote, setMorningNote]   = useState('')
+  // --- MORNING STATE ---
+  const [morningMood, setMorningMood] = useState<number | null>(null)
+  const [morningTags, setMorningTags] = useState<string[]>([])
+  const [morningNote, setMorningNote] = useState('')
 
-  // --- TEMPORAL ENVIRONMENTAL INPUTS ---
-  const [morningLux, setMorningLux] = useState<string>('')
-  const [daytimeDb, setDaytimeDb]   = useState<string>('')
-  const [eveningLux, setEveningLux] = useState<string>('')
+  // --- ENVIRONMENTAL INPUTS ---
+  const [morningLux,   setMorningLux]   = useState<string>('')
+  const [eveningLux,   setEveningLux]   = useState<string>('')
+  // daytimeDb is the single source of truth for daytime sound level.
+  // Written to both daytime_db (legacy — graph reads this) and
+  // daytime_db_avg (v8 engine). No separate daytimeDbAvg state needed.
+  const [daytimeDb,    setDaytimeDb]    = useState<string>('')
   const [daytimeDbPeak, setDaytimeDbPeak] = useState<string>('')
-  const [daytimeDbAvg, setDaytimeDbAvg] = useState<string>('')     // ← v8 exact name
-  const [nighttimeDb, setNighttimeDb] = useState<string>('')       // ← v8 (replaces bedtimeDb for engine)
-  const [noiseCharacter, setNoiseCharacter] = useState<NoiseCharacter | null>(null)
-  
+  const [nighttimeDb,  setNighttimeDb]  = useState<string>('')
+  const [noiseCharacter, setNoiseCharacter] = useState<
+    'continuous_hum' | 'intermittent_loud' | 'unpredictable_startling' | null
+  >(null)
+
   // --- SLEEP CONDITIONS ---
-  const [bedtimeDb, setBedtimeDb]         = useState<string>('')
-  const [bedtimeLux, setBedtimeLux]       = useState<string>('')
-  const [sleepReadiness, setSleepReadiness] = useState<number>(3)
+  const [bedtimeDb,       setBedtimeDb]       = useState<string>('')
+  const [bedtimeLux,      setBedtimeLux]      = useState<string>('')
+  const [sleepReadiness,  setSleepReadiness]  = useState<number>(3)
 
   // --- METER MODAL STATES ---
-  const [isLightMeterOpen, setIsLightMeterOpen]     = useState(false)
+  const [isLightMeterOpen,    setIsLightMeterOpen]    = useState(false)
   const [isAcousticMeterOpen, setIsAcousticMeterOpen] = useState(false)
-  const [activeMeterTarget, setActiveMeterTarget]   = useState<
+  const [activeMeterTarget,   setActiveMeterTarget]   = useState<
     'morningLux' | 'eveningLux' | 'daytimeDb' | 'bedtimeDb' | 'bedtimeLux' | null
   >(null)
 
   const [isManualOpen, setIsManualOpen] = useState(false)
 
   // --- BIO-METRICS ---
-  const [focusScore, setFocusScore]     = useState<number>(0)
   const [tensionScore, setTensionScore] = useState<number>(0)
-  const [wakeScore, setWakeScore]       = useState<number>(0)
-  const [taskInitDrag, setTaskInitDrag] = useState<string | null>(null)
-  const [spatialReset, setSpatialReset] = useState<boolean>(false)
+  const [wakeScore,    setWakeScore]    = useState<number>(0)
+  // focusHours is the single focus state — feeds both the trend chart
+  // (focus_hours column) and the v8 engine. The slider updates this directly.
+  const [focusHours, setFocusHours] = useState<number>(0)
+
+  // --- V8 PROPRIETARY SIGNALS ---
+  const [taskInitDrag,              setTaskInitDrag]              = useState<string | null>(null)
+  const [spatialReset,              setSpatialReset]              = useState<boolean>(false)
   const [environmentalControlScore, setEnvironmentalControlScore] = useState<number>(5)
-  const [focusHours, setFocusHours] = useState<number>(0) // Replaces focusScore for v8 math
-  // --- SOCIAL DEMAND ---
+
+  // --- SOCIAL + BIOLOGICAL ---
   const [socialDemand, setSocialDemand] = useState<'low' | 'moderate' | 'high' | null>(null)
+  const [cyclePhase,   setCyclePhase]   = useState<
+    'menstrual' | 'follicular' | 'ovulatory' | 'luteal' | null
+  >(null)
 
-  // --- CYCLE PHASE ---
-  const [cyclePhase, setCyclePhase] = useState<'menstrual' | 'follicular' | 'ovulatory' | 'luteal' | null>(null)
-  
-  // ─────────────────────────────────────────────────────────────────────────
-  // eveningMood is DERIVED from sleepReadiness
-  // ─────────────────────────────────────────────────────────────────────────
-  const [eveningMood, setEveningMood]   = useState<number | null>(null)
-  const [eveningTags, setEveningTags]   = useState<string[]>([])
-  const [eveningNote, setEveningNote]   = useState('')
+  // --- EVENING STATE ---
+  // eveningMood is derived from sleepReadiness (1–5 → same scale)
+  const [eveningMood, setEveningMood] = useState<number | null>(null)
+  const [eveningTags, setEveningTags] = useState<string[]>([])
+  const [eveningNote, setEveningNote] = useState('')
 
-  const [status, setStatus]           = useState<'idle' | 'saving' | 'success' | 'error'>('idle')
-  const [errorMessage, setErrorMessage] = useState('')
-  const [showAccuracyWarning, setShowAccuracyWarning] = useState(false)
+  // --- UI STATE ---
+  const [status,               setStatus]               = useState<'idle' | 'saving' | 'success' | 'error'>('idle')
+  const [errorMessage,         setErrorMessage]         = useState('')
+  const [showAccuracyWarning,  setShowAccuracyWarning]  = useState(false)
 
   // --- BSFI STATE ---
   const [morningBsfi, setMorningBsfi] = useState<BsfiState | null>(null)
@@ -147,27 +158,23 @@ export default function Progress() {
   const [bsfiLoading, setBsfiLoading] = useState(true)
 
   // --- ACCORDION STATES ---
-  const [isMorningOpen, setIsMorningOpen]         = useState(false)
-  const [isEveningOpen, setIsEveningOpen]         = useState(false)
+  const [isMorningOpen,       setIsMorningOpen]       = useState(false)
+  const [isEveningOpen,       setIsEveningOpen]       = useState(false)
   const [isSynthesisExpanded, setIsSynthesisExpanded] = useState(false)
-  const [showMorningScore, setShowMorningScore]   = useState(false)
-  const [showEveningScore, setShowEveningScore]   = useState(false)
+  const [showMorningScore,    setShowMorningScore]    = useState(false)
+  const [showEveningScore,    setShowEveningScore]    = useState(false)
 
   // ─────────────────────────────────────────────────────────────────────────
   // GRAPH STATE — must stay in this component
   // chartLogs feeds <CorrelationGraph /> directly as a prop.
   // fetchHistory() writes to chartLogs. Neither can be extracted.
-  // synthesisState drives the 14-day pattern panel — computed from
-  // last_synthesis_acknowledged_at and logs-since-acknowledged.
   // ─────────────────────────────────────────────────────────────────────────
   const [chartLogs,      setChartLogs]      = useState<any[]>([])
   const [synthesisState, setSynthesisState] = useState<'building' | 'ready' | 'recalibrating'>('building')
   const [logsSinceAck,   setLogsSinceAck]   = useState<number>(0)
   const [logsUntilReady, setLogsUntilReady] = useState<number>(14)
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // SYNC eveningMood FROM sleepReadiness
-  // ─────────────────────────────────────────────────────────────────────────
+  // Sync eveningMood from sleepReadiness
   useEffect(() => { setEveningMood(sleepReadiness) }, [sleepReadiness])
 
   useEffect(() => {
@@ -208,7 +215,7 @@ export default function Progress() {
   const isBlueprint = tier === 'blueprint' || godMode
 
   // ─────────────────────────────────────────────────────────────────────────
-  // DATA FETCHING
+  // FETCH TODAY'S LOG
   // ─────────────────────────────────────────────────────────────────────────
   const fetchTodayLog = async () => {
     try {
@@ -228,7 +235,7 @@ export default function Progress() {
 
       const { data: bsfiResults } = await supabase
         .from('bsfi_results')
-        .select('id, total_score, dominant_domain, domain_scores, created_at, session, integration_pattern, sensory_pattern, accumulative_ali_flag')
+        .select('id, total_score, dominant_domain, domain_scores, created_at, session, integration_pattern, sensory_pattern')
         .eq('user_id', user.id)
         .eq('calculated_for_date', todayStr)
         .order('created_at', { ascending: true })
@@ -242,18 +249,19 @@ export default function Progress() {
             (result.session == null && savedHour >= 17)
 
           const entry: BsfiState = {
-            total_score:           result.total_score,
-            dominant_domain:       result.dominant_domain,
-            load_attribution:      result.domain_scores?.load_attribution ?? 'environmental',
-            biological_load:       result.domain_scores?.biological_load  ?? false,
-            integration_pattern:   result.integration_pattern   ?? null,
-            sensory_pattern:       result.sensory_pattern       ?? null,
+            total_score:         result.total_score,
+            dominant_domain:     result.dominant_domain,
+            load_attribution:    result.domain_scores?.load_attribution ?? 'environmental',
+            biological_load:     result.domain_scores?.biological_load  ?? false,
+            integration_pattern: result.integration_pattern ?? null,
+            sensory_pattern:     result.sensory_pattern     ?? null,
           }
           if (isEvening) setEveningBsfi(entry)
           else           setMorningBsfi(entry)
         })
       }
 
+      // Auto-fill from meter scans
       const { data: scanData } = await supabase
         .from('meter_scans')
         .select('metric_type, value, created_at')
@@ -261,7 +269,8 @@ export default function Progress() {
         .gte('created_at', new Date(startOfToday).toISOString())
         .lte('created_at', new Date(endOfToday).toISOString())
 
-      let autoMorningLux = '', autoEveningLux = '', autoDaytimeDb = '', autoBedtimeDb = '', autoBedtimeLux = ''
+      let autoMorningLux = '', autoEveningLux = '', autoDaytimeDb = '',
+          autoBedtimeDb = '', autoBedtimeLux = ''
 
       if (scanData && scanData.length > 0) {
         scanData.forEach(scan => {
@@ -279,23 +288,51 @@ export default function Progress() {
       }
 
       if (logData) {
-        setMorningMood(logData.mood_score)
-        setMorningTags(logData.tags || [])
-        setMorningNote(logData.note || '')
+        // Legacy morning fields
+        setMorningMood(logData.mood_score ?? logData.morning_mood ?? null)
+        setMorningTags(logData.tags || logData.morning_tags || [])
+        setMorningNote(logData.note || logData.morning_note || '')
         setMorningLux(logData.morning_lux  !== null ? logData.morning_lux.toString()  : autoMorningLux)
         setEveningLux(logData.evening_lux  !== null ? logData.evening_lux.toString()  : autoEveningLux)
-        setDaytimeDb(logData.daytime_db    !== null ? logData.daytime_db.toString()   : autoDaytimeDb)
-        setBedtimeDb(logData.bedtime_db    !== null ? logData.bedtime_db.toString()   : autoBedtimeDb)
-        setBedtimeLux(logData.bedtime_lux  !== null ? logData.bedtime_lux.toString()  : autoBedtimeLux)
-        if (logData.sleep_readiness !== null) setSleepReadiness(logData.sleep_readiness)
-        if (logData.focus_hours     !== null) setFocusScore(logData.focus_hours)
-        if (logData.morning_tension !== null) setTensionScore(logData.morning_tension)
-        if (logData.sleep_wakes     !== null) setWakeScore(logData.sleep_wakes)
-        if (logData.social_demand)            setSocialDemand(logData.social_demand as 'low' | 'moderate' | 'high')
-        if (logData.cycle_phase)              setCyclePhase(logData.cycle_phase as 'menstrual' | 'follicular' | 'ovulatory' | 'luteal')
+
+        // daytime dB: prefer v8 avg column, fall back to legacy daytime_db
+        const dbVal = logData.daytime_db_avg ?? logData.daytime_db
+        setDaytimeDb(dbVal !== null && dbVal !== undefined ? dbVal.toString() : autoDaytimeDb)
+
+        // v8 new fields
+        if (logData.daytime_db_peak   !== null && logData.daytime_db_peak   !== undefined)
+          setDaytimeDbPeak(logData.daytime_db_peak.toString())
+        if (logData.nighttime_db      !== null && logData.nighttime_db      !== undefined)
+          setNighttimeDb(logData.nighttime_db.toString())
+        if (logData.noise_character)
+          setNoiseCharacter(logData.noise_character)
+        if (logData.task_init_drag)
+          setTaskInitDrag(logData.task_init_drag)
+        if (logData.spatial_reset !== null && logData.spatial_reset !== undefined)
+          setSpatialReset(Boolean(logData.spatial_reset))
+        if (logData.environmental_control_score !== null && logData.environmental_control_score !== undefined)
+          setEnvironmentalControlScore(logData.environmental_control_score)
+
+        // Bedroom
+        setBedtimeDb(logData.bedtime_db  !== null ? logData.bedtime_db.toString()  : autoBedtimeDb)
+        setBedtimeLux(logData.bedtime_lux !== null ? logData.bedtime_lux.toString() : autoBedtimeLux)
+        if (logData.sleep_readiness !== null && logData.sleep_readiness !== undefined)
+          setSleepReadiness(logData.sleep_readiness)
+
+        // Bio-metrics
+        if (logData.focus_hours     !== null && logData.focus_hours     !== undefined) setFocusHours(logData.focus_hours)
+        if (logData.morning_tension !== null && logData.morning_tension !== undefined) setTensionScore(logData.morning_tension)
+        if (logData.sleep_wakes     !== null && logData.sleep_wakes     !== undefined) setWakeScore(logData.sleep_wakes)
+
+        // Social + biological
+        if (logData.social_demand) setSocialDemand(logData.social_demand as 'low' | 'moderate' | 'high')
+        if (logData.cycle_phase)   setCyclePhase(logData.cycle_phase as 'menstrual' | 'follicular' | 'ovulatory' | 'luteal')
+
         setEveningTags(logData.evening_tags || [])
         setEveningNote(logData.evening_note || '')
+
       } else {
+        // No log today — use meter auto-fill
         setMorningLux(autoMorningLux)
         setEveningLux(autoEveningLux)
         setDaytimeDb(autoDaytimeDb)
@@ -305,33 +342,20 @@ export default function Progress() {
     } catch (err) {
       console.error('fetchTodayLog failed:', err)
       setStatus('error')
-      setErrorMessage('Could not load today\'s log. Please refresh.')
+      setErrorMessage("Could not load today's log. Please refresh.")
     } finally {
       setBsfiLoading(false)
     }
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // FETCH HISTORY — feeds chartLogs → CorrelationGraph
-  // Also feeds dashboard mood graph indirectly via daily_logs reads.
-  // Must stay in this component. Do not extract.
-  // ─────────────────────────────────────────────────────────────────────────
   // FETCH HISTORY — feeds chartLogs → CorrelationGraph + synthesis state
-  //
-  // Queries in parallel:
-  //   1. Last 14 logs for the graph
-  //   2. Total log count for synthesis threshold check
-  //   3. last_synthesis_acknowledged_at from user_profiles
-  //   4. Count of logs after acknowledged date (if acknowledged)
-  //
-  // getSynthesisState() receives all four inputs and returns the correct
-  // panel state without any modulo arithmetic.
+  // Must stay in this component. Do not extract.
   // ─────────────────────────────────────────────────────────────────────────
   const fetchHistory = async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    // Run graph query + total count + profile in parallel
     const [historyRes, countRes, profileRes] = await Promise.all([
       supabase
         .from('daily_logs')
@@ -353,7 +377,6 @@ export default function Progress() {
     const totalLogs          = countRes.count ?? 0
     const lastAcknowledgedAt = profileRes.data?.last_synthesis_acknowledged_at ?? null
 
-    // Count logs after the acknowledged date (only if acknowledged)
     let logsSinceAcknowledged = 0
     if (lastAcknowledgedAt) {
       const { count } = await supabase
@@ -364,13 +387,11 @@ export default function Progress() {
       logsSinceAcknowledged = count ?? 0
     }
 
-    // Compute synthesis state from durable inputs
     const result = getSynthesisState(totalLogs, lastAcknowledgedAt, logsSinceAcknowledged)
     setSynthesisState(result.state)
     setLogsSinceAck(logsSinceAcknowledged)
     setLogsUntilReady(result.logsUntilReady)
 
-    // Feed graph
     if (historyRes.data) {
       const formatted = [...historyRes.data].reverse().map((log: any) => {
         const [year, month, day] = log.date.split('-')
@@ -397,115 +418,135 @@ export default function Progress() {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // SAVE — payload field names must not change (graph + dashboard safety)
+  // SAVE
+  //
+  // Dual-write strategy: v8 field names AND legacy field names are both
+  // written on every save. This ensures:
+  //   - The trend chart (reads mood_score, focus_hours) always has data
+  //   - The correlation graph (reads daytime_db) always has data
+  //   - The v8 engine (reads daytime_db_avg, nighttime_db etc) has data
+  //   - No existing DB consumers break
   // ─────────────────────────────────────────────────────────────────────────
   const handleSave = async (isForced = false) => {
-  // --- V8 CRITICAL FIELD VALIDATION ---
-  // Morning: Light + Waking Noise. Evening: Day Avg + Peak + Agency.
-  const criticalFields = activeTab === 'morning'
-    ? [morningLux, nighttimeDb]                                      // morning engine
-    : [daytimeDbAvg, daytimeDbPeak, environmentalControlScore]       // evening engine
+    // Morning requires morningMood. Evening has no hard required fields
+    // but warns if key measurements are missing.
+    const criticalFields = activeTab === 'morning'
+      ? [morningLux, nighttimeDb]
+      : [daytimeDb, daytimeDbPeak, String(environmentalControlScore)]
 
-  const isMissing = criticalFields.some(val => val === null || val === '' || val === undefined)
-  if (isMissing && isForced !== true) {
-    setShowAccuracyWarning(true)
-    return
-  }
-
-  setStatus('saving')
-  setErrorMessage('')
-  setShowAccuracyWarning(false)
-
-  try {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('No user logged in')
-
-    const today = new Date().toLocaleDateString('en-CA')
-
-   // --- V8 PAYLOAD CONSTRUCTION ---
-    const payload = {
-      user_id: user.id,
-      date: today,
-      
-      // Clinical Metadata
-      version: 'bsfi_v8',
-      cycle_phase: cyclePhase ?? null,
-
-      // Morning Domain (Anchor & Recovery)
-      morning_mood: morningMood,
-      morning_tags: morningTags,
-      morning_note: morningNote,
-      morning_tension: tensionScore,
-      sleep_wakes: wakeScore,
-      morning_lux: morningLux ? parseInt(morningLux) : null,
-      nighttime_db: nighttimeDb ? parseInt(nighttimeDb) : null, // v8: measured at waking
-
-      // Evening Domain (Acoustic & Cognitive Load)
-      evening_lux: eveningLux ? parseInt(eveningLux) : null,
-      daytime_db_avg: daytimeDbAvg ? parseInt(daytimeDbAvg) : null, // v8 rename
-      daytime_db_peak: daytimeDbPeak ? parseInt(daytimeDbPeak) : null, // new v8 field
-      noise_character: noiseCharacter, // new v8 field
-      social_demand: socialDemand ?? null,
-      
-      // Proprietary Signals
-      environmental_control_score: environmentalControlScore, // 0-10
-      task_init_drag: taskInitDrag, // 'none' | 'light' | 'moderate' | 'heavy'
-      spatial_reset: spatialReset, // boolean
-      focus_hours: focusHours, // v8 uses raw hours, not a 0-10 score
-      
-      // Evening Feedback
-      evening_tags: eveningTags,
-      evening_note: eveningNote,
-      
-      // Legacy UI Score Fallbacks (for the correlation graph)
-      lux_score: deriveLuxScore(morningLux, eveningLux),
-      db_score: deriveDbScore(daytimeDbAvg, nighttimeDb),
+    const isMissing = criticalFields.some(val => val === null || val === '' || val === undefined)
+    if (isMissing && isForced !== true) {
+      setShowAccuracyWarning(true)
+      return
     }
 
-    // Upsert to Supabase
-    const { error } = await supabase
-      .from('daily_logs')
-      .upsert(payload, { onConflict: 'user_id, date' })
+    setStatus('saving')
+    setErrorMessage('')
+    setShowAccuracyWarning(false)
 
-    if (error) throw error
-
-    setStatus('success')
-    fetchHistory()
-    fetchTodayLog()
-
-    // --- BSFI CALCULATION TRIGGER ---
     try {
-      const res = await fetch('/api/calculate-bsfi', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...payload, session: activeTab })
-      })
-      const data = await res.json()
-      
-      if (data.success && data.bsfiResult) {
-        const entry: BsfiState = {
-          total_score: data.bsfiResult.bsfi_total,
-          dominant_domain: data.bsfiResult.dominant_domain,
-          load_attribution: data.bsfiResult.load_attribution ?? 'environmental',
-          biological_load: data.bsfiResult.biological_load ?? false,
-          // Preservation of UI context
-          integration_pattern: data.profileContext?.integration_pattern ?? null,
-          sensory_pattern: data.profileContext?.sensory_pattern ?? null,
-        }
-        
-        if (activeTab === 'morning') setMorningBsfi(entry)
-        else setEveningBsfi(entry)
-      }
-    } catch {
-      console.warn('BSFI engine skipped — save was successful.')
-    }
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('No user logged in')
 
-  } catch (err: any) {
-    console.error('Save Error:', err)
-    setStatus('error')
-    setErrorMessage(err.message || 'Could not save entry.')
+      const today = new Date().toLocaleDateString('en-CA')
+
+      const payload = {
+        user_id: user.id,
+        date:    today,
+
+        // ── LEGACY FIELDS (graph + existing consumers — do not remove) ──────
+        // mood_score feeds fetchHistory() → CorrelationGraph mood line.
+        // tags, note are the original DB column names for morning data.
+        // daytime_db feeds the existing dB correlation line in the graph.
+        // bedtime_db, bedtime_lux, sleep_readiness, readiness_score,
+        // evening_mood_score are existing columns — must always be written.
+        mood_score:          morningMood,
+        tags:                morningTags,
+        note:                morningNote,
+        daytime_db:          daytimeDb     ? parseInt(daytimeDb)     : null,
+        bedtime_db:          bedtimeDb     ? parseInt(bedtimeDb)     : null,
+        bedtime_lux:         bedtimeLux    ? parseInt(bedtimeLux)    : null,
+        sleep_readiness:     sleepReadiness,
+        readiness_score:     sleepReadiness,
+        evening_mood_score:  eveningMood,
+        lux_score:           deriveLuxScore(morningLux, eveningLux),
+        db_score:            deriveDbScore(daytimeDb, nighttimeDb),
+
+        // ── V8 MORNING FIELDS ───────────────────────────────────────────────
+        morning_mood:    morningMood,
+        morning_tags:    morningTags,
+        morning_note:    morningNote,
+        morning_tension: tensionScore,
+        sleep_wakes:     wakeScore,
+        morning_lux:     morningLux    ? parseInt(morningLux)    : null,
+        // nighttime_db: bedroom ambient measured at morning log time (v8).
+        // Written here for the engine; the bedroom sound UI writes bedtime_db
+        // (the legacy column) separately above for the graph/legacy consumers.
+        nighttime_db:    nighttimeDb   ? parseInt(nighttimeDb)   : null,
+        cycle_phase:     cyclePhase    ?? null,
+
+        // ── V8 EVENING FIELDS ───────────────────────────────────────────────
+        evening_lux:     eveningLux    ? parseInt(eveningLux)    : null,
+        evening_tags:    eveningTags,
+        evening_note:    eveningNote,
+        social_demand:   socialDemand  ?? null,
+        // daytime_db_avg maps from the same input as daytime_db.
+        // The engine reads daytime_db_avg; the graph reads daytime_db.
+        // Both get the same value until the graph is updated to the v8 column.
+        daytime_db_avg:  daytimeDb     ? parseInt(daytimeDb)     : null,
+        daytime_db_peak: daytimeDbPeak ? parseInt(daytimeDbPeak) : null,
+        noise_character: noiseCharacter ?? null,
+
+        // ── V8 PROPRIETARY SIGNALS ──────────────────────────────────────────
+        // focus_hours: the single focus state — feeds the trend chart AND
+        // the v8 engine. focusHours is set directly by the evening slider.
+        focus_hours:                  focusHours,
+        environmental_control_score:  environmentalControlScore,
+        task_init_drag:               taskInitDrag  ?? null,
+        spatial_reset:                spatialReset,
+      }
+
+      const { error } = await supabase
+        .from('daily_logs')
+        .upsert(payload, { onConflict: 'user_id, date' })
+
+      if (error) throw error
+
+      setStatus('success')
+      fetchHistory()
+      fetchTodayLog()
+
+      // BSFI calculation
+      try {
+        const res = await fetch('/api/calculate-bsfi', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ ...payload, session: activeTab }),
+        })
+        const data = await res.json()
+
+        if (data.success && data.bsfiResult) {
+          const entry: BsfiState = {
+            total_score:         data.bsfiResult.bsfi_total,
+            dominant_domain:     data.bsfiResult.dominant_domain,
+            load_attribution:    data.bsfiResult.load_attribution ?? 'environmental',
+            biological_load:     data.bsfiResult.biological_load  ?? false,
+            integration_pattern: data.profileContext?.integration_pattern ?? null,
+            sensory_pattern:     data.profileContext?.sensory_pattern     ?? null,
+          }
+          if (activeTab === 'morning') setMorningBsfi(entry)
+          else                         setEveningBsfi(entry)
+        }
+      } catch {
+        console.warn('BSFI engine skipped — save was successful.')
+      }
+
+    } catch (err: any) {
+      console.error('Save Error:', err)
+      setStatus('error')
+      setErrorMessage(err.message || 'Could not save entry.')
+    }
   }
-}
 
   const currentTags    = activeTab === 'morning' ? morningTags    : eveningTags
   const currentNote    = activeTab === 'morning' ? morningNote    : eveningNote
@@ -516,11 +557,8 @@ export default function Progress() {
     ? morningMood !== null && status !== 'saving'
     : status !== 'saving'
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // FEEDBACK — now pure function calls with explicit params
-  // ─────────────────────────────────────────────────────────────────────────
   const morningInsight = getMorningFeedback({ morningMood, tensionScore, wakeScore, socialDemand })
-  const eveningInsight = getEveningFeedback({ focusScore, eveningMood, socialDemand })
+  const eveningInsight = getEveningFeedback({ focusScore: focusHours, eveningMood, socialDemand })
   const macroSynthesis = getMacroSynthesis({ chartLogs })
 
   // =============================================================================
@@ -575,9 +613,10 @@ export default function Progress() {
               </div>
             </div>
 
-            {/* MORNING MOOD CARDS */}
+            {/* ── MORNING TAB ──────────────────────────────────────────────── */}
             {activeTab === 'morning' && (
               <>
+                {/* MOOD CARDS */}
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 rounded-full bg-[#b5a642]/10 flex items-center justify-center text-[#b5a642]">
                     <Heart size={20} />
@@ -606,174 +645,450 @@ export default function Progress() {
                     </button>
                   ))}
                 </div>
+
+                {/* MORNING BIO-METRICS */}
+                <div className="mb-8 p-6 bg-[#b5a642]/5 rounded-2xl border border-[#b5a642]/10 animate-fade-in">
+                  <label className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-6 block flex items-center gap-2">
+                    <Activity size={12} /> How Your Body Woke Up
+                  </label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
+                    {/* TENSION */}
+                    <div>
+                      <div className="flex justify-between mb-2">
+                        <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb]">
+                          <Activity size={14} className="text-[#b5a642]" /> Jaw / Body Tension
+                        </label>
+                        <span className="text-[#b5a642] font-mono text-xs">{tensionScore}/10</span>
+                      </div>
+                      <p className="text-[#c9ccbb]/80 text-[10px] mb-3">Jaw/shoulder tightness upon waking.</p>
+                      <input
+                        type="range" min="0" max="10" step="1"
+                        value={tensionScore}
+                        onChange={(e) => setTensionScore(parseInt(e.target.value))}
+                        className="w-full accent-[#b5a642] h-1 bg-[#000]/50 rounded-lg appearance-none cursor-pointer"
+                      />
+                    </div>
+                    {/* SLEEP INTERRUPTIONS */}
+                    <div>
+                      <div className="flex justify-between mb-2">
+                        <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb]">
+                          <Moon size={14} className="text-[#b5a642]" /> Sleep Interruptions
+                        </label>
+                        <div className="flex gap-3">
+                          <button onClick={() => setWakeScore(Math.max(0, wakeScore - 1))} className="text-[#c9ccbb] hover:text-[#b5a642]">−</button>
+                          <span className="text-[#b5a642] font-mono text-xs">{wakeScore}</span>
+                          <button onClick={() => setWakeScore(Math.min(8, wakeScore + 1))} className="text-[#c9ccbb] hover:text-[#b5a642]">+</button>
+                        </div>
+                      </div>
+                      <p className="text-[#c9ccbb]/80 text-[10px] mb-3">How many times you woke up during the night.</p>
+                    </div>
+                  </div>
+
+                  {/* MORNING INSIGHT ACCORDION */}
+                  {(tensionScore > 0 || wakeScore > 0) && (
+                    <div className="mt-6 bg-[#1b270e] border-l-2 border-[#b5a642] rounded-r-xl overflow-hidden shadow-md">
+                      <button
+                        onClick={() => setIsMorningOpen(!isMorningOpen)}
+                        className="w-full flex items-center justify-between p-4 text-left hover:bg-[#b5a642]/5 transition-colors"
+                      >
+                        <span className="text-[#b5a642] text-[10px] uppercase font-bold tracking-widest">
+                          {morningInsight.title}
+                        </span>
+                        <motion.div animate={{ rotate: isMorningOpen ? 180 : 0 }}>
+                          <ChevronDown size={14} className="text-[#b5a642]" />
+                        </motion.div>
+                      </button>
+                      <AnimatePresence>
+                        {isMorningOpen && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.3, ease: 'easeInOut' }}
+                            className="overflow-hidden"
+                          >
+                            <div className="space-y-0">
+                              <div className="w-full h-px bg-[#b5a642]/70" />
+                              {(() => {
+                                const sleepCopy = getSleepMorningCopy({
+                                  sleep_wakes:     wakeScore,
+                                  mood_score:      morningMood,
+                                  morning_tension: tensionScore,
+                                  social_demand:   socialDemand,
+                                })
+                                return sleepCopy.environmental_note ? (
+                                  <div className="px-4 pt-4 pb-2">
+                                    <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed">
+                                      {sleepCopy.environmental_note}
+                                    </p>
+                                  </div>
+                                ) : null
+                              })()}
+                              <div className="p-4">
+                                <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
+                                  <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Direction:</strong>
+                                  {morningInsight.direction}
+                                </p>
+                              </div>
+                              {hasAccess ? (
+                                <div className="px-4 pb-4">
+                                  <div className="w-full h-px bg-[#b5a642]/70 mb-4" />
+                                  <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
+                                    <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Why this is happening:</strong>
+                                    {morningInsight.reframe}
+                                  </p>
+                                </div>
+                              ) : (
+                                <div className="relative px-4 pb-4">
+                                  <div className="w-full h-px bg-[#b5a642]/70 mb-4" />
+                                  <div className="filter blur-[3px] opacity-30 select-none pointer-events-none text-xs leading-relaxed text-[#c9ccbb]/80">
+                                    <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Why this is happening:</strong>
+                                    {morningInsight.reframe}
+                                  </div>
+                                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 z-10">
+                                    <Lock size={14} className="text-[#b5a642]" />
+                                    <span className="text-[9px] font-bold text-[#c9ccbb]/80 uppercase tracking-widest text-center">Understand the why through the lens of NeuroDesign</span>
+                                    <Link href="/upgrade">
+                                      <button className="px-5 py-1.5 bg-[#b5a642] text-[#1b270e] text-[9px] font-bold uppercase tracking-widest rounded-full hover:bg-white transition-all">
+                                        Unlock Now
+                                      </button>
+                                    </Link>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  )}
+                </div>
+
+                {/* MORNING ENVIRONMENTAL READINGS */}
+                <div className="mb-8 p-6 bg-[#000]/20 rounded-2xl border border-[#c9ccbb]/5 animate-fade-in">
+                  <label className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-4 block flex items-center gap-2">
+                    <Activity size={12} /> Your Home Environment Today
+                  </label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* MORNING LUX */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2 text-[#c9ccbb]/80 text-xs font-bold uppercase tracking-widest">
+                          <Sun size={14} className="text-[#b5a642]/80" /> Morning Light Level
+                        </div>
+                        <button
+                          onClick={() => { setActiveMeterTarget('morningLux'); setIsLightMeterOpen(true) }}
+                          className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest hover:text-white transition-colors flex items-center gap-1 bg-[#b5a642]/10 px-2 py-1 rounded-md border border-[#b5a642]/20"
+                        >
+                          <Activity size={12} /> Measure
+                        </button>
+                      </div>
+                      <input
+                        type="number" min="0" max="100000"
+                        placeholder="e.g. 250 (Dim) or 2500 (Bright)"
+                        value={morningLux}
+                        onChange={(e) => setMorningLux(e.target.value)}
+                        className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
+                      />
+                    </div>
+                    {/* DAYTIME DB — average; also feeds legacy daytime_db column */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2 text-[#c9ccbb]/80 text-xs font-bold uppercase tracking-widest">
+                          <Volume2 size={14} className="text-[#b5a642]/80" /> Daytime Sound Level
+                        </div>
+                        <button
+                          onClick={() => { setActiveMeterTarget('daytimeDb'); setIsAcousticMeterOpen(true) }}
+                          className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest hover:text-white transition-colors flex items-center gap-1 bg-[#b5a642]/10 px-2 py-1 rounded-md border border-[#b5a642]/20"
+                        >
+                          <Activity size={12} /> Measure
+                        </button>
+                      </div>
+                      <input
+                        type="number" min="0" max="140"
+                        placeholder="e.g. 45 (Kitchen) or 70 (Busy room)"
+                        value={daytimeDb}
+                        onChange={(e) => setDaytimeDb(e.target.value)}
+                        className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
+                      />
+                    </div>
+                  </div>
+                </div>
               </>
             )}
 
-            {/* MORNING BIO-METRICS + INSIGHT */}
-            {activeTab === 'morning' && (
-              <div className="mb-8 p-6 bg-[#b5a642]/5 rounded-2xl border border-[#b5a642]/10 animate-fade-in">
-                <label className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-6 block flex items-center gap-2">
-                  <Activity size={12} /> How Your Body Woke Up
-                </label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
-                  <div>
-                    <div className="flex justify-between mb-2">
-                      <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb]">
-                        <Activity size={14} className="text-[#b5a642]" /> Jaw / Body Tension
-                      </label>
-                      <span className="text-[#b5a642] font-mono text-xs">{tensionScore}/10</span>
+            {/* ── EVENING TAB ──────────────────────────────────────────────── */}
+            {activeTab === 'evening' && (
+              <>
+                {/* EVENING BIO-METRICS */}
+                <div className="mb-8 p-6 bg-[#b5a642]/5 rounded-2xl border border-[#b5a642]/10 animate-fade-in">
+                  <label className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-6 block flex items-center gap-2">
+                    <Brain size={12} /> How Did Your Day Go?
+                  </label>
+
+                  {/* ROW 1: FOCUS + SOCIAL */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
+                    {/* FOCUSED WORK HOURS — feeds focus_hours column for trend chart */}
+                    <div>
+                      <div className="flex justify-between mb-2">
+                        <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb]">
+                          <Brain size={14} className="text-[#b5a642]" /> Focused Work (Hours)
+                        </label>
+                        <span className="text-[#b5a642] font-mono text-xs">{focusHours}h</span>
+                      </div>
+                      <p className="text-[#c9ccbb]/80 text-[10px] mb-3">Hours where you were focused and uninterrupted.</p>
+                      <input
+                        type="range" min="0" max="12" step="1"
+                        value={focusHours}
+                        onChange={(e) => setFocusHours(parseInt(e.target.value))}
+                        className="w-full accent-[#b5a642] h-1 bg-[#000]/50 rounded-lg appearance-none cursor-pointer"
+                      />
                     </div>
-                    <p className="text-[#c9ccbb]/80 text-[10px] mb-3">Jaw/shoulder tightness upon waking.</p>
-                    <input
-                      type="range" min="0" max="10" step="1"
-                      value={tensionScore}
-                      onChange={(e) => setTensionScore(parseInt(e.target.value))}
-                      className="w-full accent-[#b5a642] h-1 bg-[#000]/50 rounded-lg appearance-none cursor-pointer"
-                    />
-                  </div>
-                  <div>
-                    <div className="flex justify-between mb-2">
-                      <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb]">
-                        <Moon size={14} className="text-[#b5a642]" /> Sleep Interruptions
+
+                    {/* SOCIAL DEMAND */}
+                    <div>
+                      <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb] mb-2">
+                        <Users size={14} className="text-[#b5a642]" /> Social Demand Today
                       </label>
-                      <div className="flex gap-3">
-                        <button onClick={() => setWakeScore(Math.max(0, wakeScore - 1))} className="text-[#c9ccbb] hover:text-[#b5a642]">−</button>
-                        <span className="text-[#b5a642] font-mono text-xs">{wakeScore}</span>
-                        <button onClick={() => setWakeScore(Math.min(8, wakeScore + 1))} className="text-[#c9ccbb] hover:text-[#b5a642]">+</button>
+                      <p className="text-[#c9ccbb]/80 text-[10px] mb-3">
+                        How emotionally or cognitively taxing was your social engagement today?
+                      </p>
+                      <div className="grid grid-cols-3 gap-2">
+                        {([
+                          { value: 'low',      label: 'Low to zero' },
+                          { value: 'moderate', label: 'Moderate'    },
+                          { value: 'high',     label: 'High demand' },
+                        ] as const).map(opt => (
+                          <button
+                            key={opt.value}
+                            type="button"
+                            onClick={() => setSocialDemand(socialDemand === opt.value ? null : opt.value)}
+                            className={`py-2.5 px-2 rounded-xl border text-[10px] font-bold uppercase tracking-widest transition-all text-center ${
+                              socialDemand === opt.value
+                                ? 'border-[#b5a642]/60 bg-[#b5a642]/15 text-[#b5a642]'
+                                : 'border-[#c9ccbb]/10 text-[#c9ccbb]/80 hover:border-[#b5a642]/30 hover:text-[#c9ccbb]/80'
+                            }`}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
                       </div>
                     </div>
-                    <p className="text-[#c9ccbb]/80 text-[10px] mb-3">How many times you woke up during the night.</p>
                   </div>
-                </div>
 
-                {(tensionScore > 0 || wakeScore > 0) && (
-                  <div className="mt-6 bg-[#1b270e] border-l-2 border-[#b5a642] rounded-r-xl overflow-hidden shadow-md">
-                    <button
-                      onClick={() => setIsMorningOpen(!isMorningOpen)}
-                      className="w-full flex items-center justify-between p-4 text-left hover:bg-[#b5a642]/5 transition-colors"
-                    >
-                      <span className="text-[#b5a642] text-[10px] uppercase font-bold tracking-widest">
-                        {morningInsight.title}
-                      </span>
-                      <motion.div animate={{ rotate: isMorningOpen ? 180 : 0 }}>
-                        <ChevronDown size={14} className="text-[#b5a642]" />
-                      </motion.div>
-                    </button>
-                    <AnimatePresence>
-                      {isMorningOpen && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.3, ease: 'easeInOut' }}
-                          className="overflow-hidden"
-                        >
-                          <div className="space-y-0">
-                            <div className="w-full h-px bg-[#b5a642]/70" />
-                            {(() => {
-                              const sleepCopy = getSleepMorningCopy({
-                                sleep_wakes:     wakeScore,
-                                mood_score:      morningMood,
-                                morning_tension: tensionScore,
-                                social_demand:   socialDemand,
-                              })
-                              return sleepCopy.environmental_note ? (
-                                <div className="px-4 pt-4 pb-2">
-                                  <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed">
-                                    {sleepCopy.environmental_note}
+                  {/* ROW 2: TASK DRAG + ENVIRONMENTAL AGENCY */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 mb-6 border-t border-[#b5a642]/10">
+                    {/* TASK INITIATION DRAG */}
+                    <div>
+                      <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb] mb-2">
+                        <Fingerprint size={14} className="text-[#b5a642]" /> Task Initiation Drag
+                      </label>
+                      <p className="text-[#c9ccbb]/80 text-[10px] mb-3">
+                        How much friction did you feel when starting new tasks today?
+                      </p>
+                      <div className="grid grid-cols-4 gap-2">
+                        {TASK_DRAG_OPTIONS.map(opt => (
+                          <button
+                            key={opt.value}
+                            type="button"
+                            onClick={() => setTaskInitDrag(taskInitDrag === opt.value ? null : opt.value)}
+                            className={`py-2.5 px-2 rounded-xl border text-[10px] font-bold uppercase tracking-widest transition-all text-center ${
+                              taskInitDrag === opt.value
+                                ? 'border-[#b5a642]/60 bg-[#b5a642]/15 text-[#b5a642]'
+                                : 'border-[#c9ccbb]/10 text-[#c9ccbb]/80 hover:border-[#b5a642]/30 hover:text-[#c9ccbb]/80'
+                            }`}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* ENVIRONMENTAL AGENCY */}
+                    <div>
+                      <div className="flex justify-between mb-2">
+                        <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb]">
+                          <Zap size={14} className="text-[#b5a642]" /> Environmental Agency
+                        </label>
+                        <span className="text-[#b5a642] font-mono text-xs">{environmentalControlScore}/10</span>
+                      </div>
+                      <p className="text-[#c9ccbb]/80 text-[10px] mb-3">
+                        How much control did you feel over your environment today?
+                      </p>
+                      <input
+                        type="range" min="0" max="10" step="1"
+                        value={environmentalControlScore}
+                        onChange={(e) => setEnvironmentalControlScore(parseInt(e.target.value))}
+                        className="w-full accent-[#b5a642] h-1 bg-[#000]/50 rounded-lg appearance-none cursor-pointer"
+                      />
+                    </div>
+                  </div>
+
+                  {/* ROW 3: SPATIAL RESET */}
+                  <div className="pt-6 border-t border-[#b5a642]/10">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-8 h-8 rounded-full bg-[#b5a642]/15 flex items-center justify-center text-[#b5a642] shrink-0">
+                        <MapPin size={15} />
+                      </div>
+                      <div>
+                        <label className="text-xs font-bold text-[#c9ccbb] block">Spatial Reset</label>
+                        <span className="text-[#c9ccbb]/80 text-[10px]">Did you have to move things around (rearrange your space/ reset) in order to feel regulated?</span>
+                      </div>
+                    </div>
+                    <div className="flex gap-4">
+                      <button
+                        type="button"
+                        onClick={() => setSpatialReset(true)}
+                        className={`flex-1 py-3 rounded-xl border text-sm font-bold transition-all ${
+                          spatialReset === true
+                            ? 'border-[#b5a642] bg-[#b5a642]/20 text-[#b5a642]'
+                            : 'border-[#c9ccbb]/10 text-[#c9ccbb]/80 hover:border-[#b5a642]/30'
+                        }`}
+                      >
+                        Yes, I reset
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSpatialReset(false)}
+                        className={`flex-1 py-3 rounded-xl border text-sm font-bold transition-all ${
+                          spatialReset === false
+                            ? 'border-[#b5a642] bg-[#b5a642]/20 text-[#b5a642]'
+                            : 'border-[#c9ccbb]/10 text-[#c9ccbb]/80 hover:border-[#b5a642]/30'
+                        }`}
+                      >
+                        No reset
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* EVENING INSIGHT ACCORDION */}
+                  {focusHours > 0 && (
+                    <div className="mt-6 bg-[#1b270e] border-l-2 border-[#b5a642] rounded-r-xl overflow-hidden shadow-md">
+                      <button
+                        onClick={() => setIsEveningOpen(!isEveningOpen)}
+                        className="w-full flex items-center justify-between p-4 text-left hover:bg-[#b5a642]/5 transition-colors"
+                      >
+                        <span className="text-[#b5a642] text-[10px] uppercase font-bold tracking-widest">
+                          {eveningInsight.title}
+                        </span>
+                        <motion.div animate={{ rotate: isEveningOpen ? 180 : 0 }}>
+                          <ChevronDown size={14} className="text-[#b5a642]" />
+                        </motion.div>
+                      </button>
+                      <AnimatePresence>
+                        {isEveningOpen && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.3, ease: 'easeInOut' }}
+                            className="overflow-hidden"
+                          >
+                            <div className="space-y-0">
+                              <div className="w-full h-px bg-[#b5a642]/10" />
+                              <div className="p-4">
+                                <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
+                                  <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Direction:</strong>
+                                  {eveningInsight.direction}
+                                </p>
+                              </div>
+                              {hasAccess ? (
+                                <div className="px-4 pb-4">
+                                  <div className="w-full h-px bg-[#b5a642]/10 mb-4" />
+                                  <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
+                                    <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Why this is happening:</strong>
+                                    {eveningInsight.reframe}
                                   </p>
                                 </div>
-                              ) : null
-                            })()}
-                            <div className="p-4">
-                              <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
-                                <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Direction:</strong>
-                                {morningInsight.direction}
-                              </p>
+                              ) : (
+                                <div className="relative px-4 pb-4">
+                                  <div className="w-full h-px bg-[#b5a642]/10 mb-4" />
+                                  <div className="filter blur-[3px] opacity-30 select-none pointer-events-none text-xs leading-relaxed text-[#c9ccbb]/80">
+                                    <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Why this is happening:</strong>
+                                    {eveningInsight.reframe}
+                                  </div>
+                                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 z-10">
+                                    <Lock size={14} className="text-[#b5a642]" />
+                                    <span className="text-[9px] font-bold text-[#c9ccbb]/80 uppercase tracking-widest text-center">Understand the why through the lens of NeuroDesign</span>
+                                    <Link href="/upgrade">
+                                      <button className="px-5 py-1.5 bg-[#b5a642] text-[#1b270e] text-[9px] font-bold uppercase tracking-widest rounded-full hover:bg-white transition-all">
+                                        Unlock Now
+                                      </button>
+                                    </Link>
+                                  </div>
+                                </div>
+                              )}
                             </div>
-                            {hasAccess ? (
-                              <div className="px-4 pb-4">
-                                <div className="w-full h-px bg-[#b5a642]/70 mb-4" />
-                                <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
-                                  <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Why this is happening:</strong>
-                                  {morningInsight.reframe}
-                                </p>
-                              </div>
-                            ) : (
-                              <div className="relative px-4 pb-4">
-                                <div className="w-full h-px bg-[#b5a642]/70 mb-4" />
-                                <div className="filter blur-[3px] opacity-30 select-none pointer-events-none text-xs leading-relaxed text-[#c9ccbb]/80">
-                                  <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Why this is happening:</strong>
-                                  {morningInsight.reframe}
-                                </div>
-                                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 z-10">
-                                  <Lock size={14} className="text-[#b5a642]" />
-                                  <span className="text-[9px] font-bold text-[#c9ccbb]/80 uppercase tracking-widest text-center">Understand the why through the lens of NeuroDesign</span>
-                                  <Link href="/upgrade">
-                                    <button className="px-5 py-1.5 bg-[#b5a642] text-[#1b270e] text-[9px] font-bold uppercase tracking-widest rounded-full hover:bg-white transition-all">
-                                      Unlock Now
-                                    </button>
-                                  </Link>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* EVENING BIO-METRICS + INSIGHT */}
-            {activeTab === 'evening' && (
-              <div className="mb-8 p-6 bg-[#b5a642]/5 rounded-2xl border border-[#b5a642]/10 animate-fade-in">
-                <label className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-6 block flex items-center gap-2">
-                  <Brain size={12} /> How Did Your Day Go?
-                </label>
-                
-                {/* ROW 1: PERFORMANCE METRICS */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
-                  {/* FOCUSED WORK HOURS */}
-                  <div>
-                    <div className="flex justify-between mb-2">
-                      <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb]">
-                        <Brain size={14} className="text-[#b5a642]" /> Focused Work (Hours)
-                      </label>
-                      <span className="text-[#b5a642] font-mono text-xs">{focusScore}h</span>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
-                    <p className="text-[#c9ccbb]/80 text-[10px] mb-3">Hours where you were focused and uninterrupted.</p>
-                    <input
-                      type="range" min="0" max="12" step="1"
-                      value={focusScore}
-                      onChange={(e) => setFocusScore(parseInt(e.target.value))}
-                      className="w-full accent-[#b5a642] h-1 bg-[#000]/50 rounded-lg appearance-none cursor-pointer"
-                    />
-                  </div>
+                  )}
+                </div>
 
-                  {/* SOCIAL DEMAND SELECTOR */}
+                {/* EVENING ACOUSTIC + NOISE CHARACTER */}
+                {/* daytime_db_peak and noise_character are evening-only signals. */}
+                {/* daytimeDb (avg) is also captured here for the evening record. */}
+                <div className="mb-8 p-6 bg-[#000]/20 rounded-2xl border border-[#c9ccbb]/5 animate-fade-in">
+                  <label className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-4 block flex items-center gap-2">
+                    <Volume2 size={12} /> Acoustic Environment Today
+                  </label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    {/* DAYTIME DB AVG */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2 text-[#c9ccbb]/80 text-xs font-bold uppercase tracking-widest">
+                          <Volume2 size={14} className="text-[#b5a642]/80" /> Average Sound Level
+                        </div>
+                        <button
+                          onClick={() => { setActiveMeterTarget('daytimeDb'); setIsAcousticMeterOpen(true) }}
+                          className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest hover:text-white transition-colors flex items-center gap-1 bg-[#b5a642]/10 px-2 py-1 rounded-md border border-[#b5a642]/20"
+                        >
+                          <Activity size={12} /> Measure
+                        </button>
+                      </div>
+                      <p className="text-[#c9ccbb]/80 text-[10px] mb-3">Typical background sound level across your day.</p>
+                      <input
+                        type="number" min="0" max="140"
+                        placeholder="e.g. 45 (Quiet) or 65 (Active)"
+                        value={daytimeDb}
+                        onChange={(e) => setDaytimeDb(e.target.value)}
+                        className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
+                      />
+                    </div>
+                    {/* DAYTIME DB PEAK */}
+                    <div>
+                      <div className="flex items-center gap-2 text-[#c9ccbb]/80 text-xs font-bold uppercase tracking-widest mb-2">
+                        <Activity size={14} className="text-[#b5a642]/80" /> Peak dB Hit Today
+                      </div>
+                      <p className="text-[#c9ccbb]/80 text-[10px] mb-3">The loudest single event you were exposed to.</p>
+                      <input
+                        type="number" min="0" max="140"
+                        placeholder="e.g. 85 (drill, shout)"
+                        value={daytimeDbPeak}
+                        onChange={(e) => setDaytimeDbPeak(e.target.value)}
+                        className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
+                      />
+                    </div>
+                  </div>
+                  {/* NOISE CHARACTER */}
                   <div>
                     <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb] mb-2">
-                      <Users size={14} className="text-[#b5a642]" /> Social Demand Today
+                      <Waves size={14} className="text-[#b5a642]" /> Noise Character
                     </label>
                     <p className="text-[#c9ccbb]/80 text-[10px] mb-3">
-                      How emotionally or cognitively taxing was your social engagement today?
+                      The quality of noise matters as much as the volume. Unpredictable noise is more dysregulating than continuous noise at the same level.
                     </p>
                     <div className="grid grid-cols-3 gap-2">
-                      {([
-                        { value: 'low',      label: 'Low to zero' },
-                        { value: 'moderate', label: 'Moderate'    },
-                        { value: 'high',     label: 'High demand' },
-                      ] as const).map(opt => (
+                      {NOISE_CHARACTER_OPTIONS.map(opt => (
                         <button
                           key={opt.value}
                           type="button"
-                          onClick={() => setSocialDemand(socialDemand === opt.value ? null : opt.value)}
-                          className={`py-2.5 px-2 rounded-xl border text-[10px] font-bold uppercase tracking-widest transition-all text-center ${
-                            socialDemand === opt.value
+                          onClick={() => setNoiseCharacter(noiseCharacter === opt.value ? null : opt.value)}
+                          className={`py-2.5 px-2 rounded-xl border text-[9px] font-bold uppercase tracking-widest transition-all text-center ${
+                            noiseCharacter === opt.value
                               ? 'border-[#b5a642]/60 bg-[#b5a642]/15 text-[#b5a642]'
-                              : 'border-[#c9ccbb]/10 text-[#c9ccbb]/80 hover:border-[#b5a642]/30 hover:text-[#c9ccbb]/80'
+                              : 'border-[#c9ccbb]/10 text-[#c9ccbb]/80 hover:border-[#b5a642]/30 hover:text-[#c9ccbb]/90'
                           }`}
                         >
                           {opt.label}
@@ -783,296 +1098,48 @@ export default function Progress() {
                   </div>
                 </div>
 
-                {/* ROW 2: NERVOUS SYSTEM SIGNALS */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 mb-6 border-t border-[#b5a642]/10">
-                  
-                  {/* TASK INITIATION DRAG */}
-                  <div>
-                    <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb] mb-2">
-                      <Fingerprint size={14} className="text-[#b5a642]" /> Task Initiation Drag
-                    </label>
-                    <p className="text-[#c9ccbb]/80 text-[10px] mb-3">
-                      How much friction did you feel when starting new tasks today?
-                    </p>
-                    <div className="grid grid-cols-4 gap-2">
-                      {([
-                        { value: 'none',     label: 'None' },
-                        { value: 'light',    label: 'Light' },
-                        { value: 'moderate', label: 'Moderate' },
-                        { value: 'heavy',    label: 'Heavy' },
-                      ] as const).map(opt => (
-                        <button
-                          key={opt.value}
-                          type="button"
-                          onClick={() => setTaskInitDrag(taskInitDrag === opt.value ? null : opt.value)}
-                          className={`py-2.5 px-2 rounded-xl border text-[10px] font-bold uppercase tracking-widest transition-all text-center ${
-                            taskInitDrag === opt.value
-                              ? 'border-[#b5a642]/60 bg-[#b5a642]/15 text-[#b5a642]'
-                              : 'border-[#c9ccbb]/10 text-[#c9ccbb]/80 hover:border-[#b5a642]/30 hover:text-[#c9ccbb]/80'
-                          }`}
-                        >
-                          {opt.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* ENVIRONMENTAL AGENCY */}
-                  <div>
-                    <div className="flex justify-between mb-2">
-                      <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb]">
-                        <Zap size={14} className="text-[#b5a642]" /> Environmental Agency
-                      </label>
-                      <span className="text-[#b5a642] font-mono text-xs">{environmentalControlScore}/10</span>
-                    </div>
-                    <p className="text-[#c9ccbb]/80 text-[10px] mb-3">
-                      On a scale of 1 - 10, how much control do you feel you had over your environment today?
-                    </p>
-                    <input
-                      type="range" min="0" max="10" step="1"
-                      value={environmentalControlScore || 0}
-                      onChange={(e) => setEnvironmentalControlScore(parseInt(e.target.value))}
-                      className="w-full accent-[#b5a642] h-1 bg-[#000]/50 rounded-lg appearance-none cursor-pointer"
-                    />
-                  </div>
-                </div>
-
-                {/* ROW 3: SPATIAL RESET (Insert below the Environmental Agency row in Evening Tab) */}
-                <div className="mt-8 mb-6 p-5 bg-[#000]/20 rounded-2xl border border-[#c9ccbb]/5">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="relative">
-                      <div className="w-8 h-8 rounded-full bg-[#b5a642]/15 flex items-center justify-center text-[#b5a642]">
-                        <MapPin size={15} />
-                  </div>
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-[#c9ccbb] block">Spatial Reset</label>
-                  <span className="text-[#c9ccbb]/80 text-[10px]">Did often did you have to move things around in order to regulate?</span>
-                </div>
-              </div>
-              <div className="flex gap-4">
+                {/* EVENING WIND-DOWN PROMPT */}
                 <button
-                  onClick={() => setSpatialReset(true)}
-                  className={`flex-1 py-3 rounded-xl border text-sm font-bold transition-all ${
-                    spatialReset === true ? 'border-[#b5a642] bg-[#b5a642]/20 text-[#b5a642]' : 'border-[#c9ccbb]/10 text-[#c9ccbb]/80 hover:border-[#b5a642]/30'
+                  onClick={() => toggleTag('low_horizon')}
+                  className={`w-full mb-8 p-5 rounded-2xl border text-left transition-all duration-300 group relative overflow-hidden animate-fade-in ${
+                    eveningTags.includes('low_horizon')
+                      ? 'bg-[#b5a642]/15 border-[#b5a642]/60 shadow-lg shadow-[#b5a642]/10'
+                      : 'bg-[#000]/20 border-[#c9ccbb]/10 hover:border-[#b5a642]/30 hover:bg-[#b5a642]/5'
                   }`}
                 >
-                  Yes, I reset
-                </button>
-                <button
-                  onClick={() => setSpatialReset(false)}
-                  className={`flex-1 py-3 rounded-xl border text-sm font-bold transition-all ${
-                    spatialReset === false ? 'border-[#b5a642] bg-[#b5a642]/20 text-[#b5a642]' : 'border-[#c9ccbb]/10 text-[#c9ccbb]/80 hover:border-[#b5a642]/30'
-                  }`}
-                >
-                  No reset
-                </button>
-              </div>
-            </div>
-          )}              
-                
-                {focusScore > 0 && (
-                  <div className="mt-6 bg-[#1b270e] border-l-2 border-[#b5a642] rounded-r-xl overflow-hidden shadow-md">
-                    <button
-                      onClick={() => setIsEveningOpen(!isEveningOpen)}
-                      className="w-full flex items-center justify-between p-4 text-left hover:bg-[#b5a642]/5 transition-colors"
-                    >
-                      <span className="text-[#b5a642] text-[10px] uppercase font-bold tracking-widest">
-                        {eveningInsight.title}
-                      </span>
-                      <motion.div animate={{ rotate: isEveningOpen ? 180 : 0 }}>
-                        <ChevronDown size={14} className="text-[#b5a642]" />
-                      </motion.div>
-                    </button>
-                    <AnimatePresence>
-                      {isEveningOpen && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.3, ease: 'easeInOut' }}
-                          className="overflow-hidden"
-                        >
-                          <div className="space-y-0">
-                            <div className="w-full h-px bg-[#b5a642]/10" />
-                            <div className="p-4">
-                              <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
-                                <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Direction:</strong>
-                                {eveningInsight.direction}
-                              </p>
-                            </div>
-                            {hasAccess ? (
-                              <div className="px-4 pb-4">
-                                <div className="w-full h-px bg-[#b5a642]/10 mb-4" />
-                                <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
-                                  <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Why this is happening:</strong>
-                                  {eveningInsight.reframe}
-                                </p>
-                              </div>
-                            ) : (
-                              <div className="relative px-4 pb-4">
-                                <div className="w-full h-px bg-[#b5a642]/10 mb-4" />
-                                <div className="filter blur-[3px] opacity-30 select-none pointer-events-none text-xs leading-relaxed text-[#c9ccbb]/80">
-                                  <strong className="text-[#c9ccbb] font-serif tracking-wide mr-2">Why this is happening:</strong>
-                                  {eveningInsight.reframe}
-                                </div>
-                                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 z-10">
-                                  <Lock size={14} className="text-[#b5a642]" />
-                                  <span className="text-[9px] font-bold text-[#c9ccbb]/80 uppercase tracking-widest text-center">Understand the why through the lens of NeuroDesign</span>
-                                  <Link href="/upgrade">
-                                    <button className="px-5 py-1.5 bg-[#b5a642] text-[#1b270e] text-[9px] font-bold uppercase tracking-widest rounded-full hover:bg-white transition-all">
-                                      Unlock Now
-                                    </button>
-                                  </Link>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* ENVIRONMENTAL READINGS — morning */}
-            {activeTab === 'morning' && (
-              <div className="mb-8 p-6 bg-[#000]/20 rounded-2xl border border-[#c9ccbb]/5 animate-fade-in">
-                <label className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-4 block flex items-center gap-2">
-                  <Activity size={12} /> Your Home Environment Today
-                </label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2 text-[#c9ccbb]/80 text-xs font-bold uppercase tracking-widest">
-                        <Sun size={14} className="text-[#b5a642]/80" /> Morning Light Level
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all duration-300 ${
+                        eveningTags.includes('low_horizon') ? 'bg-[#b5a642] text-[#1b270e]' : 'bg-[#b5a642]/10 text-[#b5a642]'
+                      }`}>
+                        {eveningTags.includes('low_horizon') ? <CheckCircle size={18} /> : <Zap size={18} />}
                       </div>
-                      <button
-                        onClick={() => { setActiveMeterTarget('morningLux'); setIsLightMeterOpen(true) }}
-                        className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest hover:text-white transition-colors flex items-center gap-1 bg-[#b5a642]/10 px-2 py-1 rounded-md border border-[#b5a642]/20"
-                      >
-                        <Activity size={12} /> Measure
-                      </button>
-                    </div>
-                    <input
-                      type="number" min="0" max="100000"
-                      placeholder="e.g. 250 (Dim) or 2500 (Bright)"
-                      value={morningLux}
-                      onChange={(e) => setMorningLux(e.target.value)}
-                      className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
-                    />
-                  </div>
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2 text-[#c9ccbb]/80 text-xs font-bold uppercase tracking-widest">
-                        <Volume2 size={14} className="text-[#b5a642]/80" /> Daytime Sound Level
+                      <div>
+                        <span className={`text-[10px] font-bold uppercase tracking-widest block mb-1 transition-colors ${
+                          eveningTags.includes('low_horizon') ? 'text-[#b5a642]' : 'text-[#c9ccbb]/80'
+                        }`}>
+                          Evening Wind-Down
+                        </span>
+                        <p className={`text-sm font-serif transition-colors ${
+                          eveningTags.includes('low_horizon') ? 'text-[#c9ccbb]' : 'text-[#c9ccbb]/80'
+                        }`}>
+                          Have you adjusted the brightness and temperature of your lighting for the evening?
+                        </p>
+                        <p className={`text-[10px] mt-1 leading-relaxed transition-colors ${
+                          eveningTags.includes('low_horizon') ? 'text-[#c9ccbb]/80' : 'text-[#c9ccbb]/70'
+                        }`}>
+                          Turn off the overhead lights and switch to warm, low-level light sources below 100 lux.
+                        </p>
                       </div>
-                      <button
-                        onClick={() => { setActiveMeterTarget('daytimeDb'); setIsAcousticMeterOpen(true) }}
-                        className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest hover:text-white transition-colors flex items-center gap-1 bg-[#b5a642]/10 px-2 py-1 rounded-md border border-[#b5a642]/20"
-                      >
-                        <Activity size={12} /> Measure
-                      </button>
                     </div>
-                    <input
-                      type="number" min="0" max="140"
-                      placeholder="e.g. 45 (Kitchen) or 70 (Busy room)"
-                      value={daytimeDb}
-                      onChange={(e) => setDaytimeDb(e.target.value)}
-                      className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* NOISE CHARACTER & PEAK DB (Insert below existing Daytime DB input) */}
-            
-            <div className="mt-4 pt-4 border-t border-[#c9ccbb]/10">
-            <div className="flex flex-col md:flex-row gap-6">
-            {/* PEAK DB */}
-            <div className="w-full md:w-1/3">
-              <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb] mb-2">
-                <Activity size={14} className="text-[#b5a642]" /> Peak DB Hit
-              </label>
-              <input
-                type="number" min="0" max="140"
-                placeholder="e.g. 85"
-                value={daytimeDbPeak}
-                onChange={(e) => setDaytimeDbPeak(e.target.value)}
-                className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
-              />
-            </div>
-
-              {/* NOISE CHARACTER */}
-              <div className="w-full md:w-2/3">
-                <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb] mb-2">
-                  <Waves size={14} className="text-[#b5a642]" /> Noise Character
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                 {NOISE_CHARACTER_OPTIONS.map(opt => (
-                   <button
-                     key={opt.value}
-                     type="button"
-                     onClick={() => setNoiseCharacter(noiseCharacter === opt.value ? null : opt.value)}
-                     className={`py-2 px-2 rounded-xl border text-[9px] font-bold uppercase tracking-widest transition-all text-center ${
-                       noiseCharacter === opt.value
-                         ? 'border-[#b5a642]/60 bg-[#b5a642]/15 text-[#b5a642]'
-                         : 'border-[#c9ccbb]/10 text-[#c9ccbb]/80 hover:border-[#b5a642]/30 hover:text-[#c9ccbb]/90'
-                     }`}
-                   >
-                     {opt.label}
-                   </button>
-                 ))}
-               </div>
-             </div>
-           </div>
-         </div>
-       )}   
-            
-            {/* EVENING WIND-DOWN PROMPT */}
-            {activeTab === 'evening' && (
-              <button
-                onClick={() => toggleTag('low_horizon')}
-                className={`w-full mb-8 p-5 rounded-2xl border text-left transition-all duration-300 group relative overflow-hidden animate-fade-in ${
-                  eveningTags.includes('low_horizon')
-                    ? 'bg-[#b5a642]/15 border-[#b5a642]/60 shadow-lg shadow-[#b5a642]/10'
-                    : 'bg-[#000]/20 border-[#c9ccbb]/10 hover:border-[#b5a642]/30 hover:bg-[#b5a642]/5'
-                }`}
-              >
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all duration-300 ${
-                      eveningTags.includes('low_horizon') ? 'bg-[#b5a642] text-[#1b270e]' : 'bg-[#b5a642]/10 text-[#b5a642]'
+                    <div className={`shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
+                      eveningTags.includes('low_horizon') ? 'border-[#b5a642] bg-[#b5a642]' : 'border-[#c9ccbb]/20 group-hover:border-[#b5a642]/40'
                     }`}>
-                      {eveningTags.includes('low_horizon') ? <CheckCircle size={18} /> : <Zap size={18} />}
-                    </div>
-                    <div>
-                      <span className={`text-[10px] font-bold uppercase tracking-widest block mb-1 transition-colors ${
-                        eveningTags.includes('low_horizon') ? 'text-[#b5a642]' : 'text-[#c9ccbb]/80'
-                      }`}>
-                        Evening Wind-Down
-                      </span>
-                      <p className={`text-sm font-serif transition-colors ${
-                        eveningTags.includes('low_horizon') ? 'text-[#c9ccbb]' : 'text-[#c9ccbb]/80'
-                      }`}>
-                        Have you adjusted the brightness and temperature of your lighting for the evening?
-                      </p>
-                      <p className={`text-[10px] mt-1 leading-relaxed transition-colors ${
-                        eveningTags.includes('low_horizon') ? 'text-[#c9ccbb]/80' : 'text-[#c9ccbb]/70'
-                      }`}>
-                        Turn off the overhead lights and switch to warm, low-level light sources below 100 lux.
-                      </p>
+                      {eveningTags.includes('low_horizon') && <CheckCircle size={12} className="text-[#1b270e]" />}
                     </div>
                   </div>
-                  <div className={`shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
-                    eveningTags.includes('low_horizon') ? 'border-[#b5a642] bg-[#b5a642]' : 'border-[#c9ccbb]/20 group-hover:border-[#b5a642]/40'
-                  }`}>
-                    {eveningTags.includes('low_horizon') && <CheckCircle size={12} className="text-[#1b270e]" />}
-                  </div>
-                </div>
-              </button>
+                </button>
+              </>
             )}
 
             {/* ACTION TAGS */}
@@ -1103,7 +1170,7 @@ export default function Progress() {
               />
             </div>
 
-           {/* SLEEP CONDITIONS — evening only */}
+            {/* SLEEP CONDITIONS — evening only */}
             {activeTab === 'evening' && (
               <div className="mb-8 animate-fade-in">
                 <div className="flex items-center gap-3 mb-5">
@@ -1119,7 +1186,7 @@ export default function Progress() {
                   </div>
                 </div>
 
-                {/* SLEEP READINESS SLIDER */}
+                {/* SLEEP READINESS */}
                 <div className="mb-6 p-5 bg-[#000]/20 rounded-2xl border border-[#c9ccbb]/5">
                   <div className="flex justify-between mb-2">
                     <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb]">
@@ -1142,7 +1209,7 @@ export default function Progress() {
                   {(() => {
                     const state = getSleepEveningCopy(sleepReadiness as 1|2|3|4|5)
                     return (
-                      <div className="p-4 rounded-xl bg-[#b5a642]/5 border border-[#b5a642]/90">
+                      <div className="p-4 rounded-xl bg-[#b5a642]/5 border border-[#b5a642]/80">
                         <p className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-1">{state.headline}</p>
                         <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed mb-2">{state.body}</p>
                         <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed italic">{state.environment_action}</p>
@@ -1151,13 +1218,13 @@ export default function Progress() {
                   })()}
                 </div>
 
-                {/* CYCLE PHASE — optional biological context for the engine */}
+                {/* CYCLE PHASE */}
                 <div className="mb-6 p-5 bg-[#000]/20 rounded-2xl border border-[#c9ccbb]/5">
                   <div className="flex items-center gap-2 mb-1">
                     <label className="text-xs font-bold text-[#b5a642]">CYCLE PHASE</label>
                     <span className="text-[#c9ccbb]/40 text-[10px] uppercase tracking-widest font-bold">· Optional</span>
                   </div>
-                  <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed mb-4">
+                  <p className="text-[#c9ccbb]/60 text-[10px] leading-relaxed mb-4">
                     If relevant, logging your cycle phase helps the engine distinguish physiological load from environmental load in your score.
                   </p>
                   <div className="grid grid-cols-2 gap-2">
@@ -1174,15 +1241,11 @@ export default function Progress() {
                         className={`flex flex-col p-3 rounded-xl border text-left transition-all ${
                           cyclePhase === phase.value
                             ? 'border-[#b5a642]/70 bg-[#b5a642]/10 text-[#b5a642]'
-                            : 'border-[#c9ccbb]/10 text-[#c9ccbb]/60 hover:border-[#b5a642]/60 hover:text-[#c9ccbb]/80'
+                            : 'border-[#c9ccbb]/10 text-[#c9ccbb]/70 hover:border-[#b5a642]/60 hover:text-[#c9ccbb]/80'
                         }`}
                       >
-                        <span className="text-[10px] font-bold uppercase tracking-widest block mb-0.5">
-                          {phase.label}
-                        </span>
-                        <span className={`text-[9px] ${cyclePhase === phase.value ? 'text-[#b5a642]/70' : 'text-[#c9ccbb]/40'}`}>
-                          {phase.note}
-                        </span>
+                        <span className="text-[10px] font-bold uppercase tracking-widest block mb-0.5">{phase.label}</span>
+                        <span className={`text-[9px] ${cyclePhase === phase.value ? 'text-[#b5a642]/70' : 'text-[#c9ccbb]/70'}`}>{phase.note}</span>
                       </button>
                     ))}
                   </div>
@@ -1208,7 +1271,12 @@ export default function Progress() {
                       type="number" min="0" max="140"
                       placeholder="e.g. 30 (Quiet) or 48 (Audible)"
                       value={bedtimeDb}
-                      onChange={(e) => setBedtimeDb(e.target.value)}
+                      onChange={(e) => {
+                        setBedtimeDb(e.target.value)
+                        // Also update nighttimeDb — this is what the v8 morning
+                        // engine reads as the bedroom ambient on waking.
+                        setNighttimeDb(e.target.value)
+                      }}
                       className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
                     />
                   </div>
@@ -1296,280 +1364,206 @@ export default function Progress() {
             </div>
           </div>
 
-{/* BSFI SESSION CARDS                                                  */}
-{/* Morning card on morning tab only. Evening card on evening tab only. */}
-{/* Interpretation leads. Score is optional accordion.                  */}
-{/* ------------------------------------------------------------------ */}
-<AnimatePresence mode="wait">
+          {/* BSFI SESSION CARDS */}
+          <AnimatePresence mode="wait">
 
-  {activeTab === 'morning' && morningBsfi && (
-    <motion.div
-      key="morning-bsfi"
-      initial={{ opacity: 0, height: 0 }}
-      animate={{ opacity: 1, height: 'auto' }}
-      exit={{ opacity: 0, height: 0 }}
-      className="mb-8"
-    >
-      <div className="flex items-center gap-2 mb-3 px-1">
-        <Sparkles size={12} className="text-[#b5a642]/60" />
-        <span className="text-[#b5a642]/70 text-[10px] font-bold uppercase tracking-widest">
-          Today's Bio-Spatial Rhythm
-        </span>
-      </div>
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="glass-panel p-6 rounded-3xl border border-[#b5a642]/20 relative overflow-hidden bg-gradient-to-br from-[#b5a642]/8 to-transparent"
-      >
-        <div className="absolute -top-6 -right-6 w-24 h-24 bg-[#b5a642]/10 rounded-full blur-2xl pointer-events-none" />
-        <div className="relative z-10">
-          <span className="text-[#b5a642]/70 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 mb-4">
-            <Sunrise size={11} /> Morning · What last night produced
-          </span>
-
-          <h3 className="text-lg font-serif text-[#c9ccbb] mb-2">
-            {getBsfiLabel(morningBsfi.total_score, 'morning').label}
-          </h3>
-
-          {/* ── ATTRIBUTION SOURCE NOTE + PRIMARY SOURCE TAG ────────────── */}
-          {(() => {
-            const attribution = getAttributionCopy(
-              morningBsfi.load_attribution ?? 'environmental',
-              'morning'
-            )
-            return (
-              <>
-                <p className="text-[#c9ccbb]/60 text-[10px] leading-relaxed mb-3 italic">
-                  {attribution.source_note}
-                </p>
-
-                {/* Primary source tag — only when environmental and score warrants it */}
-                {morningBsfi.load_attribution === 'environmental' &&
-                  shouldShowPrimarySource(morningBsfi.total_score, 'morning') &&
-                  (() => {
-                    const safeDomain = sanitiseDomain(morningBsfi.dominant_domain)
-                    return safeDomain ? (
-                      <div className="mb-4">
-                        <span className="text-[#c9ccbb]/80 text-[10px] block mb-1 uppercase tracking-widest font-bold">
-                          Primary source
-                        </span>
-                        <span className="text-white bg-[#000]/30 px-2.5 py-1 rounded text-[10px] font-bold inline-block">
-                          {getDomainDisplay(safeDomain).label}
-                        </span>
-                      </div>
-                    ) : null
-                  })()
-                }
-              </>
-            )
-          })()}
-
-          {/* ── WHAT THIS MEANS — BSFI context + attribution copy ───────── */}
-          {(() => {
-            const ctx         = getBSFIContext(morningBsfi.total_score, 'morning')
-            const attribution = getAttributionCopy(
-              morningBsfi.load_attribution ?? 'environmental',
-              'morning'
-            )
-            return (
-              <div className="mt-4 pt-4 border-t border-[#b5a642]/10">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-[#b5a642] mb-2">
-                  What this means
-                </p>
-                <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed mb-2">
-                  {ctx.reframe}
-                </p>
-                <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed mb-3">
-                  {attribution.reframe}
-                </p>
-                {attribution.direction && (
-                  <p className="text-[#c9ccbb]/70 text-[10px] leading-relaxed italic">
-                    {attribution.direction}
-                  </p>
-                )}
-              </div>
-            )
-          })()}
-
-          {/* ── SCORE TOGGLE ─────────────────────────────────────────────── */}
-          <button
-            onClick={() => setShowMorningScore(!showMorningScore)}
-            className="mt-4 flex items-center gap-1.5 text-[#c9ccbb]/40 hover:text-[#b5a642]/60 text-[10px] font-bold uppercase tracking-widest transition-colors"
-          >
-            <ChevronDown
-              size={11}
-              className={`transition-transform duration-300 ${showMorningScore ? 'rotate-180' : ''}`}
-            />
-            {showMorningScore ? 'Hide score' : 'See your score'}
-          </button>
-          <AnimatePresence>
-            {showMorningScore && (
+            {activeTab === 'morning' && morningBsfi && (
               <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.25 }}
-                className="overflow-hidden"
+                key="morning-bsfi"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mb-8"
               >
-                <div className="pt-4 flex items-center gap-5">
-                  <div className={`w-20 h-20 rounded-full border-4 ${getBsfiLabel(morningBsfi.total_score, 'morning').border} flex flex-col items-center justify-center bg-[#1b270e] shrink-0 shadow-lg shadow-[#b5a642]/10`}>
-                    <span className={`text-2xl font-serif ${getBsfiLabel(morningBsfi.total_score, 'morning').color}`}>
-                      {morningBsfi.total_score}
-                    </span>
-                    <span className="text-[9px] text-[#c9ccbb]/80 font-bold uppercase tracking-widest">BSFI</span>
-                  </div>
-                  <p className="text-[#c9ccbb]/50 text-xs leading-relaxed">
-                    Your Bio-Spatial Friction Index for this morning. Lower is better.
-                    This score reflects how much environmental load your nervous system absorbed overnight.
-                  </p>
+                <div className="flex items-center gap-2 mb-3 px-1">
+                  <Sparkles size={12} className="text-[#b5a642]/60" />
+                  <span className="text-[#b5a642]/70 text-[10px] font-bold uppercase tracking-widest">
+                    Today's Bio-Spatial Rhythm
+                  </span>
                 </div>
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="glass-panel p-6 rounded-3xl border border-[#b5a642]/20 relative overflow-hidden bg-gradient-to-br from-[#b5a642]/8 to-transparent"
+                >
+                  <div className="absolute -top-6 -right-6 w-24 h-24 bg-[#b5a642]/10 rounded-full blur-2xl pointer-events-none" />
+                  <div className="relative z-10">
+                    <span className="text-[#b5a642]/70 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 mb-4">
+                      <Sunrise size={11} /> Morning · What last night produced
+                    </span>
+                    <h3 className="text-lg font-serif text-[#c9ccbb] mb-2">
+                      {getBsfiLabel(morningBsfi.total_score, 'morning').label}
+                    </h3>
+                    {(() => {
+                      const attribution = getAttributionCopy(morningBsfi.load_attribution ?? 'environmental', 'morning')
+                      return (
+                        <>
+                          <p className="text-[#c9ccbb]/60 text-[10px] leading-relaxed mb-3 italic">
+                            {attribution.source_note}
+                          </p>
+                          {morningBsfi.load_attribution === 'environmental' &&
+                            shouldShowPrimarySource(morningBsfi.total_score, 'morning') &&
+                            (() => {
+                              const safeDomain = sanitiseDomain(morningBsfi.dominant_domain)
+                              return safeDomain ? (
+                                <div className="mb-4">
+                                  <span className="text-[#c9ccbb]/80 text-[10px] block mb-1 uppercase tracking-widest font-bold">Primary source</span>
+                                  <span className="text-white bg-[#000]/30 px-2.5 py-1 rounded text-[10px] font-bold inline-block">
+                                    {getDomainDisplay(safeDomain).label}
+                                  </span>
+                                </div>
+                              ) : null
+                            })()
+                          }
+                        </>
+                      )
+                    })()}
+                    {(() => {
+                      const ctx         = getBSFIContext(morningBsfi.total_score, 'morning')
+                      const attribution = getAttributionCopy(morningBsfi.load_attribution ?? 'environmental', 'morning')
+                      return (
+                        <div className="mt-4 pt-4 border-t border-[#b5a642]/10">
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-[#b5a642] mb-2">What this means</p>
+                          <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed mb-2">{ctx.reframe}</p>
+                          <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed mb-3">{attribution.reframe}</p>
+                          {attribution.direction && (
+                            <p className="text-[#c9ccbb]/70 text-[10px] leading-relaxed italic">{attribution.direction}</p>
+                          )}
+                        </div>
+                      )
+                    })()}
+                    <button
+                      onClick={() => setShowMorningScore(!showMorningScore)}
+                      className="mt-4 flex items-center gap-1.5 text-[#c9ccbb]/40 hover:text-[#b5a642]/60 text-[10px] font-bold uppercase tracking-widest transition-colors"
+                    >
+                      <ChevronDown size={11} className={`transition-transform duration-300 ${showMorningScore ? 'rotate-180' : ''}`} />
+                      {showMorningScore ? 'Hide score' : 'See your score'}
+                    </button>
+                    <AnimatePresence>
+                      {showMorningScore && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.25 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="pt-4 flex items-center gap-5">
+                            <div className={`w-20 h-20 rounded-full border-4 ${getBsfiLabel(morningBsfi.total_score, 'morning').border} flex flex-col items-center justify-center bg-[#1b270e] shrink-0 shadow-lg shadow-[#b5a642]/10`}>
+                              <span className={`text-2xl font-serif ${getBsfiLabel(morningBsfi.total_score, 'morning').color}`}>{morningBsfi.total_score}</span>
+                              <span className="text-[9px] text-[#c9ccbb]/80 font-bold uppercase tracking-widest">BSFI</span>
+                            </div>
+                            <p className="text-[#c9ccbb]/50 text-xs leading-relaxed">
+                              Your Bio-Spatial Friction Index for this morning. Lower is better.
+                              This score reflects how much environmental load your nervous system absorbed overnight.
+                            </p>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </motion.div>
               </motion.div>
             )}
-          </AnimatePresence>
 
-        </div>
-      </motion.div>
-    </motion.div>
-  )}
-
-  {activeTab === 'evening' && eveningBsfi && (
-    <motion.div
-      key="evening-bsfi"
-      initial={{ opacity: 0, height: 0 }}
-      animate={{ opacity: 1, height: 'auto' }}
-      exit={{ opacity: 0, height: 0 }}
-      className="mb-8"
-    >
-      <div className="flex items-center gap-2 mb-3 px-1">
-        <Sparkles size={12} className="text-[#b5a642]/60" />
-        <span className="text-[#b5a642]/70 text-[10px] font-bold uppercase tracking-widest">
-          Today's Bio-Spatial Rhythm
-        </span>
-      </div>
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="glass-panel p-6 rounded-3xl border border-[#b5a642]/20 relative overflow-hidden bg-gradient-to-br from-[#b5a642]/8 to-transparent"
-      >
-        <div className="absolute -top-6 -right-6 w-24 h-24 bg-[#b5a642]/8 rounded-full blur-2xl pointer-events-none" />
-        <div className="relative z-10">
-          <span className="text-[#b5a642]/80 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 mb-4">
-            <Moon size={11} /> Evening · What will be processed tonight
-          </span>
-
-          <h3 className="text-lg font-serif text-[#c9ccbb] mb-2">
-            {getBsfiLabel(eveningBsfi.total_score, 'evening').label}
-          </h3>
-
-          {/* ── ATTRIBUTION SOURCE NOTE + PRIMARY SOURCE TAG ────────────── */}
-          {(() => {
-            const attribution = getAttributionCopy(
-              eveningBsfi.load_attribution ?? 'environmental',
-              'evening'
-            )
-            return (
-              <>
-                <p className="text-[#c9ccbb]/60 text-[10px] leading-relaxed mb-3 italic">
-                  {attribution.source_note}
-                </p>
-
-                {/* Primary source tag — only when environmental and score warrants it */}
-                {eveningBsfi.load_attribution === 'environmental' &&
-                  shouldShowPrimarySource(eveningBsfi.total_score, 'evening') &&
-                  (() => {
-                    const safeDomain = sanitiseDomain(eveningBsfi.dominant_domain)
-                    return safeDomain ? (
-                      <div className="mb-4">
-                        <span className="text-[#c9ccbb]/80 text-[10px] block mb-1 uppercase tracking-widest font-bold">
-                          Primary source
-                        </span>
-                        <span className="text-white bg-[#000]/30 px-2.5 py-1 rounded text-[10px] font-bold inline-block">
-                          {getDomainDisplay(safeDomain).label}
-                        </span>
-                      </div>
-                    ) : null
-                  })()
-                }
-              </>
-            )
-          })()}
-
-          {/* ── WHAT THIS MEANS — BSFI context + attribution copy ───────── */}
-          {(() => {
-            const ctx         = getBSFIContext(eveningBsfi.total_score, 'evening')
-            const attribution = getAttributionCopy(
-              eveningBsfi.load_attribution ?? 'environmental',
-              'evening'
-            )
-            return (
-              <div className="mt-4 pt-4 border-t border-[#b5a642]/10">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-[#b5a642] mb-2">
-                  What this means
-                </p>
-                <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed mb-2">
-                  {ctx.reframe}
-                </p>
-                <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed mb-3">
-                  {attribution.reframe}
-                </p>
-                {attribution.direction && (
-                  <p className="text-[#c9ccbb]/70 text-[10px] leading-relaxed italic">
-                    {attribution.direction}
-                  </p>
-                )}
-              </div>
-            )
-          })()}
-
-          {/* ── SCORE TOGGLE ─────────────────────────────────────────────── */}
-          <button
-            onClick={() => setShowEveningScore(!showEveningScore)}
-            className="mt-4 flex items-center gap-1.5 text-[#c9ccbb]/40 hover:text-[#b5a642]/60 text-[10px] font-bold uppercase tracking-widest transition-colors"
-          >
-            <ChevronDown
-              size={11}
-              className={`transition-transform duration-300 ${showEveningScore ? 'rotate-180' : ''}`}
-            />
-            {showEveningScore ? 'Hide score' : 'See your score'}
-          </button>
-          <AnimatePresence>
-            {showEveningScore && (
+            {activeTab === 'evening' && eveningBsfi && (
               <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.25 }}
-                className="overflow-hidden"
+                key="evening-bsfi"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mb-8"
               >
-                <div className="pt-4 flex items-center gap-5">
-                  <div className={`w-20 h-20 rounded-full border-4 ${getBsfiLabel(eveningBsfi.total_score, 'evening').border} flex flex-col items-center justify-center bg-[#1b270e] shrink-0 shadow-lg shadow-[#b5a642]/10`}>
-                    <span className={`text-2xl font-serif ${getBsfiLabel(eveningBsfi.total_score, 'evening').color}`}>
-                      {eveningBsfi.total_score}
-                    </span>
-                    <span className="text-[9px] text-[#c9ccbb]/80 font-bold uppercase tracking-widest">BSFI</span>
-                  </div>
-                  <p className="text-[#c9ccbb]/50 text-xs leading-relaxed">
-                    Your Bio-Spatial Friction Index for this evening. Lower is better.
-                    This score reflects the environmental load your nervous system will carry into tonight's sleep.
-                  </p>
+                <div className="flex items-center gap-2 mb-3 px-1">
+                  <Sparkles size={12} className="text-[#b5a642]/60" />
+                  <span className="text-[#b5a642]/70 text-[10px] font-bold uppercase tracking-widest">
+                    Today's Bio-Spatial Rhythm
+                  </span>
                 </div>
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="glass-panel p-6 rounded-3xl border border-[#b5a642]/20 relative overflow-hidden bg-gradient-to-br from-[#b5a642]/8 to-transparent"
+                >
+                  <div className="absolute -top-6 -right-6 w-24 h-24 bg-[#b5a642]/8 rounded-full blur-2xl pointer-events-none" />
+                  <div className="relative z-10">
+                    <span className="text-[#b5a642]/80 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 mb-4">
+                      <Moon size={11} /> Evening · What will be processed tonight
+                    </span>
+                    <h3 className="text-lg font-serif text-[#c9ccbb] mb-2">
+                      {getBsfiLabel(eveningBsfi.total_score, 'evening').label}
+                    </h3>
+                    {(() => {
+                      const attribution = getAttributionCopy(eveningBsfi.load_attribution ?? 'environmental', 'evening')
+                      return (
+                        <>
+                          <p className="text-[#c9ccbb]/60 text-[10px] leading-relaxed mb-3 italic">
+                            {attribution.source_note}
+                          </p>
+                          {eveningBsfi.load_attribution === 'environmental' &&
+                            shouldShowPrimarySource(eveningBsfi.total_score, 'evening') &&
+                            (() => {
+                              const safeDomain = sanitiseDomain(eveningBsfi.dominant_domain)
+                              return safeDomain ? (
+                                <div className="mb-4">
+                                  <span className="text-[#c9ccbb]/80 text-[10px] block mb-1 uppercase tracking-widest font-bold">Primary source</span>
+                                  <span className="text-white bg-[#000]/30 px-2.5 py-1 rounded text-[10px] font-bold inline-block">
+                                    {getDomainDisplay(safeDomain).label}
+                                  </span>
+                                </div>
+                              ) : null
+                            })()
+                          }
+                        </>
+                      )
+                    })()}
+                    {(() => {
+                      const ctx         = getBSFIContext(eveningBsfi.total_score, 'evening')
+                      const attribution = getAttributionCopy(eveningBsfi.load_attribution ?? 'environmental', 'evening')
+                      return (
+                        <div className="mt-4 pt-4 border-t border-[#b5a642]/10">
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-[#b5a642] mb-2">What this means</p>
+                          <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed mb-2">{ctx.reframe}</p>
+                          <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed mb-3">{attribution.reframe}</p>
+                          {attribution.direction && (
+                            <p className="text-[#c9ccbb]/70 text-[10px] leading-relaxed italic">{attribution.direction}</p>
+                          )}
+                        </div>
+                      )
+                    })()}
+                    <button
+                      onClick={() => setShowEveningScore(!showEveningScore)}
+                      className="mt-4 flex items-center gap-1.5 text-[#c9ccbb]/40 hover:text-[#b5a642]/60 text-[10px] font-bold uppercase tracking-widest transition-colors"
+                    >
+                      <ChevronDown size={11} className={`transition-transform duration-300 ${showEveningScore ? 'rotate-180' : ''}`} />
+                      {showEveningScore ? 'Hide score' : 'See your score'}
+                    </button>
+                    <AnimatePresence>
+                      {showEveningScore && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.25 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="pt-4 flex items-center gap-5">
+                            <div className={`w-20 h-20 rounded-full border-4 ${getBsfiLabel(eveningBsfi.total_score, 'evening').border} flex flex-col items-center justify-center bg-[#1b270e] shrink-0 shadow-lg shadow-[#b5a642]/10`}>
+                              <span className={`text-2xl font-serif ${getBsfiLabel(eveningBsfi.total_score, 'evening').color}`}>{eveningBsfi.total_score}</span>
+                              <span className="text-[9px] text-[#c9ccbb]/80 font-bold uppercase tracking-widest">BSFI</span>
+                            </div>
+                            <p className="text-[#c9ccbb]/50 text-xs leading-relaxed">
+                              Your Bio-Spatial Friction Index for this evening. Lower is better.
+                              This score reflects the environmental load your nervous system will carry into tonight's sleep.
+                            </p>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </motion.div>
               </motion.div>
             )}
+
           </AnimatePresence>
 
-        </div>
-      </motion.div>
-    </motion.div>
-  )}
-
-</AnimatePresence>
-
-          {/* ------------------------------------------------------------------ */}
-          {/* 14-DAY PATTERN PANEL                                               */}
-          {/* Two states:                                                         */}
-          {/*   1. Building — fewer than 14 logs, shows progress bar             */}
-          {/*   2. Ready    — synthesis available, expandable for Core+           */}
-          {/* ------------------------------------------------------------------ */}
+          {/* 14-DAY PATTERN PANEL */}
           <div className={`glass-panel p-6 rounded-3xl mb-8 border relative overflow-hidden transition-all ${
             synthesisState === 'recalibrating'
               ? 'bg-gradient-to-r from-[#b5a642]/5 to-transparent border-[#b5a642]/15'
@@ -1583,10 +1577,9 @@ export default function Progress() {
                 if (!hasAccess || !macroSynthesis.ready) return
                 const wasExpanded = isSynthesisExpanded
                 setIsSynthesisExpanded(!isSynthesisExpanded)
-                // Stamp acknowledgement when user collapses after having opened
                 if (wasExpanded) {
                   await fetch('/api/acknowledge-synthesis', { method: 'POST' })
-                  fetchHistory() // recompute synthesis state immediately
+                  fetchHistory()
                 }
               }}
             >
@@ -1624,39 +1617,28 @@ export default function Progress() {
             {synthesisState === 'recalibrating' ? (
               <div className="mt-4 pt-4 border-t border-[#b5a642]/10 w-full relative z-10">
                 <p className="text-sm text-[#c9ccbb]/80 leading-relaxed max-w-2xl mb-4">
-                  Current 14 day synthesis read. Your next synthesis will be ready
-                  once {logsUntilReady} more {logsUntilReady === 1 ? 'day' : 'days'} of logs have been recorded.
+                  Your next synthesis will be ready once {logsUntilReady} more {logsUntilReady === 1 ? 'day' : 'days'} of logs have been recorded.
                 </p>
                 <p className="text-[#c9ccbb]/80 text-xs leading-relaxed max-w-2xl italic">
-                  Each new cycle reads your environment with fresh context without the weight
-                  of the previous window's assumptions. Continue logging consistently.
+                  Each new cycle reads your environment with fresh context. Continue logging consistently.
                 </p>
                 <div className="w-full max-w-md h-1 bg-[#000]/50 rounded-full mt-5 overflow-hidden">
-                  <div
-                    className="h-full bg-[#b5a642]/60 transition-all duration-1000"
-                    style={{ width: `${(logsSinceAck / 14) * 100}%` }}
-                  />
+                  <div className="h-full bg-[#b5a642]/60 transition-all duration-1000" style={{ width: `${(logsSinceAck / 14) * 100}%` }} />
                 </div>
               </div>
-
             ) : synthesisState === 'building' ? (
               <div className="mt-4 pt-4 border-t border-[#c9ccbb]/10 w-full relative z-10">
                 <p className="text-sm text-[#c9ccbb]/80 leading-relaxed max-w-2xl">{macroSynthesis.paragraphs[0]}</p>
                 <div className="w-full max-w-md h-1 bg-[#000]/50 rounded-full mt-4 overflow-hidden">
-                  <div
-                    className="h-full bg-[#b5a642] transition-all duration-1000"
-                    style={{ width: `${(chartLogs.length / 14) * 100}%` }}
-                  />
+                  <div className="h-full bg-[#b5a642] transition-all duration-1000" style={{ width: `${(chartLogs.length / 14) * 100}%` }} />
                 </div>
               </div>
             ) : hasAccess ? (
               <AnimatePresence>
                 {isSynthesisExpanded && (
                   <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3, ease: 'easeInOut' }}
+                    initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3, ease: 'easeInOut' }}
                     className="overflow-hidden relative z-10"
                   >
                     <div className="mt-6 space-y-4 text-[#c9ccbb]/80 text-sm leading-relaxed border-t border-[#c9ccbb]/10 pt-6">
@@ -1681,10 +1663,7 @@ export default function Progress() {
             )}
           </div>
 
-          {/* ------------------------------------------------------------------ */}
-          {/* TREND CHART — chartLogs feeds CorrelationGraph directly as a prop. */}
-          {/* fetchHistory() writes to chartLogs. Neither can be extracted.       */}
-          {/* ------------------------------------------------------------------ */}
+          {/* TREND CHART */}
           <div className="animate-fade-in-up delay-100 mb-12">
             <div className="flex justify-between items-end mb-6">
               <div>
@@ -1706,14 +1685,12 @@ export default function Progress() {
         </div>
       </div>
 
-      {/* HOW THIS WORKS MODAL */}
+      {/* MODALS */}
       <AnimatePresence>
         {isManualOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#000]/80 backdrop-blur-sm p-4">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
               className="w-full max-w-2xl max-h-[85vh] overflow-y-auto hide-scrollbar bg-[#1b270e] border border-[#b5a642]/30 rounded-3xl shadow-2xl relative p-8 md:p-12"
             >
               <button
@@ -1726,27 +1703,27 @@ export default function Progress() {
               <div className="space-y-8 text-[#c9ccbb]/80 text-sm leading-relaxed font-light">
                 <section>
                   <h3 className="text-lg font-serif text-[#b5a642] mb-2">The Purpose of Logging</h3>
-                  <p>This isn't about optimising yourself. It's about understanding the subtle dialogue between your nervous system and your environment. One day tells you very little. However, when you record consistently, patterns begin to appear, showing which parts of your home restore you and which quietly ask your body to compensate.</p>
+                  <p>This isn't about optimising yourself. It's about understanding the subtle dialogue between your nervous system and your environment. One day tells you very little. When you record consistently, patterns begin to appear, showing which parts of your home restore you and which quietly ask your body to compensate.</p>
                 </section>
                 <section>
                   <h3 className="text-lg font-serif text-[#b5a642] mb-2">How Your Body Woke Up (Morning)</h3>
-                  <p>What your body experienced during the night is reflected in the morning entry. Jaw tension, tight shoulders or frequent waking are not personal shortcomings. They are signals. They often point to conditions relating to light, temperature, sound, materials or internal states that prevented your nervous system from fully settling.</p>
+                  <p>What your body experienced during the night is reflected in the morning entry. Jaw tension, tight shoulders or frequent waking are signals, not personal shortcomings. They often point to conditions relating to light, temperature, sound, or internal states that prevented your nervous system from fully settling.</p>
                 </section>
                 <section>
                   <h3 className="text-lg font-serif text-[#b5a642] mb-2">How Your Day Went (Evening)</h3>
-                  <p>The evening entry records how much effort your day required. A demanding day puts a real strain on the nervous system. If the environment doesn't shift to match that demand, the body continues to carry it into the night. This helps us to see whether your evening routines are truly allowing you to recover.</p>
+                  <p>The evening entry records how much effort your day required. A demanding day puts a real strain on the nervous system. If the environment doesn't shift to match that demand, the body continues to carry it into the night.</p>
                 </section>
                 <section>
                   <h3 className="text-lg font-serif text-[#b5a642] mb-2">Social Demand</h3>
-                  <p>This field captures the cognitive and emotional cost of your social engagement, not the volume of it. Interactions that are evaluatively pressured, emotionally taxing, or require sustained emotional labour activate the autonomic nervous system in the same way that environmental stressors do. Logging this helps the engine distinguish relational load from environmental load — two distinct sources that require different responses.</p>
+                  <p>This field captures the cognitive and emotional cost of your social engagement, not the volume of it. Interactions that are evaluatively pressured or require sustained emotional labour activate the autonomic nervous system in the same way that environmental stressors do.</p>
                 </section>
                 <section>
                   <h3 className="text-lg font-serif text-[#b5a642] mb-2">Home Friction Score</h3>
-                  <p>This score reflects how much effort your environment required from you today. Lower scores suggest that your home was able to accommodate the demands placed on your body. Higher scores, on the other hand, indicate friction, such as small environmental pressures that accumulate over time. This is not a judgement, but a signal that is worth paying attention to.</p>
+                  <p>This score reflects how much effort your environment required from you today. Lower scores suggest your home was able to accommodate the demands placed on your body. Higher scores indicate friction — small environmental pressures that accumulate over time.</p>
                 </section>
                 <section>
                   <h3 className="text-lg font-serif text-[#b5a642] mb-2">The 14-Day Pattern</h3>
-                  <p>After two weeks of entries, a clearer picture begins to emerge. Patterns reveal what is coming from the environment and what may be part of normal internal cycles, such as stress, hormones or natural energy fluctuations. Not everything you feel originates in your home. The 14-day view helps distinguish what truly does.</p>
+                  <p>After two weeks of entries, a clearer picture emerges. Patterns reveal what is coming from the environment and what may be part of normal internal cycles. Not everything you feel originates in your home. The 14-day view helps distinguish what truly does.</p>
                 </section>
               </div>
             </motion.div>
@@ -1768,9 +1745,7 @@ export default function Progress() {
         {isAcousticMeterOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#000]/80 backdrop-blur-sm p-4">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
+              initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
               className="w-full max-w-md bg-[#1b270e] border border-[#b5a642]/30 rounded-3xl overflow-hidden shadow-2xl relative"
             >
               <button onClick={() => setIsAcousticMeterOpen(false)} className="absolute top-4 right-4 text-[#c9ccbb]/80 hover:text-[#b5a642] z-10">✕</button>
@@ -1778,7 +1753,10 @@ export default function Progress() {
                 onClose={() => setIsAcousticMeterOpen(false)}
                 onSave={(db) => {
                   if (activeMeterTarget === 'daytimeDb') setDaytimeDb(db.toString())
-                  if (activeMeterTarget === 'bedtimeDb') setBedtimeDb(db.toString())
+                  if (activeMeterTarget === 'bedtimeDb') {
+                    setBedtimeDb(db.toString())
+                    setNighttimeDb(db.toString())
+                  }
                   setIsAcousticMeterOpen(false)
                 }}
               />
