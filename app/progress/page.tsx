@@ -778,7 +778,7 @@ export default function Progress() {
                         </div>
                         <button
                           onClick={() => { setActiveMeterTarget('morningLux'); setIsLightMeterOpen(true) }}
-                          className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest hover:text-white transition-colors flex items-center gap-1 bg-[#b5a642]/10 px-2 py-1 rounded-md border border-[#b5a642]/20"
+                          className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest hover:text-[#b5a642] transition-colors flex items-center gap-1 bg-[#b5a642]/10 px-2 py-1 rounded-md border border-[#b5a642]/20"
                         >
                           <Activity size={12} /> Measure
                         </button>
@@ -799,7 +799,7 @@ export default function Progress() {
                         </div>
                         <button
                           onClick={() => { setActiveMeterTarget('daytimeDb'); setIsAcousticMeterOpen(true) }}
-                          className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest hover:text-white transition-colors flex items-center gap-1 bg-[#b5a642]/10 px-2 py-1 rounded-md border border-[#b5a642]/20"
+                          className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest hover:text-[#b5a642] transition-colors flex items-center gap-1 bg-[#b5a642]/10 px-2 py-1 rounded-md border border-[#b5a642]/20"
                         >
                           <Activity size={12} /> Measure
                         </button>
@@ -913,7 +913,7 @@ export default function Progress() {
                         <span className="text-[#b5a642] font-mono text-xs">{environmentalControlScore}/10</span>
                       </div>
                       <p className="text-[#c9ccbb]/80 text-[10px] mb-3">
-                        How much control did you feel over your environment today?
+                        How much control did you feel like you had over your environment today?
                       </p>
                       <input
                         type="range" min="0" max="10" step="1"
@@ -1011,7 +1011,7 @@ export default function Progress() {
                                     <Lock size={14} className="text-[#b5a642]" />
                                     <span className="text-[9px] font-bold text-[#c9ccbb]/80 uppercase tracking-widest text-center">Understand the why through the lens of NeuroDesign</span>
                                     <Link href="/upgrade">
-                                      <button className="px-5 py-1.5 bg-[#b5a642] text-[#1b270e] text-[9px] font-bold uppercase tracking-widest rounded-full hover:bg-white transition-all">
+                                      <button className="px-5 py-1.5 bg-[#b5a642] text-[#1b270e] text-[9px] font-bold uppercase tracking-widest rounded-full hover:bg-[#b5a642]/90 transition-all">
                                         Unlock Now
                                       </button>
                                     </Link>
@@ -1042,7 +1042,7 @@ export default function Progress() {
                         </div>
                         <button
                           onClick={() => { setActiveMeterTarget('daytimeDb'); setIsAcousticMeterOpen(true) }}
-                          className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest hover:text-white transition-colors flex items-center gap-1 bg-[#b5a642]/10 px-2 py-1 rounded-md border border-[#b5a642]/20"
+                          className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest hover:text-[#b5a642] transition-colors flex items-center gap-1 bg-[#b5a642]/10 px-2 py-1 rounded-md border border-[#b5a642]/20"
                         >
                           <Activity size={12} /> Measure
                         </button>
@@ -1061,7 +1061,7 @@ export default function Progress() {
                       <div className="flex items-center gap-2 text-[#c9ccbb]/80 text-xs font-bold uppercase tracking-widest mb-2">
                         <Activity size={14} className="text-[#b5a642]/80" /> Peak dB Hit Today
                       </div>
-                      <p className="text-[#c9ccbb]/80 text-[10px] mb-3">The loudest single event you were exposed to.</p>
+                      <p className="text-[#c9ccbb]/80 text-[10px] mb-3">What is the loudest single event you were exposed to today?.</p>
                       <input
                         type="number" min="0" max="140"
                         placeholder="e.g. 85 (drill, shout)"
@@ -1261,7 +1261,7 @@ export default function Progress() {
                       </div>
                       <button
                         onClick={() => { setActiveMeterTarget('bedtimeDb'); setIsAcousticMeterOpen(true) }}
-                        className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest hover:text-white transition-colors flex items-center gap-1 bg-[#b5a642]/10 px-2 py-1 rounded-md border border-[#b5a642]/20"
+                        className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest hover:text-[#b5a642] transition-colors flex items-center gap-1 bg-[#b5a642]/10 px-2 py-1 rounded-md border border-[#b5a642]/20"
                       >
                         <Activity size={11} /> Measure
                       </button>
@@ -1289,7 +1289,7 @@ export default function Progress() {
                       </div>
                       <button
                         onClick={() => { setActiveMeterTarget('bedtimeLux'); setIsLightMeterOpen(true) }}
-                        className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest hover:text-white transition-colors flex items-center gap-1 bg-[#b5a642]/10 px-2 py-1 rounded-md border border-[#b5a642]/20"
+                        className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest hover:text-[#b5a642] transition-colors flex items-center gap-1 bg-[#b5a642]/10 px-2 py-1 rounded-md border border-[#b5a642]/20"
                       >
                         <Activity size={11} /> Measure
                       </button>
@@ -1313,7 +1313,7 @@ export default function Progress() {
                 {showAccuracyWarning && (
                   <motion.div
                     initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                    className="flex justify-between items-center p-4 bg-[#b5a642]/80 border border-[#b5a642]/30 rounded-xl"
+                    className="flex justify-between items-center p-4 bg-[#b5a642]/20 border border-[#b5a642]/70 rounded-xl"
                   >
                     <p className="text-sm text-[#c9ccbb] leading-relaxed">
                       <strong className="text-[#b5a642] uppercase tracking-widest text-[10px] mr-2 block mb-1">Data Accuracy Notice:</strong>
@@ -1377,7 +1377,7 @@ export default function Progress() {
               >
                 <div className="flex items-center gap-2 mb-3 px-1">
                   <Sparkles size={12} className="text-[#b5a642]/60" />
-                  <span className="text-[#b5a642]/70 text-[10px] font-bold uppercase tracking-widest">
+                  <span className="text-[#b5a642]/80 text-[10px] font-bold uppercase tracking-widest">
                     Today's Bio-Spatial Rhythm
                   </span>
                 </div>
@@ -1388,7 +1388,7 @@ export default function Progress() {
                 >
                   <div className="absolute -top-6 -right-6 w-24 h-24 bg-[#b5a642]/10 rounded-full blur-2xl pointer-events-none" />
                   <div className="relative z-10">
-                    <span className="text-[#b5a642]/70 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 mb-4">
+                    <span className="text-[#b5a642]/80 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 mb-4">
                       <Sunrise size={11} /> Morning · What last night produced
                     </span>
                     <h3 className="text-lg font-serif text-[#c9ccbb] mb-2">
@@ -1398,7 +1398,7 @@ export default function Progress() {
                       const attribution = getAttributionCopy(morningBsfi.load_attribution ?? 'environmental', 'morning')
                       return (
                         <>
-                          <p className="text-[#c9ccbb]/60 text-[10px] leading-relaxed mb-3 italic">
+                          <p className="text-[#c9ccbb]/70 text-[10px] leading-relaxed mb-3 italic">
                             {attribution.source_note}
                           </p>
                           {morningBsfi.load_attribution === 'environmental' &&
@@ -1408,7 +1408,7 @@ export default function Progress() {
                               return safeDomain ? (
                                 <div className="mb-4">
                                   <span className="text-[#c9ccbb]/80 text-[10px] block mb-1 uppercase tracking-widest font-bold">Primary source</span>
-                                  <span className="text-white bg-[#000]/30 px-2.5 py-1 rounded text-[10px] font-bold inline-block">
+                                  <span className="text-[#b5a642] bg-[#000]/30 px-2.5 py-1 rounded text-[10px] font-bold inline-block">
                                     {getDomainDisplay(safeDomain).label}
                                   </span>
                                 </div>
@@ -1427,14 +1427,14 @@ export default function Progress() {
                           <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed mb-2">{ctx.reframe}</p>
                           <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed mb-3">{attribution.reframe}</p>
                           {attribution.direction && (
-                            <p className="text-[#c9ccbb]/70 text-[10px] leading-relaxed italic">{attribution.direction}</p>
+                            <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed italic">{attribution.direction}</p>
                           )}
                         </div>
                       )
                     })()}
                     <button
                       onClick={() => setShowMorningScore(!showMorningScore)}
-                      className="mt-4 flex items-center gap-1.5 text-[#c9ccbb]/40 hover:text-[#b5a642]/60 text-[10px] font-bold uppercase tracking-widest transition-colors"
+                      className="mt-4 flex items-center gap-1.5 text-[#c9ccbb]/70 hover:text-[#b5a642]/80 text-[10px] font-bold uppercase tracking-widest transition-colors"
                     >
                       <ChevronDown size={11} className={`transition-transform duration-300 ${showMorningScore ? 'rotate-180' : ''}`} />
                       {showMorningScore ? 'Hide score' : 'See your score'}
@@ -1451,7 +1451,7 @@ export default function Progress() {
                               <span className={`text-2xl font-serif ${getBsfiLabel(morningBsfi.total_score, 'morning').color}`}>{morningBsfi.total_score}</span>
                               <span className="text-[9px] text-[#c9ccbb]/80 font-bold uppercase tracking-widest">BSFI</span>
                             </div>
-                            <p className="text-[#c9ccbb]/50 text-xs leading-relaxed">
+                            <p className="text-[#c9ccbb]/70 text-xs leading-relaxed">
                               Your Bio-Spatial Friction Index for this morning. Lower is better.
                               This score reflects how much environmental load your nervous system absorbed overnight.
                             </p>
@@ -1474,7 +1474,7 @@ export default function Progress() {
               >
                 <div className="flex items-center gap-2 mb-3 px-1">
                   <Sparkles size={12} className="text-[#b5a642]/60" />
-                  <span className="text-[#b5a642]/70 text-[10px] font-bold uppercase tracking-widest">
+                  <span className="text-[#b5a642]/80 text-[10px] font-bold uppercase tracking-widest">
                     Today's Bio-Spatial Rhythm
                   </span>
                 </div>
@@ -1495,7 +1495,7 @@ export default function Progress() {
                       const attribution = getAttributionCopy(eveningBsfi.load_attribution ?? 'environmental', 'evening')
                       return (
                         <>
-                          <p className="text-[#c9ccbb]/60 text-[10px] leading-relaxed mb-3 italic">
+                          <p className="text-[#c9ccbb]/70 text-[10px] leading-relaxed mb-3 italic">
                             {attribution.source_note}
                           </p>
                           {eveningBsfi.load_attribution === 'environmental' &&
@@ -1505,7 +1505,7 @@ export default function Progress() {
                               return safeDomain ? (
                                 <div className="mb-4">
                                   <span className="text-[#c9ccbb]/80 text-[10px] block mb-1 uppercase tracking-widest font-bold">Primary source</span>
-                                  <span className="text-white bg-[#000]/30 px-2.5 py-1 rounded text-[10px] font-bold inline-block">
+                                  <span className="text-[#b5a642] bg-[#000]/30 px-2.5 py-1 rounded text-[10px] font-bold inline-block">
                                     {getDomainDisplay(safeDomain).label}
                                   </span>
                                 </div>
@@ -1531,7 +1531,7 @@ export default function Progress() {
                     })()}
                     <button
                       onClick={() => setShowEveningScore(!showEveningScore)}
-                      className="mt-4 flex items-center gap-1.5 text-[#c9ccbb]/40 hover:text-[#b5a642]/60 text-[10px] font-bold uppercase tracking-widest transition-colors"
+                      className="mt-4 flex items-center gap-1.5 text-[#c9ccbb]/70 hover:text-[#b5a642]/80 text-[10px] font-bold uppercase tracking-widest transition-colors"
                     >
                       <ChevronDown size={11} className={`transition-transform duration-300 ${showEveningScore ? 'rotate-180' : ''}`} />
                       {showEveningScore ? 'Hide score' : 'See your score'}
@@ -1548,7 +1548,7 @@ export default function Progress() {
                               <span className={`text-2xl font-serif ${getBsfiLabel(eveningBsfi.total_score, 'evening').color}`}>{eveningBsfi.total_score}</span>
                               <span className="text-[9px] text-[#c9ccbb]/80 font-bold uppercase tracking-widest">BSFI</span>
                             </div>
-                            <p className="text-[#c9ccbb]/50 text-xs leading-relaxed">
+                            <p className="text-[#c9ccbb]/70 text-xs leading-relaxed">
                               Your Bio-Spatial Friction Index for this evening. Lower is better.
                               This score reflects the environmental load your nervous system will carry into tonight's sleep.
                             </p>
@@ -1655,7 +1655,7 @@ export default function Progress() {
                   14 days of data collected. Your home's synthesis is ready. Unlock now to see what that means for you.
                 </p>
                 <Link href="/upgrade" className="shrink-0 w-full md:w-auto">
-                  <button className="w-full md:w-auto px-8 py-3 bg-[#b5a642] text-[#1b270e] text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-white transition-all shadow-lg shadow-[#b5a642]/20">
+                  <button className="w-full md:w-auto px-8 py-3 bg-[#b5a642] text-[#1b270e] text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-[#b5a642]/60 transition-all shadow-lg shadow-[#b5a642]/20">
                     Read My Pattern
                   </button>
                 </Link>
