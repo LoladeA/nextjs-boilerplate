@@ -51,6 +51,7 @@ import {
   getEveningFeedback as getSleepEveningCopy,
 } from '@/lib/sleep-copy'
 import { getAttributionCopy } from '@/lib/bsfi-attribution-copy'
+import type { SubjectiveState } from '@/lib/bsfi-attribution-copy'
 
 // Extracted modules
 import { sanitiseDomain, getDomainDisplay, getBsfiLabel, shouldShowPrimarySource } from '@/lib/progress-domains'
@@ -932,7 +933,7 @@ export default function Progress() {
                       </div>
                       <div>
                         <label className="text-xs font-bold text-[#c9ccbb] block">Spatial Reset</label>
-                        <span className="text-[#c9ccbb]/80 text-[10px]">Did you have to move things around (rearrange your space/ reset) in order to feel regulated?</span>
+                        <span className="text-[#c9ccbb]/60 text-[10px]">Did you have to move things around (rearrange your space/reset) in order to feel regulated?</span>
                       </div>
                     </div>
                     <div className="flex gap-4">
@@ -1011,7 +1012,7 @@ export default function Progress() {
                                     <Lock size={14} className="text-[#b5a642]" />
                                     <span className="text-[9px] font-bold text-[#c9ccbb]/80 uppercase tracking-widest text-center">Understand the why through the lens of NeuroDesign</span>
                                     <Link href="/upgrade">
-                                      <button className="px-5 py-1.5 bg-[#b5a642] text-[#1b270e] text-[9px] font-bold uppercase tracking-widest rounded-full hover:bg-[#b5a642]/90 transition-all">
+                                      <button className="px-5 py-1.5 bg-[#b5a642] text-[#1b270e] text-[9px] font-bold uppercase tracking-widest rounded-full hover:bg-[#b5a642]/70 transition-all">
                                         Unlock Now
                                       </button>
                                     </Link>
@@ -1061,7 +1062,7 @@ export default function Progress() {
                       <div className="flex items-center gap-2 text-[#c9ccbb]/80 text-xs font-bold uppercase tracking-widest mb-2">
                         <Activity size={14} className="text-[#b5a642]/80" /> Peak dB Hit Today
                       </div>
-                      <p className="text-[#c9ccbb]/80 text-[10px] mb-3">What is the loudest single event you were exposed to today?.</p>
+                      <p className="text-[#c9ccbb]/80 text-[10px] mb-3">What is the loudest single event you were exposed to today?</p>
                       <input
                         type="number" min="0" max="140"
                         placeholder="e.g. 85 (drill, shout)"
@@ -1209,7 +1210,7 @@ export default function Progress() {
                   {(() => {
                     const state = getSleepEveningCopy(sleepReadiness as 1|2|3|4|5)
                     return (
-                      <div className="p-4 rounded-xl bg-[#b5a642]/5 border border-[#b5a642]/80">
+                      <div className="p-4 rounded-xl bg-[#b5a642]/5 border border-[#b5a642]/70">
                         <p className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-1">{state.headline}</p>
                         <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed mb-2">{state.body}</p>
                         <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed italic">{state.environment_action}</p>
@@ -1240,12 +1241,12 @@ export default function Progress() {
                         onClick={() => setCyclePhase(cyclePhase === phase.value ? null : phase.value)}
                         className={`flex flex-col p-3 rounded-xl border text-left transition-all ${
                           cyclePhase === phase.value
-                            ? 'border-[#b5a642]/70 bg-[#b5a642]/10 text-[#b5a642]'
-                            : 'border-[#c9ccbb]/10 text-[#c9ccbb]/70 hover:border-[#b5a642]/60 hover:text-[#c9ccbb]/80'
+                            ? 'border-[#b5a642]/60 bg-[#b5a642]/10 text-[#b5a642]'
+                            : 'border-[#c9ccbb]/10 text-[#c9ccbb]/70 hover:border-[#b5a642]/20 hover:text-[#c9ccbb]/80'
                         }`}
                       >
                         <span className="text-[10px] font-bold uppercase tracking-widest block mb-0.5">{phase.label}</span>
-                        <span className={`text-[9px] ${cyclePhase === phase.value ? 'text-[#b5a642]/70' : 'text-[#c9ccbb]/70'}`}>{phase.note}</span>
+                        <span className={`text-[9px] ${cyclePhase === phase.value ? 'text-[#b5a642]/80' : 'text-[#c9ccbb]/70'}`}>{phase.note}</span>
                       </button>
                     ))}
                   </div>
@@ -1313,7 +1314,7 @@ export default function Progress() {
                 {showAccuracyWarning && (
                   <motion.div
                     initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                    className="flex justify-between items-center p-4 bg-[#b5a642]/20 border border-[#b5a642]/70 rounded-xl"
+                    className="flex justify-between items-center p-4 bg-[#b5a642]/80 border border-[#b5a642]/30 rounded-xl"
                   >
                     <p className="text-sm text-[#c9ccbb] leading-relaxed">
                       <strong className="text-[#b5a642] uppercase tracking-widest text-[10px] mr-2 block mb-1">Data Accuracy Notice:</strong>
@@ -1394,11 +1395,26 @@ export default function Progress() {
                     <h3 className="text-lg font-serif text-[#c9ccbb] mb-2">
                       {getBsfiLabel(morningBsfi.total_score, 'morning').label}
                     </h3>
+
+                    {/* subjectiveState: derived from local state (morningMood + tensionScore).
+                        These are already in component state — no schema change required.
+                        positive:   mood ≥ 4 AND tension ≤ 2 — body recovered well, light is a calibration
+                        distressed: mood ≤ 2 OR tension ≥ 7  — friction is felt, environment is the lever
+                        neutral:    everything else            — some friction, one variable addressable */}
                     {(() => {
-                      const attribution = getAttributionCopy(morningBsfi.load_attribution ?? 'environmental', 'morning')
+                      const subjectiveState: SubjectiveState =
+                        (morningMood !== null && morningMood >= 4 && tensionScore <= 2) ? 'positive' :
+                        (morningMood !== null && morningMood <= 2) || tensionScore >= 7  ? 'distressed' :
+                        'neutral'
+
+                      const attribution = getAttributionCopy(
+                        morningBsfi.load_attribution ?? 'environmental',
+                        'morning',
+                        subjectiveState
+                      )
                       return (
                         <>
-                          <p className="text-[#c9ccbb]/70 text-[10px] leading-relaxed mb-3 italic">
+                          <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed mb-3 italic">
                             {attribution.source_note}
                           </p>
                           {morningBsfi.load_attribution === 'environmental' &&
@@ -1419,8 +1435,16 @@ export default function Progress() {
                       )
                     })()}
                     {(() => {
+                      const subjectiveState: SubjectiveState =
+                        (morningMood !== null && morningMood >= 4 && tensionScore <= 2) ? 'positive' :
+                        (morningMood !== null && morningMood <= 2) || tensionScore >= 7  ? 'distressed' :
+                        'neutral'
                       const ctx         = getBSFIContext(morningBsfi.total_score, 'morning')
-                      const attribution = getAttributionCopy(morningBsfi.load_attribution ?? 'environmental', 'morning')
+                      const attribution = getAttributionCopy(
+                        morningBsfi.load_attribution ?? 'environmental',
+                        'morning',
+                        subjectiveState
+                      )
                       return (
                         <div className="mt-4 pt-4 border-t border-[#b5a642]/10">
                           <p className="text-[10px] font-bold uppercase tracking-widest text-[#b5a642] mb-2">What this means</p>
@@ -1451,7 +1475,7 @@ export default function Progress() {
                               <span className={`text-2xl font-serif ${getBsfiLabel(morningBsfi.total_score, 'morning').color}`}>{morningBsfi.total_score}</span>
                               <span className="text-[9px] text-[#c9ccbb]/80 font-bold uppercase tracking-widest">BSFI</span>
                             </div>
-                            <p className="text-[#c9ccbb]/70 text-xs leading-relaxed">
+                            <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
                               Your Bio-Spatial Friction Index for this morning. Lower is better.
                               This score reflects how much environmental load your nervous system absorbed overnight.
                             </p>
@@ -1495,7 +1519,7 @@ export default function Progress() {
                       const attribution = getAttributionCopy(eveningBsfi.load_attribution ?? 'environmental', 'evening')
                       return (
                         <>
-                          <p className="text-[#c9ccbb]/70 text-[10px] leading-relaxed mb-3 italic">
+                          <p className="text-[#c9ccbb]/80 text-[10px] leading-relaxed mb-3 italic">
                             {attribution.source_note}
                           </p>
                           {eveningBsfi.load_attribution === 'environmental' &&
@@ -1531,7 +1555,7 @@ export default function Progress() {
                     })()}
                     <button
                       onClick={() => setShowEveningScore(!showEveningScore)}
-                      className="mt-4 flex items-center gap-1.5 text-[#c9ccbb]/70 hover:text-[#b5a642]/80 text-[10px] font-bold uppercase tracking-widest transition-colors"
+                      className="mt-4 flex items-center gap-1.5 text-[#c9ccbb]/70 hover:text-[#b5a642]/70 text-[10px] font-bold uppercase tracking-widest transition-colors"
                     >
                       <ChevronDown size={11} className={`transition-transform duration-300 ${showEveningScore ? 'rotate-180' : ''}`} />
                       {showEveningScore ? 'Hide score' : 'See your score'}
@@ -1548,7 +1572,7 @@ export default function Progress() {
                               <span className={`text-2xl font-serif ${getBsfiLabel(eveningBsfi.total_score, 'evening').color}`}>{eveningBsfi.total_score}</span>
                               <span className="text-[9px] text-[#c9ccbb]/80 font-bold uppercase tracking-widest">BSFI</span>
                             </div>
-                            <p className="text-[#c9ccbb]/70 text-xs leading-relaxed">
+                            <p className="text-[#c9ccbb]/80 text-xs leading-relaxed">
                               Your Bio-Spatial Friction Index for this evening. Lower is better.
                               This score reflects the environmental load your nervous system will carry into tonight's sleep.
                             </p>
@@ -1655,7 +1679,7 @@ export default function Progress() {
                   14 days of data collected. Your home's synthesis is ready. Unlock now to see what that means for you.
                 </p>
                 <Link href="/upgrade" className="shrink-0 w-full md:w-auto">
-                  <button className="w-full md:w-auto px-8 py-3 bg-[#b5a642] text-[#1b270e] text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-[#b5a642]/60 transition-all shadow-lg shadow-[#b5a642]/20">
+                  <button className="w-full md:w-auto px-8 py-3 bg-[#b5a642] text-[#1b270e] text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-[#b5a642]/70 transition-all shadow-lg shadow-[#b5a642]/20">
                     Read My Pattern
                   </button>
                 </Link>
