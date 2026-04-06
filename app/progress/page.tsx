@@ -431,7 +431,7 @@ export default function Progress() {
     // Morning requires morningMood. Evening has no hard required fields
     // but warns if key measurements are missing.
     const criticalFields = activeTab === 'morning'
-      ? [morningLux, nighttimeDb]
+      ? [morningLux]
       : [daytimeDb, daytimeDbPeak, String(environmentalControlScore)]
 
     const isMissing = criticalFields.some(val => val === null || val === '' || val === undefined)
