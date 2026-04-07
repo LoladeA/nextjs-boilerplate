@@ -1,8 +1,24 @@
 // /lib/bsfi-engine.ts
-// Version: bsfi_v8.1
+// Version: bsfi_v8.2
 // =============================================================================
-// BSFI v8.1 — NIGHTTIME_DB REMOVED FROM MORNING SCORING
+// BSFI v8.2 — EVENING UI CONSOLIDATION
 // =============================================================================
+//
+// WHAT CHANGED FROM v8.1:
+//   ✔ daytime_db_peak removed from ALS scoring
+//     Reason: recalled peak dB is unreliable as an end-of-day input.
+//     unpredictable_startling in noise_character captures acute peak events
+//     with greater accuracy. The column is retained for future wearable use.
+//   ✔ spatial_reset removed from SES scoring (both compounds)
+//     Reason: the field defaulted to false, producing a silent baseline penalty
+//     for any user who did not actively complete the evening log. A skipped
+//     field and a deliberate "no" are neurologically distinct and must not be
+//     treated identically. Column retained in schema.
+//   ✔ environmental_control_score no longer collected as a separate UI input.
+//     Now derived from task_init_drag in the upsert payload before the engine
+//     receives it: none/light → 8 (no penalty), moderate → 4, heavy → 2.
+//     The +3 SES penalty (Glass & Singer 1972) fires when moderate or heavy
+//     drag is logged, which correctly proxies low perceived environmental agency.
 //
 // Architecture: Two independent session engines + shared biological capacity.
 //
@@ -361,7 +377,7 @@ export function calculateMorningBSFI(
         dominant_domain,
         data_confidence:    'basic',
         biological_load:    today.cycle_phase === 'menstrual' || today.cycle_phase === 'luteal',
-        version:            'bsfi_v8.1',
+        version:            'bsfi_v8.2',
     }
 }
 
@@ -416,10 +432,13 @@ export function calculateEveningBSFI(
     // Sustained acoustic load — WHO (2018)
     if (today.daytime_db_avg !== null && today.daytime_db_avg > 55) als += 4
 
-    // Acute events — Basner et al. (2011)
-    if (today.daytime_db_peak !== null && today.daytime_db_peak > 75) als += 3
-
     // Noise character — Berglund WHO (1999); Öhrström (1989)
+    // NOTE: daytime_db_peak was removed from scoring in v8.2.
+    // unpredictable_startling (below) captures acute peak events with greater
+    // accuracy because it reflects the nervous system's response to event
+    // quality, not a recalled maximum dB value. Recalled peak dB is
+    // unreliable as an end-of-day input and was removed from the UI.
+    // The daytime_db_peak column is retained in the schema for future use.
     if      (today.noise_character === 'unpredictable_startling') als += 5
     else if (today.noise_character === 'intermittent_loud')       als += 3
 
@@ -427,10 +446,16 @@ export function calculateEveningBSFI(
     if (safe(today.morning_tension) >= 7 && social === 'high') als += 4
 
     // ── SES ───────────────────────────────────────────────────────────────
-    // Spatial reset + drag compound [PROPRIETARY]
-    if (!today.spatial_reset && (today.task_init_drag === 'moderate' || today.task_init_drag === 'heavy')) {
-        ses += 5
-    }
+    // NOTE: spatial_reset was removed from scoring in v8.2.
+    // The field defaulted to false, producing a silent penalty for any user
+    // who did not actively complete the evening log. A null/skipped state and
+    // a deliberate "no reset" are not equivalent. Removing it eliminates
+    // a false baseline penalty. The column is retained in the schema.
+    //
+    // environmental_control_score is now derived from task_init_drag in the
+    // upsert payload (none/light → 8, moderate → 4, heavy → 2) rather than
+    // collected as a separate UI slider. The +3 penalty below fires when
+    // moderate or heavy drag is logged, which correctly reflects low agency.
 
     // Focus + load compound — Van Dongen et al. (2003)
     if (safe(today.focus_hours) < 3 && (
@@ -445,11 +470,6 @@ export function calculateEveningBSFI(
     // Environmental agency [PROPRIETARY] — Glass & Singer (1972)
     if (today.environmental_control_score !== null && today.environmental_control_score < 5) {
         ses += 3
-    }
-
-    // Spatial reset absent (standalone) — Buysse et al. (2011)
-    if (!today.spatial_reset && today.task_init_drag !== 'moderate' && today.task_init_drag !== 'heavy') {
-        ses += 2
     }
 
     // Morning mood carried into evening — unmitigated sensory exposure
@@ -505,6 +525,6 @@ export function calculateEveningBSFI(
         dominant_domain,
         data_confidence:    'basic',
         biological_load:    today.cycle_phase === 'menstrual' || today.cycle_phase === 'luteal',
-        version:            'bsfi_v8.1',
+        version:            'bsfi_v8.2',
     }
 }
