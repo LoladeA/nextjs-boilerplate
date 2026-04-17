@@ -58,7 +58,7 @@ export default function Home() {
           </Link>
         </div>
 
-        <p className="text-[#c9ccbb]/25 text-[10px] uppercase tracking-widest mt-5 animate-fade-in-up delay-300 relative z-10">
+        <p className="text-[#c9ccbb]/80 text-[10px] uppercase tracking-widest mt-5 animate-fade-in-up delay-300 relative z-10">
           10 minutes · No design knowledge needed · No credit card required
         </p>
       </section>
@@ -66,11 +66,11 @@ export default function Home() {
       {/* ── SECTION 2: SOMATIC MIRROR — Mirror continued ────────────────── */}
       <section className="py-20 px-6 border-t border-[#c9ccbb]/5">
         <div className="max-w-3xl mx-auto">
-          <p className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest text-center mb-14">
+          <p className="text-3xl md:text-4xl font-serif text-[#b5a642] mb-3">
             Does any of this sound familiar?
           </p>
 
-          <div className="divide-y divide-[#c9ccbb]/5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {[
               { text: "You rest in your home and wake up still tired.", style: "text-[#c9ccbb]/80 text-base md:text-lg" },
               { text: "A room can look entirely fine and feel consistently wrong. You have stopped trusting that instinct.", style: "text-[#c9ccbb]/80 text-base md:text-lg" },
