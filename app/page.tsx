@@ -82,7 +82,7 @@ export default function Home() {
             ].map((item, i) => (
               <div key={i} className={`flex gap-4 ${i === 4 ? 'md:col-span-2 border-t border-[#c9ccbb]/10 pt-6 mt-2' : ''}`}>
                 <CheckCircle className="text-[#b5a642] shrink-0 mt-0.5" size={16} />
-                <span className={`text-sm leading-relaxed ${i === 4 ? 'text-[#c9ccbb] font-serif text-base italic' : 'text-[#c9ccbb]/80'}`}>
+                <span className={`text-sm leading-relaxed ${i === 4 ? 'text-[#c9ccbb] font-serif text-2xl italic' : 'text-[#c9ccbb]/80'}`}>
                   {item}
                 </span>
               </div>
