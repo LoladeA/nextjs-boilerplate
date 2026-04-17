@@ -383,7 +383,7 @@ export default function Home() {
             <p>
               The scoring engine evaluates your home across five measurable domains, producing a calibrated NeuroLoad Score™ based on your individual sensory profile, not a generic average. Your Integration Pattern — Integrative, Variable, or Accumulative — determines how your score is weighted and how recommendations are sequenced.
             </p>
-            <p className="text-[#c9ccbb]/80 font-serif italic text-base border-l-2 border-[#b5a642]/30 pl-5">
+            <p className="text-[#b5a642]/80 font-serif italic text-base border-l-2 border-[#b5a642]/30 pl-5">
               This is a pre-aesthetic diagnostic framework. It is not concerned with how your home looks. It is concerned with what your home is asking of your nervous system.
             </p>
           </div>
@@ -395,7 +395,7 @@ export default function Home() {
             ].map((item, i) => (
               <div key={i} className="text-center">
                 <div className="text-xl font-serif text-[#c9ccbb] mb-1.5">{item.label}</div>
-                <div className="text-[#c9ccbb]/80 text-[10px] uppercase tracking-widest">{item.sub}</div>
+                <div className="text-[#b5a642]/80 text-[10px] uppercase tracking-widest">{item.sub}</div>
               </div>
             ))}
           </div>
