@@ -264,7 +264,7 @@ export default function Home() {
 
             {/* FREE */}
             <div className="glass-panel p-8 rounded-3xl border border-[#c9ccbb]/10 flex flex-col">
-              <p className="text-[#c9ccbb]/40 text-[10px] font-bold uppercase tracking-widest mb-4">Free</p>
+              <p className="text-[#c9ccbb]/80 text-[10px] font-bold uppercase tracking-widest mb-4">Free</p>
               <div className="text-4xl font-serif text-[#c9ccbb] mb-1">€0</div>
               <p className="text-[#c9ccbb]/80 text-xs mb-6">No credit card required</p>
               <h3 className="text-lg font-serif text-[#c9ccbb] mb-5">The Assessment + Tools</h3>
@@ -278,7 +278,7 @@ export default function Home() {
                   "In-app light and acoustic measurement tools",
                   "Insight library: short form reads",
                 ].map((f, i) => (
-                  <li key={i} className="flex items-start gap-2.5 text-xs text-[#c9ccbb]/50 leading-snug">
+                  <li key={i} className="flex items-start gap-2.5 text-xs text-[#c9ccbb]/80 leading-snug">
                     <CheckCircle size={12} className="text-[#b5a642] shrink-0 mt-0.5" />
                     {f}
                   </li>
