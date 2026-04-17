@@ -64,22 +64,27 @@ export default function Home() {
       </section>
 
       {/* ── SECTION 2: SOMATIC MIRROR — Mirror continued ────────────────── */}
-      <section className="py-20 px-6 border-t border-[#c9ccbb]/5">
-        <div className="max-w-3xl mx-auto">
-          <p className="text-3xl md:text-4xl font-serif text-[#b5a642] mb-3">
-            Does any of this sound familiar?
+      <section className="py-20 px-6 max-w-4xl mx-auto">
+        <div className="glass-panel p-10 rounded-3xl border border-[#c9ccbb]/10">
+          <p className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-6">
+           Does any of this sound familiar?
           </p>
-
+          <h2 className="text-3xl font-serif mb-10">
+            This is what environmental friction feels like
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {[
-              { text: "You rest in your home and wake up still tired.", style: "text-[#c9ccbb]/80 text-base md:text-lg" },
-              { text: "A room can look entirely fine and feel consistently wrong. You have stopped trusting that instinct.", style: "text-[#c9ccbb]/80 text-base md:text-lg" },
-              { text: "You do your best thinking outside the house — in cafés, in transit, anywhere but where you actually live.", style: "text-[#c9ccbb]/80 text-base md:text-lg" },
-              { text: "You have tried decluttering, redecorating, reorganising. The underlying friction remains.", style: "text-[#c9ccbb]/80 text-base md:text-lg" },
-              { text: "You have started to wonder whether the problem is you.", style: "text-[#c9ccbb] font-serif text-xl md:text-2xl italic" },
+              "You rest in your home and wake up still tired.",
+              "A room can look entirely fine and feel consistently wrong. You have stopped trusting that instinct.",
+              "You do your best thinking outside the house — in cafés, in transit, anywhere but where you actually live.",
+              "You have tried decluttering, redecorating, reorganising. The underlying friction remains.",
+              "You have started to wonder whether the problem is you.",
             ].map((item, i) => (
-              <div key={i} className={`py-7 px-2 ${item.style}`}>
-                {item.text}
+              <div key={i} className={`flex gap-4 ${i === 4 ? 'md:col-span-2 border-t border-[#c9ccbb]/10 pt-6 mt-2' : ''}`}>
+                <CheckCircle className="text-[#b5a642] shrink-0 mt-0.5" size={16} />
+                <span className={`text-sm leading-relaxed ${i === 4 ? 'text-[#c9ccbb] font-serif text-base italic' : 'text-[#c9ccbb]/60'}`}>
+                  {item}
+                </span>
               </div>
             ))}
           </div>
