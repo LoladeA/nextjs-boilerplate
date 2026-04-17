@@ -66,10 +66,10 @@ export default function Home() {
       {/* ── SECTION 2: SOMATIC MIRROR — Mirror continued ────────────────── */}
       <section className="py-20 px-6 max-w-4xl mx-auto">
         <div className="glass-panel p-10 rounded-3xl border border-[#c9ccbb]/10">
-          <p className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-6">
+          <p className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-10">
            Does any of this sound familiar?
           </p>
-          <h2 className="text-3xl font-serif mb-10">
+          <h2 className="text-3xl font-serif mb-8">
             This is what environmental friction feels like
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -82,7 +82,7 @@ export default function Home() {
             ].map((item, i) => (
               <div key={i} className={`flex gap-4 ${i === 4 ? 'md:col-span-2 border-t border-[#c9ccbb]/10 pt-6 mt-2' : ''}`}>
                 <CheckCircle className="text-[#b5a642] shrink-0 mt-0.5" size={16} />
-                <span className={`text-sm leading-relaxed ${i === 4 ? 'text-[#c9ccbb] font-serif text-base italic' : 'text-[#c9ccbb]/60'}`}>
+                <span className={`text-sm leading-relaxed ${i === 4 ? 'text-[#c9ccbb] font-serif text-base italic' : 'text-[#c9ccbb]/80'}`}>
                   {item}
                 </span>
               </div>
