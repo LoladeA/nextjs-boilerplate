@@ -374,7 +374,7 @@ export default function Home() {
         <div className="glass-panel p-10 md:p-12 rounded-3xl border border-[#c9ccbb]/10">
           <p className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-6">The methodology</p>
           <h2 className="text-2xl font-serif text-[#c9ccbb] mb-6 leading-snug">
-            Built on Neuroscience and Environmental Psychology and Sensory Processing
+            Built on Neuroscience, Environmental Psychology and Sensory Processing
           </h2>
           <div className="space-y-4 text-[#c9ccbb]/80 text-sm leading-relaxed mb-10">
             <p>
@@ -420,7 +420,7 @@ export default function Home() {
         >
           Take the Free Assessment <ArrowRight size={18} />
         </Link>
-        <p className="text-[#c9ccbb]/70 text-[10px] uppercase tracking-widest mt-5">
+        <p className="text-[#c9ccbb]/80 text-[10px] uppercase tracking-widest mt-5">
           10 minutes · No design knowledge needed · No credit card required
         </p>
       </section>
