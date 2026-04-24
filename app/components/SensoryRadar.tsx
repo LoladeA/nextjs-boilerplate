@@ -91,7 +91,7 @@ const CustomTooltip = ({ active, payload }: any) => {
   const opacity = getScoreOpacity(A)
   return (
     <div className="bg-[#1b270e] border border-[#b5a642]/20 rounded-xl px-4 py-3 shadow-xl text-left min-w-[160px]">
-      <p className="text-[10px] uppercase tracking-widest text-[#b5a642]/70 font-bold mb-1 tracking-[0.12em]">
+      <p className="text-[10px] uppercase tracking-widest text-[#b5a642]/80 font-bold mb-1 tracking-[0.12em]">
         {subject}
       </p>
       <p
@@ -99,9 +99,9 @@ const CustomTooltip = ({ active, payload }: any) => {
         style={{ opacity }}
       >
         {A}
-        <span className="text-sm font-sans ml-1 opacity-50">/100</span>
+        <span className="text-sm font-sans ml-1 opacity-70">/100</span>
       </p>
-      <p className="text-[11px] text-[#c9ccbb]/70 leading-snug">
+      <p className="text-[11px] text-[#c9ccbb]/80 leading-snug">
         {getScoreInterpretation(subject, A)}
       </p>
     </div>
@@ -140,7 +140,7 @@ const makeCustomTick = (data: DataPoint[], isMobile: boolean) =>
           fill={color}
           fontSize={fontSize}
           fontWeight="600"
-          opacity={0.85}
+          opacity={0.9}
           letterSpacing="0.05em"
           style={{ textTransform: 'uppercase' }}
         >
@@ -199,8 +199,8 @@ export default function SensoryRadar({ data = defaultData }: { data?: DataPoint[
       <div className="absolute top-0 right-0 flex flex-col gap-1.5 z-10 pointer-events-none">
         {[
           { label: 'High friction',  opacity: 1.0   },
-          { label: 'Moderate',       opacity: 0.60  },
-          { label: 'Low friction',   opacity: 0.35  },
+          { label: 'Moderate',       opacity: 0.8  },
+          { label: 'Low friction',   opacity: 0.5  },
         ].map(({ label, opacity }) => (
           <div key={label} className="flex items-center gap-1.5">
             <div
@@ -209,7 +209,7 @@ export default function SensoryRadar({ data = defaultData }: { data?: DataPoint[
             />
             <span
               className="text-[9px] uppercase tracking-widest font-bold text-[#b5a642]"
-              style={{ opacity: opacity * 0.85 }}
+              style={{ opacity: opacity * 0.9 }}
             >
               {label}
             </span>
@@ -228,7 +228,7 @@ export default function SensoryRadar({ data = defaultData }: { data?: DataPoint[
           {/* Grid rings — three zones at 33 / 66 / 100 */}
           <PolarGrid
             stroke="#c9ccbb"
-            strokeOpacity={0.08}
+            strokeOpacity={0.20}
             gridType="polygon"
           />
 
@@ -254,7 +254,7 @@ export default function SensoryRadar({ data = defaultData }: { data?: DataPoint[
             stroke="#b5a642"
             strokeWidth={isMobile ? 1.5 : 2}
             fill="#b5a642"
-            fillOpacity={0.20}
+            fillOpacity={0.40}
             dot={{ fill: '#b5a642', r: isMobile ? 3 : 4, strokeWidth: 0 }}
             activeDot={{ fill: '#b5a642', r: isMobile ? 5 : 6, strokeWidth: 2, stroke: '#1b270e' }}
           />
