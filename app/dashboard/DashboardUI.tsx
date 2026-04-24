@@ -283,7 +283,7 @@ export default function DashboardUI({
               {recentLogs && recentLogs.length > 0 && (
                 <div className="text-right">
                   <div className="text-2xl font-serif text-[#c9ccbb]">
-                    {recentLogs[0].mood_score}<span className="text-sm text-[#c9ccbb]/60">/5</span>
+                    {recentLogs[0].mood_score}<span className="text-sm text-[#c9ccbb]/80">/5</span>
                   </div>
                   <div className="text-[10px] text-[#c9ccbb]/80 uppercase tracking-widest">Latest Log</div>
                 </div>
@@ -295,7 +295,7 @@ export default function DashboardUI({
               </div>
             ) : (
               <div className="flex-1 flex items-center justify-center pb-6">
-                <p className="text-xs text-[#c9ccbb]/60 uppercase tracking-widest">
+                <p className="text-xs text-[#c9ccbb]/80 uppercase tracking-widest">
                   Daily logs will appear here
                 </p>
               </div>
@@ -350,7 +350,7 @@ export default function DashboardUI({
             ) : (
               <div className="flex-1 min-h-[320px] w-full flex items-center justify-center">
                 <div className="text-center">
-                  <div className="text-[#c9ccbb]/60 text-6xl font-serif mb-3">◎</div>
+                  <div className="text-[#c9ccbb]/70 text-6xl font-serif mb-3">◎</div>
                   <p className="text-xs text-[#c9ccbb]/80 uppercase tracking-widest">
                     Complete your assessment to see your radar
                   </p>
