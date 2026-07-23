@@ -56,7 +56,6 @@ import type { SubjectiveState } from '@/lib/bsfi-attribution-copy'
 // Extracted modules
 import { sanitiseDomain, getDomainDisplay, getBsfiLabel, shouldShowPrimarySource } from '@/lib/progress-domains'
 import type { BsfiState }                                 from '@/lib/progress-domains'
-import { getSynthesisState }                              from '@/lib/synthesis-state'
 import { deriveLuxScore, deriveDbScore }                  from '@/lib/progress-score-utils'
 import {
   getMorningFeedback,
@@ -156,21 +155,18 @@ export default function Progress() {
   const [bsfiLoading, setBsfiLoading] = useState(true)
 
   // --- ACCORDION STATES ---
-  const [isMorningOpen,       setIsMorningOpen]       = useState(false)
-  const [isEveningOpen,       setIsEveningOpen]       = useState(false)
+  const [isMorningOpen,    setIsMorningOpen]    = useState(false)
+  const [isEveningOpen,    setIsEveningOpen]    = useState(false)
   const [isSynthesisExpanded, setIsSynthesisExpanded] = useState(false)
-  const [showMorningScore,    setShowMorningScore]    = useState(false)
-  const [showEveningScore,    setShowEveningScore]    = useState(false)
+  const [showMorningScore, setShowMorningScore] = useState(false)
+  const [showEveningScore, setShowEveningScore] = useState(false)
 
   // ─────────────────────────────────────────────────────────────────────────
   // GRAPH STATE — must stay in this component
   // chartLogs feeds <CorrelationGraph /> directly as a prop.
   // fetchHistory() writes to chartLogs. Neither can be extracted.
   // ─────────────────────────────────────────────────────────────────────────
-  const [chartLogs,      setChartLogs]      = useState<any[]>([])
-  const [synthesisState, setSynthesisState] = useState<'building' | 'ready' | 'recalibrating'>('building')
-  const [logsSinceAck,   setLogsSinceAck]   = useState<number>(0)
-  const [logsUntilReady, setLogsUntilReady] = useState<number>(14)
+  const [chartLogs, setChartLogs] = useState<any[]>([])
 
   // Sync eveningMood from sleepReadiness
   useEffect(() => { setEveningMood(sleepReadiness) }, [sleepReadiness])
@@ -341,51 +337,31 @@ export default function Progress() {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // FETCH HISTORY — feeds chartLogs → CorrelationGraph + synthesis state
+  // FETCH HISTORY — feeds chartLogs → CorrelationGraph + macroSynthesis
   // Must stay in this component. Do not extract.
+  //
+  // CHANGE: Removed the parallel fetches for total log count, user profile
+  // (last_synthesis_acknowledged_at), and logsSinceAcknowledged. The
+  // getSynthesisState() machinery and the acknowledge-synthesis API call
+  // were causing the synthesis to flip to 'recalibrating' immediately after
+  // a user opened and closed the accordion, effectively resetting the 14-day
+  // count every time. The synthesis now uses chartLogs.length directly, which
+  // is the same condition getMacroSynthesis() uses — identical to the original
+  // pre-acknowledge system.
   // ─────────────────────────────────────────────────────────────────────────
   const fetchHistory = async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    const [historyRes, countRes, profileRes] = await Promise.all([
-      supabase
-        .from('daily_logs')
-        .select('date, mood_score, focus_hours, morning_tension, sleep_wakes, social_demand')
-        .eq('user_id', user.id)
-        .order('date', { ascending: false })
-        .limit(14),
-      supabase
-        .from('daily_logs')
-        .select('id', { count: 'exact', head: true })
-        .eq('user_id', user.id),
-      supabase
-        .from('user_profiles')
-        .select('last_synthesis_acknowledged_at')
-        .eq('user_id', user.id)
-        .single(),
-    ])
+    const { data } = await supabase
+      .from('daily_logs')
+      .select('date, mood_score, focus_hours, morning_tension, sleep_wakes, social_demand')
+      .eq('user_id', user.id)
+      .order('date', { ascending: false })
+      .limit(14)
 
-    const totalLogs          = countRes.count ?? 0
-    const lastAcknowledgedAt = profileRes.data?.last_synthesis_acknowledged_at ?? null
-
-    let logsSinceAcknowledged = 0
-    if (lastAcknowledgedAt) {
-      const { count } = await supabase
-        .from('daily_logs')
-        .select('id', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .gt('date', lastAcknowledgedAt.split('T')[0])
-      logsSinceAcknowledged = count ?? 0
-    }
-
-    const result = getSynthesisState(totalLogs, lastAcknowledgedAt, logsSinceAcknowledged)
-    setSynthesisState(result.state)
-    setLogsSinceAck(logsSinceAcknowledged)
-    setLogsUntilReady(result.logsUntilReady)
-
-    if (historyRes.data) {
-      const formatted = [...historyRes.data].reverse().map((log: any) => {
+    if (data) {
+      const formatted = [...data].reverse().map((log: any) => {
         const [year, month, day] = log.date.split('-')
         const dateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
         return {
@@ -411,17 +387,8 @@ export default function Progress() {
 
   // ─────────────────────────────────────────────────────────────────────────
   // SAVE
-  //
-  // Dual-write strategy: v8 field names AND legacy field names are both
-  // written on every save. This ensures:
-  //   - The trend chart (reads mood_score, focus_hours) always has data
-  //   - The correlation graph (reads daytime_db) always has data
-  //   - The v8 engine (reads daytime_db_avg, nighttime_db etc) has data
-  //   - No existing DB consumers break
   // ─────────────────────────────────────────────────────────────────────────
   const handleSave = async (isForced = false) => {
-    // Morning requires morningMood. Evening has no hard required fields.
-    // daytime_db persists from the morning save — no evening critical check needed.
     const criticalFields = activeTab === 'morning'
       ? [morningLux]
       : []
@@ -446,12 +413,7 @@ export default function Progress() {
         user_id: user.id,
         date:    today,
 
-        // ── LEGACY FIELDS (graph + existing consumers — do not remove) ──────
-        // mood_score feeds fetchHistory() → CorrelationGraph mood line.
-        // tags, note are the original DB column names for morning data.
-        // daytime_db feeds the existing dB correlation line in the graph.
-        // bedtime_db, bedtime_lux, sleep_readiness, readiness_score,
-        // evening_mood_score are existing columns — must always be written.
+        // ── LEGACY FIELDS ────────────────────────────────────────────────────
         mood_score:          morningMood,
         tags:                morningTags,
         note:                morningNote,
@@ -471,9 +433,6 @@ export default function Progress() {
         morning_tension: tensionScore,
         sleep_wakes:     wakeScore,
         morning_lux:     morningLux    ? parseInt(morningLux)    : null,
-        // nighttime_db: bedroom ambient measured at morning log time (v8).
-        // Written here for the engine; the bedroom sound UI writes bedtime_db
-        // (the legacy column) separately above for the graph/legacy consumers.
         nighttime_db:    nighttimeDb   ? parseInt(nighttimeDb)   : null,
         cycle_phase:     cyclePhase    ?? null,
 
@@ -482,28 +441,13 @@ export default function Progress() {
         evening_tags:    eveningTags,
         evening_note:    eveningNote,
         social_demand:   socialDemand  ?? null,
-        // daytime_db_avg: written by the morning save and persists through
-        // the evening upsert via hydration in fetchTodayLog(). The value
-        // written here is whatever was hydrated — preserving the morning entry.
-        // This mirrors the same pattern as morning_lux feeding evening CFS.
         daytime_db_avg:  daytimeDb     ? parseInt(daytimeDb)     : null,
-        // daytime_db_peak: removed from UI in v8.2 — field retained in schema
-        // for future wearable integration. Write null to avoid clobbering
-        // any value that may exist from a previous session.
         daytime_db_peak: null,
         noise_character: noiseCharacter ?? null,
 
         // ── V8 PROPRIETARY SIGNALS ──────────────────────────────────────────
-        // focus_hours: feeds the trend chart AND the v8 engine.
         focus_hours:    focusHours,
         task_init_drag: taskInitDrag ?? null,
-        // environmental_control_score derived from task_init_drag (v8.2).
-        // No longer collected as a separate slider. Derivation:
-        //   none   → 8  (no penalty in engine)
-        //   light  → 6  (no penalty in engine)
-        //   moderate → 4  (triggers <5 penalty: +3 SES)
-        //   heavy  → 2  (triggers <5 penalty: +3 SES)
-        //   null   → null (no penalty)
         environmental_control_score: (() => {
           if (taskInitDrag === 'none')     return 8
           if (taskInitDrag === 'light')    return 6
@@ -511,9 +455,6 @@ export default function Progress() {
           if (taskInitDrag === 'heavy')    return 2
           return null
         })(),
-        // spatial_reset: removed from UI and engine scoring in v8.2.
-        // Write null rather than false to avoid the silent baseline penalty
-        // that false produced for users who did not complete the evening log.
         spatial_reset: null,
       }
 
@@ -802,7 +743,7 @@ export default function Progress() {
                         className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
                       />
                     </div>
-                    {/* DAYTIME DB — average; also feeds legacy daytime_db column */}
+                    {/* DAYTIME DB */}
                     <div>
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2 text-[#c9ccbb]/80 text-xs font-bold uppercase tracking-widest">
@@ -839,7 +780,7 @@ export default function Progress() {
 
                   {/* ROW 1: FOCUS + SOCIAL */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
-                    {/* FOCUSED WORK HOURS — feeds focus_hours column for trend chart */}
+                    {/* FOCUSED WORK HOURS */}
                     <div>
                       <div className="flex justify-between mb-2">
                         <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb]">
@@ -888,10 +829,6 @@ export default function Progress() {
                   </div>
 
                   {/* ROW 2: TASK INITIATION DRAG */}
-                  {/* Task drag now also carries the environmental agency signal.
-                      environmental_control_score is derived from this value in
-                      the upsert payload: none/light → no engine penalty,
-                      moderate/heavy → triggers +3 SES (Glass & Singer 1972). */}
                   <div className="grid grid-cols-1 pt-6 mb-6 border-t border-[#b5a642]/10">
                     <div>
                       <label className="flex items-center gap-2 text-xs font-bold text-[#c9ccbb] mb-2">
@@ -984,12 +921,7 @@ export default function Progress() {
                   )}
                 </div>
 
-                {/* EVENING ACOUSTIC — NOISE CHARACTER ONLY */}
-                {/* daytime_db_avg persists from the morning save via fetchTodayLog()
-                    hydration. It is not re-collected here. This mirrors the same
-                    pattern as morning_lux feeding evening CFS without appearing
-                    in the evening tab. The engine reads it from the row regardless
-                    of which session last wrote it. */}
+                {/* EVENING ACOUSTIC */}
                 <div className="mb-8 p-6 bg-[#000]/20 rounded-2xl border border-[#c9ccbb]/5 animate-fade-in">
                   <label className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-1 flex items-center gap-2">
                     <Volume2 size={12} /> Acoustic Environment Today
@@ -1190,8 +1122,6 @@ export default function Progress() {
                       value={bedtimeDb}
                       onChange={(e) => {
                         setBedtimeDb(e.target.value)
-                        // Also update nighttimeDb — this is what the v8 morning
-                        // engine reads as the bedroom ambient on waking.
                         setNighttimeDb(e.target.value)
                       }}
                       className="w-full bg-[#1b270e] border border-[#c9ccbb]/10 rounded-xl p-3 text-[#c9ccbb] focus:outline-none focus:border-[#b5a642]/50 text-sm"
@@ -1311,12 +1241,6 @@ export default function Progress() {
                     <h3 className="text-lg font-serif text-[#c9ccbb] mb-2">
                       {getBsfiLabel(morningBsfi.total_score, 'morning').label}
                     </h3>
-
-                    {/* subjectiveState: derived from local state (morningMood + tensionScore).
-                        These are already in component state — no schema change required.
-                        positive:   mood ≥ 4 AND tension ≤ 2 — body recovered well, light is a calibration
-                        distressed: mood ≤ 2 OR tension ≥ 7  — friction is felt, environment is the lever
-                        neutral:    everything else            — some friction, one variable addressable */}
                     {(() => {
                       const subjectiveState: SubjectiveState =
                         (morningMood !== null && morningMood >= 4 && tensionScore <= 2) ? 'positive' :
@@ -1503,82 +1427,70 @@ export default function Progress() {
 
           </AnimatePresence>
 
-          {/* 14-DAY PATTERN PANEL */}
+          {/* ─────────────────────────────────────────────────────────────────
+              14-DAY PATTERN PANEL
+              ─────────────────────────────────────────────────────────────────
+              CHANGE: Removed synthesisState / logsSinceAck / logsUntilReady
+              machinery and the /api/acknowledge-synthesis call from onClick.
+              The panel now uses macroSynthesis.ready (driven by chartLogs.length
+              >= 14) as the sole gate — identical to the pre-acknowledge system.
+              The accordion (isSynthesisExpanded) is preserved exactly as before.
+              ───────────────────────────────────────────────────────────────── */}
           <div className={`glass-panel p-6 rounded-3xl mb-8 border relative overflow-hidden transition-all ${
-            synthesisState === 'recalibrating'
-              ? 'bg-gradient-to-r from-[#b5a642]/5 to-transparent border-[#b5a642]/15'
-              : synthesisState === 'building' || hasAccess
-                ? 'bg-gradient-to-r from-[#b5a642]/10 to-transparent border-[#b5a642]/20'
-                : 'bg-[#b5a642]/10 border-[#b5a642]/40 shadow-lg shadow-[#b5a642]/5'
+            !macroSynthesis.ready || hasAccess
+              ? 'bg-gradient-to-r from-[#b5a642]/10 to-transparent border-[#b5a642]/20'
+              : 'bg-[#b5a642]/10 border-[#b5a642]/40 shadow-lg shadow-[#b5a642]/5'
           }`}>
             <div
-              className={`flex items-center justify-between w-full relative z-10 ${hasAccess && macroSynthesis.ready && synthesisState === 'ready' ? 'cursor-pointer group' : ''}`}
-              onClick={async () => {
-                if (!hasAccess || !macroSynthesis.ready) return
-                const wasExpanded = isSynthesisExpanded
-                setIsSynthesisExpanded(!isSynthesisExpanded)
-                if (wasExpanded) {
-                  await fetch('/api/acknowledge-synthesis', { method: 'POST' })
-                  fetchHistory()
-                }
+              className={`flex items-center justify-between w-full relative z-10 ${hasAccess && macroSynthesis.ready ? 'cursor-pointer group' : ''}`}
+              onClick={() => {
+                if (hasAccess && macroSynthesis.ready) setIsSynthesisExpanded(!isSynthesisExpanded)
               }}
             >
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-[#b5a642]/20 rounded-full text-[#b5a642] shrink-0">
-                  {macroSynthesis.ready && !hasAccess && synthesisState === 'ready'
-                    ? <Lock size={20} />
-                    : <Fingerprint size={20} />
-                  }
+                  {macroSynthesis.ready && !hasAccess ? <Lock size={20} /> : <Fingerprint size={20} />}
                 </div>
                 <div>
                   <span className="text-[#b5a642] text-[10px] font-bold uppercase tracking-widest mb-1 block">
-                    {synthesisState === 'recalibrating'
-                      ? 'Pattern Recalibrating'
-                      : synthesisState === 'ready'
-                        ? 'Your 14-Day Pattern · Based on your last 14 days of logs'
-                        : 'Building Your Picture'
+                    {macroSynthesis.ready
+                      ? 'Your 14-Day Pattern · Based on your last 14 days of logs'
+                      : 'Building Your Picture'
                     }
                   </span>
-                  <h4 className="text-xl font-serif text-[#c9ccbb]">
-                    {synthesisState === 'recalibrating'
-                      ? 'Your Next Pattern Is Being Synthesised'
-                      : macroSynthesis.title
-                    }
-                  </h4>
+                  <h4 className="text-xl font-serif text-[#c9ccbb]">{macroSynthesis.title}</h4>
                 </div>
               </div>
-              {hasAccess && macroSynthesis.ready && synthesisState === 'ready' && (
+              {hasAccess && macroSynthesis.ready && (
                 <div className="text-[#c9ccbb]/80 group-hover:text-[#b5a642] transition-colors ml-4 shrink-0">
                   {isSynthesisExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                 </div>
               )}
             </div>
 
-            {synthesisState === 'recalibrating' ? (
-              <div className="mt-4 pt-4 border-t border-[#b5a642]/10 w-full relative z-10">
+            {!macroSynthesis.ready ? (
+              <div className="mt-4 pt-4 border-t border-[#c9ccbb]/10 w-full relative z-10">
                 <p className="text-sm text-[#c9ccbb]/80 leading-relaxed max-w-2xl mb-4">
-                  Your next synthesis will be ready once {logsUntilReady} more {logsUntilReady === 1 ? 'day' : 'days'} of logs have been recorded.
+                  Your synthesis will be ready once {14 - chartLogs.length} more {14 - chartLogs.length === 1 ? 'day' : 'days'} of logs have been recorded.
                 </p>
                 <p className="text-[#c9ccbb]/80 text-xs leading-relaxed max-w-2xl italic">
                   Each new cycle reads your environment with fresh context. Continue logging consistently.
                 </p>
                 <div className="w-full max-w-md h-1 bg-[#000]/50 rounded-full mt-5 overflow-hidden">
-                  <div className="h-full bg-[#b5a642]/60 transition-all duration-1000" style={{ width: `${(logsSinceAck / 14) * 100}%` }} />
-                </div>
-              </div>
-            ) : synthesisState === 'building' ? (
-              <div className="mt-4 pt-4 border-t border-[#c9ccbb]/10 w-full relative z-10">
-                <p className="text-sm text-[#c9ccbb]/80 leading-relaxed max-w-2xl">{macroSynthesis.paragraphs[0]}</p>
-                <div className="w-full max-w-md h-1 bg-[#000]/50 rounded-full mt-4 overflow-hidden">
-                  <div className="h-full bg-[#b5a642] transition-all duration-1000" style={{ width: `${(chartLogs.length / 14) * 100}%` }} />
+                  <div
+                    className="h-full bg-[#b5a642] transition-all duration-1000"
+                    style={{ width: `${(chartLogs.length / 14) * 100}%` }}
+                  />
                 </div>
               </div>
             ) : hasAccess ? (
               <AnimatePresence>
                 {isSynthesisExpanded && (
                   <motion.div
-                    initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3, ease: 'easeInOut' }}
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: 'easeInOut' }}
                     className="overflow-hidden relative z-10"
                   >
                     <div className="mt-6 space-y-4 text-[#c9ccbb]/80 text-sm leading-relaxed border-t border-[#c9ccbb]/10 pt-6">
